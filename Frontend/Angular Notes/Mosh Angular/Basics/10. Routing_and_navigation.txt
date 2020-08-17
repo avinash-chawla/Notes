@@ -1,0 +1,352 @@
+1. Routing in a nutshell-->
+
+--> configure the routes, add a router outlet, add links
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+2. Configuring Routes-->
+
+app.module.ts-->
+
+import { RouterModule } from '@angular/router';
+imports: [
+    BrowserModule,
+    FormsModule,
+    ReactiveFormsModule,
+    HttpModule,
+    RouterModule.forRoot([
+      { path: '', component: HomeComponent },
+      { path: 'followers', component: GithubFollowersComponent },
+      { path: 'profile/:username', component: GithubProfileComponent },
+      { path: 'posts', component: PostsComponent },
+      { path: '**', component: NotFoundComponent },
+    ])
+  ], 
+
+--> order of path is important, path: '**' can not be put first and followers/:username can not be put after followers, it wont work unless
+
+app.component.html-->
+<router-outlet></router-outlet>
+
+--> for router to work, need to input this in app.html
+--> This is where component will be placed while routing.
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+3. RouterLink--->
+
+--> it is defined in RouterModule, decorator
+--> a href used to whole page reloading , also reload every webpack bundles
+--> while a RouterLink for spa -> single page application
+
+navbar.html-->
+
+<a routerLink="/posts">
+<a routerLink="/followers">
+
+----------------------------------------
+
+followers.html-->
+
+<a [routerLink]="['/followers', follower.id]">	
+
+--> for dynamic routing with params
+--> see it is property binding
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+4. RouterLinkActive-->
+
+--> dynamic css class rendering for active class when a routerLink is selected.
+
+navbar.html-->
+
+<li routerLinkActive="active current"><a routerLink="/followers">Followers</a></li>
+<li routerLinkActive="active current"><a routerLink="/posts">Posts</a></li>
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+
+5. Accessing Route Parameters-->
+
+-->accessing url params using injection of ActivatedRoute class
+
+github-profile.component.ts-->
+
+import { ActivatedRoute } from '@angular/router';
+constructor(private route: ActivatedRoute){}		--> initialising object from class
+
+ngOnInit() {
+	this.route.paramMap
+		.subscribe(params => {
+			console.log(params);
+			let id = +params.get('id')	--> + is converting to int from string & params object has get method to get specific param
+			console.log(id);
+	}}						
+
+
+--> this.route.paramMap returns an obeservable, so subscribed
+--> You can do console.log(params)	==> to see params object
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+6. Why Route Parameters Are Observable--->
+
+--> When route parameter changes on same component, dom is not rerendered
+--> Bec. ngOnInit does not track url to rerender dom
+--> To make him track of url change, we use observable on url and subscribe to it to get notified to ngOnInit method.
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+--> 1st case--> when user changes routes between components in url, one component is destroyed and new component is rendered --> without observable
+
+--> 2nd case--> there is button or link in component A to navigate to next page or previous page, but you have to only change its content, not the whole page again, eg. will be transaction page history displayed at one page at a time --> use of observable to not destroy component
+
+--> other example of 2nd case is --> gmail mail -->don't refresh the page --> you see new mail instead of whole page reload or automatically notified when new email came --> means observable and notified accordingly
+
+--> go to followers page --> click first link --> now followers page component is destroyed and first link component is initialised
+
+--> again navigate to followers page --> click second link --> now first link component is destroyed and followers component is initialised --> now followers component is destroyed again --> now second link component is reinitialised means it is re-rendered, not stayed in dom already --> without observable
+--> this process is without button to navigate
+
+
+--> now create a button "next" in github-profile and attach link of '/followers/1234', when we click that button 
+github-profile is not re-initialised so no notification of url change bec angular sees no difference in page dom without observable
+
+
+--> so observable is provided to notify change in url also
+
+
+--> now when we need changes in single component only with button inside and get access to route --> observable
+--> now when we want component always reinitiased without button instead always go to followers component page to get to another id and get access to route also --> snapshot
+--> ngOnInit() {
+	let id = this.route.snapshot.paramMap.get('id');
+	console.log(id);					--> snapshot
+}
+
+--> Observable is a collection of asynchronous data that arrives over time
+
+--> nutshell-->
+
+1. use snapshot to get access to route parameter --> when you want component to reinitialise
+2. use observable to get access to route parameter --> when you don't want component to reinitialise, only notified
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> Another way to learn
+
+--> When navigating from one component to another component using route, one component is destroyed, other component is initialised.
+--> There are scenarios where there is one component and by changing only id params in that, we want to see change
+--> But that component is not reinitialised, and we get same older component, instead of new data.
+--> This happens bec. we haven't set observable to that param id
+--> By setting observable to that param id, component is reinitialed every time when id param is changed.
+
+--> component: github-profile.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+  selector: 'app-github-profile',
+  templateUrl: './github-profile.component.html',
+  styleUrls: ['./github-profile.component.css']
+})
+export class GithubProfileComponent implements OnInit {
+
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    this.route.paramMap				--> setting observable to param id by subscribing to this paramMap object
+      .subscribe((params) => {
+        let id = +params.get('id');
+        console.log(id)
+      }
+      )
+  }
+}
+
+-----------------------------------------------------------------------------------------------
+
+--> When you are sure that user only access that id from parent component, instead of next id button in child component
+
+ngOnInit(): void{
+	this.route.snapshot.paramMap.get('id');
+}
+
+--> Next id button in child component means, child component takes route as "/followers/:id" so by changing from "/followers/1" to "/followers/2", 
+dom sees no difference, so it will not reinitialise child component and will not update dom
+--> But when you navigate from "/followers" to "/followers/1", dom will see difference in routes and destroys and initialise different components.
+
+--> nutshell-->
+
+1. use snapshot to get access to route parameter	--> when you want component to reinitialise
+2. use observable to get access to route parameter 	--> when you don't want component to reinitialise, only notified when route param changes. (possible in same component)
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+7. Route with multiple parameters
+
+--> There is technique to improve search engine optimization, include query of SEO in url as another parameter
+--> StackOverFlow uses this technique: https://stackoverflow.com/questions/40178386/bootstrap-4-navbar-items-on-right-side
+--> You can this website has added another parameter of question 
+
+1st step--> include 2nd parameter in router 	-->  { path: 'followers/:id/:username', component: GithubProfileComponent }
+2nd step--> include in routerLink 		-->   <a [routerLink]="['/followers', follower.id, follower.login]">{{ follower.login }}</a>
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+8. Query Parameters-->
+
+
+--> These are optional parameters
+
+1st case--> setting query parameter-->
+
+followers.html-->
+<a routerLink="/followers" [queryParams]="{page: 1, order: 'newest'}">Followers</a></li>
+
+---------------------------------------------------------------------------------------
+
+2nd case--> retrieving query parameters-->
+
+followers.ts-->
+
+import { ActivatedRoute } from '@angular/router';
+
+constructor(private route: ActivatedRoute)
+ngOnInit() {
+
+	this.route.paramMap.subscribe();
+	//let id = this.route.snapshot.paramMap.get('id');
+
+	this.route.queryParamMap.subscribe();
+	//this.route.snapshot.queryParamMap.get('page');
+
+	this.service.getAll()
+          .subscribe(followers => this.followers = followers)
+}
+
+
+--> Both are similar in use: required parameter and optional parameter
+--> Both have two ways to receive params: observable and snapshot
+--> In most cases, during pagination, in same component, only data changes, component will remain same so queryParamMap with observable is used.
+--> Snapshot is just retrieving url parameter without observable.
+
+--> Now question is how to get both params at same time
+--> this.route.paramMap.subscribe((params) => ..)
+--> this.route.queryParamMap.subscribe((params) => ..)
+--> This is next topic
+--> One more point, we do not need required params in followers.ts	--> only for demostration of combining two params
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+9. Subscibing to multiple observations-->
+
+--> in followers route, if we get two params then so instead of paramsMap, we have combineLatest
+
+followers.ts-->
+
+import { combineLatest } from 'rxjs';
+
+ngOnInit() {
+	combineLatest([
+		this.route.paramMap,
+		this.route.queryParamMap
+])
+	.subscribe(combined => {
+		let id = combined[0].get('id');			--> combined[0] get latest required parameter
+		let page = combined[1].get('page');		--> combined[1] get latest query (optional) parameter
+		
+		this.service.getAll()
+			.subscribe(followers => this.followers = followers)
+});
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+9. SwitchMap Operator-->
+
+--> Consider Observable as collection of asynchronous data coming from server
+--> So two subscriber one inside another will do like first subscriber gets params data from url and second subscriber gets data from api server.
+--> So there are two observables --> we have to make it one to improve performance
+
+--> in above program, we are using subscribe under another subscribe method for getting param first, then finding that id in service class.
+--> first subscribe is combining two observations and pass to another subscribe which is getting result
+--> there is another operator, switchMap which transfers observations 
+
+--> map operator converts Observable<Response> to Observable<any>	
+--> this.http.get()		--> returns Observable<Response> 	
+--> this.http.get().map		--> returns Observable<any>
+
+--> switchmap operator converts Observable<paramsMap[]> to Observable<any>
+--> combineLatest		--> returns Observable<paramsMap[]>
+--> combineLatest.switchmap	--> returns Observable<any>
+
+--> So instead of subscribing two times, we use switchMap which takes combined Observable and return single Observable of type any and then we subscribe to that Observable
+
+
+
+followers.ts-->
+
+import { switchMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators'
+
+ngOnInit() {
+	combineLatest([
+		this.route.paramMap,
+		this.route.queryParamMap
+])
+	.switchMap(combined => {
+		let id = combined.get('id');
+		let page = combined.get('page');
+
+		return this.service.getAll();
+	})
+	.subscribe(followers => this.followers = followers);
+}}
+			
+});
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+
+10. Programmatic Navigation-->
+
+--> the user is updating its profile, after clicking submit button, user should navigate to again followers page
+
+-----------------------------------------------------------
+
+--> profile.html-->
+<button class="btn btn-primary" (click)="Submit()">Submit</button>
+
+-----------------------------------------------------------
+
+--> profile.ts-->
+
+import { ActivatedRoute, Router } from '@angular/router';
+
+export class GithubProfileComponent implements OnInit {
+
+  constructor(private route: ActivatedRoute, private router: Router) { }
+
+  ngOnInit() {
+    console.log('githubprofile-init');
+    // let id = this.route.snapshot.paramMap.get('id');
+    // console.log(id);
+
+    this.route.paramMap
+      .subscribe(params => {
+        let id = +params.get('id');
+        console.log(id);
+      })
+  }
+
+  Submit() {
+    this.router.navigate(['/followers'], {			-----------------> router object
+      queryParams: { page: 1, order: 'newest' }
+    })
+  }
+
+-------------------------------------------------------------------------------------------------------------------------------------------

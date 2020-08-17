@@ -1,0 +1,16 @@
+--> Smart Object
+
+--> When big image is transformed to smaller size and again it transformed to bigger size, it losts its detailing.
+--> To prevent that from happening, we convert image to Smart Objects through it does not lose its detailing.
+
+--> It just like wrapper/protector. It protects images from being less resolution.
+
+------------------------------------------------------------------
+
+--> To Convert image to smart object -->
+--> Right click layer image, Convert to Smart object.
+
+--> To Remove the wrapper of smart object-->
+--> Right click layer image, Rasterize Layer
+
+------------------------------------------------------------------

@@ -1,0 +1,221 @@
+1. Creating Delete Button Link in List View
+
+--> In list-students.jsp,
+
+<c:forEach var="tempStudent" items="${STUDENT_LIST}">
+					
+	<!-- set up a link for each student -->
+	<c:url var="tempLink" value="StudentControllerServlet">
+		<c:param name="command" value="LOAD" />
+		<c:param name="studentId" value="${tempStudent.id}" />
+	</c:url>
+
+	<!--  set up a link to delete a student -->
+		<c:url var="deleteLink" value="StudentControllerServlet">
+			<c:param name="command" value="DELETE" />
+			<c:param name="studentId" value="${tempStudent.id}" />
+		</c:url>
+																		
+	<tr>
+		<td> ${tempStudent.firstName} </td>
+		<td> ${tempStudent.lastName} </td>
+		<td> ${tempStudent.email} </td>
+		<td> 
+			<a href="${tempLink}">Update</a> 
+			| 
+			<a href="${deleteLink}"
+			onclick="if (!(confirm('Are you sure you want to delete this student?'))) return false">
+			Delete</a>	
+		</td>
+	</tr>
+				
+</c:forEach>
+
+-------------------------------------------------------------------------------
+
+2. Controller Class
+
+package com.luv2code.web.jdbc;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
+
+@WebServlet("/StudentControllerServlet")
+public class StudentControllerServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	private StudentDbUtil studentDbUtil;
+	
+	@Resource(name="jdbc/web_student_tracker")
+	private DataSource dataSource;
+	
+	@Override
+	public void init() throws ServletException {
+		...
+	}
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		try {
+			// read the "command" parameter
+			String theCommand = request.getParameter("command");
+			
+			// if the command is missing, then default to listing students
+			if (theCommand == null) {
+				theCommand = "LIST";
+			}
+			
+			// route to the appropriate method
+			switch (theCommand) {
+			
+			case "LIST":
+				listStudents(request, response);
+				break;
+				
+			case "ADD":
+				addStudent(request, response);
+				break;
+				
+			case "LOAD":
+				loadStudent(request, response);
+				break;
+				
+			case "UPDATE":
+				updateStudent(request, response);
+				break;
+			
+			case "DELETE":
+				deleteStudent(request, response);
+				break;
+				
+			default:
+				listStudents(request, response);
+			}
+				
+		}
+		catch (Exception exc) {
+			throw new ServletException(exc);
+		}
+		
+	}
+
+	private void deleteStudent(HttpServletRequest request, HttpServletResponse response)
+		throws Exception {
+
+		// read student id from form data
+		String theStudentId = request.getParameter("studentId");
+		
+		// delete student from database
+		studentDbUtil.deleteStudent(theStudentId);
+		
+		// send them back to "list students" page
+		listStudents(request, response);
+	}
+
+	private void updateStudent(HttpServletRequest request, HttpServletResponse response)
+		...		
+	}
+
+	private void loadStudent(HttpServletRequest request, HttpServletResponse response) 
+		...	
+	}
+
+	private void addStudent(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		...
+	}
+
+	private void listStudents(HttpServletRequest request, HttpServletResponse response) 
+		...
+	}
+
+}
+
+-------------------------------------------------------------------------------
+
+3. Adding Delete method in StudentDbUtil.java
+
+public void deleteStudent(String theStudentId) throws Exception {
+
+		Connection myConn = null;
+		PreparedStatement myStmt = null;
+		
+		try {
+			// convert student id to int
+			int studentId = Integer.parseInt(theStudentId);
+			
+			// get connection to database
+			myConn = dataSource.getConnection();
+			
+			// create sql to delete student
+			String sql = "delete from student where id=?";
+			
+			// prepare statement
+			myStmt = myConn.prepareStatement(sql);
+			
+			// set params
+			myStmt.setInt(1, studentId);
+			
+			// execute sql statement
+			myStmt.execute();
+		}
+		finally {
+			// clean up JDBC code
+			close(myConn, myStmt, null);
+		}	
+	}
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+				

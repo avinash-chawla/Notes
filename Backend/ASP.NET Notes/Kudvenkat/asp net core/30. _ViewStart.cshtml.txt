@@ -1,0 +1,99 @@
+1. Why this file is needed
+
+--> Currently, we are setting the Layout property in each and every view.
+--> Index view file
+
+@{ 
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Employee List";
+}
+
+--> If we change the _Layout file name or move it to other folder, views following this layout has to do modifications.
+--> This will be nightmare in maintainance.
+
+---------------------------------------------------------------------------------
+
+2. _ViewStart View file
+
+--> Right click Views folder
+--> Add new item --> search for Razor view start
+--> This will be our main view file where location of _layout is set.
+--> As it is placed in Views folder, all view files automatically set to _layout defined in this _viewStart file
+
+@{
+    Layout = "_Layout";
+}
+
+--------------------------------------------------------------------------------
+
+--> Now actionMethods view file looks like:
+
+@{ 
+    ViewBag.Title = "Employee List";
+}
+
+--------------------------------------------------------------------------------
+
+3. Overriding this _ViewStart file
+
+--> If any controller wants master page other than _layout view file
+--> Then in that case, make another _ViewStart file in that controller folder View.
+--> This will override main _viewStart file.
+
+--------------------------------------------------------------------------------
+
+4. Second Override
+
+--> Now any one or two view files need different _layout, then instead of making new viewStart file
+--> We will make use Layout property in that view
+--> This has highest priority and this will override all viewStart files
+
+@{ 
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Employee Details";
+}
+
+--------------------------------------------------------------------------------
+
+5. View says I don't need any master page
+
+--> As we define viewStart file in Views folder, it will apply to all view files
+--> How to prevent it
+--> Solution:
+
+@{ 
+    Layout = "null";
+    ViewBag.Title = "Employee Details";
+}
+
+--------------------------------------------------------------------------------
+
+6. Custom Layout
+
+--> We want one layout for normal user and one layout for admin user
+--> Means dynamically select layout according to authentication
+
+--> _ViewStart file
+
+@{
+    if (User.IsInRole("Admin"))
+    {
+	Layout = "_AdminLayout";
+    }
+    else
+    {
+	Layout = "_NonAdminLayout";
+    }
+}
+
+--------------------------------------------------------------------------------
+
+7. Summary
+
+1. Code in ViewStart is executed before the code in an individual view 
+2. Move the common code such as setting the Layout property to ViewStart 
+3. ViewStart reduces code redundancy and improves maintainability 
+4. ViewStart file is hierarchical
+
+--------------------------------------------------------------------------------
+

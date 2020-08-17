@@ -1,0 +1,319 @@
+1. Intro-->
+
+--> Install Sql Server
+--> Install SSMS  --> Sql Server Management Studio 2018
+--> sql server is where all the data and tables are stored and ssms is client tool to talk with sql server
+
+--> Connet ssms to sql server with connect to database option in starting of ssms
+--> Click new Query in menu bar
+
+---------------------------------------------------------------------------------------------------------
+
+2. Create database-->
+
+--> graphically, right click database, new database, Sample1
+--> create database Sample2
+
+--> query--> create database Sample2
+
+--> right click Sample1 --> properties --> files --> copy path --> paste in run command
+--> while creating database, two files are generated  
+
+.mdf file --> Data file(contains actual data)
+.ldf file --> Transaction log file (used to recover the database)
+
+---------------------------------------------------------------------------------------------------------
+
+3. Altering Database-->
+
+--> graphically
+--> Alter Database Sample2 Modify Name = Sample3
+
+--> another way is to use system stored procedure option, come in advanced sql server
+--> one example is to use sp_renameDB 'Sample3','Sample4'
+
+---------------------------------------------------------------------------------------------------------
+
+4. Drop Database --> 
+
+--> Drop Database Sample4
+
+--> Above query won't work if any other user is accessing this database, so solution is:
+
+--> Alter Database Sample4 Set SINGLE_USER With Rollback Immediate
+--> Drop Database Sample4
+
+--> Rollback Immediate means cancel all incomplete transaction and closes all connections to this database --> this is extra option
+
+--> Note: System databases cannot be dropped
+
+----------------------------------------------------------------------------------------------------
+
+5. Creating Table-->
+
+--> first graphically
+
+1. under database Sample1 , right click table --> New --> table
+2. ID --> int --> not null 	--> right click row, set primary key
+   Name --> nvarchar(50) --> not null
+   Email --> nvarchar(50) --> not null
+   GenderId --> int --> null
+3. right click table --> save table --> tblPerson (or) right click empty area --> execute Sql query
+
+--> coding -->
+
+Use Sample1
+Create Table tblGender
+(
+ID int NOT NULL Primary Key,
+Gender nvarchar(50) NOT NULL
+)
+
+-------------------------------------------------------------------------------------------------
+
+6. Creating Table and setting Foreign key-->
+
+1. Graphically-->
+--> right-click table --> edit top 200 rows --> enter data in table
+
+2. query-->
+Insert into tblPerson (ID, Name, Email) Values (7, 'Richi', r@r.com)
+
+--> GenderId is optional
+--> columnName is also optional to specify, if inputing in series wise
+
+
+--> Forein Key-->
+--> It is used to enforce database intrgrity. A foreign key in one table points to a primary key in another table. In person table, in genderId column, no one can write 99 bec. this column is now linked to column of gender table Id which is primary key of that table.
+--> other means that we are constraining column to input data which are allowed
+
+-->Setting Foreign Key-->
+
+1. Graphically-->
+
+--> right click table --> design.
+--> right click window --> relationships...
+--> Add
+--> Tables and Columns Specific 
+--> set primary and foreign key of respective column
+
+2. Query-->
+
+Alter table ForeignKeyTable add constraint ForeignKeyTable_ForeignKeyColumn_FK	
+Foreign key (ForeignKeyColumn) referces PrimaryKeyTable(PrimaryKeyColumn)
+
+Alter table tblPerson add constraint tblPerson_GenderId_FK
+Foreign key (GenderId) references tblGender(ID)
+
+--> tblPerson_GenderId_FK ---> Name of constraint given
+--> expand table --> keys --> see constraint name
+
+
+----------------------------------------------------------------------------------------------
+
+
+7. Adding a Default constraint-->
+
+--> setting a default value for column if data is not inputted.
+
+Alter Table tblPerson
+Add Constraint DF_tblPerson_GenderId	--> name for contraint
+Default 3 For GenderId			--> value for columnName
+
+--> Insert into tblPerson (ID, Name, Email) Values (7, 'Richi', 'r@r.com')  	--> 3
+--> Insert into tblPerson (ID, Name, Email, GenderId) Values (8, 'Johnny', 'j@r.com', NULL) 
+
+--> data stored as null, bec null is acceptable in this column, default wont come bec. it is specified something
+
+--> Adding a new column with default value-->
+
+ALTER TABLE {TABLE_NAME}
+ADD (COLUMN_NAME) {DATA_TYPE} {NULL | NOT NULL}
+CONSTRAINT {CONSTRAINT_NAME} DEFAULT {DEFAULT_VALUE}
+
+--> Droping a constraint-->
+
+ALTER TABLE {TABLE_NAME}
+DROP CONSTRAINT {CONSTRAINT_NAME}
+
+----------------------------------------------------------------------------------------------
+
+8. Cascading Referential Integrity Constraint-->
+
+--> when one column has reference to another column in other table, and if that main column is deleted, sql won't allow to delete that, bec some column is dependent on him. which is foreign key constraint. 
+--> this action is No Action setting in FK_Constraint by default which prevents deletion.
+
+----------------------------------------------------------------------------------------------
+
+Options when setting up Cascading referential integrity constraint-->
+
+1. No Action: default behaviour. if an attempt is made to delete or update a row, DELETE or UPDATE query is rolled back by sql server
+
+2. Cascade: if an attempt is made to delete or update a row with a key referenced by foreign keys in existing rows in other tables, all rows containing those foreign keys are also deleted or updated.
+
+3. Set Null: if an attempt is made to delete or update a row with a key referenced by foreign keys in existing rows in other tables, all rows containing those foreign keys are set to NULL.
+
+4. Set Default:  if an attempt is made to delete or update a row with a key referenced by foreign keys in existing rows in other tables, all rows containing those foreing keys are set to default values.
+
+----------------------------------------------------------------------------------------------
+
+--> only applied to table which has foreign key setup
+--> tblPerson --> Keys --> FK_Constraint --> double_click --> insert and updates.
+
+----------------------------------------------------------------------------------------------
+
+9. Check Constraint-->
+
+--> Limit Age data to be between 1 and 150
+
+1. Graphically-->
+
+--> expand table --> right constraint --> Add Constraint
+--> enter expression --> should return boolean --> Age>0 AND Age<150	--> Age column_name
+--> Name: CK_tblPerson_Age
+
+--> if column is accepting null, then validation wont cross you.
+
+--> removing constraint-->
+1. right click delete
+2. Alter Table tblPerson 
+   Drop Constraint Constraint_Name
+
+--> adding constraint-->
+
+Alter Table tblPerson
+Add Constraint CK_tblPerson_Age Check (Age>0 AND Age<150) 
+
+----------------------------------------------------------------------------------------------
+
+10. Auto Increment-->
+
+1. Graphically-->
+
+--> expand table --> columns --> right click --> modify --> in properties --> under identity specification --> is identity --> yes 
+
+--> Identity Increment  --> steps 
+--> Identity Seed 	--> starting index
+
+2. Query-->
+CREATE TABLE TEST1
+(
+ID int identity(1,1),
+Value narchar(20)
+)
+
+
+----------------------------------------------------------------------------------------
+--> Auto Increment Off for one row -->
+
+--> suppose, if we dont want for one row to be autoincremented, we want to provide custom id
+--> select query and run --> for individual queries
+
+
+1. Delete from tblPerson1 where PersonId = 1	--> deleted first record
+
+2. Insert Into tblPerson1 Values (1, 'Jane')	--> will give error
+
+3. SET IDENTITY_INSERT tblPerson1 ON
+   Insert Into tblPerson1 (PersonId, Name) Values (1, 'Jane')	--> now run
+
+
+4. Insert Into tblPerson1 Values ('Martin')	
+
+--> will give error bec. identity_insert is still on, we have to turn it off
+
+5. SET IDENTITY_INSERT tblPerson1 OFF
+   Insert Into tblPerson1 Values ('Martin')	--> now autoincrement is back on path
+
+----------------------------------------------------------------------------------------
+
+--> Database Consistency Check Command--> (DBCC) --> resetting Identity count to 1
+
+--> If you have deleted all the rows in a table, and you want to reset the identity column value, use DBCC 
+
+1. Delete from dbo.tblPerson1		--> delete all rows
+
+2. Insert into dbo.tblPerson1 values('Martin')	--> start from 6
+
+3. Delete from dbo.tblPerson1		--> delete all rows
+
+4. DBCC CHECKIDENT('tblPerson', RESEED, 0)
+
+5. Insert into dbo.tblPerson1 values('Martin')	--> start from 1 
+
+----------------------------------------------------------------------------------------
+
+10. How to get the last generated identity column value-->
+
+--> we use scope_identity() function
+--> select scope_identity()		--> return last generated identity number
+--> select @@identity()			--> return same
+
+--> now whats the difference 
+
+scope_identity()		--> same session and the same scope
+@@identity()			--> same session and across any scope
+ident_current('tableName')	--> specific table across any session and any scope
+
+--> session means in which we are querying or which is now connected to sql server 
+--> basically session means new connection
+
+--> scope_identity() and @@identity() depends on last session happened
+--> ident_current() depends on particular depend anywhere in any session
+
+----------------------------------------------------------------------------------------
+
+11. Trigger-->
+
+--> Trigger is something in which any action in one table triggers another action
+--> eg. when row is inserted in one table, in other table another row is generated
+
+Create Trigger trForInsert on Test1 for Insert		--> action
+as 
+Begin
+	Insert into Test2 Values('YYYY')		--> trigger action
+End
+
+
+--> (initially zero row in Test1 and 1 row in Test2)
+--> both return last generated number of any session or any table
+
+Select scope_identity()		--> 1		--> has scope limited to Test1 
+Select @@identity		--> 2		--> across scope means Test2 included
+
+-----------------------------------------------------------------------------
+
+12. Unique Key Constraint-->
+
+
+--> unique key constraint to enforce uniqueness of data in column
+--> no duplicate values
+
+--> unique key can be applied to phone number, email 
+--> primary key is mostly applied to id
+
+difference-->
+--> A table can only have one primary key but multiple unique key constraints
+--> Primary key does not allow nulls, where as unique key does allow null
+
+Alter Table Table_Name
+Add Constraint Constraint_Name Unique(Column_Name)
+
+1. Graphically-->
+
+--> right click table --> design --> right click column --> Indexes/Keys --> Add --> Name it = UQ_tblPerson_Email --> Columns = Email , Is Unique = yes, type = unique
+
+2. Query-->
+
+Alter Table tblPerson
+Add Constraint UQ_tblPerson_Email Unique(Email)
+
+--> refresh keys under table
+
+--> To drop constraint-->
+
+Alter table tblPerson
+Drop Constraint UQ_tblPerson_Email
+
+-----------------------------------------------------------------------------
+

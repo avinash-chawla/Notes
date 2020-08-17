@@ -1,0 +1,544 @@
+1. Entity Framework
+
+--> It is object Relational Mapper
+--> It maps data in relational database into objects of our application.
+--> Without this, we have to do manually --> opening connection, querying, closing
+--> This framework needs DbContext class which is a gateway to database
+--> It contains DbSets properties
+--> We use Linq query to this class, and this class will do sql query, do operations and return result in object
+
+-----------------------------------------------------------------------------
+
+2. Two Workflows
+
+1. Code First
+
+--> You make domain classes
+--> EntityFramework will make respective dB tables
+
+2. Db First
+
+--> You make Db tables
+--> EntityFramework will make respective domain classes.
+
+
+--> Benefit of CodeFirst
+1. Increased Productivity
+2. Any version of Database can be attached (full versioning)
+
+-----------------------------------------------------------------------------
+
+3. Code First Migration
+
+--> Install EntityFramework version 5.0.0
+--> To Make any class DataContext class, it should inherit DbContext of EntityFramework
+--> Make new class in Models folder --> DataContext.cs
+
+    public class DataContext : DbContext
+    {
+        public DataContext() : base("Vidly")
+        {
+            Database.SetInitializer<DataContext>(new DropCreateDatabaseIfModelChanges<DataContext>());
+        }
+        public DbSet<Movie> Movies { get; set; }
+        public DbSet<Customer> Customers { get; set; }
+    }
+
+-----------------------------------------------------------------------------
+
+--> In web.config file,
+
+  <connectionStrings>
+    <add name="Vidly" connectionString="data source = LENOVOLAPTOP; database=Vidly; integrated security=SSPI" providerName="System.Data.SqlClient"/>
+  </connectionStrings>
+
+-----------------------------------------------------------------------------
+
+--> In global.asax file,
+
+        protected void Application_Start()
+        {
+            Database.SetInitializer<Vidly.Models.DataContext>(null);
+	    ...
+        }
+
+-----------------------------------------------------------------------------
+
+
+--> Now, in package manager console,
+
+enable-migrations		--> This will set required configuration
+add-migration InitialModel	--> It will generate migration file containing sql query code
+
+update-database			--> It will update the database.
+
+--> Now check in database
+
+-----------------------------------------------------------------------------
+
+--> If you use MVC template, then Asp.net will autogenerate IdentityModel class which we have created DataContext class
+--> Register DbSet<> in there.
+
+-----------------------------------------------------------------------------
+
+4. Changing the Model 
+
+--> We add additional properties to Customer Model class
+--> IsSubscribedToNewsLetter and MembershipType
+
+--> MembershipType will be another class containing properties like 
+--> Membership, SignUpFee, Discount 
+
+--> This is real world example where one model domain is dependent on another domain
+
+--> Make new class in Models folder --> MembershipType.cs
+
+    public class MembershipType
+    {
+        public byte Id { get; set; }
+        public short SignUpFee { get; set; }
+        public byte DurationInMonths { get; set; }
+        public byte DiscountRate { get; set; }
+    }
+
+--> Add new Property in Customer.cs
+
+    public class Customer
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public bool IsSubscribedToNewsLetter { get; set; }
+        public MembershipType MembershipType { get; set; }		--> This is reference to other model domain class
+        public byte MembershipTypeId { get; set; }			--> This is foreign key setup
+    }
+
+--> To set foreign key to other domain model class, we use name of class followed by primary column of that class which is Id here
+--> Return type Id in both class should be same, here byte.
+--> This will not add any new column in table.
+--> It not done this way, while querying Customer table, whole object is also queried for MembershipType
+
+--> By linking this models, EntityFramework will autogenerate sql code of join multiple tables using foreign key constraint.
+
+--> add-migration AddedIsSubscribedToCustomer
+--> update-database
+
+--> After adding MembershipType type in customer:
+--> add-migration AddedMembershipType 
+--> update-database 
+
+--> We have not created object for Membership via DbSet in DataContext, bec. we do not want that.
+--> We only want Membership type in Customer class.
+
+-----------------------------------------------------------------------------
+
+5. Seeding the Database
+
+--> If you want persistant data in application that will not change over time, use migration to seed data
+--> When you deploy your application, use migration to populate such database
+--> add-migration PopulateMembershipType
+
+--> This will generate empty migration file,
+
+	    Sql("Insert into MembershipTypes (Id, SignUpFee, DurationInMonths, DiscountRate) Values (1, 0, 0, 0)");
+            Sql("Insert into MembershipTypes (Id, SignUpFee, DurationInMonths, DiscountRate) Values (2, 30, 1, 10)");
+            Sql("Insert into MembershipTypes (Id, SignUpFee, DurationInMonths, DiscountRate) Values (3, 90, 3, 10)");
+            Sql("Insert into MembershipTypes (Id, SignUpFee, DurationInMonths, DiscountRate) Values (4, 300, 12, 20)");
+
+--> update-database
+
+--> To copy same line multiple times, press ctrl+d
+
+-----------------------------------------------------------------------------
+
+6. Overiding Default Conventions of Database Schema
+
+--> EntityFramework by default for String, set nvarchar(255) and not null
+--> We can change such conventions using Data Annotations
+--> In Customer model class,
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+
+--> add-migration AddAnotationsToCustomerName
+--> update-database
+
+-----------------------------------------------------------------------------
+
+7. Querying Object
+
+--> We use Linq Query to query Object.
+--> In CustomersController, we have to make object of DataContext Class.
+
+    public class CustomersController : Controller
+    {
+
+        private DataContext _context;
+
+        public CustomersController()
+        {
+            _context = new DataContext();
+        }
+        
+        protected override void Dispose(bool disposing)
+        {
+            _context.Dispose();
+        }
+
+        public ActionResult Index()
+        {
+            IEnumerable<Customer> customers = _context.Customers.ToList();
+            return View(customers);
+        }
+
+        public ActionResult Details(int id)
+        {
+            Customer customer = _context.Customers.SingleOrDefault(x => x.Id == id);
+            return View(customer);
+        }
+    }
+
+
+--> We have created property of DataContext type _context
+--> In constructed, we created object of DataContext class and assign to that property.
+--> _context class is disposable object, so we have to dispose this object by overriding Disposable class method.
+--> ToList() and SingleOrDefault()  are Linq queries.
+
+--> Fill Data in Customers table in db manually
+--> Either use Visual Studio or ssms
+--> In Visual studio, open Sql Server Object Explorer from view tab
+--> All databases will be shown there.
+--> Right click table, view data
+--> Add new records.
+
+-----------------------------------------------------------------------------
+
+8. Eager Loading
+
+--> When you want object of MembershipType via Customer, it is not available by default
+--> eg. In view file, @customer.MembershipType.DiscountRate
+--> This will show error
+--> This is called Eager Loading
+
+--> To solve this, we have to use 'include' method while querying DataContext object in controller
+
+        public ActionResult Index()
+        {
+            IEnumerable<Customer> customers = _context.Customers.Include(c => c.MembershipType).ToList();
+            return View(customers);
+        }
+
+--> In View file,
+
+            @foreach (var customer in Model)
+            {
+                <tr>
+                    <td>@Html.ActionLink(Convert.ToString(customer.Id), "Details", "Customers", new { id = customer.Id }, null)</td>
+                    <td>@customer.Name</td>
+                    <td>@customer.MembershipType.DiscountRate%</td>
+                </tr>
+            }
+
+-----------------------------------------------------------------------------
+
+--> Reference from C# corner website of eager loading:
+
+1. Lazy Loading
+--> Lazy Loading means the related entities are not loaded, until we iterate through them or bind them the data. By default, LINQ to SQL loads the related entities, using Lazy Loading
+
+--> There is one-to-many relationship between Department and Employees entities. A Department can have 1 or more employees. When the departments are loaded, the related entities (Employee entities) are not loaded. Employee entities are only loaded, when we iterate through the objects belonging to a given department.
+
+-----------------------------------------------------------------------------
+
+2. Eager Loading
+
+--> Eager Loading is the process where a query for one type of entity also loads related entities as a part of the query
+
+--> Difference
+
+1. With Eager Loading, all the data is retrieved in a single query, which can then be cached to improve the Application performance. With Eager Loading, we are trading memory consumption for the database round trips.
+ 
+2. With Lazy Loading, we only retrieve just the amount of data, which we need in a single query. When we need more data related to the initial data, additional queries are issued to the database. This means there are several round trips between the Application Server and the database Server. In general, these database round trips are very often the major performance bottleneck in most Applications. Lesser the round trips, better will be the performance.
+
+-----------------------------------------------------------------------------
+
+9. Exercise 1
+
+--> We want to display Name of Membership Type in Customers List
+
+--> Solution:
+
+--> Add new property to MembershipType.cs
+
+    public class MembershipType
+    {
+        public byte Id { get; set; }
+        public string Name { get; set; }
+        public short SignUpFee { get; set; }
+        public byte DurationInMonths { get; set; }
+        public byte DiscountRate { get; set; }
+    }
+
+--> Updating the database
+
+add-migration AddedNameToMembershipType
+update-database
+
+--> Seeding Name Column in MembershipTypes table
+
+add-migration SeedingNameInMembershipType
+
+--> In Migration file,
+
+	    Sql("UPDATE MembershipTypes SET Name = 'Pay as You Go' WHERE Id = 1");
+            Sql("UPDATE MembershipTypes SET Name = 'Monthly' WHERE Id = 2");
+            Sql("UPDATE MembershipTypes SET Name = 'Quarterly' WHERE Id = 3");
+            Sql("UPDATE MembershipTypes SET Name = 'Annual' WHERE Id = 4");
+
+--> Update the database
+
+update-database
+
+--> In Index view file,
+
+<td>@customer.MembershipType.Name</td>
+
+-----------------------------------------------------------------------------
+
+10. Exercise - 2
+
+--> Add new field in Customer --> BirthDate
+--> This should be nullable
+--> Means if not availbale, won't display in View
+
+--> In Customer.cs
+
+    public class Customer
+    {
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+        public bool IsSubscribedToNewsLetter { get; set; }
+        public MembershipType MembershipType { get; set; }
+        public byte MembershipTypeId { get; set; }
+        public DateTime? Birthdate { get; set; }
+    }
+
+--> Updating database
+
+add-migration AddedBirthdateToCustomer
+update-migration
+
+--> Seeding birthdate manually in Customes table
+
+UPDATE Customers SET Birthdate = CAST('1980-01-01' AS DATETIME) WHERE Id = 1
+
+--> In Details actionMethod
+
+        public ActionResult Details(int id)
+        {
+            Customer customer = _context.Customers.Include(c => c.MembershipType).SingleOrDefault(x => x.Id == id);
+            return View(customer);
+        }
+
+--> In Details View,
+
+<h2>@Model.Name</h2>
+<ul>
+    <li>Membership Type: @Model.MembershipType.Name</li>
+    @if (Model.Birthdate.HasValue)
+    {
+        <li>Membership Type: @Model.Birthdate.Value.ToShortDateString()</li>
+    }
+</ul>
+
+-----------------------------------------------------------------------------
+
+3. Exercise-3          
+
+--> Add new field in Movie Class --> Genre
+--> This Genre should be linked to Genre model class
+--> Also add some other fields like ReleaseDate, DateAdded, NumberInStocks in Movie class
+
+-----------------------------------------------------------------------------
+
+--> Movie.cs
+
+    public class Movie
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public Genre Genre { get; set; }
+        public int GenreId { get; set; }
+    }
+
+--> Genre.cs
+
+    public class Genre
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+--> We have added foreign key reference in Movie.cs model class via GenreId
+
+-----------------------------------------------------------------------------
+
+--> updating database
+
+add-migration AddedGenreToMovie
+update-database
+
+-----------------------------------------------------------------------------
+
+--> Populating Genres table
+
+add-migration SeedingGenre
+
+--> Edit in migration file generated
+
+	    Sql("INSERT INTO Genres (Id, Name) VALUES (1, 'Action')");
+            Sql("INSERT INTO Genres (Id, Name) VALUES (2, 'Thriller')");
+            Sql("INSERT INTO Genres (Id, Name) VALUES (3, 'Family')");
+            Sql("INSERT INTO Genres (Id, Name) VALUES (4, 'Romance')");
+            Sql("INSERT INTO Genres (Id, Name) VALUES (5, 'Comedy')");
+
+
+update-database
+
+-----------------------------------------------------------------------------
+
+--> Adding another fields in Movie class
+
+--> Movie.cs
+
+    public class Movie
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public Genre Genre { get; set; }
+        public int GenreId { get; set; }
+        public DateTime DateAdded { get; set; }
+        public DateTime ReleaseTime { get; set; }
+        public int NumberInStock { get; set; }
+    }
+
+--> Updating database
+
+add-migration AddedFieldsInMovies
+update-database
+
+--> Seeding data into movies table manually using ssms or visual studio
+
+-----------------------------------------------------------------------------
+
+--> MoviesController.cs
+
+public class MoviesController : Controller
+    {
+        // GET: Movies
+
+        private DataContext _context;
+
+        public MoviesController()
+        {
+            _context = new DataContext();
+        }
+
+        public ActionResult Index()
+        {
+            IEnumerable<Movie> movies = _context.Movies.Include(m => m.Genre).ToList();
+            return View(movies);
+        }
+
+        public ActionResult Details(int id)
+        {
+            Movie movie = _context.Movies.Include(m => m.Genre).FirstOrDefault(x => x.Id == id);
+            return View(movie);
+        }
+    }
+
+-----------------------------------------------------------------------------
+
+--> In Index.cshtml
+
+@model IEnumerable<Vidly.Models.Movie>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Movies</h2>
+
+@if (!Model.Any())
+{
+    <text>No List to display</text>
+}
+else
+{
+    <table class="table table-hover table-bordered">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Genre</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var movie in Model)
+            {
+                <tr>
+                    <td>@Html.ActionLink(movie.Name, "Details", "Movies", new { id = movie.Id }, null)</td>
+                    <td>@movie.Genre.Name</td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+}
+
+-----------------------------------------------------------------------------
+
+--> Details.cshtml
+
+@model Vidly.Models.Movie
+@{
+    ViewBag.Title = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@Model.Name</h2>
+<ul>
+    <li>Genre: @Model.Genre.Name</li>
+    <li>Release Date: @Model.ReleaseTime.ToShortDateString()</li>
+    <li>Date Added: @Model.DateAdded.ToShortDateString()</li>
+    <li>Number in Stock: @Model.NumberInStock</li>
+</ul>
+
+-----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

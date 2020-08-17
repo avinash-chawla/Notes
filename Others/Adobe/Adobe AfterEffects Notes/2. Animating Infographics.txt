@@ -1,0 +1,210 @@
+1. Intro-->
+
+--> Opening Prject
+
+--> Open software
+--> New Project	(empty container)
+--> Every Project is made of compositions, also called comps, Like pages in a document.
+--> Composition of Animations, Audio, Text, Colors, Timings
+
+-------------------------------------------------------------
+
+--> Composition Settings
+
+--> Composition tab --> new Composition
+--> Name: My First Comp
+--> Preset: HDTV 1080 25 
+--> 25 is frames/second (most common)
+--> 1080 is pixel height of video
+--> When it is mentioned video is 720 p means heigth is 720 pixel
+--> Aspect Ratio for video is 16:9(1.78) so width is 1920 px
+--> Resolution: Full
+--> Start and Duration: Does not matter here
+--> Background Color: WorkSpace color
+--> Ok
+
+------------------------------------------------------------
+
+--> Another way of creating Composition
+
+--> Another way of creating Comp
+--> Select mp3 file  --> File tab --> import --> File
+--> Right click it --> New Composition
+--> This composition matches time with audio file automatically, so no need to match that --> Rename it --> Value of Sleep - Comp (just suffix Comp)
+
+------------------------------------------------------------
+
+--> Different Sections in Adobe-->
+
+
+--> Left Middle place displays all Project file
+--> Double click to import files.
+--> Left Bottom place is Displaying Comp
+--> You can lock it from playing, by click below lock icon
+--> On Right Bottom, there is timeline
+--> Middle place is for showing Main Video
+--> When any Layout of this project is changed, Window tab --> WorkSpace --> Reset to Essentials
+
+---------------------------------------------------------------
+
+2. How to add audio music to a infographic-->
+
+--> To See Waveforms of Audio
+
+--> Click on Side arrow on Comp
+--> Again click on Arrow, then again
+--> This is useful to checking where the pause is to correctly position infographics
+
+------------------------------------------------------------
+
+--> Changing Intensity of Audio
+
+--> Click on Window tab --> Check Audio
+--> Better Voice Range in Video is between -6 and -12
+--> 0 is maximum
+--> Always check that, and adjust with button near it.
+--> Video or Audio can be played using Spacebar
+
+--------------------------------------------------------------
+
+--> Free Background music download website-->
+
+https://wistia.com/
+
+--------------------------------------------------------------
+
+--> Combining more than two musics in Video-->
+
+--> Just drag the mp3 file to main Visual workspace
+--> If you want to start at specific time, drag mp3 to timeline
+
+------------------------------------------------------------
+
+--> Making Folders-->
+
+--> There are different files here - videos, comp, music, images
+--> So Make folders = Video, Files, Audio and comp outside only.
+
+------------------------------------------------------------
+
+--> Lowering intensity of Background Music-->
+
+--> Lower the Background music using Audio Button on right side.
+--> Manage sound intensity from there by clicking specific mp3 file in comp.
+--> Then lock it.
+
+-------------------------------------------------------------------
+
+3. How to add a solid background or image to your infographics-->
+
+--> Solid Background:
+--> Layer tab --> New --> Solid --> Choose color --> Ok
+
+--> Image:
+--> Drag and drop to Main Window
+
+--> To resize image, either
+1. Mouse Scroll or
+2. Click on double arrow button in comp, Transform --> Scale it.
+
+-------------------------------------------------------------------
+
+4. Adding text Adobe Typekit-->
+
+--> Click on T on top
+--> Either Drag box or click it anywhere on display window
+--> Make sure Character and Paragraph are displayed on right side of screen
+--> If not, window, select Character and Paragraph
+--> use selection tool to move text from toolbar.
+
+----------------------------------------------------------------
+
+5. free Icons download site-->
+
+--> Iconfinder.com
+
+----------------------------------------------------------------
+
+6. CC Libraries are amazing-->
+
+--> Download Scott library from = "adobe.ly/2uWV7PC" 
+--> Needs Creative Cloud Subscription
+
+----------------------------------------------------------------
+
+7. Animating text-->
+
+--> Select Text and Type it on main screen
+--> Select Text in comp
+--> Under down arrow
+--> Click Transform
+--> Click timer beside Opacity
+--> This will insert keyframe
+--> keyframes are like state of element
+
+----------------------------------------------------------------
+
+--> Time Pointer is Current Time Indicator
+--> At 0s, make opacity to zero
+--> At 1:00s, make opacity to 100%
+--> At 2:00s, click on Add or remove keyframe at current time button
+--> At 3:00s, make opacity 0%
+
+----------------------------------------------------------------
+
+--> Means Text starts from 0 to 100% , it will stay some time, then it will decay
+--> Time is displayed on left top of composition and below main screen.
+
+-------------------------------------------------------------------------------------------------------------------------
+
+8. Animating Icon-->
+
+--> Hold Shift key and drag current timeline --> to move in steps
+--> Set keyframe as: Scale: 0 to 100% of an icon
+
+-----------------------------------------------------------
+
+8. Motion Blurr-->
+
+--> Click Motion Blurr icon in top and beside each comp
+
+-----------------------------------------------------------
+
+9. Popping Sound-->
+
+--> Download from freesound.org
+
+----------------------------------------------------------
+
+10. Making Transition speed faster-->
+
+--> Select Keyframe
+--> right click it
+--> Keyframe velocity
+--> Make it 75%
+
+----------------------------------------------------------
+
+--> Making Transition Ease-in-->
+
+--> Select Keyframe
+--> right click it
+--> Keyframe assistant
+--> It is making speed inside as 33.3%
+
+----------------------------------------------------------
+
+11. Circle Burst Effect around icon-->
+
+--> Double click Rounded Rectangle
+--> Set Keyframe as: Size: (30,0) to (0,60) and Position: -x
+--> Make Keyframe velocity: 75%
+--> Click on Add beside Content inside Shape comp
+--> Click on Repeater
+--> Set: Copies: 12, Position: 0   --> means all copies at one place
+--> Transform: Set to Icon location
+
+----------------------------------------------------------
+
+
+

@@ -1,0 +1,45 @@
+8. Types of Computers
+
+--> A wide variety of computers exists. Most of the computers we see, on a day to day basis, are mobile phones, tablets, laptops and in some cases desktops.
+--> All these are essentially the same kind of computer, called a Personal Computer or a PC. There are also other types of computers and setups. --> These include:
+
+Workstation
+Minicomputer
+Mainframe
+Supercomputer
+
+
+---------------------------------------------------------------------------------
+
+The PC
+
+--> The PC or Personal Computer is literally meant for personal, or an individual's,use.
+--> They are complete with all of the components being part of the same unit.
+--> The best examples of this are a desktop, a laptop, a mobile phone or a tablet.
+
+---------------------------------------------------------------------------------
+
+A Workstation
+
+--> Workstations are similar to personal computers. They too are standalone machines meant for individual use.
+However, as the name suggests, they are used usually at the workplace and come with high processing and storage capabilities.
+
+---------------------------------------------------------------------------------
+
+A Minicomputer
+
+--> A Minicomputer is larger than a personal computer with much higher processing power. It can support and process work from around 250 users simultaneously. It is usually used as a shared resource in a small network.
+
+---------------------------------------------------------------------------------
+
+A Mainframe Computer
+
+--> A Mainframe computer is a large and expensive computer. It can manage thousands of users simultaneously. It is used by companies for bulk operations like data capture and management, and to support large applications.
+
+---------------------------------------------------------------------------------
+
+A Supercomputer
+
+--> Supercomputers are the fastest computers available today. They are very expensive and are used for large applications that require immense amount of calculations.
+
+---------------------------------------------------------------------------------

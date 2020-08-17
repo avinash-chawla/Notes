@@ -1,0 +1,125 @@
+--> Cross Join, Inner Join, Outer Join
+--> Joins are used to retrieve data from 2 or more related tables. 
+--> In general, tables are related to each other using foreign key constraints.
+
+
+1. Inner Join or Join-->
+
+--> tblEmployee table has DepartmentId	(foreign key)
+--> tblDepartment table has DepartmentName, DepartmentId  (primary key)
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id
+
+--> Inner joins won't show records for null DepartmentId
+--> join is showing 8 / 10 records bec. two are null
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+2. Left Outer Join or Left Join-->
+
+--> this also shows null DepartmentId records
+--> left join is showing 10 / 10 records
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Left Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id 
+
+--> left join means null values in right table
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+3. Right Outer Join or Right Join-->
+
+--> also shows record for secret department where no general employee is working there
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Right Left Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id
+
+--> right join means null values in left table
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+4. Full Outer Join or Full Join-->
+
+--> this will display both type of records also
+--> left null and right value & left value and right null ---> additional records
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+5. Cross Joins-->
+
+--> it produces the Cartesian product of the 2 tables involved in the join. 
+--> if one table has 10 rows and other has 4 rows. cross join will produce 40 rows
+--> cross join don't have ON clause.
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+6. Advanced or intelligent joins-->
+
+--> retrieve only the non matching rows from the left table.
+--> retrieve only the non matching rows from the right table.
+--> retrieve only the non matching rows from both the left and right table.
+
+--> A -(minus) A(intersection)B 
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Left Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id
+WHERE tblDepartment.DepartmentId IS NULL
+
+--> only shows that records  left value and right null 
+
+-----------------------------------------------------------------------------------
+
+--> B - A(intersection)B 
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Right Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id
+WHERE tblEmployee.DepartmentName IS NULL
+
+--> only shows that records  left null and right value 
+
+----------------------------------------------------------------------------------- 
+
+--> A(UNION)B - A(intersection) 
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Full Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id
+WHERE DepartmentName IS NULL OR tblDepartment.DepartmentId IS NULL
+
+--> only shows that records left null and right value & left value and right null
+
+----------------------------------------------------------------------------------- 
+
+--> Note: you can't compare null with equal sign in where clause, you have to use IS
+WHERE tblDepartment.DepartmentId IS NULL
+WHERE tblDepartment.DepartmentId = NULL		--> error
+
+----------------------------------------------------------------------------------- 
+
+7. Self Joins-->
+
+--> only used in employee and manager case
+--> manager is also employee and manager both in employee table
+--> table has EmployeeId, Name, ManagerId in which managerId is taken from EmployeeId
+--> means managerId is referencing the EmployeeId in the same table
+
+--> we have to display EmployeeName, ManagerName
+
+SELECT E.Name As Employee, M.Name As Manager
+from tblEmployee E
+LEFT JOIN tblEmployee M
+ON E.ManagerId = M.EmployeeId
+
+----------------------------------------------------------------------------------- 

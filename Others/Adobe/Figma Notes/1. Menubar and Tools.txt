@@ -1,0 +1,298 @@
+0. What is Figma-->
+--> It is Design Tool used for making prototyping of website
+
+1. Where to find figma-->
+--> https://www.figma.com
+
+---------------------------------------
+
+2. Start Screen-->
+--> Open Project or new project 	---> Click on + sign after figma logo to create new project
+--> Sharing Option in 3 dots
+--> New team Option
+--> Notifications and help Option
+
+----------------------------------------------------------------------
+
+3. The Menu Bar--> 
+
+1. File-->
+--> New File		--> New Project
+--> Open File
+--> ReOpen closed tab
+
+---------------------------------------
+
+2. Edit-->
+--> Undo
+--> Redo
+--> Cut, Copy and Paste
+--> Paste in Place
+--> Pick Color 
+--> Set Default Style
+--> Copy Style
+--> Paste Style
+--> Select All
+--> Select None
+--> Select Inverse
+--> Select All with 
+1. Same Style
+2. Same Fill
+3. Same Stroke
+4. Same Effect
+5. Same Text
+6. Same Font
+7. Same Instance
+--> Draw Symbols and Emojis
+
+--> Set Default Style
+--> Draw Rectangle, give fill and stroke and select it.
+--> Set Default Style
+--> Now whenever you draw rectangle, that fill and stroke is already selected.
+--> Copy and Paste style
+--> Copy Fill and Stroke from one one and paste to another
+
+--> Select Inverse
+--> Selects all Except Selected Portion
+
+--> Shortcut to duplicate item
+--> hold Alt + drag with mouse
+--> Can also duplicate multiple items
+
+---------------------------------------
+
+3. View-->
+
+--> Show Pixel Grid
+--> It shows Frame in pixels boxes
+
+--> Show Layout Grid 
+--> Tick on layout Grid in Properties to see that
+
+--> Show Mask Outlines	--> Later
+
+--> Show Rulers
+--> Show Layers Panel
+--> Show UI		--> Full Screen mode
+--> Show Outline 	--> Show wireline mode
+--> Pixel Preview	--> Shows Pixel preview
+
+--> Show Transparency Checkerboard	
+--> Checkerboard is invisible while exporting
+
+--> Zoom Options
+--> Find Next and Previous Artboards
+
+--> To duplicate Artboards
+--> Hold down Alt key and drag artboards1
+
+---------------------------------------
+
+4. Object-->
+--> Group Selection
+--> Ungroup Selection
+--> Frame Selection 	--> Later
+
+--> Create Component
+--> Advantage is change any one, all changes automatically
+
+--> Reset Instance
+--> Any change in childs component, undo's that
+
+--> Detach Instance
+--> Any child of master component detaches from its parent
+
+--> Resize to Fit
+--> Toggle Clipping		--> Mask Effect
+--> Bring to Front, back
+--> Flip horizonal and vertical
+--> Rotate Options
+--> Flatten Selection		
+
+--> Outline Selection		
+--> Stroke is also Scalable while downsizing
+
+--> boolean Groups
+--> It is Shape builder tool in adobe illustrator
+
+--> Duplicate Selection In Place	--> Ctrl + D
+--> Delete Select			--> Backarrow
+
+--> Rasterize Selection
+--> This will turn vector shape into Resterize Graphic
+--> Now Shape is an Image
+--> When you resize shape, stroke is not scalable with resizing
+--> When click on Fill, change settings like
+Exposure, Contrast, saturation, Temperature, Tint, 
+
+--> Show/Hide Selection		--> eye ball
+--> Lock/Unlock Selection	--> Lock symbol
+--> Hide other layers
+--> Remove Fill
+--> Remove Stroke
+--> Swap Fill and Stroke
+
+---------------------------------------
+
+5. Vector
+--> Draw curve from Pen tool
+--> But remain some gap between two end points
+--> Select both these end points
+
+--> Join Selection
+--> join by straight line
+
+--> Smooth Join Selection
+--> Join by smooth curve
+
+--> Delete and Heal Selection
+--> If one whole chain curve is created by 3 node points
+--> Select one node point
+--> It will delete that node point but retain the shape with 2 node point by adjusting magnitude and vector direction automatically
+
+---------------------------------------
+
+6. Text-->
+--> Toggle Bold, Italic, underline, Strikethrough
+--> Text Original Case, Lower, Upper
+--> Force Relayout
+
+---------------------------------------
+
+7. Arrange--> 
+--> This menu helps in arranging objects evenly
+
+--> Align Left, Horizontal Center, Right, Top, Vertical Centeres, Bottom
+
+--> Pack Horizontal 
+--> all objects side by side with no gap horizontally
+--> But these objects may have different vertical position
+
+--> Pack Vertical
+--> Distribute Horizontal Spacing, Vertical Spacing
+--> Distribute Left, Right, Top, Bottom
+
+---------------------------------------
+
+8. Window-->
+--> Minimize
+
+---------------------------------------
+
+9. Help-->
+--> Search Option
+--> It searches any feature for eg. Show mask outline, outline Stroke
+
+
+--------------------------------------------------------------------------------------------------------------
+
+4. Tools Panel-->
+
+--> Frame 
+--> It is used to create Artboards.
+--> You can also choose default size of frames from right sidebar
+--> You can move it using move tool by dragging on name
+
+--> Shapes
+--> Rectangle
+--> Ellipse
+--> Holding shift to Ellipse draws Circle
+
+--> Scale Tool
+--> Under Move tool
+
+--> Pen Tool
+--> Custom Curve Designs
+--> Draw heart using 4 node points
+
+--> Two features visible after using Pen tool
+--> Fill bucket
+--> Bend tool
+
+--> Pencil Tool
+--> Under Pen Tool
+--> Custom handwriting
+
+--> Text
+--> Click or drag box
+
+--> Comments
+
+--> Place Image
+--> Under Shapes Tool
+
+--> Click on Project Name
+--> Show Version History
+--> This automatically make version of your project based on time
+
+--> Rename, Delete, Back to File, Move to Project
+
+--> When select an object using move tool
+--> Features visible at place of project Name
+
+--> Edit Object
+--> Will show node points
+
+--> Reset Instance
+--> Only applicable to Child component
+--> When any changes is done in child component other than master component, but you want back to original master component, click this
+
+--> To zoom
+--> hold down z and drag the selection to zoom into that portion
+
+--> Mask an Image into Object
+--> Place an Image
+--> Select both object and image
+--> Click on Mask
+--> Image comes ahead of object
+--> This is called Masking
+
+--> Boolean Selection
+--> Select Union Selection
+--> Select both circle and Rectangle
+--> Click Union
+--> Now these become one and become group
+--> But still they are non destructive
+--> double click circle and adjust its position
+--> Done (by clicking anywhere else)
+
+--> Ungroup them, by right click on left sidebar grouped 
+
+--> Subtract Selection
+--> Intersect Selection
+--> Exclude Selection (opposite of intersect)
+
+--> Flatten Selection
+--> This makes two objects one and gives advanced feature of twirking the shape using Node points
+
+--> Crop
+--> Place an Image
+--> Instead of clicking, drag an image to get proper size
+--> Crop option on upper side is generated
+
+--> Those are Object menu's on upper side
+
+--> On Right upperside, there is tools menu
+
+--> Preset mode 
+--> displays project in Preview
+--> Creates new tab, so displays option to jump back
+
+--> Views Options
+--> Zoom options
+1. Ctrl + Mouse scroll
+2. z + Drag selection box
+3. Use this
+4. = sign to zoom in, - sign to zoom out
+
+--> Export options
+--> First Select an object or image
+--> Make them Exportable by setting in property
+--> Click on This
+--> To change names of this, change names in layers menu
+
+--> To Select two objects
+--> Hold down shift and select using Mask tool
+
+--> Drag Artboard shortcut
+--> Hold down Spacebar and drag

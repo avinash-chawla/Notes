@@ -1,0 +1,120 @@
+1. Envrionments
+
+--> Types
+1. Development
+2. Staging 
+3. Production
+
+--> Staging creates scenario of real Production
+--> It helps to detect linkage with 3rd party servers
+
+-----------------------------------------------------------------------------------
+
+2. Variable used to set Environment
+
+--> Such Environment variable is set in launchSettings.json file
+--> key used in this file is :ASPNETCORE_ENVIRONMENT
+
+-----------------------------------------------------------------------------------
+
+3. Dependency Injection for Environment services
+
+--> In startup file, we have Environment Dependency Injection, just like for Configuration
+--> env is dependency injection into this method
+--> There is property EnvironmentName to this object to get current Environment set according to settings in launchSettings.json
+
+------------------------------------------------------------------------------------
+
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseFileServer();
+
+            app.Run(async (context) =>
+            {
+                await context.Response.WriteAsync("Hosting Environment: "+ env.EnvironmentName);
+            });
+        }
+
+------------------------------------------------------------------------------------
+
+3. Set Environment variable on System
+
+--> Open control panel
+--> Search for 'env'
+--> Click on edit system environment variables
+--> In System Variables, click on new
+--> Give key as ASPNETCORE_ENVIRONMENT and value: Development
+
+
+--> To read this value from local machine, comment the line on launchSettings.json for ASPNETCORE_ENVIRONMENT
+--> Restart the visual studio again.
+
+------------------------------------------------------------------------------------
+
+4. Default Value 
+
+--> If ASPNETCORE_ENVIRONMENT value is not set in launchSettings.json, default value is Production and if it is not set in local machine
+--> This is for security reasons.
+
+--> Preference between launchSettings and localMachine
+--> First preference will be of launchSettings
+
+------------------------------------------------------------------------------------
+
+5. Other properties of IHostingEnvironment DI (Dependency Injection)
+
+--> env.IsDevelopment		--> return boolean value
+
+if (env.IsDevelopment())
+{
+   app.UseDeveloperExceptionPage();
+}
+
+--> We have also other, env.IsProduction, env.IsStaging
+
+------------------------------------------------------------------------------------
+
+6. What if we have custom Name environment
+
+1. UserAcceptanceTesting Env
+2. QualityAssurance Env
+
+--> then, check like this:
+if(env.IsEnvironment("UAT"))
+{
+   app.UseDeveoperExceptionPage();
+}  
+
+------------------------------------------------------------------------------------
+
+7. Userfriendly Exception Page
+
+--> It contains no technical details
+--> Used in production or staging or custom
+
+if (env.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else if(env.IsProduction() || env.IsStaging() || env.IsEnvironment("UAT"))
+{
+    app.UseExceptionHandler("/error");
+}
+
+------------------------------------------------------------------------------------
+
+8. Summary
+
+1. ASPNETCORE_ENVIRONMENT variable sets the Runtime Environment 
+2. On development machine we set it in launchsettings.json file 
+3. On Staging or Production server we set in the operating system 
+4. Use IHostingEnvironment service to access the runtime environment 
+5. Runtime environment defaults to Production if not set explicitly 
+6. In addition to standard environments (Development, Staging, Production), custom environments (UAT, QA etc) are also supported
+
+------------------------------------------------------------------------------------

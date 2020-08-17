@@ -1,0 +1,380 @@
+1. Angular Folder
+
+--> Make new folder in project alongside Server folder : AngularApp
+--> We will use this reference throughout whole section
+--> ng new AngularApp in project folder
+
+-------------------------------------------------------------------------------
+
+2. Using Materize CSS and Material Icons
+
+--> npm i material-design-icons
+--> npm i materialize-css@next
+
+--> To include such libraries in our project, there are two ways
+1. In angular.json
+2. In main style.css
+3. Use CDN in index.html
+
+-------------------------------------------------------------------------------
+
+--> In Angular.json
+
+"styles": [
+     "../node_modules/materialize-css/dist/css/materialize.min.css",
+     "../node_modules/material-design-icons/iconfont/material-icons.css"
+     "styles.css"
+],
+          
+
+"scripts": [
+     "../node_modules/materialize-css/dist/js/materialize.min.js"
+],
+
+-------------------------------------------------------------------------------
+
+--> In styles.css
+
+--> @import '~...';
+--> ~ references node_modules folder, eg.
+
+
+@import ‘~material-design-icons/iconfont/material-icons.css’;
+
+-------------------------------------------------------------------------------
+
+3. Custom Styles for this application needed
+
+--> In styles.css
+
+form div.input-field input{
+    padding-left: 15px !important;
+    color: #25a297;
+}
+
+input.ng-invalid.ng-dirty{
+    border-bottom-color : #e91e63 !important;
+    box-shadow: 0 1px 0 0 #e91e63 !important;
+}
+
+.input-field>label{
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.btn-custom,.btn-custom:hover,.btn-custom:focus{
+    background-color: transparent;
+    font-size: 1.1rem;
+    margin : 0px 5px;
+    border: #fff solid 1px ;
+    text-transform:none;
+}
+
+div.card{
+    background-color : #083045;
+    border-radius: 10px;
+}
+
+.vl {
+    border-left: 2px solid #9e9e9e;
+    height: 400px;
+}
+
+a.action-btn{
+    color: #9e9e9e ;
+    margin: 0px 5px;
+
+}
+a.action-btn:hover{
+    cursor: pointer;
+}
+
+#toast-container {
+    top: auto !important;
+    right: auto !important;
+    bottom: 10%;
+    left:7%;
+  }
+
+
+-------------------------------------------------------------------------------
+
+4. Generating required component, service, modelClass(interface)
+
+--> ng g c employee
+
+--> Make new folder inside app folder --> shared
+--> cd shared
+
+--> ng g class employee --type=model
+--> ng g s employee
+
+-------------------------------------------------------------------------------
+
+5. ModelClass
+
+--> In employee.model.ts
+
+export class Employee {
+    _id: string
+    name: string
+    position: string
+    office: string
+    salary: string
+} 
+
+-------------------------------------------------------------------------------
+
+6. Service Class
+
+--> Add two properties in service class and give type to that of modelClass
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Employee } from './employee.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class EmployeeServiceService {
+  selectedEmployee: Employee;
+  employees: Employee[];
+
+
+  constructor(private http: HttpClient) { }
+}
+
+-------------------------------------------------------------------------------
+
+7. app.component.html
+
+--> Replace everything with selector of employee.component.ts
+
+-------------------------------------------------------------------------------
+
+8. In Employee component
+
+constructor(public employeeService: EmployeeServiceService) { }
+
+-------------------------------------------------------------------------------
+
+9. In html file of component
+
+--> Making tdf form and bind it with Service class Properties
+--> Make sure to register FormsModule in app.module file
+
+
+<div class="row">
+    <div class="col s12">
+        <div class="card">
+            <div class="card-content white-text">
+                <div class="row">
+                    <div class="col s5">
+                        <form #employeeForm="ngForm" (ngSubmit)="onSubmit(employeeForm)">
+                            <input type="hidden" name="_id" #_id="ngModel"
+                                [(ngModel)]="employeeService.selectedEmployee._id">
+                            <div class="row">
+                                <div class="input-field col s12">
+                                    <input type="text" name="name" #name="ngModel"
+                                        [(ngModel)]="employeeService.selectedEmployee.name"
+                                        placeholder="Enter full name" required>
+                                    <label>Name :
+                                        <label class="red-text">*</label>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col s12">
+                                    <input type="text" name="position" #name="ngModel"
+                                        [(ngModel)]="employeeService.selectedEmployee.position"
+                                        placeholder="Eg : Snr. Developer">
+                                    <label>Position :</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col s12">
+                                    <input type="text" name="office" #name="ngModel"
+                                        [(ngModel)]="employeeService.selectedEmployee.office"
+                                        placeholder="Enter office location">
+                                    <label>Office :</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col s12">
+                                    <input type="text" name="salary" #name="ngModel"
+                                        [(ngModel)]="employeeService.selectedEmployee.salary"
+                                        placeholder="Salary per annum">
+                                    <label>Salary :</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col s12">
+                                    <button class="btn btn-custom right" type="button"
+                                        (click)="resetForm(employeeForm)">Reset</button>
+                                    <button class="btn btn-custom right" type="submit"
+                                        [disabled]="!employeeForm.valid">Submit</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col s7">
+                        <table class="responsive-table highlight">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Position</th>
+                                    <th>Office</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tr *ngFor="let emp of employeeService.employees">
+                                <td>{{emp.name}}</td>
+                                <td>{{emp.position}}</td>
+                                <td>{{emp.office}}</td>
+                                <td>
+                                    <a class="action-btn" (click)="onEdit(emp)">
+                                        <i class="material-icons">edit</i>
+                                    </a>
+                                    <a class="action-btn" (click)="onDelete(emp._id,employeeForm)">
+                                        <i class="material-icons">delete</i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+-------------------------------------------------------------------------------
+
+10. Component Class file
+
+--> Making code for Reset button
+
+
+  resetForm(form?: NgForm) {
+    if(form)
+      form.reset();
+    this.employeeService.selectedEmployee = {
+      _id: "",
+      name: "",
+      position: "",
+      office: "",
+      salary: null
+    }
+  }
+
+--> We want form to be empty while loading page
+--> So in ngOnInit() {
+	this.resetForm();
+    }
+
+-------------------------------------------------------------------------------
+
+11. Post Request
+
+--> In Service component,
+
+  readonly baseURL = "http:localhost:3000/employees";
+
+  postEmployee(employee: Employee) {
+    return this.http.post(this.baseURL, employee);
+  }
+
+-------------------------------------------------------------------------------
+
+12. Post Request on Submitting Button and subscribing to post method of result.
+
+--> In Componenet class,
+
+  declare var M: any;  
+
+  onSubmit(form: NgForm) {
+    this.employeeService.postEmployee(form.value)
+      .subscribe(res => {
+        this.resetForm(form);
+        M.toast({ html: 'Saved successfully', classes: 'rounded' })
+      })
+  }
+
+
+-------------------------------------------------------------------------------
+
+13. Cors
+
+--> In index.js of Server, npm i cors
+--> app.use(cors({ origin: "http:localhost:4200" }));
+
+-------------------------------------------------------------------------------
+
+14.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

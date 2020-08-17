@@ -1,0 +1,6 @@
+1. Joining Clips
+2. Extracting Video and Audio
+3. Transition between 2 clips
+4. Scaling Video Scene
+5. Adjust Audio intensity
+6. Synching video with audio

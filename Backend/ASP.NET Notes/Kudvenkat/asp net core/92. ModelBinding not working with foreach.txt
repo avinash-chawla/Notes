@@ -1,0 +1,214 @@
+1. Model binding not working on submitting razor view with foreach loop
+
+--> We will discuss one of the common issues we will frequently run into when using asp.net mvc. Why model binding does not work in MVC as expected, --> If we submit a razor form that contains a foreach loop.
+
+-----------------------------------------------------------------------------------------------
+
+2. ActionMethod to handle Roles within User
+ 
+--> Consider the following ManageUserRoles action methods.
+
+[HttpGet]
+public async Task<IActionResult> ManageUserRoles(string userId)
+{
+    ViewBag.userId = userId;
+
+    var user = await userManager.FindByIdAsync(userId);
+
+    if (user == null)
+    {
+        ViewBag.ErrorMessage = $"User with Id = {userId} cannot be found";
+        return View("NotFound");
+    }
+
+    var model = new List<UserRolesViewModel>();
+
+    foreach(var role in roleManager.Roles)
+    {
+        var userRolesViewModel = new UserRolesViewModel
+        {
+            RoleId = role.Id,
+            RoleName = role.Name
+        };
+
+        if (await userManager.IsInRoleAsync(user, role.Name))
+        {
+            userRolesViewModel.IsSelected = true;
+        }
+        else
+        {
+            userRolesViewModel.IsSelected = false;
+        }
+
+        model.Add(userRolesViewModel);
+    }
+
+    return View(model);
+}
+
+-----------------------------------------------------------------------------------------------
+
+[HttpPost]
+public async Task<IActionResult>
+    ManageUserRoles(List<UserRolesViewModel> model, string userId)
+{
+    var user = await userManager.FindByIdAsync(userId);
+
+    if (user == null)
+    {
+        ViewBag.ErrorMessage = $"User with Id = {userId} cannot be found";
+        return View("NotFound");
+    }
+
+    var roles = await userManager.GetRolesAsync(user);
+    var result = await userManager.RemoveFromRolesAsync(user, roles);
+
+    if (!result.Succeeded)
+    {
+        ModelState.AddModelError("", "Cannot remove user existing roles");
+        return View(model);
+    }
+
+    result = await userManager.AddToRolesAsync(user,
+model.Where(x => x.IsSelected).Select(y => y.RoleName));
+
+    if (!result.Succeeded)
+    {
+        ModelState.AddModelError("", "Cannot add selected roles to user");
+        return View(model);
+    }
+
+    return RedirectToAction("EditUser", new { Id = userId });
+
+}
+
+-----------------------------------------------------------------------------------------------
+
+3. for loop in razor form
+
+@for (int i = 0; i < Model.Count; i++)
+{
+    <div class="form-check m-1">
+        <input type="hidden" asp-for="@Model[i].RoleId" />
+        <input type="hidden" asp-for="@Model[i].RoleName" />
+        <input asp-for="@Model[i].IsSelected" class="form-check-input" />
+        <label class="form-check-label" asp-for="@Model[i].IsSelected">
+            @Model[i].RoleName
+        </label>
+    </div>
+}
+
+-----------------------------------------------------------------------------------------------
+
+--> The model for the view is List<UserRolesViewModel>
+--> We are using a for loop to loop through each UserRolesViewModel object
+--> The required input elements are dynamically generated
+--> The view looks as shown below.
+--> asp.net core mvc model binding not working
+
+-----------------------------------------------------------------------------------------------
+
+--> The following is the HTML of the generated input elements.
+
+<div class="form-check m-1">
+    <input type="hidden" id="z0__RoleId" name="[0].RoleId" value="4defae7d-6392-4a5d-b257-53b852037219" />
+    <input type="hidden" id="z0__RoleName" name="[0].RoleName" value="Test Role" />
+    <input class="form-check-input" type="checkbox" data-val="true" id="z0__IsSelected" name="[0].IsSelected" value="true" />
+    <label class="form-check-label" for="z0__IsSelected">
+        Test Role
+    </label>
+</div>
+<div class="form-check m-1">
+    <input type="hidden" id="z1__RoleId" name="[1].RoleId" value="60fce30e-452d-49af-986f-5736515d6897" />
+    <input type="hidden" id="z1__RoleName" name="[1].RoleName" value="Admin" />
+    <input class="form-check-input" type="checkbox" checked="checked" id="z1__IsSelected" name="[1].IsSelected" value="true" />
+    <label class="form-check-label" for="z1__IsSelected">
+        Admin
+    </label>
+</div>
+<div class="form-check m-1">
+    <input type="hidden" id="z2__RoleId" name="[2].RoleId" value="e23ac65d-b1cc-483a-bde8-83e1970bbaf1" />
+    <input type="hidden" id="z2__RoleName" name="[2].RoleName" value="User" />
+    <input class="form-check-input" type="checkbox" data-val="true" id="z2__IsSelected" name="[2].IsSelected" value="true" />
+    <label class="form-check-label" for="z2__IsSelected">
+        User
+    </label>
+</div>
+
+ 
+-----------------------------------------------------------------------------------------------
+
+--> Notice, the name attribute of the input elements. They have an integer indexer like the following, so the model binder in asp.net mvc knows it has to map these values to the list parameter on the controller action.
+
+name="[0].RoleId"
+name="[1].RoleId"
+name="[2].RoleId"
+
+--> When this form is submitted, the values in these input elements are automatically mapped by the model binder to the List parameter on the controller action. 
+--> Notice, in this example we have 3 elements in the list.
+
+-----------------------------------------------------------------------------------------------
+
+4. razor view model binding not working
+
+--> foreach loop in razor form
+
+--> What happens if we use a foreach loop instead of a for loop in the razor form. 
+
+@foreach (var role in Model)
+{
+    <div class="form-check m-1">
+        <input type="hidden" asp-for="@role.RoleId" />
+        <input type="hidden" asp-for="@role.RoleName" />
+        <input asp-for="@role.IsSelected" class="form-check-input" />
+        <label class="form-check-label" asp-for="@role.IsSelected">
+            @role.RoleName
+        </label>
+    </div>
+}
+
+--> Model binder in asp.net mvc does not bind the values from the input elements to the list parameter on the controller action. Notice in this case we have ZERO elements in the list.
+
+--> on form submit controller action list parameter is null
+
+--> Why did model binding fail when we use foreach loop
+
+--> The following is the generated HTML when we use a foreach loop. 
+--> Notice the name attribute of the input elements. 
+--> They are not unique and there is no integer indexer, so the model binder does not know it has to bind the values from these input elements to the list parameter on the controller action. 
+--> This is the reason the list parameter on the controller action is empty.
+
+-----------------------------------------------------------------------------------------------
+
+<div class="form-check m-1">
+    <input type="hidden" id="role_RoleId" name="role.RoleId" value="4defae7d-6392-4a5d-b257-53b852037219" />
+    <input type="hidden" id="role_RoleName" name="role.RoleName" value="Test Role" />
+    <input class="form-check-input" type="checkbox" data-val="true" id="role_IsSelected" name="role.IsSelected" value="true" />
+    <label class="form-check-label" for="role_IsSelected">
+        Test Role
+    </label>
+</div>
+<div class="form-check m-1">
+    <input type="hidden" id="role_RoleId" name="role.RoleId" value="60fce30e-452d-49af-986f-5736515d6897" />
+    <input type="hidden" id="role_RoleName" name="role.RoleName" value="Admin" />
+    <input class="form-check-input" type="checkbox" id="role_IsSelected" name="role.IsSelected" value="true" />
+    <label class="form-check-label" for="role_IsSelected">
+        Admin
+    </label>
+</div>
+<div class="form-check m-1">
+    <input type="hidden" id="role_RoleId" name="role.RoleId" value="e23ac65d-b1cc-483a-bde8-83e1970bbaf1" />
+    <input type="hidden" id="role_RoleName" name="role.RoleName" value="User" />
+    <input class="form-check-input" type="checkbox" id="role_IsSelected" name="role.IsSelected" value="true" />
+    <label class="form-check-label" for="role_IsSelected">
+        User
+    </label>
+</div>
+
+-----------------------------------------------------------------------------------------------
+
+--> Also notice, the ids of the checkboxes are not unique. The for attribute value of the labels are also not unique. As a result, when we click on the labels, only the first checkbox gets checked or unchecked.
+
+--> For the ID and Name attribute values to be unique, use a for loop instead of a foreach loop. Hope this helps you save sometime if you inadvertently run into this issue.
+
+-----------------------------------------------------------------------------------------------

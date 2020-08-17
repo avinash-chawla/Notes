@@ -1,0 +1,313 @@
+1. Redux Architecture
+
+--> Store is plain javascript object which contains application state data
+--> Store is immutable
+--> Redux follows functional programming, so we need to use functions to update store 
+
+--> Reducer function
+--> It is pure function
+--> It takes current state and generate new modified state
+--> how reducer would know what to change in state, there comes action
+--> Action function return plain javascript object which contains data which data to modify.
+
+function reducer(store, action){
+	const updated = { ...store };
+	update.cart = new data (done by action)
+}
+
+--> Building block of Redux
+1. Action (events)
+2. Store
+3. Reducer (event handler or processors)
+
+--> There can be more than one reducer to change the slice of data in store.
+
+--> Process:
+--> User adds an item in shopping card
+1. An event(action) is generated and dispatched to store
+2. Store will call an reducer method to handle this event
+3. Render will return new state and
+4. Store will notify the changes in state to UI components
+5. React will see that change and apply changes.
+
+--> Now question is why all action come to one place
+--> All actions flow through a pipeline and we can place middleware functions Like Log the action and corresponding change in state.
+
+-------------------------------------------------------------------------
+
+2. Your first Redux App
+
+--> npm i redux
+--> Steps
+1. Design the store
+2. Define the actions
+3. Create a reducer
+4. Set up the store
+
+-------------------------------------------------------------------------
+
+3. Designing the Store
+
+--> eg.
+{
+	bugs: [
+		{ 	
+			id: 1, 
+			description: "",
+			resolved: false
+		}
+	      ],
+	currentUser: {}
+}
+		
+-------------------------------------------------------------------------
+
+4. Defining The actions
+
+--> Actions are functions which return object about modifications in state
+--> They carry too data to update state
+
+{ 
+	type: "BugAdded",
+	payload: {
+		id: 1
+	}
+}
+		
+-------------------------------------------------------------------------
+
+5. Creating a Reducer
+
+--> There are 2 actions for bug application
+1. Bug Added
+2. Bug Removed
+
+--> Make new file reducer.js
+
+let lastId = 0;
+
+function reducer(state = [], action) {
+   switch(action.type)
+	case "bugAdded":
+	    return [
+		...state,
+ 		{
+		    id: ++lastId,
+		    description: action.payload.description,	
+		    resolved: false
+		}
+	    ];
+
+	case "bugRemoved"
+	   return state.filter(bug => bug.id !== action.payload.id);
+
+	default:
+	   return state;
+    }
+
+--> Reducers are pure functions
+--> They don't output different result each time.
+--> They always output same result with same action.
+--> This way we are keeping state safe rather than keeping changing it every time
+			
+-------------------------------------------------------------------------
+
+6. Creating the Store
+
+--> Make new file store.js
+
+import { createStore } from 'redux';
+import reducer from './reducer';
+
+const store = createStore(reducer);
+
+export default store
+			
+-------------------------------------------------------------------------
+	
+7. Dispatching Actions
+
+--> In index.js
+
+import store from './store';
+console.log(store);
+
+--> It is plain javascript object with following methods
+
+1. dispatch 	--> for dispatching actions to reducer
+2. subscribe	--> component will subscribe to state, and any change in state will notify them
+
+3. getState     --> for getting the current state
+4. replaceReducer and Symbol
+
+
+--> console.log(store.getState)		--> display current state.
+
+----------------------------------------------------------------------
+
+--> Now sending actions
+
+store.dispatch({
+	type: "BugAdded",	
+	payload: {
+		Id: 1, 
+		description: "Bug Added"
+	}
+
+console.log(store.getState());
+
+----------------------------------------------------------------------
+
+store.dispatch({
+    type: "bugRemoved",
+    paload: {
+        id: 1
+    }
+})
+
+console.log(store.getState());
+
+----------------------------------------------------------------------
+
+8. Subscribing to the Store
+
+--> Place this method above action methods
+
+store.subscribe(() => {
+    console.log("Store changed", store.getState())
+})
+
+--> This function will always run as state changes
+--> Now user goes to different page, in which this component is not used, we have to make unsubscribed from state to avoid memory leaks.
+
+----------------------------------------------------------------------
+
+--> Now this subscribe method returns function for unsubscribing to the store.
+--> so
+
+const unsubscribe = store.subscribe(() => {
+    console.log("Store changed", store.getState())
+})
+
+store.dispatch({
+    type: "bugAdded",
+    payload: {
+        description: "New bug"
+    }
+})
+
+unsubscribe();
+
+store.dispatch({
+    type: "bugRemoved",
+    payload: {
+        id: 1
+    }
+})
+
+--> Now you will only one message of first action method.
+
+----------------------------------------------------------------------
+
+8. ActionTypes
+
+--> Now, we have to places for action names -- reducer and index
+--> If we change in one place, then it needs to be change at another place
+--> We want single place 
+
+--> Make new file actionTypes.js
+
+export const BUG_ADDED = "bugAdded";
+export const BUG_REMOVED = "bugRemoved";
+
+--> In index.js
+
+import * as actions from './actionTypes';
+
+store.dispatch({
+        type: actions.BUG_ADDED,
+        payload: {
+            description: description
+        }
+    }
+)
+----------------------------------------------------------------------
+
+9. Action Creators
+
+--> We are dispatch actions using store.dispatch(..)
+--> We can make action methods in seperate file and calling them in main file.
+
+--> Make new file actions.js
+
+import * as actions from "./actionTypes";
+
+export function bugAdded(description) {
+    return {
+    	type: "actions.BUG_ADDED",
+        payload: {
+            description: description
+    	}
+    }
+}
+
+----------------------------------------------------------------------
+
+--> In index.js
+
+store.dispatch(actions.bugAdded("Bug1"));
+store.dispatch(actions.bugRemoved(1));
+
+----------------------------------------------------------------------
+
+10. Add Resolved action method - Exercise
+
+--> Always first start with action method
+--> actions.js
+
+export function bugResolved(id) {
+    return {
+        type: actions.BUG_RESOLVED,
+        payload: {
+            id: id
+        }
+    }
+}
+
+----------------------------------------------------------------------
+
+--> reducer.js
+
+case actions.BUG_RESOLVED:
+            return state.map(bug => bug.id !== action.payload.id ? bug : { ...bug, resolved: true })
+
+--> As you can see this way of mutating state becomes difficult, if we have more than one property
+
+----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

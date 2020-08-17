@@ -1,0 +1,619 @@
+1. Creating venv
+--> inbuilt installed with python
+--> virtualenv -v
+--> virtualenv .     or  virtualenv venv  (giving name)
+--> run activate file under Scripts folder
+--> deactive
+or
+--> pip install pipenv
+--> pipenv shell
+--> deactivate
+or
+--> python -m venv env
+--> run activate env\Scripts\activate
+
+-------------------------------------------------------------------------
+
+2. Another way of saving object in database
+
+--> python manage.py shell
+--> from products.models import Product
+--> Product.objects.all()
+--> Product.objects.create(title='New Product', description='another one', price='1.6', review='awesome product')
+
+-------------------------------------------------------------------------
+
+3. Creating model class
+
+--> form django.db import models
+--> class Product(models.Model):
+	title = models.CharField(max_length=120)
+	description = models.TextField(blank=True, null=True)
+	price = models.DecimalFiedl(decimal_places=2, max_digits=1000)
+	reviews = models.TextField(blank=False, null=False)
+	featured = models.BooleanField()
+
+--> blank refers to required field or not, blank=False --> required field --> happen in admin panel
+--> null refers to database --> null values allowed in database or not
+--> After migrating model, one new field is added 'featured', django will ask for its default value
+--> Either mention in model class or provide in terminal only (default value)
+
+-------------------------------------------------------------------------
+
+4. View function
+--> def home(request, *args, **kwargs):
+	print(request.user)
+	print(request.user.isauthenticated)
+
+
+-------------------------------------------------------------------------
+
+5. Template Tags
+--> {% include 'navbar.html' %}		--> will include navbar.html in base.html
+--> {{ forloop.counter }}		--> will count index of forloop inside template --> This is inside {% for item in list %}...{% endfor %}
+--> {% if abc == 312 %}
+	<li>Hello World</li>
+    {% elif abc != None and abc != '' %}
+	<li>This is new world</li>
+    {% else %}
+	<li>This is not end</li>
+    {% endif %}
+
+-------------------------------------------------------------------------
+
+6. Template Tag filter
+--> It filters value {{ }} of Template tags
+--> {{ title.capfirst }}		--> will capitalize first letter
+--> {{ title.upper }}			--> capitalize each letter
+--> {{ number|add:22 }}			--> adds 22 to number
+
+-------------------------------------------------------------------------
+
+7. Django Model Forms
+--> Letting users populate database instead from admin panel
+--> Django automatically creates form for filling model data into database by inheriting forms.ModelForm
+
+--> Product/forms.py			--> form domain class
+--> from django import forms
+--> from .models import Product
+--> class ProductForm(forms.ModelForm):
+	class Meta:
+		model = Product,
+		fields = [
+			'title',
+			'description',
+			'price'
+		]
+--> Creates 3 form fields for storing model data to database
+
+--> Product/views.py
+--> from .forms import ProductForm
+--> def product_create_view(request):
+	form = ProductForm(request.POST or None)		--> defines form method 'Get' or 'Post'
+	if form.is_valid():
+		form.save()
+		form = ProductForm				--> posting new form object after previous form submission
+	return render(request, "products/product_create_view.html", 'form': form)
+
+--> This same view function will handle Get request first then POST request --> so saving form details if valid
+
+
+--> Creating template for view
+--> {% extends base.html %}
+--> {% block content %}
+--> <form method='Post'> {% csrf_token %}
+--> {{ form.as_p }}
+--> <input type='submit' value="Save" />
+--> </form>
+--> {% endblock %}
+
+--> Here form object is rendered by template tag as paragraph --> form.as_p
+--> form will only accept details if it is post request
+--> csrf prevents hacking in posting harmful post
+
+
+--> Registering URL for creating view
+--> from products.views import product_create_view
+--> path('create/', product_create_view)
+
+--> Here we have provided 3 fields of model class, if any other field is required and form is not taking data for it will show error of Not Null fieldName
+--> so make sure to provide default value in model class --> featured = models.BooleanField(default=False)
+
+-------------------------------------------------------------------------
+
+8. Raw HTML to save data from post
+
+--> def product_create_view(request):
+	print(request.method)		--> 'GET' or 'POST'
+	print(request.GET)
+	print(request.POST)
+
+	if request.method == 'POST':
+	     my_new_title = request.POST.get('title')
+	     print(my_new_title)
+	     Product.objects.create(title=my_new_title)
+
+	return render(request, "products/product_create_view.html", {})
+
+--> request.GET extracts data from url
+--> request.POST extracts from form fields
+--> Never save data from GET request
+
+-------------------------------------------------------------------------
+
+9. Pure Django Forms
+--> forms.ModelForm makes full automatic
+--> forms.Form will give customization
+
+--> Product/forms.py
+--> class RawProductForm(forms.Form)
+	title = forms.CharField()
+	description = forms.CharField()
+	price = forms.DecimalField()
+
+--> There are no TextFields in forms.Form
+
+
+--> views.py
+--> from .forms import RawProductForm
+--> def product_create_view(request):
+	my_form = RawProductForm()
+	if request.method == 'POST':
+	    my_form = RawProductForm()
+	    if my_form.is_valid():
+		print(my_form.cleaned_data)
+		Product.objects.create(**my_form.cleaned_data)
+	    else:
+		print(my_form.errors)
+	return render(request, "products/product_create_view.html", "form": my_form)
+
+--> my_form is rawform object
+--> my_form.cleaned_data  is actually object containing all cleaned data that comes from post 
+--> Product.objects.create(**my_form.cleaned_data)	--> object passed as kwargs (dictionary)
+
+-------------------------------------------------------------------------
+
+10. Form filters and widget in forms.Form
+--> Customizing Form Fields
+--> class RawProductForm(forms.Form):
+	title = forms.CharField(label='')
+	description = forms.CharField(required=True, widget=forms.Textarea())
+	price = forms.DecimalField(initial=199.99)
+
+--> label=""		--> should be empty TextField
+--> required=True	--> by default, it is True only
+--> initial		--> setting default value in form already
+--> widget=forms.Textarea	--> making charField --> TextareaField
+
+--> class RawProductForm(forms.Form):
+	title = forms.CharField(label='', widget=forms.TextInput(attrs={"placeholder": "Your title"})
+	description = forms.CharField(required=True, widget=forms.Textarea(attrs={"class":"className", "id": "id_name", "rows": 20, "cols":120}))
+	price = forms.DecimalField(initial=199.99)
+
+-------------------------------------------------------------------------
+
+11. Customization of fields is also possible in forms.ModelForm
+
+--> Just add this field in starting of class of forms.ModelForm
+--> class ProductForm(forms.ModelForm):
+	title = forms.CharField(label='', widget=forms.TextInput(attrs={"placeholder": "Your title"})
+	class Meta:
+		model = Product,
+		fields = [
+			'title',
+			'description',
+			'price'
+		]
+
+-------------------------------------------------------------------------
+
+12. Form Validation
+
+--> Getting cleaned data from form and then validating on server using a function for each field
+--> function: clean_<field_name> placed under form domain class like ProductForm(see in point.11 above) 
+
+def clean_title(self, *args, **kwargs):
+	title = self.cleaned_data.get('title')
+	if not "CFE" in title:
+		raise forms.ValidationError("This is not a valid title")
+	if not title.endswith("edu")
+		raise forms.ValidationError("Email should end with edu")
+	return title
+
+--> If validation gets right, then return title to post and saving data
+--> *args and **kwargs are provided bec. if this method is overrided then causes no problem
+--> here we are validating title field, if it does not contain "CFE" we will raise Error
+
+-------------------------------------------------------------------------
+
+13. Render Form with Inital Data
+
+--> views.py
+--> def product_create_view(request):	
+	initial_data = {
+		'title' : 'MY awesome title'
+	}
+	form = ProductForm(request.POST or None, initial=initial_data)
+	return render(request, "products/product_create.html", {'form': form})
+
+--> It will actually fill form with initial data provided
+--> ProductForm(request.POST or None) means in starting display form as GET request then all Post request
+
+-------------------------------------------------------------------------
+
+14. Updating Model data using Form
+
+--> def product_create_view(request):	
+	obj = Product.objects.get(id=1)
+	form = ProductForm(request.POST or None, instance=obj)
+	if form.is_valid():
+		form.save()
+	return render(request, "products/product_create.html", {'form': form})
+ 
+--> Now Form is rendered with model_id details, edit the fields with new values and submit
+--> It will edit Model Data values
+
+-------------------------------------------------------------------------
+
+15. Delete Model Data object using POST request 
+
+def product_detail_view(request, id):
+    obj = Product.objects.get(id = id)
+or
+    obj = get_object_or_404(Product, id=id)
+    obj.delete() 
+    return render(..)
+
+--> It is on GET request
+
+----------------------------------------------
+
+from django.shortcuts import redirect
+def product_detail_view(request, id):
+    obj = get_object_or_404(Product, id=id)
+    if request.method == 'POST':
+    	obj.delete() 
+	redirect('../..')
+    return render(request, "products/product_delete.html", "object": obj)
+
+----------------------------------------------
+
+--> Template file: products_delete.html
+--> {% extends base.html %}
+--> {% block content %}
+--> <form method="POST" action='.'>{% csrf_token %}
+	<h1>Do you want to delete the product "{{ object.title }}"?</h1>
+	<p><input type='submit' value="Yes" /><a href="../">Cancel</a></p>
+--> </form>
+--> {% endblock %>
+
+-------------------------------------------------------------------------
+
+16. View of a List of Database Objects
+
+--> {% for movie in movies %}
+	<li>{{movie.title}}</li>
+
+-------------------------------------------------------------------------
+
+17. Dynamic Linking of URLs
+
+--> First way
+--> {% for movie in movies %}
+	<li><a href='/products/{{ movie.id }}'>{{movie.title}}</a></li>	
+
+--> If in future, url path is changed, this will not work
+--> So instead of referencing path, we reference method in model class
+
+----------------------------------------------------------
+
+--> Second way
+--> Django has inbuilt method for that
+--> In model class, add get_absolute_url method
+--> class Product(models.Model):
+	def get_absolute_method(self):
+	   return f"/products/{self.id}/"
+
+
+--> In template file
+--> {% for movie in movies %}
+	<li><a href='{{ movie.get_absolute_url }}'>{{movie.title}}</a></li>	
+
+--> on clicking this object, it will take to new url based on which object is clicked
+--> Now a tag is not using path, it is using method from model class
+
+-------------------------------------------------------------------------
+
+18. Django URLs Reverse
+
+--> Using url names instead of url_path in get_absolute_url method
+--> This way we change url at only one place, not multiple places
+
+--> models.py
+--> def get_absolute_path(self):
+	return reverse("product-detail", kwargs={"id": self.id})
+
+--> urls.py
+--> path("products/<int:id>", product_detail_view, name="product-detail")
+
+-------------------------------------------------------------------------
+
+19.  Class Based Views
+
+--> Until now, we have used function based views
+--> def index(request):
+	return HttpResponse("Hello World")
+
+--> from django.views.generic import (
+	CreateView,
+	DetailView,
+	ListView,
+	UpdateView,
+	DeleteView
+)
+--> from .models import Article
+--> class ArticleListView(ListView):
+	template_name = 'blog/articles_list.html  	--> if not mentioned, django will look in <appName>/<modelName>_list.html--> blog/article_list.html
+	articles = Article.objects.all()
+
+--> blog urls.py
+--> path('', ArticleListView.as_view(), name='article-list')
+ 
+----------------------------------------------------
+
+20. Class Based Views - DetailView
+
+--> blog urls.py
+--> path('<int:id>/', ArticleDetailView.as_view(), name='article-detail')
+
+--> views.py
+--> class ArticleDetailView(DetailView):
+	template_name = 'articles/articles_detail.html'
+
+	def get_object(self):
+	    id_ = self.kwargs.get("id")
+	    return get_object_or_404(Article, id=id)
+
+
+--> Calling id parameter is different in Class based View, it is not passed as parameter here
+ 
+----------------------------------------------------
+
+21. Class Based Views - CreateView
+
+--> blog urls.py
+--> path('create/', ArticleCreateView.as_view(), name='article-create')
+
+--> class ArticleCreateView(CreateView):
+	template_name = 'articles/article_create.html'
+	form_class = ArticleModelForm				--> This form is created using forms.ModelForm (which is automatic)
+	
+	def form_valid(self, form):
+	    print(form.cleaned_data)		--> return form data
+	    return super().form_valid(form)	--> save data in database
+
+
+--> By default, after submitting form, it should be redirected to somewhere --> if not mentioned anything will raise error
+--> Add new method in view class -->
+
+	def get_success_url(self):
+	   return '/'
+
+--> or use field variable of view class--> 
+	success_url = '/'
+
+--> or use get_absolute_path method in model class-->
+	def get_absolute_pate(self):
+	    return reverse('articles:article-detail', kwargs={'id'=self.id})
+ 
+----------------------------------------------------
+
+22. Class Based View - Update View
+
+--> blog urls.py
+--> path('<int:id>/update/', ArticleUpdateView.as_view(), name='article-update')
+
+--> views.py
+--> class ArticleUpdateView(UpdateView):
+	template_name = 'articles/articles_update.html'
+
+	def get_object(self):
+	    id_ = self.kwargs.get("id")
+	    return get_object_or_404(Article, id=id)
+
+	def form_valid(self, form):
+	    print(form.cleaned_data)		
+	    return super().form_valid(form)
+
+----------------------------------------------------
+
+23. Class Based View - Delete View
+
+--> blog urls.py
+--> path('<int:id>/delete/', ArticleDeleteView.as_view(), name='article-delete')
+
+--> views.py
+--> from django.urls import reverse
+--> class ArticleDeleteView(DeleteView):
+	template_name = 'articles/articles_delete.html'
+
+	def get_object(self):
+	    id_ = self.kwargs.get("id")
+	    return get_object_or_404(Article, id=id)
+
+	def get_success_url(self):					--> it will redirect to list-view page
+	    return reverse('articles:article-list')
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+24. Converting Function based view to Class Based View - Raw View 
+
+--> def about(request):
+	return render(request, 'about.html', {})
+
+--------------------------------------------------------
+
+from django.views import View		--> This is View base class
+--> class CourseView(View):
+	template_name = "about.html"
+	def get(self, request, *args, **kwargs):	
+		return render(request, self.template_name, {})
+
+	## def post(self, request, *args, **kwargs):	
+	##	return render(request, self.template_name, {})
+
+--------------------------------------------------------
+
+--> app urls.py
+--> path('about/', CourseView.as_view(), name='courses-list')
+
+--------------------------------------------------------
+
+--> to change template at urls.py instantly
+--> path('about/', CourseView.as_view(template_name="contact.html"), name='courses-list')
+
+
+--> means instead of specifying template in view class, we can defined here only
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+25. Converting Function based view to Class Based View - Raw Detail View
+
+--> app urls.py
+--> path('about/', CourseView.as_view(template_name="contact.html"), name='courses-list')
+--> path('<int:id>/', CourseView.as_view(), name='courses-detail')
+
+--> views.py
+--> class CourseView(View):
+	template_name = "courses/course_detail.html"
+	def get(self, request, id=None *args, **kwargs):	
+		context = {}
+		if id is not None:
+			obj = get_object_or_404(Course, id=id)
+			context['object'] = obj
+		return render(request, self.template_name, obj)
+
+--> Same View class for List View and Detail View
+--> Templates are different for both --> one mentioned in urls.py and other is mentioned in views.py
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+25. Converting Function based view to Class Based View - Raw List View 
+
+--> class CourseListView(View):
+	template_name = "courses/course_list.html"
+	queryset = Course.objects.all()
+	
+	def get(self, request, *args, **kwargs):
+		context = {'object_list': self.queryset}
+		return render(request, self.template_name, context)
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+26. Converting Function based view to Class Based View - Raw Create View 
+
+--> class CourseCreateView(View):
+	template_name = 'courses/course_create.html'
+	def get(self, request, *args, **kwargs):
+		form = CourseModelForm()
+		return render(request, self.template_name, {"form":form})
+
+	def post(self, request, *args, **kwargs):
+		form = CourseModelForm(request.POST)
+		if form.is_valid():
+			form.save()
+			form = CourseModelForm()
+		return render(request, self.template_name, {"form":form})
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+27. Converting Function based view to Class Based View - Raw Update View 
+
+--> class CourseUpdateView(View):
+	template_name = "courses/course_update.html"
+	def get_object(self):
+		id = self.kwargs.get('id')
+		obj = None
+		if id is not None:
+			obj = get_obj_or_404(Course, id=id)
+		return obj
+
+	def get(self,request, id=None, *args, **kwargs):
+		context = {}
+		obj = self.get_object()
+		if obj is not None:
+			form = CourseModelForm(instance=obj)
+			context['object'] = obj
+			context['form'] = form
+		return render(request, self.template_name, context)
+
+	def post(self, request, id=None, *args, **kwargs):
+		context= {}
+		obj = self.get_object()
+		if obj is not None:
+			form = CourseModelForm(request.POST, instance=obj)
+			if form.is_valid():
+				form.save()
+			context['object'] = obj
+			context['form'] = form
+		return render(request, self.template_name, context)
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+28. Converting Function based view to Class Based View - Raw Delete View 
+
+--> class CourseDeleteView(View):
+	template_name = "courses/course_delete.html"
+	def get_object(self):
+		id = self.kwargs.get('id')
+		obj = None
+		if id is not None:
+			obj = get_obj_or_404(Course, id=id)
+		return obj
+
+	def get(self,request, id=None, *args, **kwargs):
+		context = {}
+		obj = self.get_object()
+		if obj is not None:
+			form = CourseModelForm(instance=obj)
+			context['object'] = obj
+			context['form'] = form
+		return render(request, self.template_name, context)
+
+	def post(self, request, id=None, *args, **kwargs):
+		context= {}
+		obj = self.get_object()
+		if obj is not None:
+			obj.delete()
+			context['object'] = None
+			return redirect('/courses/')
+		return render(request, self.template_name, context)
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+29. Custom Mixin for Class Based Views
+
+--> In all above examples, get_object is repeated in all
+--> Taking this method in new class, and all other View classes will inherit that class
+
+--> class CourseObjectMixin(object):
+	model = Course
+	lookup = 'id'
+	
+	def get_object(self):
+		id = self.kwargs.get(lookup)
+		obj = None
+		if id is not None:
+			obj = get_obj_or_404(Course, id=id)
+		return obj
+
+--> class CourseDeleteView(CourseObjectMixin, View) 
+--> class CourseUpdateView(CourseObjectMixin, View)
+--> class CourseCreateView(CourseObjectMixin, View)
+
+--> Now delete get_object from any other method
+
+
+
+-------------------------------------------------------------- DHANYAWAAD -----------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------

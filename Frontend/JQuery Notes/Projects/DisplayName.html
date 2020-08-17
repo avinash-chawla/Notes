@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <form>
+        <input type="text" id="firstName" placeholder="First Name">
+        <input type="text" id="lastName" placeholder="Last Name">
+        <button type="button" id="btn1">Submit</button>
+    </form>
+
+    <script>
+        $(document).ready(function () {
+            $("#btn1").click(function () {
+                var details = {
+                    firstName: $("#firstName").val(),
+                    lastName: $("#lastName").val()
+                };
+                console.log(details);
+            })
+        })
+    </script>
+
+</body>
+
+</html>

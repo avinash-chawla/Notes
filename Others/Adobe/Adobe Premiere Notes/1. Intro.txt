@@ -1,0 +1,53 @@
+1. Stabilize Shaky Video-->
+
+--> Warp Stabilize Effect
+--> Start New Project
+--> Import Video by double click on project file layout
+--> Drag Video to new item button (below) --> This will add new timeline
+--> In Effects tab, search for Warp Stabilizer
+--> Drag it to Video TimeLine (at fx on Video)
+--> Open Effect and Control tab
+--> There are two options: Smooth Motion and No Motion
+--> both reduces shakiness of video
+
+-------------------------------------------------------------------------
+
+2. Panels-->
+
+--> Project Panel 	--> All Files
+--> Effect Panel	--> Transition, audio, video effects
+--> Toolbar Panel	--> Edit footage of timeline
+--> Timeline Panel	--> Video and Audio tracks
+--> Audio Monitor	
+--> Program Monitor	--> Final Product
+--> Source Montior	--> Clip Preview
+--> Effects Control	--> Effects Settings
+--> Audio Mixer Panel
+
+
+-------------------------------------------------------------------------
+
+3. Shortcut keys-->
+
+--> To make new folder in project panel --> ctrl + B
+--> To rename file in project panel 	--> select + Enter
+
+-------------------------------------------------------------------------
+4. Media Browser-->
+
+--> Show Preview in Project Panel
+--> If you many clips, and you have to select by seeing preview
+--> Window menu --> Media Browser --> it will show all clips preview by hovering
+
+-------------------------------------------------------------------------
+
+6. Extra Files Generated Location--> 
+
+--> Where Project is saved, all extra files saved
+--> So make sure to save project at your location, not default
+--> Select Scratch Disks Option while starting project
+--> Choose "Same as Project" 
+
+--------------------------------------------------------------------
+
+

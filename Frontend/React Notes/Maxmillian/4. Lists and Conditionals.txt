@@ -1,0 +1,669 @@
+1. Rendering Content Conditionally
+
+--> Here we will make toggle button for displaying person component.
+--> Here we will render content using ternary operator.
+
+--> IN App.js
+
+class App extends Component {
+  state = {
+    persons : [
+      { name: "Max", age: 23 },
+      { name: "Manu", age: 24 },
+      { name: "Stepanie", age: 20 }
+    ],
+    showPersons: false				------> Boolean Flag
+  }
+
+  togglePersonsHandler = () => {				------> Toggling Handler
+    const doesShow = this.state.showPersons;
+    this.setState({showPersons: !doesShow});
+  }
+
+  render() {
+    
+    return (
+      <div className="App">
+        <h1>Hello World</h1>
+        <button 
+          style={style}
+          onClick={this.togglePersonsHandler}>SwitchName</button>
+        { this.state.showPersons ? 					------------> Using ternary Operator
+        <div>
+          <Person 
+            name={this.state.persons[0].name} 
+            age={this.state.persons[0].age}/>
+          <Person 
+            name={this.state.persons[1].name} 
+            age = {this.state.persons[1].age}
+            click = {this.switchNameHandler.bind(this, 'Max!')}
+            changed = {this.nameChangedHandler}>My Hobbies: Racing</Person>
+          <Person 
+            name={this.state.persons[2].name} 
+            age={this.state.persons[2].age}/>
+        </div> : null }
+        
+      </div>
+    );
+  }
+
+-------------------------------------------------------------------------------
+
+2. Handling Content using Javascript Way
+
+--> It is more eleghant way
+--> Whenever component is rerendered, render function is called 
+--> We can provide logic there.
+
+render() {
+    const style = {
+      backgroundColor: 'white',
+      border: '1px solid blue',
+      font: 'inherit',
+      padding: '8px'
+    }
+
+    let persons = null;						-------> Define a variable
+
+    if(this.state.showPersons)					-------> checks for boolean flag
+    {
+      persons = (
+          <div>							-------> JSX Code which will be rendered by converting to React.CreateElement
+            <Person 
+              name={this.state.persons[0].name} 
+              age={this.state.persons[0].age}/>
+            <Person 
+              name={this.state.persons[1].name} 
+              age = {this.state.persons[1].age}
+              click = {this.switchNameHandler.bind(this, 'Max!')}
+              changed = {this.nameChangedHandler}>My Hobbies: Racing</Person>
+            <Person 
+              name={this.state.persons[2].name} 
+              age={this.state.persons[2].age}/>
+          </div>
+      )
+      
+    }
+    return (
+      <div className="App">
+        <h1>Hello World</h1>
+        <button 
+          style={style}
+          onClick={this.togglePersonsHandler}>SwitchName</button>
+        {persons}							-------> Using React Expression 
+        
+      </div>
+    );
+
+
+--> You can not write if block statement in React Expression
+
+-------------------------------------------------------------------------------
+
+3. Outputting Lists
+
+--> What we are doing now,
+
+  state = {
+    persons : [
+      { name: "Max", age: 23 },
+      { name: "Manu", age: 24 },
+      { name: "Stepanie", age: 20 }
+    ],
+    showPersons: false
+  }
+
+	    <Person 
+              name={this.state.persons[0].name} 
+              age={this.state.persons[0].age}/>
+            <Person 
+              name={this.state.persons[1].name} 
+              age = {this.state.persons[1].age}
+              click = {this.switchNameHandler.bind(this, 'Max!')}
+              changed = {this.nameChangedHandler}>My Hobbies: Racing</Person>
+            <Person 
+              name={this.state.persons[2].name} 
+              age={this.state.persons[2].age}/>
+
+--> We are using array index number to render Person components
+--> IF any person is deleted, it will fail here
+--> Other disadvantage is this is repeatitive code and you have to provide props individually.
+
+-------------------------------------------------------------------------------
+
+if(this.state.showPersons)
+    {
+      persons = (
+          <div>
+            {this.state.persons.map(person => {
+              return <Person name={person.name} age={person.age} />
+            })}
+          </div>
+      )      
+    }
+
+--> In Angular and Vue, we use directives for conditions and looping (ngIf and ngFor)
+--> In React, we use pure javascript functions like map, filter, if for dynamic rendering.
+
+-------------------------------------------------------------------------------
+
+4. Lists and State
+
+--> Delete handler method,
+
+  deletePersonHandler = (personIndex) => {
+    const persons = this.state.persons;
+    persons.splice(personIndex, 1);
+    this.setState({persons});
+  }
+
+--> In render method,
+
+if(this.state.showPersons)
+    {
+      persons = (
+          <div>
+            {this.state.persons.map((person, index) => {
+              return <Person 
+                        click = {() => this.deletePersonHandler(index)}
+                        name={person.name} 
+                        age={person.age} />
+            })}
+          </div>
+      )      
+    }
+
+-------------------------------------------------------------------------------
+
+5. Updating State Immutability
+
+--> We are changing state directly for deleting 
+--> We should use copy of original array object.
+--> This will useful in restoring deleted object in future.
+--> If not done, might go to unpredictable situations.
+
+  deletePersonHandler = (personIndex) => {
+    // const persons = this.state.persons.slice();
+    const persons = [...this.state.persons]
+    persons.splice(personIndex, 1);
+    this.setState({persons});
+  }
+
+-------------------------------------------------------------------------------
+
+6. Lists and Keys
+
+--> Now what we are doing, we are deleting a single element and whole list is rerendered again.
+--> Virtual dom keeps track of previous dom and applied dom and renders accordingly.
+--> Solution: inbuilt react property -> key in each component rendered
+
+--> As a key, normally we use unique identifier, id
+--> Never use index, bec. in dom manipulation, normally index can change of each component
+
+state = {
+    persons : [
+      { id: '1', name: "Max", age: 23 },
+      { id: '2', name: "Manu", age: 24 },
+      { id: '3', name: "Stepanie", age: 20 }
+    ],
+    showPersons: false
+  }
+
+if(this.state.showPersons)
+    {
+      persons = (
+          <div>
+            {this.state.persons.map((person, index) => {
+              return <Person 
+                        click = {() => this.deletePersonHandler(index)}
+                        name={person.name} 
+                        age={person.age} 
+                        key = {person.id}/>
+            })}
+          </div>
+      )      
+    }
+
+-------------------------------------------------------------------------------
+
+7. Flexible Lists
+
+if(this.state.showPersons)
+    {
+      persons = (
+          <div>
+            {this.state.persons.map((person, index) => {
+              return <Person 
+
+                        click ={() => this.deletePersonHandler(index)}
+                        name={person.name} 
+                        age={person.age} 
+                        key = {person.id}
+                        changed={(event) => this.nameChangedHandler(event, person.id)}/>		----> This Added
+            })}
+          </div>
+      )      
+    }
+
+-------------------------------------------------------------------------------
+
+--> Earlier
+--> Targetting manually
+
+  // nameChangedHandler = (event) => {
+  //   this.setState({
+  //     persons: [
+  //       { name: "Maximilian", age: 23 },
+  //       { name: event.target.value, age: 24 },
+  //       { name: "Stepanie", age: 27 }
+  //     ]
+  //   })
+  // }
+
+-------------------------------------------------------------------------------
+
+--> Updated
+--> Targetting array through index
+
+  nameChangedHandler = (event, id) => {
+    const personIndex = this.state.persons.findIndex(p => p.id === id);
+    const person = {...this.state.persons[personIndex]}
+    // const persons = Object.assign({}, this.state.persons[personIndex])		--> Alternative way to copy
+
+    person.name = event.target.value;
+    const persons = [...this.state.persons]
+    persons[personIndex] = person;
+
+    this.setState({persons: persons})
+  }
+
+--> We use copy of state bec. array or object is reference type
+--> With this, if we change, we change the original state
+--> React will automatically finds out by updated state, we will not change the state directly.
+--> By doing this, we avoid unpredictable results or rerender the whole state.
+
+-------------------------------------------------------------------------------
+
+8. Wrap up
+
+--> React uses all pure javascript functions
+--> if, map, spread, filter, findIndex, find, arrow functions
+
+--> map operator always return new array, so no need to use spread operator on that.
+--> inline-style is javascript object.
+--> eg.
+
+const Char = (props) => {
+    let style= {
+        display: 'inline-block', 
+        padding: '16px', 
+        textAlign: 'center', 
+        margin: '16px', 
+        border: '1px solid black'
+    }
+    return (
+        <div style={style}>
+	
+	</div>
+    )
+}
+
+--> Two way binding is possible by applying two properties:
+1. onChange				--> Assign to Handler function for changing state
+2. value={this.state.userInput}		--> Bind to state
+
+-------------------------------------------------------------------------------
+
+9. Nice Assignment
+
+--> Create an input field with two way binding
+--> Create Validation Component to which length of input field is passed, it will show paragraph of "Text too long" or "Text too short"
+--> Create Char Component to which each character of input field is passed, it will display each character in box and while clicking, it will delete that char from text field.
+
+-------------------------------------------------------------------------------
+
+import React, { Component } from 'react';
+import './App.css';
+import Validation from './Validation/Validation';
+import Char from './Char/Char';
+
+class App extends Component {
+  state = {
+    userInput : ""
+  };
+
+  userInputChangeHandler = (event) => {
+    this.setState({userInput: event.target.value})
+  }
+
+  deleteCharHandler = (index) => {
+    let text = this.state.userInput.split('');
+    text.splice(index, 1);
+    const updatedText = text.join('');
+    this.setState({userInput : updatedText})
+  }
+
+  render(){
+
+    let CharArray = this.state.userInput.split('').map((ch,index) => {
+      return <Char character={ch} key={index} clicked={() => this.deleteCharHandler(index)} />
+    })
+
+    return (
+      <div className="App">
+        <input type="text" onChange={(event) => this.userInputChangeHandler(event)} value={this.state.userInput} />
+        <Validation textLength={this.state.userInput.length}/>
+        {CharArray}
+      </div>
+    );
+  }
+}
+
+export default App;
+
+
+-------------------------------------------------------------------------------
+
+import React from 'react';
+
+const Validation = (props) => {
+
+    let textMessage = "Text too long";
+
+    if(props.textLength <=5)
+    {
+        textMessage = "Text too small"
+    }
+
+    return (
+        <div>
+            <p>{textMessage}</p>
+        </div>
+    );
+}
+
+export default Validation;
+
+-------------------------------------------------------------------------------
+
+import React from 'react';
+
+const Char = (props) => {
+    let style= {
+        display: 'inline-block', 
+        padding: '16px', 
+        textAlign: 'center', 
+        margin: '16px', 
+        border: '1px solid black'
+    }
+    return (
+        <div style={style} onClick={props.clicked}>
+            {props.character}
+        </div>
+    );
+}
+
+export default Char;
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

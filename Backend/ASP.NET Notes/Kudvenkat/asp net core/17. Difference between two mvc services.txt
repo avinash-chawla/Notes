@@ -1,0 +1,39 @@
+--> Difference between AddMvc and AddMvcCore method in service object
+
+public void ConfigureServices(IServiceCollection services)
+{
+   services.AddMvc();
+}
+
+--------------------------------------------------------------------------------
+
+1. Return JSON Data from controller actionMethod
+
+using Microsoft.AspNetCore.Mvc;
+
+public class HomeController : Controller
+{
+    public JsonResult Index()
+    {
+        return Json(new { id=1, name="pragim" });
+    }
+}
+
+--> new { id=1, name="pragim" } is an anonymous javascript object.
+
+--> If we want to return an HTML View or JSON data from the Index() action method
+
+--> Our HomeController class has to derive from the Controller class provided by the framework. 
+--> The Controller base class provides support to return different results like JsonResult, ViewResult, PartialViewResult etc.
+
+--> Now run the application
+
+--------------------------------------------------------------------------------
+
+2. servies.AddMvcCore()
+
+--> If we use this service method, you won't be able to see json or html view in browser
+--> AddMvc() method does this but not the AddMvcCore() method.
+--> AddMvc() method calls AddMvcCore() method internally, to add all the core MVC services.
+
+--------------------------------------------------------------------------------

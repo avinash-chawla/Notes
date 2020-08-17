@@ -1,0 +1,39 @@
+1. app.UseDeveloperExceptionPage
+
+--> Any Exception raised by any class in compiler, will be handled by this middleware.
+--> In Configure method,
+
+if(env.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage(developerExceptionPageOptions);
+}
+
+app.Run(async (context) => 
+{
+    throw new Exception("Some error");
+    ..
+})
+
+
+--> In this, suppose class is throwing exception, so we are throwing manually
+--> This exception will be handled by this middleware
+--> This should be starting middleware bec. it is later and any middleware ahead of it throws exception, then that exception will not handled.
+
+
+------------------------------------------------------------------------------
+
+2. Using Options object to customize this middleware
+
+if(env.IsDevelopment())
+{
+    DeveloperExceptionPageOptions developerExceptionPageOptions = new DeveloperExceptionPageOptions();
+
+    developerExceptionPageOptions.SourceCodeLineCount = 2;
+    
+    app.UseDeveloperExceptionPage(developerExceptionPageOptions);
+}
+
+
+--> While showing errors line in code on Exception page, Instead of 12-14, it will show 2 lines only.
+
+-------------------------------------------------------------------------------

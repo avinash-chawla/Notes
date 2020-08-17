@@ -1,0 +1,13 @@
+ctrl+k+f	--> auto formats code
+tab tab		--> auto complete if, for, class
+ctrl+k+c / u	--> for bulk comment
+alt+shift+enter --> for full screen mode
+alt+shift+ up/down	--> multicursor
+ctrl+r+r	--> to change all variable reference at one time
+ctrl+tab	--> to switch between tabs
+ctrl+c+v	--> duplicate lines of code
+
+snippets-->
+cw		--> Console.WriteLine()
+prop		--> To define property in Class
+mvcaction4	--> to generate actionMethod

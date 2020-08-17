@@ -1,0 +1,647 @@
+1. Note
+
+--> in-line styles do not support Pseduo Selectors
+
+--------------------------------------------------------------------------------
+
+2. Setting Styles Dynamically
+
+--> inline style is javascript property only.
+--> We can modify style property just like normal property in conditions.
+
+render() {
+    const style = {
+      backgroundColor: 'green',
+      color: 'white',
+      border: '1px solid blue',
+      font: 'inherit',
+      padding: '8px',
+      cursor: 'pointer'
+    }
+
+    let persons = null;
+
+    if(this.state.showPersons)
+    {
+      persons = map(operator)...
+      style.backgroundColor = 'red';
+    }
+
+--------------------------------------------------------------------------------
+
+3. Setting ClassNames Dynamically
+
+--> App.css
+
+.red{
+  color: red;
+}
+
+.bold{
+  font-family: bold;
+}
+
+--------------------------------------------------------------------------------
+
+--> In render method of App.js,
+
+    const classes = [];
+    if(this.state.persons.length <=2)
+    {
+      classes.push('red');
+    }
+    if(this.state.persons.length <= 1)
+    {
+      classes.push('bold');
+    }
+
+    return (
+      <div className="App">
+        <h1>Hello, I am a React App</h1>
+        <p className={classes.join(' ')}>It is really Working</p>
+    	...
+    )
+
+--------------------------------------------------------------------------------
+
+3. Adding and Using Radium
+
+--> We can not use pseudo-selectors or media-queries in inline-styles
+--> Radium is npm package to include this functionality.
+--> npm i radium --save
+
+import Radium from 'radium';
+
+const style = {
+      backgroundColor: 'green',
+      color: 'white',
+      border: '1px solid blue',
+      font: 'inherit',
+      padding: '8px',
+      cursor: 'pointer',
+      ':hover': {					--> Including pseudo-selector in string
+        backgroundColor: 'lightgreen',
+        color: 'black'
+      }
+    }
+
+if(this.state.showPersons)
+    {
+      persons = ...
+      style.backgroundColor = 'red';
+      style[':hover'] = {
+        'backgroundColor': 'salmon',
+        'color': 'black'
+      }
+    }
+
+export default Radium(App);				----> Necessary Step
+
+--> This is higher order function
+--> It simply means it will add additional functionality in existing App.
+
+--------------------------------------------------------------------------------
+
+4. Using Radium for Media Queries
+
+--> In Person.js
+
+import Radium from 'radium';
+
+const person = (props) => {
+
+    let style = {
+        '@media (min-width: 500px)': {
+            width: '450px'
+        }
+    }
+
+    return (
+        <div className="Person" style={style}>
+            ...
+        </div>
+    )
+}
+
+export default Radium(person);
+
+--------------------------------------------------------------------------------
+
+--> For including media queries, you need to wrap whole react component in StyleRoot
+--> In App.js
+
+import Radium, {StyleRoot} from 'radium';
+
+return (
+      <StyleRoot>
+        <div className="App">
+          ...
+        </div>
+      </StyleRoot>
+      
+    );
+
+--------------------------------------------------------------------------------
+
+5. Introducing Styled Components
+
+--> It is a javascript library built for react applications
+--> It is alternative to Radium library
+--> npm i --save styled-components
+
+--> It uses concept of tagged-template literals which are similar to calling methods --> styled.button``
+--> Inside backticks, we provide arguments and it returns a react component with all applied styles
+--> So we wrap whole jsx inside this component
+
+--> Person.js
+
+// import './Person.css';
+import styled from 'styled-components';
+
+const StyledDiv = styled.div`
+    width: 30%;
+    border: 1px solid #eee;
+    padding: 10px;
+    margin: auto;
+    text-align: center;
+    box-shadow: 0px 2px 3px #ccc;
+    
+    @media (min-width: 500px) {
+        width: 450px
+    }
+    `
+
+const person = (props) => {
+
+    return (
+        <StyledDiv>
+            <div className="Person">
+	</StyledDiv>
+    )
+}
+
+--> This styled object contains all methods for all html elements div, button, h1, p, a
+--> As we are providing style to div, we use styled.div`` and all styles to div inside backticks.
+--> Note: Remove all Radium syntax 
+
+--------------------------------------------------------------------------------
+
+6. More about Styled Component
+
+--> Internally, styled-components makes it own class attaching all css properties and apply to head section of index page
+--> You can view this by inspecting element in browser.
+--> IN App.js
+
+import styled from 'styled-components';
+
+const StyledButton = styled.button`
+  background-color: green;
+  color: white;
+  border: 1px solid blue;
+  font: inherit;
+  padding: 8px;
+  cursor:pointer;
+  &:hover {
+    background-color: lightgreen;
+    color: black
+  }
+`;
+
+class App extends Component {
+    ...
+    return (
+        <div className="App">
+          ...
+          <StyledButton onClick={this.togglePersonsHandler}>SwitchName</StyledButton>
+          {persons}        
+        </div>      
+    );
+
+--> It is seperate component, so written outside App class
+--> It is component now, replacing button html element
+
+--------------------------------------------------------------------------------
+
+7. Styled Component and Dynamic Styles
+
+<StyledButton alt={this.state.showPersons} onClick={this.togglePersonsHandler}>Toggle Persons</StyledButton>
+
+const StyledButton = styled.button`
+  background-color: ${props => props.alt ? 'red' : 'green'};
+  color: white;
+  border: 1px solid blue;
+  font: inherit;
+  padding: 8px;
+  cursor:pointer;
+  &:hover {
+    background-color: ${props => props.alt ? 'selmon' : 'lightgreen'};
+    color: black
+  }
+`;
+
+--------------------------------------------------------------------------------
+
+8. Working with CSS Modules
+
+--> As we create CSS files and include them in Js files for each component
+--> As it is Single Page Applications, same class names may contradict ahead.
+
+--> npm run eject
+--> It will open web-bundler config file which was hidden.
+
+under test: /\.css$/,
+
+options: {
+   importLoaders: 1,
+   modules: true,
+   localIdentName: '[name]__[local]__[hash:base64:5]'
+},
+
+--> Add in both webpack.config.dev.js and prod.js
+--> This code will enable getting classes as object properties
+--> This is strongly typed.
+--> Also, each property will apply to class will now have unique name based on that hash.
+--> You can review className in inspect element.
+
+--------------------------------------------------------------------------------
+
+--> In App.js
+
+import classes from './App.css';
+
+--> Whenever you want to apply styles, apply as javascript property.
+--> {classes.App}
+--> {classes.Button}
+
+--> So there are 3 options, you can do:
+1. CSS files
+2. Radium
+3. Styled Components
+
+--> I will prefer first approach.
+
+--------------------------------------------------------------------------------
+
+import classes from './App.css';
+
+render() {
+    let persons = null;
+    let btnClass = [classes.Button];
+
+    if(this.state.showPersons)
+    {
+      persons = ...
+      btnClass.push(classes.Red);
+    }
+
+    const assignedClasses = [];
+    if(this.state.persons.length <=2)
+    {
+      assignedClasses.push('red');
+    }
+    if(this.state.persons.length <= 1)
+    {
+      assignedClasses.push('bold');
+    }
+
+    return (
+        <div className={classes.App}>						---> Here class used as a property
+          <h1>Hello, I am a React App</h1>
+          <p className={assignedClasses.join(' ')}>It is really Working</p>
+          <button className={btnClass.join(' ')} onClick={this.togglePersonsHandler}>Toggle Persons</button>
+          {persons}        
+        </div>      
+    );
+  }
+}
+
+
+--------------------------------------------------------------------------------
+
+--> App.css
+
+.App {
+  text-align: center;
+}
+
+.red{
+  color: red;
+}
+
+.bold{
+  font-family: bold;
+}
+
+.Button{
+  background-color: green;
+  color: white;
+  border: 1px solid blue;
+  font: inherit;
+  padding: 8px;
+  cursor:pointer;
+}
+
+.Button:hover{
+  background-color: lightgreen;
+  color: black
+}
+
+.Button.Red{
+  background: red;
+}
+
+.Button.Red:hover{
+  background-color: salmon;
+}
+
+
+--------------------------------------------------------------------------------
+
+--> Instead of Array, we can use string
+--> Change following,
+
+--> App.css
+
+.App button{
+  ...
+}
+
+.App button:hover{
+  ...
+}
+
+.App button.Red{
+  ...
+}
+
+.App button.Red:hover{
+  ...
+}
+
+--> In App.js
+
+<button className={btnClass} onClick={this.togglePersonsHandler}>Toggle Persons</button>
+
+
+--------------------------------------------------------------------------------
+
+--> Person.css
+
+.Person{
+    width: 30%;
+    border: 1px solid #eee;
+    padding: 10px;
+    margin: auto;
+    text-align: center;
+    box-shadow: 0px 2px 3px #ccc;
+}
+
+@media (min-width: 500px) {
+    .Person{
+        width: 450px;
+    }
+}
+
+--------------------------------------------------------------------------------
+
+--> Person.js
+
+import classes from './Person.css';
+
+<div className={classes.Person}>
+
+--------------------------------------------------------------------------------
+
+--> For react-scripts 2x or higher,
+
+--> In App.js
+
+import classes from './App.module.css';
+
+--> Name that css class file, App.module.css
+
+--> No need to npm run eject in that.
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

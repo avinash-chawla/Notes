@@ -1,0 +1,115 @@
+1. What is Model Binding
+
+--> Model binding maps data in an HTTP request to controller action method parameters
+
+--> The action parameters may be simple types such as integers, strings, etc or complex types like Customer, Employee, Order etc.
+
+--> Form data contain multiple fields, which is automatically binded by model binding and return as single complex object to ActionMethod.
+--> Model binding uses name attribute of HTML element to bind data to corresponding object as par request url.
+
+--> Model binding is great, because without it we have to write lot of custom code to map request data to action method parameters which is not only tedious but also error prone.
+
+-------------------------------------------------------------------------------
+
+2. Demo
+
+--> url: http://localhost:48118/home/details/2?name=pragim
+
+--> Model data will bind id and name and pass it to actionMethod
+
+public string Details(int? id, string name)
+{
+    return "id = " + id.Value.ToString() + " and name = " + name;
+}
+
+-------------------------------------------------------------------------------
+
+3. Perference used by Model Binding to bind data from client
+
+1. Form Values 
+2. Route values 
+3. Query Strings
+
+--> url: http://localhost:48118/home/details/2?name=pragim&Id=5
+--> Model binding will take id parameter from route value 
+
+-------------------------------------------------------------------------------
+
+4. Model Binding Complex Types
+
+--> Model Binding also works with complex types such as Customer, Order, Employee etc.
+
+--> When the 'create' form is posted to the server, the values in the form are mapped to the Employee object parameter of the following Create() action method.
+
+public RedirectToActionResult Create(Employee employee)
+{
+    Employee newEmployee = _employeeRepository.Add(employee);
+    return RedirectToAction("details", new { id = newEmployee.Id });
+}
+
+--> Model binder in asp.net core binds the posted form values to the properties of the Employee object that is passed as a parameter to the Create() action method.
+
+--> The value in the input element that has the name attribute set to "Name" is mapped to the Name property of the Employee object.
+
+-------------------------------------------------------------------------------
+
+5. Making Action Method for Create Employee Form
+
+--> Interface
+
+public interface IEmployeeRepository
+{
+    Employee GetEmployee(int Id);
+    IEnumerable<Employee> GetAllEmployees();
+    Employee Add(Employee employee);
+}
+
+-------------------------------------------------------------------------------
+
+--> Add() method - MockEmployeeRepository class 
+
+    public Employee Add(Employee employee)
+    {
+        employee.Id = _employeeList.Max(e => e.Id) + 1;
+        _employeeList.Add(employee);
+        return employee;
+    }
+
+-------------------------------------------------------------------------------
+
+--> Two action Methods
+
+--> HttpGet vs HttpPost
+
+[HttpGet]
+public ViewResult Create()
+{
+    return View();
+}
+
+[HttpPost]
+public RedirectToActionResult Create(Employee employee)
+{
+    Employee newEmployee = _employeeRepository.Add(employee);
+    return RedirectToAction("details", new { id = newEmployee.Id });
+}
+
+--> The Create() action method that responds to the POST action adds the new employee to the EmployeeRepository and redirects the user to the Details() action method passing it the ID of the newly created employee
+
+-------------------------------------------------------------------------------
+
+6. Note
+
+--> Upon redirection if you get a NullReferenceException, make sure to use AddSingleton() method instead of AddTransient() method to register IEmployeeRepository service in ConfigureServices() method of Startup.cs file.
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddMvc();
+        services.AddSingleton<IEmployeeRepository, MockEmployeeRepository>();
+    }
+}
+
+
+-------------------------------------------------------------------------------

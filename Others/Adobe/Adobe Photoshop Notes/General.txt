@@ -1,0 +1,138 @@
+1. Basics-->
+
+0. Importing Images
+1. Layer - Display images to visually see difference
+2. Transform- Scale
+3. Shift key to maintain height and width ratio while scaling
+4. Spacebar for mouse drag image
+5. Combine images	--> drag and drop using tabs
+6. Free Images sites
+7. Auto Tone
+
+------------------------------------------------------
+2. Adjustment Layer-->
+
+8. Levels --> Change toner level(contrast) in image
+8.a. Vibrance --> Enhance Colors of image
+9. Hue --> Change color of selective or whole 
+10. Gradient --> to Text or to background
+11. Making Black and White
+
+------------------------------------------------------
+3. Shapes--->
+
+12. Making specified size document
+13. Creating Shapes - Rect, circle, star
+14. Stealing colors
+
+------------------------------------------------------
+
+4. Texts-->
+
+15. Learn to bend text
+16.A. Learn to use Pen tool for drawing path for text
+16. Make Text follow a path
+
+------------------------------------------------------
+5. Layer Styles-->
+
+17. Stroke
+18. Gradient
+19. Pattern
+20. Bevel and Emboss
+21. Drop Shadow
+
+22. Learn to give background color to Layer
+23. Combining all layer in one layer
+
+-------------------------------------------------------
+6. Cropping-->
+
+24. Cropping an image
+25. Setting Ratio for cropping
+26. Make horizon line for image
+27. Magic Extend Image using Content-Aware
+
+-------------------------------------------------------
+7. Selection and Masking--> 
+
+28. Use marquee tool to copy image portion
+29. Crop images inside of Text using Create Clipping Mask
+30. Learn to use Glitched Image
+31. Quick Selection Tool for removing background
+32. Learn to put text behind a person
+33. Learn to use Layer Mask showing behind image portion on using brush
+34. Mask Layer application of text person combination image
+35. Hair confinement Mask Layer
+36. Learn to select things with straight edges.
+37. Creating shadow inside Text in ink and plants
+
+----------------------------------------------------------
+
+8. Filters-->
+
+38. Filter Galary
+39. Oil painting Image
+40. Dotted Halftone Poster Image
+41. Motion blurr image
+42. Lens Flare Sun
+
+-----------------------------------------------------------
+
+9. Smart Object-->
+
+43. Does not lose Pixels
+
+-----------------------------------------------------------
+
+10. Transform and Distort-->
+
+44. Distort logo on Shoe
+45. Rotate whole Image
+46. Sky peeling Image
+47. Shrink body parts using Liquify
+48. Dripping Paint Text Effect
+
+----------------------------------------------------------
+
+11. Retouching-->
+
+49. Remove People/Object from a picture
+50. Remove Red Eye
+51. Remove marks and spots from face
+52. Retouching Eyes
+53. Retouching Teeth
+
+-----------------------------------------------------------
+
+12. Blending Modes-->
+
+54. Remove white background of Logo
+55. Using Color accents
+56. Bottle Ship
+
+-----------------------------------------------------------
+
+13. Visual Styles-->
+
+57. Duotone Effect
+58. 3D glass Effect
+59. Vintage Effect
+60. Paper Cut Effect
+
+-----------------------------------------------------------
+
+14. Artboards --> 61.
+
+-----------------------------------------------------------
+
+15. Color modes and Resolution-->
+
+62. Difference between RGB and CMYK
+63. Set Resolution of Image
+
+-----------------------------------------------------------
+
+16. Brushes-->
+
+

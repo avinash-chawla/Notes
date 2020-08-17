@@ -1,0 +1,10 @@
+1. component - selector, template
+2. dependency injection for httpService object
+3. property and event binding to data - [src], (click)
+4. two-way binding [(ngModel)] - email
+5. custom input and output properties - parent to child
+6. directives - ngIf, ngFor
+7. template-driven forms - ngModel, name, name.errors
+8. FormGroup, FormControl, Validators, Async Validators
+9. routing 
+10. 

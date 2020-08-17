@@ -1,0 +1,236 @@
+1. Intro
+
+--> LogLevel indicates the severity of the logged message. 
+--> It can be any of the following. 
+--> They are listed here from lowest to highest severity.
+
+
+Trace = 0
+Debug = 1
+Information = 2
+Warning = 3
+Error = 4
+Critical = 5
+None = 6
+
+-------------------------------------------------------------------------------
+
+2. LogLevel Enum
+
+--> In Controller class, in any action method, write LogLevel()
+--> Now, go to definition,
+
+namespace Microsoft.Extensions.Logging
+{
+    public enum LogLevel
+    {
+        Trace = 0,
+        Debug = 1,
+        Information = 2,
+        Warning = 3,
+        Error = 4,
+        Critical = 5,
+        None = 6
+    }
+}
+
+--> Only for demostration
+
+-------------------------------------------------------------------------------
+
+3. LogLevel in appsettings.json 
+
+--> LogLevel setting in appsettings.json file is used to control how much log data is logged or displayed
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Trace",
+      "Microsoft": "Warning"
+    }
+  }
+}
+
+-------------------------------------------------------------------------------
+
+4. ILogger Methods
+
+--> On the ILogger interface, we have log methods that include the log level in the method name.
+
+LogTrace()
+LogDebug()
+LogInformation()
+LogWarning()
+LogError()
+LogCritical()
+
+-------------------------------------------------------------------------------
+
+5. LogLevel Example
+
+--> In EmployeeController,
+
+public ViewResult Details(int? id)
+    {
+        logger.LogTrace("Trace Log");
+        logger.LogDebug("Debug Log");
+        logger.LogInformation("Information Log");
+        logger.LogWarning("Warning Log");
+        logger.LogError("Error Log");
+        logger.LogCritical("Critical Log");
+
+        // Rest of the code
+    }
+
+-------------------------------------------------------------------------------
+
+--> Output window,
+
+--> The following Log output is displayed in the Debug Output window. 
+--> Since we have set "Default": "Trace", we see everything from Trace level and higher. 
+--> Since Trace is the lowest level we see all the logs.
+
+EmployeeManagement.Controllers.HomeController:Trace: Trace Log
+EmployeeManagement.Controllers.HomeController:Debug: Debug Log
+EmployeeManagement.Controllers.HomeController:Information: Information Log
+EmployeeManagement.Controllers.HomeController:Warning: Warning Log
+EmployeeManagement.Controllers.HomeController:Error: Error Log
+EmployeeManagement.Controllers.HomeController:Critical: Critical Log
+
+-------------------------------------------------------------------------------
+
+--> However if you want WARNING and higher then set "Default": "Warning"
+--> Default represents that Name of Project (namespace)
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Trace",
+      "Microsoft": "Warning"
+    }
+  }
+}
+
+-------------------------------------------------------------------------------
+
+--> If you do not want anything logged set LogLevel to None. 
+--> The integer value of LogLevel.None is 6, which is higher than all the other log levels. 
+--> So nothing gets logged.
+
+-------------------------------------------------------------------------------
+
+6. Log filtering
+
+--> To understand this, also apply logger In SqlEmployeeRepository,
+
+public Employee GetEmployee(int id)
+{ 
+	logger.LogTrace("Trace Log");
+        logger.LogDebug("Debug Log");
+        logger.LogInformation("Information Log");
+        logger.LogWarning("Warning Log");
+        logger.LogError("Error Log");
+        logger.LogCritical("Critical Log");
+
+        return _context.Employees.Find(id);
+}
+
+-------------------------------------------------------------------------------
+
+--> Now we want EmployeeController to show logs from warning level
+--> And we want SqlRepository to show logs from trace level
+
+--> Instead of using Default in appsettings, we use specific position of class,
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "EmployeeManagement.Controllers.HomeController": "Trace",
+      "EmployeeManagement.Models.SQLEmployeeRepository": "Error",
+      "Microsoft": "Warning"
+    }
+  }
+}
+
+--> This will override "Default" for that class.
+--> The above LogLevel configuration applies to all logging providers - Debug, Console.
+
+-------------------------------------------------------------------------------
+
+7. Log Filtering by Log Category and by Logging Provider
+
+--> It is also possible to filter logs by Provider and by Category. 
+--> The following is an example. 
+--> With the following configuration, for the Debug logging provider, Warning and higher level logs are logged and displayed for all the log categories. 
+--> Where as for the rest of the logging providers, Trace and higher level logs are logged and displayed for all the log categories. 
+
+{
+  "Logging": {
+    "Debug": {
+      "LogLevel": {
+        "Default": "Warning",
+        "EmployeeManagement.Controllers.HomeController": "Warning",
+        "EmployeeManagement.Models.SQLEmployeeRepository": "Warning",
+        "Microsoft": "Warning"
+      }
+    },
+    "LogLevel": {
+      "Default": "Trace",
+      "EmployeeManagement.Controllers.HomeController": "Trace",
+      "EmployeeManagement.Models.SQLEmployeeRepository": "Trace",
+      "Microsoft": "Trace"
+    }
+  }
+}
+
+--> "Microsoft" is used by web hoster.
+
+-------------------------------------------------------------------------------
+
+8. LogLevel configuration in environment specific appsettings.json file
+
+--> Please remember the configuration in environment specific appsettings.json file (for example appsettings.development.json) overrides the settings in appsettings.json file
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

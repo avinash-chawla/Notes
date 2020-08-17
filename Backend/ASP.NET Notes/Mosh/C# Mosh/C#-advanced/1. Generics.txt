@@ -1,0 +1,185 @@
+1. Generics
+
+--> First look at problems, then decide why we want Generics
+--> Suppost we want to store list of numbers
+
+public class List
+{
+	public void Add(int number)
+	{
+		throw new NotImplementedException();
+	}
+
+	public int this[int index]
+	{
+		get { throw new NotImplementedException(); };
+	}
+}
+
+--> This List can only save integers
+
+--------------------------------------------------------------------
+
+--> Suppose we want to store List of Book Objects
+
+public class BookList
+{
+	public void Add(Book book)
+	{
+		throw new NotImplementedException();
+	}
+
+	public Book this[int index]
+	{
+		get { throw new NotImplementedException(); };
+	}
+}
+
+
+--> Now again, this will be valid only for book object
+
+--------------------------------------------------------------------
+
+--> Now making general List for storing List of objects
+
+public class ObjectList
+{
+	public void Add(object value)
+	{
+		throw new NotImplementedException();
+	}
+
+	public object this[int index]
+	{
+		get { throw new NotImplementedException(); };
+	}
+}
+
+--> Now problem is:
+1. If you use value type like int, then boxing(int -> Int32) and unboxing will be done. That will affect performance issue.
+2. If you use reference types, then you have to do explicit typecasting from book to obj and obj to book
+
+--------------------------------------------------------------------
+
+--> .Net provide concept of Generics
+--> Use Generics to store list of anything
+--> And it won't affect performance issue.
+
+public class GenericList<T>		--> T stands for Type of object/List
+{
+	public void Add(T value)
+	{
+		throw new NotImplementedException();
+	}
+
+	public T this[int index]
+	{
+		get { throw new NotImplementedException(); };
+	}
+}
+
+--> In Main method
+
+var numbers = new GenericList<int>();
+numbers.Add(10);
+
+var books = new GenericList<Book>();
+books.Add(new Book());
+
+
+--> This does not have performance issue, bec. there is no boxing-unboxing and no casting
+
+--------------------------------------------------------------------
+
+--> In real world, Mostly you will use inbuilt GenericList and not custom Generic Class.
+
+--> All Generic classes, you can see in --> System.Collections.Generic.(ctrl+.)
+
+ICollection, IComparer, IDictinary, IEnumerable, IList, ISortedList
+
+--------------------------------------------------------------------
+
+--> This tutorial is all about creating custom Generic Class
+
+1. Creating Generic Class which take two parameters
+
+public class GenericDictionary<Tkey, TValue>
+{
+	public void Add(Tkey key, TValue value)
+	{}
+}
+
+var dictionary = new GenericDictionary<string, Book>();
+dictionary.Add('1234', new Book());
+
+--------------------------------------------------------------------
+
+2. Adding Constraints to Generic Class to type of object which is passed
+
+--> Type should be instance of IComparable interface.
+
+public class Utilities
+{
+	public T Max<T>(T a, T b) where T : IComparable
+	{
+		return a.CompareTo(b) > 0 ? a : b;
+	}
+}
+
+--> Also can be mentioned in class
+public class Utilities where T : IComparable
+
+--------------------------------------------------------------------
+
+3. Constraints can be Interface, class, struct, new() 
+
+--> Lets look at struct
+
+public class Nullable<T> where T : struct
+{
+	private object _value;
+
+	public Nullable(){}
+
+	public Nullable(T value)
+	{
+		_value = value;
+	}
+
+	public bool HasValue
+	{
+		get { return _value != null }
+	}
+
+	public T GetValueOrDefault()
+	{
+		if(HasValue)
+			return (T)_value;
+	
+		return default(T);
+	}
+
+--> default(int) = 0
+--> default(object) = 0
+
+--> In main method,
+
+var number = new Nullable<int>();
+Console.WriteLine("Has Value ? " + number.HasValue);
+Console.WriteLine("Value: " + number.GetValueOrDefault());
+
+--------------------------------------------------------------------
+
+4. Constraint to new()
+
+--> Means no need to create object in list with new keyword
+
+public class Utilities<T> where T: IComparable, new()
+{
+	public void DoSomething(T value)
+	{
+		var obj = new T();
+	}
+}
+
+--------------------------------------------------------------------

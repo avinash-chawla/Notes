@@ -1,0 +1,215 @@
+0. forms validation-->
+
+--> Such forms can be used to send data to api
+--> Angular provides form-control and from-group inbuilt objects to automatically validate forms 
+--> Such forms are called template-driven forms
+
+--> We can make custom objects to validate angular forms
+--> Such forms are called Reactive forms
+--> Earlier such forms are called model-driven forms
+
+--> Difference between template driven and reactive forms
+1. reactive forms	
+--> build using code	
+--> more control over validation 
+--> unit testable
+
+2. template-driven forms 
+--> build using decorator  
+--> simple validation
+
+--> form-control and form-group objects has properties like value, touched, untouched, dirty(changed), pristine(not changed), valid, errors
+
+
+--> To work with Angular Forms
+--> app.module.ts
+--> import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+--> In imports: [ FormsModule ]
+
+-------------------------------------------------------------------------------------------------------------------------
+
+1. ngModel-->
+
+<input ngModel name="firstName" id="firstName" type="text>
+
+--> ngModel will automatically create form-control object and associate with input field
+--> ngModel requires name attribute to work  --> used as identier 
+
+-------------------------------------------------------------------------------------------------------------------------
+
+--> now to get preview of this ngModel object under the hood
+
+<input ngModel name="firstName" #firstName="ngModel" (change)="log(firstName)" type="text" id="firstName"
+      class="form-control">
+
+--> ngModel is stored in template_variable --> #firstName
+--> and passed in ref of log()
+
+--> contact-form.component.ts-->
+	log(x) { console.log(x); }
+
+--> ngModel obj in console --> control object in that --> it is instance of FormControl class with some properties
+
+-------------------------------------------------------------------------------------------------------------------------
+2. Adding_validation-->
+
+--> validating required property of input
+
+<div class="alert alert-danger" *ngIf="firstName.touched && !firstName.valid">First Name is Required</div>
+
+--> validation is done using form-control object properties	
+
+-------------------------------------------------------------------------------------------------------------------------
+
+3. Specific Validation Errors-->
+
+<input required 
+	minlength="3" 
+	maxlength="10" 
+	pattern="banana" 
+	ngModel 
+	name="firstName" 
+	#firstName="ngModel"
+	(change)="log(firstName)" 
+	type="text" 
+	id="firstName" class="form-control">
+
+
+    <div class="alert alert-danger" *ngIf="firstName.touched && !firstName.valid">
+      <div *ngIf="firstName.errors.required">First Name is Required</div>
+      <div *ngIf="firstName.errors.minlength">First Name should be minimum {{ firstName.errors.minlength.requiredLength}} characters</div>
+      <div *ngIf="firstName.errors.maxlength">First Name should be maximum 10 characters</div>
+      <div *ngIf="firstName.errors.pattern">First Name does not match pattern</div>
+
+--> attribute in input field are also associated with ngModel object in errors object in that
+--> required, minlength, maxlength, pattern are all unders errors object 
+--> we can use errors object for displaying specific message and condition in ngIf
+
+-------------------------------------------------------------------------------------------------------------------------
+
+4. Styling invalid input fields border-->
+
+--> when input field gets invalid, we can see in developers tool that, it adds class ng-invalid, ng-touched, ng-dirty to input element automatically
+--> style.css (main)
+.form-control.ng-invalid.ng-touched{
+    border: 2px solid red;
+}
+
+-------------------------------------------------------------------------------------------------------------------------
+
+5. ngForm-->
+
+--> In angular, we have two class for form-validation--> form-control and form-group
+--> form-control gets associated with individual inputs
+--> form-group gets associated with whole form
+
+--> when using ngModel obj in input field, angular automatically puts form-group in form element internally
+
+<form #form="ngForm" (ngSubmit)="onSubmit(form)">	--> ngSubmit is inbuilt output event for form Submit
+
+--> Make sure to add this in form tag
+--> it is stored in template variable
+--> by default, it generates output event as ngSubmit which is associated with custom function onSubmit
+--> form is inserted reference in that function
+
+contact-form.ts-->
+onSubmit(x) { console.log(x); }
+
+--> most important property of ngForm object is value property
+--> it contains value of all fields in javascript object format
+--> This form data can be then sent to api service
+
+onSubmit(f) {
+   f.value
+}
+
+-------------------------------------------------------------------------------------------------------------------------
+
+6. ngModelGroup-->
+
+--> it is inbetween ngModel and ngForm
+--> it is associated with bunch of fields 
+--> we can create this object by including fields under its div tag
+
+<div ngModelGroup="contact" #contact="ngModelGroup">	--> name of obj is contact now
+	<div *ngIf="!contact.valid">...</div>
+	<div class="form-group">...</div>		--> bunch of fields inside
+</div>
+
+-------------------------------------------------------------------------------------------------------------------------
+
+7. Disabling button if still error in form-->
+
+<button class="btn btn-primary" [disabled]="!form.valid">Submit</button>
+
+-------------------------------------------------------------------------------------------------------------------------
+
+8. working with checkbox-->
+
+<div class="checkbox">
+    <label>
+      <input ngModel name="isSubscribed" type="text" class="checkbox"> Subscribe to mailing list
+    </label>
+  </div>
+
+-------------------------------------------------------------------------------------------------------------------------
+
+9. display form data in webpage-->
+
+<p> {{ form.value | json }} </p> 
+
+--> form is template variable defined with form element
+--> pipe operator convert js obj to json obj
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+10. working with drop-down lists-->
+
+ <div class="form-group">
+    <label for="contactMethods"></label>
+    <select multiple ngModel name="contactMethods" id="contactMethods" class="form-control">
+      <option value=""></option>
+      <option *ngFor="let method of contactMethods" [value]="method.id">{{ method.name }} 	</option>
+    </select>
+  </div>
+
+
+contact-forms.ts-->
+contactMethods = [
+    { id: 1, name: 'email' },
+    { id: 2, name: 'phone' }
+  ]
+
+-----------------------------------------------------------------------------------------
+
+--> now value property of option tab takes only string value, we have to provide whole object
+--> solution:	ngValue is inbuilt attribute
+
+<option *ngFor="let method of contactMethods" [ngValue]="method">{{ method.name }} </option>
+
+
+------------------------------------------------------------------------------------------------------------------------
+
+11. Radio buttons-->
+  <div class="radio">		-----> bootstrap class
+    <label for="">
+      <input ngModel type="radio" name="contactMethods" value=1>
+      Email
+    </label>
+  </div>
+
+  <div class="radio">
+    <label>
+      <input ngModel type="radio" name="contactMethods" value=2>
+      Phone
+    </label>
+  </div>
+
+----------------------------------------------------------------------------------------------------------------------------
+
+<div *ngFor="let method of contactMethods" class="radio">
+    <label>
+      <input ngModel type="radio" name="contactMethods" [value]="method.id">
+      {{ method.name }}
+    </label>
+  </div>

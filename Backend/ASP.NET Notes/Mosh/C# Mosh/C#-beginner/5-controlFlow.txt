@@ -1,0 +1,67 @@
+1. if-else
+2. switch-case
+3. for-loop
+4. while-loop
+5. for-each-loop-->
+
+var name = "john Smith";
+for(var i = 0; i< name.length; i++ ){
+   Console.Write(name[i]);
+}
+
+foreach(var character in name){
+   Console.Write(character);
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+6. While Loops->
+
+while(true){
+   Console.Write("Type your name: ");
+   var input = Console.ReadLine();  --> returns string
+
+   if(String.IsNullOrWhiteSpace(input)){
+  	break;
+   }
+   Console.WriteLine("@Echo: "+input);
+}   
+
+while(true){
+   Console.Write("Type your name: ");
+   var input = Console.ReadLine();  --> returns string
+
+   if(!String.IsNullOrWhiteSpace(input)){
+	Console.WriteLine("@Echo: "+input);
+  	continue;
+   }
+   break;
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+7. Random Class-->
+
+var random = new Random();
+Console.WriteLine(random.Next())		--> return integer
+
+for(var i =0; i<10; i++)
+   Console.WriteLine(random.Next());
+}
+
+for(var i =0; i<10; i++)
+   Console.WriteLine(random.Next(1,10));
+}
+
+--> internally char is converted to number; --> so this is possible
+
+Console.WriteLine((int) 'a');	--> 97
+Console.WriteLine((char) 97);	--> 'a'
+
+for(var i =0; i<10; i++)
+   Console.Write((char) random.Next(97, 122));
+}
+
+for(var i =0; i<10; i++)
+   Console.Write((char)('a' + random.Next(0, 26)));	--> internally (char)(97 + randomNumber)
+}

@@ -1,0 +1,115 @@
+1. What is Computer Program
+
+--> The fundamental use of a computer is to work for us, to carry out our instructions.
+
+--> The computer will execute exactly as it is instructed to, hence, the task must be explained in a series of detailed steps. So, a computer program, in simple terms, is a list of instructions for the computer to perform.
+--> All the programs used by a computer are collectively called software and all the tangible components of a computer are called hardware.
+
+--------------------------------------------------------------------------------
+
+2. Can We Talk Directly To A Computer?
+
+--> We learnt earlier that computers understand everything in the form of 0s and 1s, which is called Binary Code.
+--> However, it is difficult for us humans to write out instructions in Binary Code.
+
+--------------------------------------------------------------------------------
+
+3. The Perfect Solution
+
+--> That’s why a midway solution has been created.
+--> Like the perfect solution giving you complete comfort and ease :D
+
+--------------------------------------------------------------------------------
+
+4. A Program To Translate
+
+--> Instructions are written to the computer in a language that is partly English and partly contains connotations understandable by a machine.
+--> This is called a Programming Language.
+--> Since it cannot be directly understood by the computer, it has to be translated into Binary Code before execution
+
+--> This translation stage is called Compiling and is done by a program called a Compiler.
+
+--------------------------------------------------------------------------------
+
+5. What Is A Computer Program Continued…
+
+--> Compilers did not always exist, as the early programs were written in Machine Language (Binary Code) itself.
+
+--------------------------------------------------------------------------------
+
+6. A Program To Translate
+
+--> Just like computers, the programming languages that run on them have evolved too. 
+--> They are divided into generations to indicate the increasing power of programming styles.
+
+--> First Generation: Machine Level Languages (Low level)
+--> Low Level Language, very close to binary
+--> Third Generation: High Level Languages that are machine independent
+--> Fourth Generation: High Level Language, very similar to English
+--> Fifth Generation: High Level contains tools to help develop a program
+
+--------------------------------------------------------------------------------
+
+7. Generations 1, 2 & 3
+
+--> First Generation programming language is a direct example of instructions in Binary.
+--> It is called Machine Level Language
+--> The Second Generation, is written in a code very similar to machine language and needs to be compiled before use by the computer. It works only for a particular version of a computer.
+--> Third Generation Languages are high level languages. They are machine independent and can be compiled to run on different versions of computers.
+
+--------------------------------------------------------------------------------
+
+8. Generations 4 & 5
+
+--> Fourth Generation Languages are very similar to statements in English and are mostly used in database programming and scripts.
+--> Fifth Generation languages: Contain visual tools to help develop a program.
+
+--------------------------------------------------------------------------------
+
+9. Commonly used for developing Artificial Intelligence applications, they are based on a set of rules instead of instructions.
+
+--------------------------------------------------------------------------------
+
+10. What is Involved?
+
+--> If a task is considered as a list of instructions, the job of a programmer is to develop this list of instructions in a computer language.
+--> The instructions need to direct the computer to manipulate different types of objects like numbers, images, words, sounds, etc.
+--> Sounds like the work of a music composer directing each instrument?
+--> Well, in a way, that’s what a computer programmer is!
+
+--------------------------------------------------------------------------------
+
+11. Steps Before Writing A Program
+
+--> Before beginning to write a program, we need to consider what we want the program to do.
+--> Identify the problem: what is the task that has to be executed?
+--> Identify the user: What is the profile of the person who will use this program?
+--> Identify target machine: Which computer will it run on, type, whether iOS, Android, etc?
+--> Which language is it best to employ?
+
+--------------------------------------------------------------------------------
+
+12. Task: Drink A Glass of Water
+
+--> If you were to tell your friend to drink a glass of water, what would you say?
+--> Probably “Drink some water”.
+--> Now consider that this friend of yours is actually a robot.
+--> Does your statement alter slightly? What if your robot friend asks you what do you mean by ‘drink’?’
+--> You would have to be more specific wouldn’t you?
+
+--> Get up from where you are sitting and go to the kitchen.
+--> Pick up a glass from the 3rd shelf, using one hand.
+--> Pick up the jug of water with another hand.
+--> Pour water from the jug into the glass until the glass is full.
+--> Bring the glass near to your mouth, tilt it and swallow the water.
+
+--------------------------------------------------------------------------------
+
+13. Noteworthy!
+
+--> It’s interesting to note here, that the robot must already know what ‘Right Leg’ means, how far 30cm is and what a linear path looks like, etc
+--> Details like these need to be stored in the computer’s memory, just like we learnt in the previous unit.
+--> The writing of a program will be explored in greater detail in the advanced course!
+
+--------------------------------------------------------------------------------
+

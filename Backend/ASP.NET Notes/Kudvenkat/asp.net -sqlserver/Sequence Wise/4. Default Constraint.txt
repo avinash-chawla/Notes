@@ -1,0 +1,54 @@
+1. What is Default Constraint
+
+--> The default constraint is used to insert a default value into a column. 
+--> The default value will be added to all new records, if no other value is specified, including NULL.
+
+-------------------------------------------------------------------------------
+
+2. Altering an existing column to add a default constraint
+
+ALTER TABLE { TABLE_NAME }
+ADD CONSTRAINT { CONSTRAINT_NAME }
+DEFAULT { DEFAULT_VALUE } FOR { EXISTING_COLUMN_NAME }
+
+-------------------------------------------------------------------------------
+
+3. Adding a new column, with default value, to an existing table
+
+ALTER TABLE { TABLE_NAME } 
+ADD { COLUMN_NAME } { DATA_TYPE } { NULL | NOT NULL } 
+CONSTRAINT { CONSTRAINT_NAME } DEFAULT { DEFAULT_VALUE }
+
+-------------------------------------------------------------------------------
+
+4. Demo
+
+ALTER TABLE tblPerson
+ADD CONSTRAINT DF_tblPerson_GenderId
+DEFAULT 1 FOR GenderId
+
+-------------------------------------------------------------------------------
+
+5. If Not supplied Value
+
+Insert into tblPerson(ID,Name,Email) values(5,'Sam','s@s.com')
+
+--> The insert statement below does not provide a value for GenderId column, so the default of 1 will be inserted for this record.
+
+
+-------------------------------------------------------------------------------
+
+6. Inserting NULL Value in Default Column
+
+Insert into tblPerson(ID,Name,Email,GenderId) values (6,'Dan','d@d.com',NULL)
+
+--> On the other hand, the following insert statement will insert NULL, instead of using the default.
+
+-------------------------------------------------------------------------------
+
+7. Drop Constraint
+
+ALTER TABLE { TABLE_NAME } 
+DROP CONSTRAINT { CONSTRAINT_NAME }
+
+-------------------------------------------------------------------------------

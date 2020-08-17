@@ -1,0 +1,62 @@
+1. How to create the spotify Duotone effect-->
+
+--> Duotone means double tone of color ahead of image.
+--> Only applied to when object and background contrast is high.
+
+--> Select Image
+--> Select Gradient Map in adjustment layer
+--> Select Specific color
+--> Adobe extensions colors are very good.
+
+-----------------------------------------------------------
+
+--> You can make image half gradient and half natural, cool image
+--> Select Rectangle marquee tool and select half image
+--> In layer of gradient map, delete beside layer mask and click on new layer mask.
+
+--> you can select different shapes.
+-----------------------------------------------------------
+
+2. How to create the 3D glasses Anaglyph effect-->
+
+--> Select Image (unlock it)
+--> Duplicate it
+
+--> Select Lower image
+--> Go to fix (fx) (effects) (layer styles)
+--> Click on Blending options
+--> In advanced blending, in channels, tick Red and untick all other
+
+--> For upper image
+--> Untick red, and tick all other (making it cyan)
+
+--> Now use move tool
+--> Now use keyboard arrow shortcut to displace some (either left or right)
+
+--> This makes some 3D effect of cyan and red
+--> Then crop that image to align properly.
+
+
+--------------------------------------------------------------------------------------------------
+
+--> If image is some black and white, works much better effect.
+--> Select image
+--> Go to adjustments layer, click on Vibrance
+--> Lower the vibrance, full lowering vibrance will make black and white
+
+--> Now do the same
+
+--> Same 3D glass effect is possible on Text.
+--> If Text is of two words, make one bolder and one lighter.
+
+-----------------------------------------------------------------------------------------------------
+
+3. How to create Vintage Effect-->
+
+
+
+-------------------------------------------------------------
+
+4. How to create Paper cut effect-->
+
+--> 

@@ -1,0 +1,367 @@
+1. Adding Validation
+
+--> 3 Steps
+1. Add Data Annotations to property of Model class like Required
+2. Use ModelState.IsValid Property in actionMethod
+3. Add Html helper to add validation message dynamically
+--> @Html.ValidationMessageFor(m => m.Customer.Name)
+
+public ActionResult Save(Customer customer)
+        {
+             if(!ModelState.IsValid)
+            {
+                var viewModel = new CustomerFormViewModel
+                {
+                    Customer = customer,
+                    MembershipTypes = _context.MembershipTypes
+                };
+                return View("CustomerForm", viewModel );
+            }
+	    .............
+
+--> we are returning same form to user if validation fails
+--> data will also send to form which user has typed, so that user corrects information
+
+
+3. Add Html helper to add validation message dynamically
+--> @Html.ValidationMessageFor(m => m.Customer.Name)
+
+-----------------------------------------------------------------------------
+
+2. Styling Validation Errors
+
+--> In Content folder, in Site.css, add following css
+.field-validation-error{
+    color: red;
+}
+
+.input-validation-error {
+    border: 2px solid red;
+}
+
+--> We don't provide Required Annotation for DDL, still showing validation error
+--> Actually, if nothing is selected, value of DDL comes to server as null, and asp.net doesn't know how to convert null to byte
+--> so showing error
+
+-----------------------------------------------------------------------------
+
+3. Showing Custom error Message
+--> Done through data annotation
+--> [Required(ErrorMessage = "Please enter customer's name.")]
+
+--> Other Data Annotaions are:
+
+1. Required
+2. StringLength
+3. Range(1,10)
+4. Compare("OtherProperty")		--> used to compare passwords
+5. Phone
+6. EmailAddress
+7. Url
+8. RegularExpression("...")
+
+-----------------------------------------------------------------------------
+
+4. Custom Validation 
+
+--> Customer should be adult (18+ years) to select a paid membership
+--> Means one field is dependent on other (BirthDate and MembershipTypeId)
+--> Make new class in Models --> "Min18YearsIfAMember"
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.ComponentModel.DataAnnotations;
+
+namespace Vidly.Models
+{
+    public class Min18YearsIfAMember: ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            var customer = (Customer)validationContext.ObjectInstance;
+            if (customer.MembershipTypeId == 0 || customer.MembershipTypeId == 1)
+                return ValidationResult.Success;
+
+            if (customer.Birthdate == null)
+                return new ValidationResult("Birthdate is required");
+
+            var age = DateTime.Today.Year - customer.Birthdate.Value.Year;
+
+            return (age >= 18) ? ValidationResult.Success : new ValidationResult("Customer should be atleast 18 years to select any Membership Type");
+            
+        }
+    }
+}
+
+--> import System.ComponentModel.DataAnnotations
+--> This class is inheriting ValidationAttribute
+--> override IsValid method
+--> Getting user typed value using ValidationContext.ObjectInstance
+--> Comparing to different values
+--> If MembershipType is not selected or pay as you go is selected, validation is success
+--> There are two validations on BirthDate --> required and 18+ years age
+--> If both fail, validation will show error only if MembershipType is paid
+--> Validation will be success if age>=18 of customer
+
+--> First condition is checking for MembershipType 
+--> If 0 or 1, then no validation even if Birthdate is any
+
+--> This custom Validation is applied on BirthDate Field
+    [Min18YearsIfAMember]
+        
+    public DateTime? Birthdate { get; set; }
+
+-----------------------------------------------------------------------------
+
+5. Refactoring Magin Numbers
+
+--> In above method, we have used 0 and 1 for comparing membership types
+--> Instead we can use property of MembershipType Model to get data
+--> Magic Numbers are not maintainable, create confusion
+
+--> Add following properties-->
+public static readonly byte Unknown = 0;
+public static readonly byte PayAsYouGo = 1;
+
+--> In Min18YearsIfAMember class
+ if (customer.MembershipTypeId == MembershipType.Unknown || customer.MembershipTypeId == MembershipType.PayAsYouGo)
+
+--> No need to import bec. both class are in Models folder --> so accessible
+
+-----------------------------------------------------------------------------
+
+6. Validation Summary
+
+--> Just this html helper in above of form
+--> @Html.ValidationSummary()
+
+--> In validation Summary, Id is required also showing in summary
+--> Bec. we have not initialised Customer in viewModel which is send to form in "New" actionMethod
+--> public ActionResult New()
+        {
+            var membershipTypes = _context.MembershipTypes.ToList();
+            var viewModel = new CustomerFormViewModel
+            {
+                Customer = new Customer(),
+                MembershipTypes = membershipTypes
+            };
+            return View("CustomerForm", viewModel);
+        }
+
+--> By initialising, Id value will be 0 by default.
+
+-----------------------------------------------------------------------
+
+--> To get single message instead of individual validation messages
+--> Pass attribute to ValidationSummary(true, "Please fix the following form")
+
+-----------------------------------------------------------------------
+
+--> To make it red in color
+--> Site.css -->
+
+.validation-summary-errors {
+	color: red;
+}
+
+-----------------------------------------------------------------------
+
+7. Client-side Validation
+
+--> 2 Advantages: Immediate feedback and No waste of server-side resources
+--> By default, Client-side validation is turned off
+--> See in AppStart folder, in BundleConfig.cs, there is jqueryval script, but it is not referenced anywhere
+--> Open View folder --> shared --> _Layout.cshtml --> Last line
+--> All Scripts which are applied to any view will be rendered here @RenderSection(..)
+--> Open Customer Form, at below type this
+
+@section scripts
+{
+	@Scripts.Render("~bundles/jqueryval")
+}
+
+--> Now client side validation will be same as server-side validation (data-annotations)
+--> So no need to type manually and it is automatically applied.
+--> Data-Annotations make extra attributes on fields (like TextBox) like data-val, data-val-required which is looked by jquery and apply validations
+
+-----------------------------------------------------------------------
+
+8. Anti-forgery Tokens
+
+--> CSRF Attack - Cross Site Request Forgery
+--> If user forgets to log out from website, some other maliciour user can send webpage containing malicious javascript which automatically runs when page loads
+--> Such attack is called CSRF
+ 
+--> Two steps to implement Anti-forgery
+1. Include @Html.AntiForgeryToken() in Customerform (just before Save button)
+2. Include Data-Annotation to actionMethod
+[ValidateAntiForgeryToken]
+public ActionResult Save(Customer customer)
+
+--> This Anti-forgery token will be sent to user through cookie in encrypted form and will be verified in server
+--> This is all done automatically
+
+-----------------------------------------------------------------------
+
+9. Exercise
+
+--> Do validation for Movie Form
+
+-----------------------------------------------------------------------
+
+10. Initialised Values
+
+--> When create new Movie form, Some fields like ReleaseDate and NumberInStock are already initialized
+--> This happens bec. viewModel which is passed to form uses Initialization of Movie class which sets default values for all its properties
+--> Movie = new Movie()
+
+--> To prevent this, we rather replace Movie Property from viewModel with individual Movie properties in viewModel and we initialize such properties in viewModel using constructor
+--> MovieFormViewForm.cs
+
+using Vidly.Models;
+using System.ComponentModel.DataAnnotations;
+
+namespace Vidly.ViewModels
+{
+    public class MovieFormViewModel
+    {
+        public IEnumerable<Genre> Genres { get; set; }
+
+        public int? Id { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+
+        [Required]
+        [Display(Name = "Genre")]
+        public byte? GenreId { get; set; }
+
+        [Display(Name = "Release Date")]
+        [Required]
+        public DateTime? ReleaseDate { get; set; }
+
+        [Display(Name = "Number In Stock")]
+        [Range(1, 20)]
+        [Required]
+        public byte? NumberInStock { get; set; }
+
+        public string Title
+        {
+            get
+            {
+                return (Id != 0) ? "Edit Movie" : "New Movie";
+            }
+        }
+
+        public MovieFormViewModel()
+        {
+            Id = 0;
+        }
+
+        public MovieFormViewModel(Movie movie)
+        {
+            Id = movie.Id;
+            Name = movie.Name;
+            ReleaseDate = movie.ReleaseDate;
+            NumberInStock = movie.NumberInStock;
+            GenreId = movie.GenreId;
+        }
+    }
+}
+
+------------------------------------------------------------------------
+
+--> MovieForm.cshtml
+
+@model Vidly.ViewModels.MovieFormViewModel
+@{
+    ViewBag.Title = "Model";
+}
+
+<h2>@Model.Title</h2>
+@using (Html.BeginForm("Save", "Movies"))
+{
+    <div class="form-group">
+        @Html.LabelFor(m => m.Name)
+        @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Name)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.ReleaseDate)
+        @Html.TextBoxFor(m => m.ReleaseDate, "{0:1 MMM yyyy}", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.ReleaseDate)
+    </div>
+    <div class="checkbox">
+        <label>
+            @Html.DropDownListFor(m => m.GenreId, new SelectList(Model.Genres, "Id", "Name"), "Select Genre", new { @class = "form-control" })
+        </label>
+        @Html.ValidationMessageFor(m => m.GenreId)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.NumberInStock)
+        @Html.TextBoxFor(m => m.NumberInStock, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.NumberInStock)
+    </div>
+    @Html.HiddenFor(m => m.Id)
+    @Html.AntiForgeryToken()
+    <button class="btn btn-primary">Save</button>
+
+}
+
+
+--> Replacing all .Movie. with .	(ctrl + h)
+
+---------------------------------------------------------------------------
+
+--> Controllers
+
+public ActionResult New()
+        {
+            var viewModel = new MovieFormViewModel()		--> constructor is used (which initialises Id = 0)
+            {
+                Genres = _context.Genres.ToList(),
+            };
+            return View("MovieForm", viewModel);
+        }
+
+[HttpPost]
+[ValidateAntiForgeryToken]
+public ActionResult Save(Movie movie)
+        {
+           if(!ModelState.IsValid)
+           {
+               var viewModel = new MovieFormViewModel(movie)		--> uses constructor accepting movie object and initialises its values in its constructor
+               {
+                   Genres = _context.Genres.ToList()
+               };
+               return View("MovieForm", viewModel);
+           }
+	...
+
+public ActionResult Edit(int Id)
+        {
+            var movie = _context.Movies.Single(m => m.Id == Id);
+
+            if (movie == null)
+                return HttpNotFound();
+
+            var viewModel = new MovieFormViewModel(movie)			--> uses constructor
+            {
+                Genres = _context.Genres.ToList()
+            };
+            return View("MovieForm", viewModel);
+        }
+
+---------------------------------------------------------------------------
+
+11. Summary
+
+--> Data Annotations
+--> Custom Validation
+--> Client-side Validation
+--> Anti-forgery Tokens
+
+---------------------------------------------------------------------------

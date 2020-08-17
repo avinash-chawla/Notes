@@ -1,0 +1,682 @@
+1. What is Web Api
+
+--> Instead of html markup, we send raw data to client
+--> We will also send required javascript for buiding client app on its browser using api.
+
+--> Benefits:
+1. Less Server Resources (improves scalability)
+2. Less bandwidth (higher speed to reach at client)
+3. Support for a broad range of clients (mobile, browser, etc.)
+
+
+--> Asp.net mvc and asp.net api both are different frameworks
+--> In .net core, both are in single framework.
+
+-------------------------------------------------------------------------------
+
+2. RESTful Convention
+
+--> Means we can do CRUD operations using http services on api endpoint
+--> Such methods are: get, get/1, post, put, patch, delete
+
+-------------------------------------------------------------------------------
+
+3. Building an Web API
+
+--> Create new folder inside Controllers folder --> Api
+--> Right click Api folder --> Add new controller --> CustomersController
+--> As a template choose Empty Api controller
+
+-------------------------------------------------------------------------------
+
+--> When you add api controller, following txt file is generated to guide to use api controller
+--> Just follow the instruction, just add one method in global.asax file and two references.
+
+Visual Studio has added the full set of dependencies for ASP.NET Web API 2 to project 'Vidly3'. 
+
+The Global.asax.cs file in the project may require additional changes to enable ASP.NET Web API.
+
+1. Add the following namespace references:
+
+    using System.Web.Http;
+    using System.Web.Routing;
+
+2. If the code does not already define an Application_Start method, add the following method:
+
+    protected void Application_Start()
+    {
+    }
+
+3. Add the following lines to the beginning of the Application_Start method:
+
+    GlobalConfiguration.Configure(WebApiConfig.Register);
+
+-------------------------------------------------------------------------------
+
+--> In CustomersController.cs
+--> See this class is implementing ApiController class
+--> There are different methods for crud operations on api
+--> By convention, GetCustomers will use this api endpoint: /api/customers
+--> PostCustomer will use this api endpoint: /api/customer (post)
+--> We are using DataContext object _context to get, post, put and delete customer data through api endpoint.
+
+
+public class CustomersController : ApiController
+    {
+        public readonly DataContext _context;
+
+        public CustomersController()
+        {
+            _context = new DataContext();
+        }
+        public IEnumerable<Customer> GetCustomers()
+        {
+            return _context.Customers.ToList();
+        }
+
+        public Customer GetCustomer(int id)
+        {
+            Customer customer = _context.Customers.SingleOrDefault(x => x.Id == id);
+
+            if (customer == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            return customer;
+        }
+
+        [HttpPost]
+        public Customer CreateCustomer(Customer customer)
+        {
+            if(!ModelState.IsValid)
+            {
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+            }
+
+            _context.Customers.Add(customer);
+            _context.SaveChanges();
+
+            return customer;
+        }
+
+        [HttpPut]
+        public void UpdateCustomer(int id, Customer customer)
+        {
+            if (!ModelState.IsValid)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+            Customer customerInDb = _context.Customers.SingleOrDefault(c => c.Id == id);
+
+            if (customerInDb == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            customerInDb.Name = customer.Name;
+            customerInDb.Birthdate = customer.Birthdate;
+            customerInDb.IsSubscribedToNewsletter = customer.IsSubscribedToNewsletter;
+            customerInDb.MembershipTypeId = customer.MembershipTypeId;
+
+            _context.SaveChanges();
+        }
+
+        [HttpDelete]
+        public void DeleteCustomer(int id)
+        {
+            Customer customerInDb = _context.Customers.SingleOrDefault(c => c.Id == id);
+
+            if (customerInDb == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            _context.Customers.Remove(customerInDb);
+            _context.SaveChanges();
+        }
+    }
+
+--> In Returning type of such actionMethods, we use plain C# objects.
+--> Asp.net will serialize such data into xml format.
+--> If client requests json data, asp.net will serialize data in json format.
+
+-------------------------------------------------------------------------------
+
+4. Testing an API
+
+--> We use postman to test an API
+--> Test it.
+
+--> Testing Get Request
+--> url: http://localhost:58113/api/customers
+
+
+--> Testing Post Request
+--> url: http://localhost:58113/api/customers
+
+{
+        
+"Name": "Shahid Kapoor",
+        
+"IsSubscribedToNewsletter": true,
+        
+"MembershipType": null,
+        
+"MembershipTypeId": 1,
+        
+"Birthdate": null
+    
+}
+
+--> By default, asp.net serialize Customer object data in xml format
+--> If client requests json data, asp.net will serialize data in json format.
+
+-------------------------------------------------------------------------------
+
+5. Data Transfer Objects
+
+--> There is one issue above
+--> Api endpoint is responding Customer object which is part of our domain model
+--> If there is any change in domain model, it will break client app
+--> We have to keep stable as much possible
+
+--> DTOs comes to the rescue
+--> They are simple data structure and used to transfer data from client to server and from server to client
+
+
+--> Consider Dto class same as viewModel class
+--> We are using Dto class for api
+--> We are using ViewModel class for view
+--> In both, we are dealing with domain class and pass another class.
+
+-------------------------------------------------------------------------------
+
+--> Make new folder in project --> Dtos
+--> Make new class file inside it --> CustomerDto.cs
+
+-------------------------------------------------------------------------------
+
+--> Copy all properties from Customer domain class and paste it here
+--> We have removed public MembershipType MembershipType { get; set; } bec. it is linking MembershipType domain class from dto class
+--> Note: If you want to use MembershipType, make another dto MembershipTypeDto.cs
+
+--> We have also removed [Display(Name="..")] bec. there is no need.
+--> One more point: We cannot use custom Validation on this api.
+
+-------------------------------------------------------------------------------
+
+
+public class CustomerDto
+    {
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+
+        public bool IsSubscribedToNewsletter { get; set; }
+
+
+        public byte MembershipTypeId { get; set; }
+
+
+        public DateTime? Birthdate { get; set; }
+    }
+
+-------------------------------------------------------------------------------
+
+--> We will return Dto object and receive Dto object from client
+--> We can do mapping manually between Dto and customer for crud operations or we can use autoMapper library.
+
+-------------------------------------------------------------------------------
+
+6. AutoMapper
+
+install-package automapper -version:4.1
+
+--> Make new file in App_Start folder --> MappingProfile.cs
+
+ using AutoMapper;
+
+ public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            Mapper.CreateMap<Customer, CustomerDto>();
+            Mapper.CreateMap<CustomerDto, Customer>();
+        }
+
+    }
+
+
+--> Automapper uses reflections which scan these objects and map them using propertyName.
+
+-------------------------------------------------------------------------------
+
+--> We want to load this file during starting of our application using global.asax class file.
+
+--> So, in global.asax file,  
+
+using AutoMapper;
+using Vidly3.App_Start;
+
+namespace Vidly3
+{
+    public class MvcApplication : System.Web.HttpApplication
+    {
+        protected void Application_Start()
+        {
+            Mapper.Initialize(c => c.AddProfile<MappingProfile>());
+	    ...
+        }
+    }
+}
+
+-------------------------------------------------------------------------------
+
+--> Above we have done set up for autoMapper, now really using Dto in controller class,
+
+-------------------------------------------------------------------------------
+
+public IEnumerable<CustomerDto> GetCustomers()
+        {
+            return _context.Customers.ToList().Select(Mapper.Map<Customer, CustomerDto>);
+        }
+
+--> We will receive and send Dto object only
+--> ToList() has a Select method which can be used for converting
+--> Mapper is a delegate which is used to convert (dto to domain) or (domain to dto)
+--> It is generic type, it accepts two parameters: Source Class and Destination Class
+--> So we have to convert domain object to dto object and pass that to api get request
+--> See the return type of this method
+--> You can see we are not calling this Mapper method as this is delegate.
+
+-------------------------------------------------------------------------------
+
+public CustomerDto GetCustomer(int id)
+        {
+            Customer customer = _context.Customers.SingleOrDefault(x => x.Id == id);
+
+            if (customer == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            return Mapper.Map<Customer, CustomerDto>(customer);
+        }
+
+--> Here Mapper is used to convert Customer to CustomerDto and it is also taking customer object to convert to customerDto which is passed as return type direct.
+
+-------------------------------------------------------------------------------
+
+public CustomerDto CreateCustomer(CustomerDto customerDto)
+        {
+            if(!ModelState.IsValid)
+            {
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+            }
+
+            Customer customer = Mapper.Map<CustomerDto, Customer>(customerDto);
+
+            _context.Customers.Add(customer);
+            _context.SaveChanges();
+
+            customerDto.Id = customer.Id;
+
+            return customerDto;
+        }
+
+--> We are receiving Dto object and sending Dto object
+--> To save changes in database, we need customer object
+--> We use Mapper method to convert Dto to domain object and then save changes
+--> We get Id from the saved object which is bind to customerDto object.
+
+-------------------------------------------------------------------------------
+
+
+[HttpPut]
+        public void UpdateCustomer(int id, CustomerDto customerDto)
+        {
+            if (!ModelState.IsValid)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+            Customer customerInDb = _context.Customers.SingleOrDefault(c => c.Id == id);
+
+            if (customerInDb == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            Mapper.Map<CustomerDto, Customer>(customerDto, customerInDb);
+
+            _context.SaveChanges();
+        }
+
+--> Here mapping is somewhat different
+--> We are receiving Dto object and we are retrieving domain object from database
+--> To update domain object directly instead of individual properties updating, we use mapper method which accepts source which is our customerDto and destination which is our domain model (which is to update)
+--> We want to update customerInDb so keep in destination.
+
+-------------------------------------------------------------------------------
+
+--> In delete, we are not dealing with any domain object or Dto object
+
+-------------------------------------------------------------------------------
+
+--> Note: 
+--> We can change default convention of Mapper delegate like:
+1. We have different property names in domain and dto and still bind them
+2. We have to exclude some properties from binding
+
+-------------------------------------------------------------------------------
+
+7. Use Camel Notation
+
+--> By default, while we getting data through api in json, we get data in Pascal Notation --> like Name, Id, Birthdate
+--> And on client side in javascript, we use camel notation
+--> We have to change this setting of serializer
+--> While creating Api controller, a new file is generated in App_Start --> WebApiConfig.cs
+
+        public static void Register(HttpConfiguration config)
+        {
+            var settings = config.Formatters.JsonFormatter.SerializerSettings;
+            settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            settings.Formatting = Formatting.Indented;
+
+	    ...
+   	}
+
+--> We change some properties of SerializerSettings object to change default behovior
+--> Now we use get request and check notation of data.
+
+-------------------------------------------------------------------------------
+
+8. IHttpActionResult
+
+--> As a convention of Rest Api, when we post object to apiendpoint, we should get 201 status code
+--> As when we are sending Dto object, this always be 200.
+--> To change this convention, we can use IHttpActionRequest
+--> It is similar to ActionResult of MVC
+--> It has also bunch of methods like Ok, Created, NotFound, BadRequest, etc. like ActionResult has View, NotFound, RedirectToAction, Content, etc
+--> All classes of above mentioned methods implements this interface IHttpActionRequest.
+
+-----------------------------------------------------------------------------
+
+--> In Api, CustomersController.cs
+
+ 	 public IHttpActionResult GetCustomer(int id)
+         {
+            Customer customer = _context.Customers.SingleOrDefault(x => x.Id == id);
+
+            if (customer == null)
+                NotFound();			// previous was: throw new HttpResponseException(HttpStatusCode.NotFound())
+
+            return Ok(Mapper.Map<Customer, CustomerDto>(customer));		-----------------------> Ok
+         }
+
+        [HttpPost]
+        public IHttpActionResult CreateCustomer(CustomerDto customerDto)
+        {
+            if(!ModelState.IsValid)
+            {
+                BadRequest();							-----------------------> BadRequest
+            }
+
+            var customer = Mapper.Map<CustomerDto, Customer>(customerDto);
+
+            _context.Customers.Add(customer);
+            _context.SaveChanges();
+
+            customerDto.Id = customer.Id;
+
+            return Created(new Uri(Request.RequestUri + "/" + customer.Id), customerDto);	-----------------------> Created
+        }
+
+--> As per Restful convention, we also send newly created url for new object using Url helper method of IHttpActionResult
+--> This url will save in headers and sent to client as a property of Location, which client side can access that.
+--> Request is method under ApiController class.
+
+-------------------------------------------------------------------------------
+
+--> Note: When we do custom validation Min18YearsIfAMember, this validation is using type casting to convert to Customer object
+--> So when this validation occurs, this will cause error as Type casting is not possible between Customer and CustomerDto as validation class is trying to typecast CustomerDto to Customer which is not possible without Mapper object.
+
+-------------------------------------------------------------------------------
+
+9. Exercise
+
+--> Make an Api for Movies
+
+--> Right click Api folder --> Add controller --> MoviesController
+
+public class MoviesController : ApiController
+    {
+        public readonly DataContext _context;
+
+        public MoviesController()
+        {
+            _context = new DataContext();
+        }
+
+        public IEnumerable<Movie> GetMovie()
+        {
+            return _context.Movies.ToList();
+        }
+
+        public Movie GetMovie(int id)
+        {
+            Movie movie = _context.Movies.SingleOrDefault(m => m.Id == id);
+
+            if (movie == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            return movie;
+        }
+
+        [HttpPost]
+        public Movie CreateMovie(Movie movie)
+        {
+            if (!ModelState.IsValid)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+	    movie.DateAdded = DateTime.Now;			
+
+// If not done this above, it would raise exception --> conversion-of-a-datetime2-data-type-to-a-datetime-data-type-results-out-of-range
+
+            _context.Movies.Add(movie);
+            _context.SaveChanges();
+
+            return movie;
+        }
+
+        [HttpPut]
+        public void UpdateMovie(int id, Movie movie)
+        {
+            if (!ModelState.IsValid)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+            Movie movieInDb = _context.Movies.SingleOrDefault(m => m.Id == id);
+
+            if (movie == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            movieInDb.Name = movie.Name;
+            movieInDb.ReleaseDate = movie.ReleaseDate;
+            movieInDb.GenreId = movie.GenreId;
+            movieInDb.NumberInStock = movie.NumberInStock;
+
+            _context.SaveChanges();
+        }
+
+        [HttpDelete]
+        public void DeleteMovie(int id)
+        {
+            Movie movie= _context.Movies.SingleOrDefault(m => m.Id == id);
+
+            if (movie == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            _context.Movies.Remove(movie);
+            _context.SaveChanges();
+        }
+    }
+
+-------------------------------------------------------------------------------
+
+--> Make new Dto class in Dtos folder --> MovieDto.cs
+
+public class MovieDto
+    {
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+
+
+        [Required]
+        public byte GenreId { get; set; }
+
+
+        public DateTime ReleaseDate { get; set; }
+
+        [Range(1, 20)]
+        public byte NumberInStock { get; set; }
+    }
+
+-------------------------------------------------------------------------------
+
+--> Changing MoviesControllers to use AutoMapping and DtoClass
+
+public class MoviesController : ApiController
+{
+        public readonly DataContext _context;
+
+        public MoviesController()
+        {
+            _context = new DataContext();
+        }
+
+        public IEnumerable<MovieDto> GetMovie()
+        {
+            return _context.Movies.ToList().Select(Mapper.Map<Movie, MovieDto>);
+        }
+
+        public MovieDto GetMovie(int id)
+        {
+            Movie movie = _context.Movies.SingleOrDefault(m => m.Id == id);
+
+            if (movie == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            return Mapper.Map<Movie, MovieDto>(movie);
+        }
+
+        [HttpPost]
+        public MovieDto CreateMovie(MovieDto movieDto)
+        {
+            if (!ModelState.IsValid)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+            Movie movie = Mapper.Map<MovieDto, Movie>(movieDto);
+
+            movie.DateAdded = DateTime.Now;
+
+            _context.Movies.Add(movie);
+            _context.SaveChanges();
+
+            movieDto.Id = movie.Id;
+
+            return movieDto;
+        }
+
+        [HttpPut]
+        public void UpdateMovie(int id, MovieDto movieDto)
+        {
+            if (!ModelState.IsValid)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+            Movie movieInDb = _context.Movies.SingleOrDefault(m => m.Id == id);
+
+            if (movieInDb == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            Mapper.Map<MovieDto, Movie>(movieDto, movieInDb);
+
+            _context.SaveChanges();
+        }
+
+        [HttpDelete]
+        public void DeleteMovie(int id)
+        {
+            Movie movie= _context.Movies.SingleOrDefault(m => m.Id == id);
+
+            if (movie == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            _context.Movies.Remove(movie);
+            _context.SaveChanges();
+        }
+}
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2. 

@@ -1,0 +1,182 @@
+1. What is Inversion of Control
+
+--> The approach of outsourcing the construction and management of objects.
+--> object factory will create object for us.
+--> We will understand this with an example
+
+--------------------------------------------------------------------------------
+
+2. Rough Prototype
+
+--> We want result of GetDailyWorkout() from every coach of tennis, baseball, badminton, cricket.
+--> As this method will be similar in all classes
+--> We will make interface and every class will implement that
+
+--> Benefit of this is consistency of this method in all classes.
+
+--------------------------------------------------------------------------------
+
+--> Create new Project --> spring demo
+--> Create new package --> com.luv2code.springdemo
+--> Create new interface --> Coach.java
+
+public interface Coach {
+	public String getDailyWorkout();	
+}
+
+--------------------------------------------------------------------------------
+
+--> Create new class --> BaseballCoach.java
+
+public class BaseballCoach implements Coach {	
+
+	@Override
+	public String getDailyWorkout() {
+		return "Spend 30 minutes on batting practice";
+	}
+}
+
+--------------------------------------------------------------------------------
+
+--> Create new class --> MyApp.java
+
+public class MyApp {
+
+	public static void main(String[] args) {
+
+		// create the object
+		// Coach theCoach = new BaseballCoach();
+		Coach theCoach = new TrackCoach();
+		
+		// use the object
+		System.out.println(theCoach.getDailyWorkout());		
+	}
+}
+
+--------------------------------------------------------------------------------
+
+3. Ioc overview
+
+--> Spring Container
+
+--> Primary functions
+1. Create and manage objects
+2. Inject object's dependencies
+
+--------------------------------------------------------------------------------
+
+--> Configuring Spring Container
+
+1. XML configuration file  (legacy)
+2. Java Annotations (modern)
+3. Java Source Code (modern)
+
+--------------------------------------------------------------------------------
+
+--> Spring Development Process
+
+1. Configure your Spring Beans
+2. Create a Spring Container
+3. Retrieve Beans from Spring Container
+
+--------------------------------------------------------------------------------
+
+--> Spring Container is generically known as ApplicationContext
+
+--> Specialized implementations
+1. ClassPathXmlApplicationContext
+2. AnnotationConfigApplicationContext
+3. GenericWebApplicationContext
+
+--------------------------------------------------------------------------------
+
+4. Step1: Configure your Spring Beans
+
+--> Make new file in src folder --> applicaitonContext.xml
+--> Spring needs configuration in xml to setup
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd">
+
+	
+    <!-- Define your beans here -->
+    
+    <!-- define the dependency -->
+    <bean id="myFortuneService"
+    		class="com.luv2code.springdemo.HappyFortuneService">
+    	</bean>
+    
+ 	<bean id="myCoach"
+ 		class="com.luv2code.springdemo.TrackCoach">	 		
+ 	</bean>
+
+    <!--
+    <bean id="myCoach"
+        class="com.luv2code.springdemo.BaseballCoach">         
+    </bean>
+    -->
+
+</beans>
+
+--------------------------------------------------------------------------------
+
+5. Step2: Create a Spring Container
+
+--> Make new class containing main method --> HelloSpringApp.java
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class HelloSpringApp {
+
+	public static void main(String[] args) {
+
+		// load the spring configuration file
+		ClassPathXmlApplicationContext context = 
+				new ClassPathXmlApplicationContext("applicationContext.xml");
+				
+		// Step3: retrieve bean from spring container						---------> Step3 here
+		Coach theCoach = context.getBean("myCoach", Coach.class);
+		
+		// call methods on the bean
+		System.out.println(theCoach.getDailyWorkout());
+		
+		// close the context
+		context.close();
+	}
+}
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

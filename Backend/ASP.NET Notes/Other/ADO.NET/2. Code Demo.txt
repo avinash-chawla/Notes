@@ -1,0 +1,298 @@
+1. Establish connection and create a table
+
+--> After creating database, now, let's create a table by using the following C# code. In this source code, we are using created student database to connect.
+
+--> In visual studio 2017, we created a .NET console application project that contains the following C# code.
+
+// Program.cs
+
+using System;  
+using System.Data.SqlClient;  
+namespace AdoNetConsoleApplication  
+{  
+    class Program  
+    {  
+        static void Main(string[] args)  
+        {  
+            new Program().CreateTable();  
+        }  
+        public void CreateTable()  
+        {  
+            SqlConnection con = null;  
+            try  
+            {  
+                // Creating Connection  
+                con = new SqlConnection("data source=.; database=student; integrated security=SSPI");  
+                // writing sql query  
+                SqlCommand cm = new SqlCommand("create table student(id int not null,   
+                name varchar(100), email varchar(50), join_date date)", con);  
+                // Opening Connection  
+                con.Open();  
+                // Executing the SQL query  
+                cm.ExecuteNonQuery();  
+                // Displaying a message  
+                Console.WriteLine("Table created Successfully");  
+            }  
+            catch (Exception e)  
+            {  
+                Console.WriteLine("OOPs, something went wrong."+e);  
+            }  
+            // Closing the connection  
+            finally  
+            {  
+                con.Close();  
+            }  
+        }  
+    }  
+}  
+
+-----------------------------------------------------------------------------------
+
+2. Insert Data into the Table
+
+// Program.cs
+
+using System;  
+using System.Data.SqlClient;  
+namespace AdoNetConsoleApplication  
+{  
+    class Program  
+    {  
+        static void Main(string[] args)  
+        {  
+            new Program().CreateTable();  
+        }  
+        public void CreateTable()  
+        {  
+            SqlConnection con = null;  
+            try  
+            {  
+                // Creating Connection  
+                con = new SqlConnection("data source=.; database=student; integrated security=SSPI");  
+                // writing sql query  
+                SqlCommand cm = new SqlCommand("insert into student  
+                (id, name, email, join_date)values('101','Ronald Trump','ronald@example.com','1/12/2017')", con);  
+                // Opening Connection  
+                con.Open();  
+                // Executing the SQL query  
+                cm.ExecuteNonQuery();  
+                // Displaying a message  
+                Console.WriteLine("Record Inserted Successfully");  
+            }  
+            catch (Exception e)  
+            {  
+                Console.WriteLine("OOPs, something went wrong."+e);  
+            }  
+            // Closing the connection  
+            finally  
+            {  
+                con.Close();  
+            }  
+        }  
+    }  
+}  
+Execute this code by using Ctrl+F5 and it will display the following output.
+
+
+-----------------------------------------------------------------------------------
+
+3. Retrieve Record
+
+Here, we will retrieve the inserted data. Look at the following C# code.
+
+// Program.cs
+
+using System;  
+using System.Data.SqlClient;  
+namespace AdoNetConsoleApplication  
+{  
+    class Program  
+    {  
+        static void Main(string[] args)  
+        {  
+            new Program().CreateTable();  
+        }  
+        public void CreateTable()  
+        {  
+            SqlConnection con = null;  
+            try  
+            {  
+                // Creating Connection  
+                con = new SqlConnection("data source=.; database=student; integrated security=SSPI");  
+                // writing sql query  
+                SqlCommand cm = new SqlCommand("Select * from student", con);  
+                // Opening Connection  
+                con.Open();  
+                // Executing the SQL query  
+                SqlDataReader sdr = cm.ExecuteReader();  
+                // Iterating Data  
+                while (sdr.Read())  
+                {  
+                    Console.WriteLine(sdr["id"] + " " + sdr["name"]+" "+sdr["email"]); // Displaying Record  
+                }  
+            }  
+            catch (Exception e)  
+            {  
+                Console.WriteLine("OOPs, something went wrong.\n"+e);  
+            }  
+            // Closing the connection  
+            finally  
+            {  
+                con.Close();  
+            }  
+        }  
+    }  
+}  
+Execute this code by Ctrl+F5 and it will produce the following result. This displays two records, one we inserted manually.
+
+
+-----------------------------------------------------------------------------------
+
+4. Deleting Record
+
+This time student table contains two records. The following C# code delete one row from the table.
+
+// Program.cs
+
+
+using System;  
+using System.Data.SqlClient;  
+namespace AdoNetConsoleApplication  
+{  
+    class Program  
+    {  
+        static void Main(string[] args)  
+        {  
+            new Program().CreateTable();  
+        }  
+        public void CreateTable()  
+        {  
+            SqlConnection con = null;  
+            try  
+            {  
+                // Creating Connection  
+                con = new SqlConnection("data source=.; database=student; integrated security=SSPI");  
+                // writing sql query  
+                SqlCommand cm = new SqlCommand("delete from student where id = '101'", con);  
+                // Opening Connection  
+                con.Open();  
+                // Executing the SQL query  
+                cm.ExecuteNonQuery();  
+                Console.WriteLine("Record Deleted Successfully");  
+            }  
+            catch (Exception e)  
+            {  
+                Console.WriteLine("OOPs, something went wrong.\n"+e);  
+            }  
+            // Closing the connection  
+            finally  
+            {  
+                con.Close();  
+            }  
+        }  
+    }  
+}  
+
+-----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,246 @@
+1. Intro
+
+--> How to display error specific custom error page in asp.net core mvc
+
+-----------------------------------------------------------------------------------
+
+1.1. We are handling custom error page
+
+--> This will be handled on Production environment
+--> Change environment to Production in launchSettings.json
+
+-----------------------------------------------------------------------------------
+
+2. Consider the following DeleteRole action
+
+[HttpPost]
+public async Task<IActionResult> DeleteRole(string id)
+{
+    var role = await roleManager.FindByIdAsync(id);
+
+    if (role == null)
+    {
+        ViewBag.ErrorMessage = $"Role with Id = {id} cannot be found";
+        return View("NotFound");
+    }
+    else
+    {
+        var result = await roleManager.DeleteAsync(role);
+
+        if (result.Succeeded)
+        {
+            return RedirectToAction("ListRoles");
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError("", error.Description);
+        }
+
+        return View("ListRoles");
+    }
+}
+
+--> This action deletes a role. 
+--> If there are users in the role, this action throws an exception
+
+-----------------------------------------------------------------------------------
+
+3. Global Exception Handler
+
+
+--> If there is an unhandled exception and if the application is running in the Production environment, the user is redirected to ErrorController which displays the custom Error view. UseExceptionHandler middleware redirects the request to Error controller. We discussed this in Part 60 of  ASP.NET Core tutorial.
+
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    else
+    {
+        app.UseExceptionHandler("/Error");
+        app.UseStatusCodePagesWithReExecute("/Error/{0}");
+    }
+}
+
+-----------------------------------------------------------------------------------
+
+4. ErrorController Class
+
+public class ErrorController : Controller
+{
+    private readonly ILogger<ErrorController> logger;
+
+    public ErrorController(ILogger<ErrorController> logger)
+    {
+        this.logger = logger;
+    }
+
+    [AllowAnonymous]
+    [Route("Error")]
+    public IActionResult Error()
+    {
+        var exceptionHandlerPathFeature =
+            HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+
+        logger.LogError($"The path {exceptionHandlerPathFeature.Path} " +
+            $"threw an exception {exceptionHandlerPathFeature.Error}");
+
+        return View("Error");
+    }
+}
+
+-----------------------------------------------------------------------------------
+
+5. Error View
+
+<h3>
+    An occured while processing your request.
+    The support team is notified and we are working on the fix
+</h3>
+<h5>Please contact us on pragim@pragimtech.com</h5>
+
+
+--> This is a very general error view. When we try to delete a Role and we are not able to do it because there are users in the role, we want to pass a bit more information to the view so the end user knows what exactly went wrong. 
+
+-----------------------------------------------------------------------------------
+
+6. Modifications
+
+--> We want the custom Error view to look like custom Message.
+--> For this modify the DeleteRole action as shown below.
+
+public class AdministrationController : Controller
+{
+    private readonly RoleManager<IdentityRole> roleManager;
+    private readonly ILogger<AdministrationController> logger;
+
+    public AdministrationController(RoleManager<IdentityRole> roleManager,
+        ILogger<AdministrationController> logger)
+    {
+        this.roleManager = roleManager;
+        this.logger = logger;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteRole(string id)
+    {
+        var role = await roleManager.FindByIdAsync(id);
+
+        if (role == null)
+        {
+            ViewBag.ErrorMessage = $"Role with Id = {id} cannot be found";		-----> Custom Error Message
+            return View("NotFound");							-----> Pass to global error exception page
+        }
+        else
+        {
+            // Wrap the code in a try/catch block
+            try
+            {
+                //throw new Exception("Test Exception");
+
+                var result = await roleManager.DeleteAsync(role);
+
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("ListRoles");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+
+                return View("ListRoles");
+            }
+            // If the exception is DbUpdateException, we know we are not able to
+            // delete the role as there are users in the role being deleted
+            catch (DbUpdateException ex)
+            {
+                //Log the exception to a file. We discussed logging to a file
+                // using Nlog in Part 63 of ASP.NET Core tutorial
+                logger.LogError($"Exception Occured : {ex}");
+                // Pass the ErrorTitle and ErrorMessage that you want to show to
+                // the user using ViewBag. The Error view retrieves this data
+                // from the ViewBag and displays to the user.
+                ViewBag.ErrorTitle = $"{role.Name} role is in use";
+                ViewBag.ErrorMessage = $"{role.Name} role cannot be deleted as there are users in this role. If you want to delete this role, please remove the users from the role and then try to delete";
+                return View("Error");
+            }
+        }
+    }
+}
+
+Modify the Error View as shown below
+
+There is no error specific information, if the ErrorTitle property on the ViewBag is null. So just display the generic error message. Else, display the error specific data that is present in ErrorTitle and ErrorMessage properties on the ViewBag object.
+
+@if (ViewBag.ErrorTitle == null)
+{
+    <h3>
+        An occured while processing your request.
+        The support team is notified and we are working on the fix
+    </h3>
+    <h5>Please contact us on pragim@pragimtech.com</h5>
+}
+else
+{
+    <h1 class="text-danger">@ViewBag.ErrorTitle</h1>
+    <h6 class="text-danger">@ViewBag.ErrorMessage</h6>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

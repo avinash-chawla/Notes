@@ -1,0 +1,59 @@
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+
+    <div class="container mt-5">
+
+        <div class="row my-3 mx-0">
+            <button class="btn btn-primary postBtn col-2">Post Data</button>
+            <input type="text" class="form-control mx-2 col-4 title1" placeholder="title">
+            <input type="text" class="form-control mx-2 col body1" placeholder="body">
+        </div>
+        <table class="table table-bordered table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Title</th>
+                    <th>Body</th>
+                </tr>
+            </thead>
+            <tbody class="items">
+
+            </tbody>
+
+        </table>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+
+            $.get("https://jsonplaceholder.typicode.com/posts", function (data, status) {
+                $.each(data, function (i, item) {
+                    $('.items').append(`<tr> 
+                                            <td>` + JSON.stringify(item.title) + `</td>
+                                            <td>` + JSON.stringify(item.body) + `</td>
+                                        </tr>`);
+                })
+            });
+
+            $('.postBtn').click(function () {
+                var postData = {
+                    "title": $('.title1').val(),
+                    "body": $('.body1').val()
+                };
+                console.log(postData);
+                $.post("https://jsonplaceholder.typicode.com/posts", postData, function (data, status) {
+                    $('.items').prepend(`<tr><td>` + JSON.stringify(data.title) + `</td>
+                                             <td>` + JSON.stringify(data.body) + `</td>
+                                        </tr>`);
+                })
+            })
+        })
+    </script>
+</body>
+
+</html>

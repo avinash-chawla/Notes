@@ -1,0 +1,42 @@
+1. Difference between RGB and CMYK-->
+
+--> Computer displays color in RGB with lightening(Luminance) thats why we see those colors bright in pc
+
+--> Printer knows CMYK (Cyan Magenta Yellow Black) which are without extra light, it is actually seen on white paper.
+
+-------------------------------------------------------------------
+
+--> Select Image
+--> It is RGB
+--> How do you know, see in image tab
+--> Image tab --> Mode --> CMYK
+
+--> Now Luminance lost
+--> It is one way street means we can not go back to RGB 
+
+ --> When starting new document in adobe photoshop, it asks for color mode. By default, RGB is selected.
+
+--------------------------------------------------------------------
+
+2. Change the resolution to 300dpi-->
+
+--> Resolution is another name for Quality
+
+--> High Quality = High Resolution
+--> Low Quality  = Low Resolution
+
+--> Another word is DPI and PPI 
+--> Pixels/inch and Dots/inch
+
+--> Go to Image tab 
+
+1. Image Size
+2. Dimensions
+3. Resolution (72 is common resolution)
+
+4. Resample Size
+
+--> Resolution is changing based on Requirement.
+
+--> If it is on --> Width and height remains same, just Resolution changes
+--> If it is off --> Width and height changes with Resolution

@@ -1,0 +1,112 @@
+1. Summary 
+
+--> Use migrations to keep domain models and database schema in sync
+--> To add a new migration use Add-Migration command
+--> To update the database with the latest migration use Update-Database command
+--> To remove the latest migration that is not yet applied to the database use Remove-Migration
+--> _EFMigrationsHistory table is used to keep track of the migrations that are applied to the database
+
+--> To remove the migration that is already applied to the database
+1. First use the Update-database <migrationName> command to undo the database changes applied by the migration
+2. Next, use Remove-Migration command to remove the migration code file.
+
+---------------------------------------------------------------------------------
+
+2. Adding Migrations
+
+--> Add new field in Employee Model
+
+public string PhotoPath { get; set; }
+
+--> Add migration
+
+add-migration AddPhotoPathColumn
+
+--> Add another new field
+
+public string SomeProperty { get; set; }
+
+--> Add another migration 
+
+add-migration AddSomePropertyColumn
+
+------------------------------------------------------------------------------------
+
+3. Model Snapshot
+
+--> There is a file in Migrations folder --> AppDbContextModelSnapshot.cs
+--> This file contains the history of all migrations 
+--> When adding every new migration, this file is updated with all new properties and changes
+--> You can view this file.
+
+------------------------------------------------------------------------------------
+
+4. Removing Migrations
+
+--> Migrations can be removed one by one by command remove-migration
+--> remove-migration will remove the latest migration which is being added.
+
+--> remove-migration
+--> Now it will remove AddSomePropertyColumn migration
+
+--> All see ModelSnapshot file, it is updated again.
+
+--> remove-migration
+--> Now it will remove AddPhotoPathColumn migration
+
+--> This is also updated in Snapshot file, and you can see this update with opening this file in window and then do add or remove migration.
+
+------------------------------------------------------------------------------------
+
+5. Revert Migrations
+
+--> Now again do remove-migrations
+--> An exception is generated: Can not do remove-migrations once migration changes applied to database
+--> So method is first revert-migration and then delete/remove migrations
+
+--> There is a table in database Ef_MigrationHistory which contains all migration history with name
+--> Open this table in window, by viewing Data of Table in Sql server Explorer.
+
+------------------------------------------------------------------------------------
+
+--> Now, again do migrations of PhotoPath and SomeProperty
+--> And this time, update-database too.
+
+--> It will show in EF_MigrationHistory table
+
+--> To revert migration
+
+--> You need to know upto where you want to revert migration
+--> eg. We want to revert migrations AddPhotoPathColumn and AddSomePropertyColumn 
+--> To revert these migration, we will use update-database <migration_before_that>
+--> We want to revert till SeedEmployeesTable, after that we want to revert all migrations
+--> So use command
+
+update-database SeedEmployeesTable
+
+--> Now such migrations are reverted.
+
+------------------------------------------------------------------------------------
+
+6. Removing Migrations after reverting
+
+--> Now we can remove these migrations which were previously affected to database.
+--> AddPhotoPathColumn and AddSomePropertyColumn 
+--> command
+
+remove-migration		
+--> This will remove migration AddSomePropertyColumn which is latest
+
+remove-migratio
+--> This will remove migration AddPhotoPathColumn which is now latest.
+
+------------------------------------------------------------------------------------
+
+7. File Upload New field in Model
+
+--> We want new field in Employee model form to update photo of employee
+--> Add this property in model class --> public string PhotoPath { get; set; }
+--> add-migration AddPhotoPathColumn
+--> update-database
+
+------------------------------------------------------------------------------------

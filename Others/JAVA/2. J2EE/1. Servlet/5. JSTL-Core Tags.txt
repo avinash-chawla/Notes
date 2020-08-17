@@ -1,0 +1,329 @@
+1. What is JSP tags
+
+--> Tags are attributes which can be applied to jsp scriplets
+--> They reduce lines of code in scriplets
+--> They also provide additional functionality
+--> Understand with a Problem
+
+--------------------------------------------------------------------------------------
+
+--> Problem:
+
+Email from the Boss: We want to include a weather report in our JSP pages.
+
+--------------------------------------------------------------------------------------
+
+--> Solution:
+
+1. Use Scriplets
+
+<%
+  connect to remote weather service
+  submit our weather request
+  receive weather results
+  parse the data: xml or json??
+  display output in jsp pages
+%>
+
+--> One problem is you have to many lines of code of java in jsp file
+--> This is bad practice
+
+--------------------------------------------------------------------------------------
+
+2. Option2: JSP Custom Tags
+
+--> Move heavy business logic into supporting class
+--> Insert JSP custom tag to use supporting class
+
+<demo:weatherReport city="India" />
+
+--------------------------------------------------------------------------------------
+
+--> Benefits of JSP Custom Tags
+
+1. Minimize the amount of scriplet code in a JSP
+2. Avoids dumping thousands of lines of code in a JSP
+3. JSP page is simple.. main focus of JSP is only the presentation
+4. Tag is reusable
+
+-------------------------------------------------------------------------------
+
+2. JSTL
+
+--> Oracle created a Specification for standard tags
+
+1. Core
+2. xml
+3. Messages formatting I18N
+4. Functions
+5. SQL
+
+-------------------------------------------------------------------------------
+
+3. Quick Demo
+
+--> Download JSTL Jar files from: www.luv2code.com/download-jstl
+--> Create new project (dynamic web project)
+--> Name it: tagdemo
+
+--> In WebContent folder, there is WEB-INF folder under which there is lib folder
+--> Paste jar files there.
+
+--> To use inbuilt tags, all tags defined in this library
+--> Consider jar files as library
+
+-------------------------------------------------------------------------------
+
+--> Create new jsp page in webContent folder --> test.jsp
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<html>
+<body>
+
+<c:set var="stuff" value="<%= new java.util.Date() %>" />
+
+Time on ther server is ${stuff}
+
+</body>
+</html>
+
+--> First create reference of taglib
+--> prefix="c"  c stands for core
+--> var means variable and set its value in that tag
+--> ${} is called jsp expression
+
+-------------------------------------------------------------------------------
+
+4. Core Tags
+
+--> There are various tags included in this core jstl library
+--> Some of which are:
+
+catch, choose, if, import, forEach, forTokens, out, otherwise, param, redirect, remove, set, url, when
+
+-------------------------------------------------------------------------------
+
+--> JSP Core Taglib reference
+
+--> Every page that uses the Core tags must include this reference:
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+--> This is not connected to internet
+--> This is used as identifier and look in local lib folder
+
+-------------------------------------------------------------------------------
+
+--> Resources
+
+1. JSP Custom Tags Tutorial 	--> /tag-tutorial
+2. JSTL Tutorial		--> /jstl-tutorial
+3. JSTL JavaDoc			--> /jstl-javadoc
+4. JSTL Specification PDf	--> /jstl-pdf
+
+--> All with www.luv2code.com/
+
+
+-------------------------------------------------------------------------------
+
+5. JSTL Core module- forEach tag in action
+
+--> Make new jsp file --> foreach-demo.jsp
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<%
+	// just create some sample data ... normally provided by MVC
+	String[] cities = {"Mumbai", "Singapore", "Philadelphia"};
+
+	pageContext.setAttribute("myCities", cities);
+%>
+
+<html>
+<body>
+	<c:forEach var="tempCity" items="${myCities}">
+		
+		${tempCity} <br/>
+		
+	</c:forEach>
+</body>
+</html>
+
+--> Every tag needs value in attribute form
+--> pageContext has method to set attribute in given page
+--> First we create list of cities and store in variable
+--> Then we create attribute and assign with variable
+--> In jstl tag, we provide attribute name in items 
+
+
+-------------------------------------------------------------------------------
+
+6. Creating table using forEach tag of JSTL Library
+
+--> Create new package in src folder --> com.luv2code.tagdemo
+--> Create new class in that --> Student.java
+--> We will have 3 fields - firstName, lastName, goldCustomer : boolean
+--> Then we will have getters, setters and constructor
+
+--> To create getters, settes and constructor --> right click --> Source --> Generate
+
+public class Student {
+
+	private String firstName;
+	private String lastName;
+	private boolean goldCustomer;
+	
+	public Student(String firstName, String lastName, boolean goldCustomer) {
+		super();
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.goldCustomer = goldCustomer;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public boolean isGoldCustomer() {
+		return goldCustomer;
+	}
+
+	public void setGoldCustomer(boolean goldCustomer) {
+		this.goldCustomer = goldCustomer;
+	}
+}
+
+-------------------------------------------------------------------------------
+
+--> Create new jsp file --> foreach-student-test.jsp
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<%@ page import="java.util.*,com.luv2code.jsp.tagdemo.Student" %>
+
+<%
+	// just create some sample data ... normally provided by MVC
+	List<Student> data = new ArrayList<>();
+
+	data.add(new Student("John", "Doe", false));
+	data.add(new Student("Maxwell", "Johnson", false));
+	data.add(new Student("Mary", "Public", true));
+
+	pageContext.setAttribute("myStudents", data);
+%>
+
+<html>
+
+<body>
+	<table border="1">
+
+	<tr>
+		<th>First Name</th>
+		<th>Last Name</th>
+		<th>Gold Customer</th>
+	</tr>
+	
+	<c:forEach var="tempStudent" items="${myStudents}">
+		
+		<tr>
+			<td>${tempStudent.firstName}</td>
+			<td>${tempStudent.lastName}</td>
+			<td>${tempStudent.goldCustomer}</td> 
+		</tr>
+		
+	</c:forEach>
+
+	</table>
+
+</body>
+
+</html>
+
+--> We have used ${tempStudent.firstName} instead of tempStudent.getFirstName bec. jsp internally converts this for us .
+--> And for boolean, it will call isGoldCustomer bec. it is boolean
+
+-------------------------------------------------------------------------------
+
+7. If Tag
+
+--> The <c:if> tag evaluates an expression and displays its body content only if the expression evaluates to true.
+--> We will same example and attach if condition for Gold Customer
+
+<td>
+	<c:if test="${tempStudent.goldCustomer}">
+		Special Discount
+	</c:if>
+				
+	<c:if test="${not tempStudent.goldCustomer}">
+		-			-
+	</c:if>				
+</td> 
+
+--> There is no tag for else
+--> So we use not operator of java
+
+-------------------------------------------------------------------------------
+
+8. Choose tag
+
+--> It is similar to switch statement in java
+--> This can be used in replacement of if
+
+<td>
+	<c:choose>
+				
+	<c:when test="${tempStudent.goldCustomer}">
+		Special Discount
+	</c:when>
+					
+	<c:otherwise>
+		no soup for you!
+	</c:otherwise>
+
+	</c:choose>
+
+				
+</td> 
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

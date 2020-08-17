@@ -1,0 +1,179 @@
+1. Component-->
+
+it encapsuates data, html templates, logic for view
+root component of all components is App
+
+------------------------------------------------------------------------
+
+2. modules-->
+
+group all related components
+
+------------------------------------------------------------------------
+
+3. creating component-->
+--> create a component
+--> register it in a module
+--> add an element in an html markup
+
+src -> app -> navbar.component.ts
+
+import { Component } from '@angular/core';
+
+@Component({
+	selector: 'navbar',
+	template: '<h1>navbar</h1>'
+})
+export class NavbarComponent{}
+
+-------------------------------------------------------------------------
+app.module.ts-->
+
+@NgModule({
+   declarations: [ NavbarComponent ]
+});
+
+------------------------------------------------------------------------
+
+app.component.html-->
+
+<h1>Angular</h1>
+<navbar></navbar>
+
+
+-----------------------------------------------------------------------
+to make class into component class, we use @Component decorator
+selector: increases html vocabulary
+
+similarly to make class into module, we use @NgModule decorator
+
+both decorator takes an object as an input with some properties
+
+------------------------------------------------------------------------
+
+4. generating component through angular cli-->
+
+ng g c sidebar 		(geneate component)
+
+------------------------------------------------------------------------
+
+5. Templates-->
+
+rendering data in templates dynamically-->
+
+import { Component } from '@angular/core';
+
+@Component({
+	selector: 'navbar',
+	template: '<h1>{{ title }}</h1>'
+})
+export class NavbarComponent{
+	title = "List of Links";
+}
+
+
+above method is sometimes called data binding
+----------------------------------------------------------------------------
+
+any javascript expression can be included between {{ }} --> called string interpolation.
+
+<h1>{{ "Title: " + title }}</h1>
+
+----------------------------------------------------------------------
+export class NavbarComponent{
+	title = "List of Links";
+
+	getTitle() {
+	   	return this.title;
+	}
+}
+
+template: '<h1>{{ getTitle() }}</h1>';
+
+------------------------------------------------------------------------
+
+6. directives-->
+
+it is used for rendering data through control statements and loops
+
+template: `<h1>{{ title }}</h1>
+<ul>
+	<li *ngFor="let course of courses">
+		{{ course }}
+	</li>
+</ul>`
+
+class CoursesComponent{
+	courses = ["course1", "course2", "course3"];
+}
+
+------------------------------------------------------------------------
+
+7. Services-->
+
+--> problem is when we use unit testing on component, component should not be directly coupled to httpservice
+--> in unit testing, we provide fake httpservice
+
+so those logic which are related to httpservice/api are moved to seperated file called courses.service.ts
+
+--> in above problem, courses = ["course1", "course2", "course3"]; mostly come from api
+
+--> courses.service.ts-->
+export class CoursesService{
+	getCourses() {
+		return ["course1", "course2", "course3"];
+	}
+}
+
+------------------------------------------------------------------------
+
+8. Dependency Injection--->
+
+to use service class in component class -->we need to instantiate obj in component class.
+
+export class CoursesComponent{
+	courses;
+	constructor() {
+		let service = new Service();
+		this.courses = service.getCourses();
+	}		
+}
+
+--> but problem is we again directly coupled component class with httpservice class
+
+-----------------------------------------------------------------------------
+
+--> 2nd method --> provide dependency to component class in constructor
+
+export class CoursesComponent{
+	courses;
+	constructor(service: CoursesService ) {
+		this.courses = service.getCourses();
+	}		
+}
+
+now question is who will create object of it at runtime
+--> answer is dependency injection concept in angular --> which automatically create instance of obj at runtime called injection
+
+------------------------------------------------------------------------
+
+--> declared in app.module.ts
+
+providers: [ CoursesService ]	--> create only single instance in memory --> can be used in many classes --> called singleton pattern
+
+
+--> only doing bec. to make testing easier
+
+------------------------------------------------------------------------
+
+9. Generating services using angular cli--->
+
+ng g s emails	--> generate two files --> emails.service.ts and spec.ts
+
+@Injectable()	--> this decorator will inject dependencies for service class
+
+in component class, @Component decorator is doing this job
+
+------------------------------------------------------------------------
+
+

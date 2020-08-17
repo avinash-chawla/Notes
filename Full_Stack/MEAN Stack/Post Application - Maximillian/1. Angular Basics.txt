@@ -1,0 +1,828 @@
+1. Intro of Angular
+
+--> Angular keeps track of all components using app.module.ts file
+--> Angular binds main app component in index.html using a property, bootstrap: [AppComponent]
+--> app.component.ts is the root of all components
+
+
+--------------------------------------------------------------------------------
+
+2. How Angular starts the application
+
+--> There is a file main.ts, application starts from this file
+--> There is a method platformBrowserDynamcic which starts the webapplication
+--> It is calling another method bootstrapModule(AppModule) which tells first load app component in webapplication.
+
+--------------------------------------------------------------------------------
+
+3. Project Intro
+
+--> We are building simple social post application like facebook
+--> Here user can post the application, see post of other people but cannot edit them.
+--> There will be an admin for this application
+--> We will use frontend and backend - MEAN
+
+--------------------------------------------------------------------------------
+
+4. Creating a Post Component
+
+--> ng g c posts/post-create
+
+
+--> A file becomes component using Comonent decorator
+--> To need Angular aware of this component, it is registered in declarations in module file
+--> Component decorator in parameter accepts javascript object with properties like template, selector, css
+--> selector is used to reuse component where we needed.
+
+--------------------------------------------------------------------------------
+
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-post-create',
+  templateUrl: './post-create.component.html',
+  styleUrls: ['./post-create.component.css']
+})
+export class PostCreateComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+}
+
+--------------------------------------------------------------------------------
+
+5. Listening To Events
+
+--> We will create Textbox for Post and submit button to post that post
+--> We will use event binding for click event, which will bind click event to a function in class.
+
+<textarea cols="30" rows="10"></textarea>
+<button (click)="onAddPost()"></button>
+
+
+onAddPost() {
+  alert("Posted!");
+}
+
+--> We use on keyword in name of method to represent this method is related to event 
+
+--------------------------------------------------------------------------------
+
+6. Fetching Textbox value and Ouputting Context which is entered
+
+--> To fetch input from Textbox, we use property bind
+--> We bind input text to a variable in class
+--> As soon as any event occurs like button click, we can retrieve data from it.
+
+--> In class,
+
+  newPost = "";
+
+  onAddPost() {
+    this.newPost = "Some Content";
+  }
+
+--> In html,
+
+<textarea cols="30" rows="10" [value]="newPost"></textarea>
+<button (click)="onAddPost()">Save</button>
+<p>{{ newPost }}</p>
+
+--------------------------------------------------------------------------------
+
+7. Getting User Input
+
+--> There are two ways to retrieve user input
+
+1. Using template variable
+
+--> We will create reference of textbox element and pass it to button click event function
+--> This template variable is only accessible in html file.
+
+--> In html, 
+<textarea cols="30" rows="10" [value]="newPost" #postInput></textarea>
+<button (click)="onAddPost(postInput)">Save</button>
+<p>{{ newPost }}</p>
+
+--> In class,
+
+newPost = "";
+
+onAddPost(postInput) {
+    console.dir(postInput);
+    this.newPost = "Some Content";
+}
+
+--> We are setting value 	--> using property binding of value with variable
+--> We are getting value	--> using template variable
+
+--> There is concept which can do both at one go 
+--> Replace [value] and #postInput with [(ngModel)]
+
+--------------------------------------------------------------------------------
+
+2. Two way binding
+
+--> [(ngModel]) is used for two way binding
+--> We can receive input textbox value in server and server can set its value too.
+
+--> For this to work, import FormsModule in module file
+
+--> In html, 
+<textarea cols="30" rows="10" [(ngModel)]="enteredValue"></textarea>
+<button (click)="onAddPost()">Save</button>
+<p>{{ newPost }}</p>
+
+--> In Class,
+  newPost = "";
+  enteredValue = "";
+
+  onAddPost() {
+    this.newPost = this.enteredValue;
+  }
+
+--------------------------------------------------------------------------------
+
+8. Installing Angular Material
+
+--> This will be used to style our components
+--> This is not like bootstrap like predefined class
+--> These are actually components build by Angular team for faster development
+--> You need to install this package to use it.
+
+--> One way: npm i @angular/material
+--> This does not set any configuration automatically in our files
+
+--> Two way: ng add @angular/material
+--> This will set all configurations in our files automatically
+
+--> In angular.json	--> added reference for css
+--> In index.js		--> set reference for google robo fonts and material icons
+--> In module.ts	--> sets reference for its modules
+
+--> When you install it, it asks for themes -> Select any
+
+--------------------------------------------------------------------------------
+
+--> Now to apply styles, we use custom html elements of material and wrap input elements inside it.
+--> We need to import it first
+--> All material elements starts with Mat
+
+--------------------------------------------------------------------------------
+
+--> In module.ts
+
+import { MatInputModule, MatCardModule, MatButtonModule } from '@angular/material'
+
+and also include in imports array
+
+--> Above import will not work in Angular9
+--> You have to import from invidual modules inside material library
+ 
+--------------------------------------------------------------------------------
+
+--> In html file,
+
+<mat-card>
+   <mat-form-field>
+	<textarea matInput rows="6" [(ngModel)]="enteredValue"></textarea>
+   </mat-form-field>
+   <button mat-raised-button color="accent" (click)="onAddPost()">Save Post</button>
+</mat-card>
+
+
+--> In style.css of component
+
+mat-card{
+   width: 80%;
+   margin: auto
+}
+
+mat-form-field, textarea{
+   width: 100%
+}
+
+--------------------------------------------------------------------------------
+
+9. Adding a Toolbar
+
+--> ng g c header
+
+--> In html file,
+<mat-toolbar color="primary">My Messages</mat-toolbar>
+
+--> For this need to work, we need to import it.
+import { MatTooltipModule } from '@angular/material/tooltip';
+and also include import statement
+
+--> In app html
+<app-header></app-header>
+<main>
+<app-post-create></app-post-create>
+</main>
+
+--> In app css
+main{
+   margin-top: 1rem;
+}
+
+--------------------------------------------------------------------------------
+
+10. Outputting Posts in List
+
+--> ng g c posts/post-list
+
+--> In app html
+
+<app-post-create>..
+<app-post-list>..
+
+--> We use angular material to create list of posts
+--> First import required component 
+
+import { MatExpansionModule } from '@angular/material/expansion';
+
+--> post-list html
+
+<mat-accordion>
+   <mat-expansion-panel>
+	<mat-expansion-panel-header>
+	   The expansion title!
+	</mat-expansion-panel-header>
+	<p>I'm in an expansion panel!</p>
+   </mat-expansion-panel>
+</mat-accordion>
+
+
+--> In app.css
+
+main{
+  margin-top: 1rem;
+  width: 80%;
+  margin: auto
+}
+
+--> In post-list.css
+
+:host{
+  display: block;
+  margin-top: 1rem;
+}
+
+--> In post-list class
+
+posts = [
+  { title: "First Post", content: "This is the first post content"},
+  { title: "First Post", content: "This is the first post content"},
+  { title: "First Post", content: "This is the first post content"},
+]
+
+--------------------------------------------------------------------------------
+
+11. ngFor Directive to loop over given posts
+
+--> In post-list component, we want to loop over posts
+
+<mat-accordion multi="true" *ngIf="posts.length > 0">
+    <mat-expansion-panel *ngFor="let post of posts">
+        <mat-expansion-panel-header>
+            {{ post.title }}
+        </mat-expansion-panel-header>
+        <p>{{ post.content }}</p>
+    </mat-expansion-panel>
+</mat-accordion>
+<p *ngIf="posts.length <=0 " class="info-text mat-body-1">No posts added yet!</p>
+
+
+--> In post-list css
+.info-text{
+   text-align: "center"
+}
+
+--------------------------------------------------------------------------------
+
+12. Creating Posting
+
+--> We have two components - post-create and post-list
+--> We have send data from post-create component to post-list component
+
+--> We will use Event Emitter, Event Listener concepts between components
+
+--------------------------------------------------------------------------------
+
+--> In post-create html
+--> We have two input fields and one button
+
+
+<mat-card>
+    <mat-form-field>
+        <input matInput [(ngModel)]="enteredTitle" />
+    </mat-form-field>
+    <mat-form-field>
+        <textarea matInput rows="6" [(ngModel)]="enteredContent"></textarea>
+    </mat-form-field>
+    <button mat-raised-button color="accent" (click)="onAddPost()">Save Post</button>
+</mat-card>
+
+--------------------------------------------------------------------------------
+
+--> In post-create class
+
+  enteredTitle = "";
+  enteredContent = "";
+
+  onAddPost() {
+    const post = {
+      title: this.enteredTitle,
+      content: this.enteredContent
+    }
+  }
+
+--------------------------------------------------------------------------------
+
+--> On click Event we want to send data
+--> We will create Event Emitter from post-create component
+--> But this event emitter will be listened only on outside that is in parent component --> app.component here
+ 
+--> In post-create class
+
+import { Component, OnInit, EventEmitter, Output } from '@angular/core';
+
+enteredTitle = "";
+enteredContent = "";
+@Output() postCreated = new EventEmitter();
+
+onAddPost() {
+  const post = {
+    title: this.enteredTitle,
+    content: this.enteredContent
+  }
+  this.postCreated.emit(post);
+}
+
+--> We have two way binding to bind both input fields
+--> We then such input values on button click event in post object
+--> We have imported two methods from @angular/core --> EventEmitter and Output
+--> We have to create property which will become event Emitter object --> postCreated
+--> On button click, we emit this event with name 'postCreated' containing the data
+
+--------------------------------------------------------------------------------
+
+--> Event Emitted from component can only be listened on parent
+
+--> In app.component html
+
+<app-header></app-header>
+<main>
+  <app-post-create (postCreated)="onPostAdded($event)"></app-post-create>
+  <app-post-list></app-post-list>
+</main>
+
+--> Event emitted by child component is listened by parent component through custom event listener
+--> Whenever that button clicks, this custom event is fired and listened by parent
+--> this custom event contains data, we need to access using $event inside parameter and store in variable in app class
+--> Now next is class,
+
+--------------------------------------------------------------------------------
+
+--> In app.component class
+
+storedPosts = [];
+
+onPostAdded(post) {
+  this.storedPosts.push(post);
+}
+
+--> This custom event postCreated contains data and will be handled by method
+--> It contains post object
+--> We have created empty array and store in that as soon as post is generated using button which then triggers custom event, which will be accessed in parent and handled by method.
+--> We want to do property binding of this custom list with child component list(array)
+--> We will do that like that
+
+--------------------------------------------------------------------------------
+
+--> In child component --> post-list ts
+
+import { Component, OnInit, Input } from '@angular/core';
+
+@Input() posts = []
+
+
+--> We want to do property binding with parent, so we use input property
+
+--> In app.html
+
+<app-header></app-header>
+<main>
+  <app-post-create (postCreated)="onPostAdded($event)"></app-post-create>
+  <app-post-list [posts]="storedPosts"></app-post-list>
+</main>
+
+
+--> We want to transfer data from one component to another:
+--> All we do is:
+1. post-create 	--> emit event containing data
+2. parent	--> listens to event and store in variable
+3. parent	--> use custom property binding to send data to child
+3. post-list	--> use input property for binding property binding from parent
+
+
+--------------------------------------------------------------------------------
+
+13. Creating Post Model
+
+--> We are using post object in 3 places --> create, list, app
+--> Chances are when we modify at one place, other places get affected
+--> We will use model class as custom data type for our project
+--> At any place, when anyone modifies this object, gets an compile time error
+
+--> Create new ts file in posts folder --> post.model.ts
+export interface Post{
+   title: string;
+   content: string;
+}
+
+--> Change in create, list and app files where post object is used.
+
+--> In app.ts
+
+storedPosts: Post[] = [];
+
+onPostAdded(post: Post) {
+  this.storedPosts.push(post);
+}
+
+--> In post-create
+
+@Output() postCreated = new EventEmitter<Post>();		--> Only event Post type object
+
+const post: Post = {
+  title: this.enteredTitle,
+  content: this.enteredContent
+}
+
+
+--> In post-list class
+
+@Input() posts: Post[] = []
+
+--------------------------------------------------------------------------------
+
+14. Adding Forms
+
+--> Till we are using two-way to bind input data fields
+--> When we use forms, we get additional feature of angular
+--> Forms can track of controls, store the forms value and can do validation.
+
+--------------------------------------------------------------------------------
+
+--> Before Form
+
+<mat-card>
+    <mat-form-field>
+        <input matInput [(ngModel)]="enteredTitle" />
+    </mat-form-field>
+    <mat-form-field>
+        <textarea matInput rows="6" [(ngModel)]="enteredContent"></textarea>
+    </mat-form-field>
+    <button mat-raised-button color="accent" (click)="onAddPost()">Save Post</button>
+</mat-card>
+
+--------------------------------------------------------------------------------
+
+--> After form
+--> We have used ngModel decorator to keep track of control fields
+
+<form #postForm="ngForm" (submit)="onAddPost(postForm)">
+    <mat-card>
+        <mat-form-field>
+            <input matInput name="title" ngModel required #title="ngModel" />
+            <mat-error *ngIf="title.invalid">Please enter a post title</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+            <textarea matInput rows="6" name="content" ngModel required #content="ngModel"></textarea>
+            <mat-error *ngIf="content.invalid">Please enter a post content</mat-error>
+        </mat-form-field>
+        <button mat-raised-button color="accent" type="submit">Save Post</button>
+    </mat-card>
+</form>
+
+
+or
+
+--> Access formcontrol value using form template variable
+<mat-error *ngIf="postForm.getControl('title).invalid">{{ getErrorMessage}}</mat-error>
+
+--------------------------------------------------------------------------------
+
+15. Getting Posts from post-create to post-list
+
+--> We are now using event emitters and listeners to pass data from one component to another
+--> We have alternative to this --> services 
+--> services provides dependency injection of its class
+--> We can use this service class as our redux store
+--> All components will contact that service class.
+
+--> ng g s posts/posts		--> This will generate service class inside posts folder
+
+export class PostsService {
+
+  constructor() { }
+
+  private posts : Post[] = [];
+
+  getPosts(){
+    return [...this.posts];
+  }
+
+  addPost(title: string, content: string){
+    const post = { title: title, content: content};
+    this.posts.push(post);
+  }
+}
+
+--> As arrays are object in javascript means reference types, we are not providing original posts array
+--> We are providing copy of it to use
+--> We don't any components to modify original posts array in service class
+--> This is concept of immutable.
+
+--------------------------------------------------------------------------------
+
+
+--> Provide dependency injection of this service class to post-list
+--> In post-list class,
+constructor(public postService: PostsService) { }
+
+--> Under the hood, this is like this,
+
+public postService: PostsService;
+constructor(postService: PostsService){
+	this.postService = postService;
+}
+
+--------------------------------------------------------------------------------
+
+16. Calling GET Post
+
+--> We remove all event emitters and listeners from components and make them talk to service class
+--> Service class
+
+import { Injectable } from '@angular/core';
+import { Post } from './post.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PostsService {
+
+  constructor() { }
+
+  private posts : Post[] = [];
+
+  getPosts(){
+    return [...this.posts];
+  }
+
+  addPost(title: string, content: string){
+    const post = { title: title, content: content};
+    this.posts.push(post);
+  }
+}
+
+--------------------------------------------------------------------------------
+
+--> post-create ts file
+
+constructor(public postsService: PostsService) { }
+
+ngOnInit(): void {
+}
+
+onAddPost(form: NgForm) {
+  if (form.invalid) {
+    return;
+  }
+  this.postsService.addPost(form.value.title, form.value.content);
+}
+
+--------------------------------------------------------------------------------
+
+--> In post-list class
+
+export class PostListComponent implements OnInit {
+
+  constructor(public postService: PostsService) { }
+
+  ngOnInit(): void {
+    this.posts = this.postService.getPosts();
+  }
+
+  posts: Post[] = []
+
+}
+
+--------------------------------------------------------------------------------
+
+--> There is one problem above in our code
+--> post-create will sends its posts data to dataService class
+--> post-list will get the posts data from dataService class
+
+--> But when post-create creates posts, how would post-list would notify that posts data is changed from previous
+--> We need something Observable and subscribe from rxjs library
+--> When there is something change in posts array, components will be notified.
+
+--------------------------------------------------------------------------------
+
+--> In Service class
+
+--> We are using Subject module from rxjs
+--> It has methods for creating Observables
+--> We first created its object
+--> On creating post in post-create class, addPost will run, Subject object has 'next' method to observe on and modify the changes
+--> We pass this observable in function and any component which subscribe to this service class, will get modified data every time data changes.
+--> post-list compnent can not modify this data, only can subscribes to it.
+
+
+
+import { Injectable } from '@angular/core';
+import { Post } from './post.model';
+import { Subject } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PostsService {
+
+  constructor() { }
+
+  private posts: Post[] = [];
+  private postsUpdated = new Subject<Post[]>();
+
+  getPostUpdateListener() {
+    return this.postsUpdated.asObservable();
+  }
+
+  addPost(title: string, content: string) {
+    const post = { title: title, content: content };
+    this.posts.push(post);
+    this.postsUpdated.next([...this.posts])
+  }
+}
+
+--------------------------------------------------------------------------------
+
+--> In post-list class
+
+constructor(public postService: PostsService) { }
+
+ngOnInit(): void {
+  this.postService.getPostUpdateListener()
+    .subscribe(
+      posts => this.posts = posts
+    )
+}
+
+--------------------------------------------------------------------------------
+
+--> There is one problem above, of memory leak
+--> Whenever component is destroyed, we want to unsubscribe this component
+--> Bec. if not, subscription will not be deleted, means observable will stil observe on this data, and we do not need it actually
+--> That is lost of processing memory
+
+
+--------------------------------------------------------------------------------
+
+--> In post-list class
+
+--> We are using Subject module from rxjs
+--> It can unsubscribe compoenent when it is above to destroy
+--> There is OnDestroy life-cycle hook, just like OnInit life-cycle hook.
+
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Post } from '../post.model';
+import { PostsService } from './../posts.service';
+import { Subscription } from 'rxjs';
+
+@Component({
+  selector: 'app-post-list',
+  templateUrl: './post-list.component.html',
+  styleUrls: ['./post-list.component.css']
+})
+export class PostListComponent implements OnInit, OnDestroy {
+
+  constructor(public postService: PostsService) { }
+
+  private postsSub: Subscription					--> Creating Property
+
+  ngOnInit(): void {
+    this.postsSub = this.postService.getPostUpdateListener()		--> Assign to this Subject Property
+      .subscribe(
+        posts => this.posts = posts
+      )
+  }
+
+  ngOnDestroy() {
+    this.postsSub.unsubscribe();					--> Unsubscribes to Observable
+  }
+
+  posts: Post[] = []
+
+}
+
+
+--------------------------------------------------------------------------------
+
+17. More about Observables
+
+--> Observables are like event emitters and event listeners
+--> But it removes all complexities of events 
+
+--------------------------------------------------------------------------------
+
+--> Observable is event emitter
+--> Observer is event listener.
+--------------------------------------------------------------------------------
+
+--> What is difference between Subjects and Observables
+
+--> For each subscription observable output is diffrent but if you are expecting same output for in diffrent observer recommended to use Subject!
+--> Observables are unicast by design and Subjects are multicast by design.
+
+--------------------------------------------------------------------------------
+
+--> Demo of Subjects and Observables
+
+--> If you look at the below example - each subscription recieves the diffrent values as observables developed as unicast by design.
+
+--------------------------------------------------------------------------------
+
+import {Observable} from 'rxjs';
+
+let obs = Observable.create(observer=>{
+   observer.next(Math.random());
+})
+
+obs.subscribe(res=>{
+  console.log('subscription a :', res); //subscription a :0.2859800202682865
+});
+
+obs.subscribe(res=>{
+  console.log('subscription b :', res); //subscription b :0.694302021731573
+});
+
+--------------------------------------------------------------------------------
+
+--> This could be weird if you are expecting the same values on both the subscription.
+
+--> We can overcome this issue using Subjects. Subjects is similar to event-emitter and it does not invoke for each subscription. consider the below example.
+
+--------------------------------------------------------------------------------
+
+import {Subject} from 'rxjs';
+
+let obs = new Subject();
+
+obs.subscribe(res=>{
+  console.log('subscription a :', res); // subscription a : 0.91767565496093
+});
+
+obs.subscribe(res=>{
+  console.log('subscription b :', res);// subscription b : 0.91767565496093
+});
+
+obs.next(Math.random());
+--------------------------------------------------------------------------------
+
+both the subscription are got the same output value!.
+
+--------------------------------------------------------------------------------
+
+18. Working on our forms
+
+--> Make placeholder attribute for form
+--> placeholder="Post Title" and placeholder="Post Content"
+
+--> We want to clear data in form after submitting
+--> In method of onAddPost in post-create file, place form.reset()
+
+
+--> Make Edit and Delete button in List
+
+<mat-accordion multi="true" *ngIf="posts.length > 0">
+    ...
+	<p>{{ post.context }}</p>
+        <mat-action-row>
+            <button mat-button color="primary">EDIT</button>
+            <button mat-button color="warn">DELETE</button>
+        </mat-action-row>
+    ...
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+

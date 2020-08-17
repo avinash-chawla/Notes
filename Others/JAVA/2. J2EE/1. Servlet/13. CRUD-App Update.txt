@@ -1,0 +1,358 @@
+1. Creating the Update Link
+
+--> In list-students.jsp,
+
+<c:forEach var="tempStudent" items="${STUDENT_LIST}">
+					
+<!-- set up a link for each student -->
+	<c:url var="tempLink" value="StudentControllerServlet">
+	    <c:param name="command" value="LOAD" />
+	    <c:param name="studentId" value="${tempStudent.id}" />
+	</c:url>
+																		
+	<tr>
+		<td> ${tempStudent.firstName} </td>
+		<td> ${tempStudent.lastName} </td>
+		<td> ${tempStudent.email} </td>
+		<td> 
+			<a href="${tempLink}">Update</a> 
+		</td>
+	</tr>
+				
+</c:forEach>
+
+--> This will generate link like: ?command=LOAD&studentId=2
+
+
+------------------------------------------------------------------------------------
+
+2. In Servlet Controller class,
+
+package com.luv2code.web.jdbc;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
+
+@WebServlet("/StudentControllerServlet")
+public class StudentControllerServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	private StudentDbUtil studentDbUtil;
+	
+	@Resource(name="jdbc/web_student_tracker")
+	private DataSource dataSource;
+	
+	@Override
+	public void init() throws ServletException {
+		super.init();
+		
+		// create our student db util ... and pass in the conn pool / datasource
+		try {
+			studentDbUtil = new StudentDbUtil(dataSource);
+		}
+		catch (Exception exc) {
+			throw new ServletException(exc);
+		}
+	}
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		try {
+			// read the "command" parameter
+			String theCommand = request.getParameter("command");
+			
+			// if the command is missing, then default to listing students
+			if (theCommand == null) {
+				theCommand = "LIST";
+			}
+			
+			// route to the appropriate method
+			switch (theCommand) {
+			
+			case "LIST":
+				listStudents(request, response);
+				break;
+				
+			case "ADD":
+				addStudent(request, response);
+				break;
+				
+			case "LOAD":
+				loadStudent(request, response);
+				break;
+				
+			case "UPDATE":
+				updateStudent(request, response);
+				break;
+							
+			default:
+				listStudents(request, response);
+			}
+				
+		}
+		catch (Exception exc) {
+			throw new ServletException(exc);
+		}
+		
+	}
+
+	private void updateStudent(HttpServletRequest request, HttpServletResponse response)
+		throws Exception {
+
+		// read student info from form data
+		int id = Integer.parseInt(request.getParameter("studentId"));
+		String firstName = request.getParameter("firstName");
+		String lastName = request.getParameter("lastName");
+		String email = request.getParameter("email");
+		
+		// create a new student object
+		Student theStudent = new Student(id, firstName, lastName, email);
+		
+		// perform update on database
+		studentDbUtil.updateStudent(theStudent);
+		
+		// send them back to the "list students" page
+		listStudents(request, response);
+		
+	}
+
+	private void loadStudent(HttpServletRequest request, HttpServletResponse response) 
+		throws Exception {
+
+		// read student id from form data
+		String theStudentId = request.getParameter("studentId");
+		
+		// get student from database (db util)
+		Student theStudent = studentDbUtil.getStudent(theStudentId);
+		
+		// place student in the request attribute
+		request.setAttribute("THE_STUDENT", theStudent);
+		
+		// send to jsp page: update-student-form.jsp
+		RequestDispatcher dispatcher = 
+				request.getRequestDispatcher("/update-student-form.jsp");
+		dispatcher.forward(request, response);		
+	}
+
+	private void addStudent(HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+		// read student info from form data
+		String firstName = request.getParameter("firstName");
+		String lastName = request.getParameter("lastName");
+		String email = request.getParameter("email");		
+		
+		// create a new student object
+		Student theStudent = new Student(firstName, lastName, email);
+		
+		// add the student to the database
+		studentDbUtil.addStudent(theStudent);
+				
+		// send back to main page (the student list)
+		listStudents(request, response);
+	}
+
+	private void listStudents(HttpServletRequest request, HttpServletResponse response) 
+		throws Exception {
+
+		// get students from db util
+		List<Student> students = studentDbUtil.getStudents();
+		
+		// add students to the request
+		request.setAttribute("STUDENT_LIST", students);
+				
+		// send to JSP page (view)
+		RequestDispatcher dispatcher = request.getRequestDispatcher("/list-students.jsp");
+		dispatcher.forward(request, response);
+	}
+
+}
+
+------------------------------------------------------------------------------------
+
+3. StudentDbUtil.java
+
+public Student getStudent(String theStudentId) throws Exception {
+
+		Student theStudent = null;
+		
+		Connection myConn = null;
+		PreparedStatement myStmt = null;
+		ResultSet myRs = null;
+		int studentId;
+		
+		try {
+			// convert student id to int
+			studentId = Integer.parseInt(theStudentId);
+			
+			// get connection to database
+			myConn = dataSource.getConnection();
+			
+			// create sql to get selected student
+			String sql = "select * from student where id=?";
+			
+			// create prepared statement
+			myStmt = myConn.prepareStatement(sql);
+			
+			// set params
+			myStmt.setInt(1, studentId);
+			
+			// execute statement
+			myRs = myStmt.executeQuery();
+			
+			// retrieve data from result set row
+			if (myRs.next()) {
+				String firstName = myRs.getString("first_name");
+				String lastName = myRs.getString("last_name");
+				String email = myRs.getString("email");
+				
+				// use the studentId during construction
+				theStudent = new Student(studentId, firstName, lastName, email);
+			}
+			else {
+				throw new Exception("Could not find student id: " + studentId);
+			}				
+			
+			return theStudent;
+		}
+		finally {
+			// clean up JDBC objects
+			close(myConn, myStmt, myRs);
+		}
+	}
+
+	public void updateStudent(Student theStudent) throws Exception {
+		
+		Connection myConn = null;
+		PreparedStatement myStmt = null;
+
+		try {
+			// get db connection
+			myConn = dataSource.getConnection();
+			
+			// create SQL update statement
+			String sql = "update student "
+						+ "set first_name=?, last_name=?, email=? "
+						+ "where id=?";
+			
+			// prepare statement
+			myStmt = myConn.prepareStatement(sql);
+			
+			// set params
+			myStmt.setString(1, theStudent.getFirstName());
+			myStmt.setString(2, theStudent.getLastName());
+			myStmt.setString(3, theStudent.getEmail());
+			myStmt.setInt(4, theStudent.getId());
+			
+			// execute SQL statement
+			myStmt.execute();
+		}
+		finally {
+			// clean up JDBC objects
+			close(myConn, myStmt, null);
+		}
+	}
+
+------------------------------------------------------------------------------------
+
+4. New form with already filled up
+
+--> Make new jsp file --> update-student-form.jsp
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Update Student</title>
+
+	<link type="text/css" rel="stylesheet" href="css/style.css">
+	<link type="text/css" rel="stylesheet" href="css/add-student-style.css">	
+</head>
+
+<body>
+	<div id="wrapper">
+		<div id="header">
+			<h2>FooBar University</h2>
+		</div>
+	</div>
+	
+	<div id="container">
+		<h3>Update Student</h3>
+		
+		<form action="StudentControllerServlet" method="GET">
+		
+			<input type="hidden" name="command" value="UPDATE" />
+
+			<input type="hidden" name="studentId" value="${THE_STUDENT.id}" />
+			
+			<table>
+				<tbody>
+					<tr>
+						<td><label>First name:</label></td>
+						<td><input type="text" name="firstName" 
+								   value="${THE_STUDENT.firstName}" /></td>
+					</tr>
+
+					<tr>
+						<td><label>Last name:</label></td>
+						<td><input type="text" name="lastName" 
+								   value="${THE_STUDENT.lastName}" /></td>
+					</tr>
+
+					<tr>
+						<td><label>Email:</label></td>
+						<td><input type="text" name="email" 
+								   value="${THE_STUDENT.email}" /></td>
+					</tr>
+					
+					<tr>
+						<td><label></label></td>
+						<td><input type="submit" value="Save" class="save" /></td>
+					</tr>
+					
+				</tbody>
+			</table>
+		</form>
+		
+		<div style="clear: both;"></div>
+		
+		<p>
+			<a href="StudentControllerServlet">Back to List</a>
+		</p>
+	</div>
+</body>
+
+</html>
+
+------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

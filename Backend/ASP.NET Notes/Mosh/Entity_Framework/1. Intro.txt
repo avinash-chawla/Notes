@@ -1,0 +1,185 @@
+1. Intro-->
+
+--> It is also called Persistance Framework
+--> It converts Database into class objects
+--> It replaces ado.net --> Stored Procudures, Manual Mapping, connection setting, Opeing and closing of connection, cmd executer and reader
+
+2. Workflows-->
+
+1. Database First 
+--> We design our table 
+--> EF generates domain classes
+
+
+2. Code First
+--> We create our domain classes
+--> EF generated database tables
+
+3. Model First
+--> We create a UML diagram
+--> EF generates domain classes and database
+
+-------------------------------------------------------------------------------
+
+3. Database First Workflow-->
+
+--> Database --> Entity --> domain Class
+
+--> Install Entity Framework in visualcode
+--> Install-Package EntityFramework -Version 5.0.0 from package manager console
+--> create new console application project
+--> right click project name in solution Explorer --> Add item --> ADO.NET Entity Data Model --> Name it - BlogModel
+
+--> DataModel is conceptual model that represents mapping between database tables and domain classes.
+
+--> Link to Post table from DataBaseFirstDemo database.
+--> Establish connection.
+
+--> EF makes new folder named BlogModelContext
+1. BlogModelContext.tt --> under BlogModelContext.cs
+
+--> This cs file contains DataBaseFirstDemoEntities class which implements DbContext
+--> This class also contains property called Posts which gets its name from table and it returns DbSet just like table 
+
+--> You can also see Posts class generated in model folder which contains properties as column names
+
+-------------------------------------------------------------------------------------
+
+--> In Program.cs
+--> In Main method
+
+var context = new DataBaseFirstDemoEntities();
+var post = new Post()
+{
+	Body = "body",
+	DatePublished = DateTime.Now,
+	Title = "Title",
+	PostId = 1
+};
+context.Posts.Add(post);
+context.SaveChanges();
+
+--> Run the application
+--> This is how data is stored in database
+--> Here we have not used ado.net code to establish connection, using sp, executing cmd and closing connection.
+--> Model and DataModel are different.
+
+--> Model is like data.
+--> DataModel is like database connection.
+-------------------------------------------------------------------------------------------------------------------------------------
+
+4. Code-First Workflow-->
+
+--> Domain Class --> Entity --> Database
+
+--> Here First domain class is made and then entity framework generate database based on the domain class.
+--> Model stored data which is persistance, does not destroy with application
+--> Model can manipulate data.
+
+--> DataModel works for storing and retrieving data. (save and load data)
+--> It is defined as Abstraction over database that we use to load and save data.
+
+----------------------------------------------------------------------------------
+
+--> Make new class in Program.cs 
+
+using System.Data.Entity;
+
+public class Post
+{
+	public int Id { get; set; }
+	public DateTime DatePublished { get; set; }	
+	public string Title { get; set; }
+	public string Body { get; set; }
+}
+
+public class BlogDbContext : DbContext
+{
+	public DbSet<Post> Posts { get; set; }
+}
+
+
+--> Two classes are created - 
+--> Blog class			--> model class 
+--> BlogDbContext Class		--> entity class
+
+-------------------------------------------------------------------------------
+
+--> Attach connectionString in App.config file-->
+
+<connectionStrings>
+
+<add 
+name="BlogDbContext" 
+connectionString = "data source=LENOVOLAPTOP; database = CodeFirstDemo; integrated security = SSPI" 
+providerName = "System.Data.SqlClient" 
+/>
+
+</connectionStrings>
+
+----------------------------------------------------------------------------------
+
+--> Telling application that it is codeFirst approach-->
+
+--> in package manager console-->
+
+enable-migrations
+
+--> This line is done only single time in lifetime of application
+
+1. Downloading Entity Framework
+2. Writing connection string
+3. Enabling migrations
+ 
+------------------------------------------------------------------------------------
+
+--> Now any change in domain class, we run add-migrations to keep database uptodate
+--> Like we have created Post class, so in package-manager console
+--> add-migration CreatePost		(name has to be given for what type of change)
+
+-------------------------------------------------------------------------------------
+
+--> Now see migrations folder is created-->
+
+1. select first file
+--> Inside c# code written to generate database table- create post
+--> It contains two methods--> Up and Down
+--> One for updating database(creating post table) and second for downgrading database(dropping post table)
+--> One Advantage is any version of database is acceptable here bec. it is written in c# code not sql Query code
+--> entity framework automatically figures it out that Id is primaryKey, identity
+based on convention set
+
+-----------------------------------------------------------------
+--> Now migration is prepared, now its time to update database really
+
+--> in console --> Update-Database
+
+------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------

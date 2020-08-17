@@ -1,0 +1,163 @@
+--> Global exception handling in asp.net core mvc
+
+1. Problem
+
+--> When any actionMethod or any class throws exception, we want to show user nice view page (Sorry for inconvinience) and log that error for fixing
+--> Logging can be done in windows custom logger or database or using email.
+
+---------------------------------------------------------------------------------
+
+2. Manually Throwing Exception in action Method
+
+public ViewResult Details(int? id)
+{
+    throw new Exception("Error in Details View");
+    ...
+}
+
+---------------------------------------------------------------------------------
+
+3. UseDeveloperExceptionPage Middleware
+
+--> Make sure to enable Production environment to check this exception handler
+--> In Configure method of startup file,
+
+
+ if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    else
+    {
+        app.UseExceptionHandler("/Error");
+	app.UseStatusCodePagesWithRedirects("/Error/{0}");
+    }
+
+--> We use DeveloperExceptionPage for Development
+--> We use ExceptionHandler for Production.
+--> Above we direct user to ErrorController.
+
+---------------------------------------------------------------------------------
+
+4. Error ActionMethod for generating view
+
+--> In ErrorController.cs
+
+--> We use IExceptionHandlerPathFeature interface to get the details of generated exception and log them.
+--> Right now, we are only displaying on view for reference.
+
+
+public class ErrorController : Controller
+{
+    [AllowAnonymous]
+    [Route("Error")]
+    public IActionResult Error()
+    {
+        // Retrieve the exception Details
+        var exceptionHandlerPathFeature =
+                HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+
+        ViewBag.ExceptionPath = exceptionHandlerPathFeature.Path;
+        ViewBag.ExceptionMessage = exceptionHandlerPathFeature.Error.Message;
+        ViewBag.StackTrace = exceptionHandlerPathFeature.Error.StackTrace;
+
+        return View("Error");
+    }
+}
+
+--> Note: IExceptionHandlerPathFeature is in Microsoft.AspNetCore.Diagnostics namespace.
+
+---------------------------------------------------------------------------------
+
+5. View file
+
+--> Make new view file --> Error.cshtml 
+
+<h3>An occured while processing your request. The support
+    team is notified and we are working on the fix</h3>
+<h5>Please contact us on pragim@pragimtech.com</h5>
+<hr />
+<h3>Exception Details:</h3>
+<div class="alert alert-danger">
+    <h5>Exception Path</h5>
+    <hr />
+    <p>@ViewBag.ExceptionPath</p>
+</div>
+
+<div class="alert alert-danger">
+    <h5>Exception Message</h5>
+    <hr />
+    <p>@ViewBag.ExceptionMessage</p>
+</div>
+
+<div class="alert alert-danger">
+    <h5>Exception Stack Trace</h5>
+    <hr />
+    <p>@ViewBag.StackTrace</p>
+</div>
+
+---------------------------------------------------------------------------------
+
+6. Note
+
+--> Make sure to change back to development mode
+--> Make sure to remove throw exception from details actionMethod.
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

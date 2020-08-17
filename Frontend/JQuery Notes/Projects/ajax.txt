@@ -1,0 +1,28 @@
+https://us04web.zoom.us/j/75058522224?pwd=Ry85SWUzd0NDZFZGN1Q3OWt5QXBiUT09
+
+
+$(document).ready(function(){  
+   $("button").click(function(){   
+     $.ajax({    
+	url : 'https://jsonplaceholder.typicode.com/users',    
+	type : 'GET',       
+	dataType:'json',    
+	success : function(data) {                      
+		alert('Data: '+ data);    
+	},    
+
+	error : function(request,error)    {        
+		alert("Request: "+JSON.stringify(request));    
+	}});  
+});
+
+
+---------------------------------
+
+
+ $("li").each(function(){    alert($(this).text())  });https://jsonplaceholder.typicode.com/users $("button").click(function(){   $.ajax({    url : 'https://jsonplaceholder.typicode.com/users',    type : 'POST',    data : JSON.stringify(d),    dataType:'json',    success : function(data) {                      alert('Data: '+ JSON.stringify(data));    },    error : function(request,error)    {        alert("Request: "+JSON.stringify(request));    }});  });});
+
+
+---------------------------------------------------------------
+
+ $("button").click(function(){   $.ajax({    url : 'https://jsonplaceholder.typicode.com/users',    type : 'GET',    data : JSON.stringify(d),    dataType:'json',    success : function(data) {          var t = "<table border='1'>"                jQuery.each(data, function(index, item) {                 t += "<tr>" ;       t += "<td>" ;       t +=item.name; t += "</td>" ;                  t += "</tr>" ;     });t  += "</table>"; $("#p").html(t); },    error : function(request,error)    {        alert("Request: "+JSON.stringify(request));    }});  });});</script>

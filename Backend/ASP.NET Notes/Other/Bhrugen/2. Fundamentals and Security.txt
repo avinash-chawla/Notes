@@ -1,0 +1,393 @@
+
+-----------------------------------------------------------------------------
+
+1. Create new Project
+
+--> Choose .net core web application
+--> Choose .net core 3.1
+--> Choose web Application without mvc
+--> Name it : BookListRazor
+
+-----------------------------------------------------------------------------
+
+2. Project File
+
+--> Double click projectName
+--> or right click , open project file
+
+--> All nuget packages that we will install will reference here
+--> Consider it as package.json file
+
+-----------------------------------------------------------------------------
+
+3. LaunchSettings.json
+
+--> It is under properties folder
+--> It contains settings when starting the application
+--> Settings like environment, port, server
+
+-----------------------------------------------------------------------------
+
+--> You can also change such settings in properties of project under debug tab
+
+-----------------------------------------------------------------------------
+
+--> You can add different profiles in launchSettings.json, each having different configuration
+--> Then in drop down above in running the application, you can see all profiles there.
+
+-----------------------------------------------------------------------------
+
+4. wwwroot folder
+
+--> It is static files folder
+--> All static files will be placed here.
+
+-----------------------------------------------------------------------------
+
+5. Razor Pages
+
+--> Introduced in asp.net core 2.0
+--> It is much faster, easier and more productive
+--> As this is not mvc application, but this razor pages are similar to mvc pages
+--> It has also routing, models, actionResult, tag helpers
+
+--> Razor Pages have 2 parts:
+1. Razor Page ( UI / View page)
+2. Page Model (Combination of Model and Controller class) (Contain Handlers)
+
+--> You can see in project which was just created.
+--> Under Pages folder ,there is Index.cshtml
+--> It contains both Index.cshtml.cs and Index.cshtml
+--> IndexModel extends PageModel class
+--> And it contains properties for view page like Model and contains controllers like onGet, onPost.
+
+
+-----------------------------------------------------------------------------
+
+6. Pages Folder
+
+--> There is shared folder which contains master pages or partial Views
+--> It has property @RenderBody() where all views render which extends this partial view
+--> To divide different partial views and combine in one view, we use @Render.Partial("_Navbar.cshtml")
+
+-----------------------------------------------------------------------------
+
+--> There are files like _ViewImports and _ViewStart
+--> _ViewImports imports tag helpers and export it to each view
+--> _ViewStart defines which master partial view to use in starting of application
+
+-----------------------------------------------------------------------------
+
+--> Others are razor pages
+--> Every razor pages is a combination of model class and view file
+--> view file contains a directive @model IndexModel to include the reference of model for this view
+--> It is just like mvc
+
+-----------------------------------------------------------------------------
+
+7. Routing in Razor Pages
+
+--> Routing in asp.net razor pages maps urls to physical file on disk
+--> Razor pages root folder is Pages folders
+--> Index.cshtml is a default document
+
+--> www.domain.com		--> /Pages/Index.cshtml
+--> www.domain.com/index	--> /Pages/Index.cshtml
+--> www.domain.com/account	--> /Pages/account.cshtml
+				    /Pages/account.cshtml
+
+--> Each folder inside Pages folder will treat as controller Name
+--> Each page inside corresponding folder will treat as actionMethod
+
+--> No extension of file is provided in url.
+
+-----------------------------------------------------------------------------
+
+8. Tag Helpers
+
+--> They are introduced in asp.net core 2.1
+--> They enable server-side code to participate in creating and rendering HtmL elements in razor files
+
+--> They are similar to angular directives
+--> They are similar to Html Helpers only in functionality not in markup
+
+--> 'asp-page' tag helper is to navigation to other page.
+
+-----------------------------------------------------------------------------
+
+--> Difference between html helper and tag helper
+
+@Html.LabelFor(m => m.Name, new { @class="control-label" })
+
+<label asp-for="Name" class="control-label">
+
+-----------------------------------------------------------------------------
+
+9. ActionResult
+
+--> IActionResult is the base interface 
+--> We can return Content, File, NotFound, Page, Partial, RedirectToPage
+--> All above methods are inherited form PageModel
+--> Their return type is of class which further implements IActionResult
+--> So we can use return type of all as IActionResult
+
+-----------------------------------------------------------------------------
+
+public IActionResult OnGet()
+{
+    return Page();
+}
+
+-----------------------------------------------------------------------------
+
+10. Main Method
+
+--> Web Application starts with console application
+--> Main Method will call CreateHostBuilder
+--> This method will set up kestral server and for configuration pass to startup file
+
+-----------------------------------------------------------------------------
+
+11. Startup file
+
+--> It has two methods --> ConfigureServices and Configure method
+--> ConfigureServices provide dependencies at runtime like for mvc, razor pages, serializer, identity, entity
+--> Configure sets up middlewares like for static folder, mvc, authentication
+ 
+-----------------------------------------------------------------------------
+
+12. Asp.net core pipeline
+
+--> IIS
+--> Dotnet runtime CLR
+--> Kestral in main method
+--> Startup file
+--> Middlewares
+--> MVC, Static, Global Exception send responses
+
+-----------------------------------------------------------------------------
+
+13. Middlewares
+
+--> When request comes to server, it converts to context object
+--> This context object passes through middlewares
+--> Depending upon request, any middleware can response
+--> If any request does not match in middleware, one middleware will throw NotFoundException
+--> Finally context data with response is send back to server
+--> Server will respond with httpResponse to client.
+
+-----------------------------------------------------------------------------
+
+14. appsettings.json
+
+--> This contains application settings like connnection string, logging, secret key
+--> Mostly this is not sent to server
+
+-----------------------------------------------------------------------------
+
+15. Sql Injection Attacks
+
+--> It is a code injection technique that might destroy your database.
+--> If userid: ' OR 1=1; /*
+--> if password: */--
+
+--> It will executed as:
+select * from Users where user_id='' Or 1=1; and password='*/--'
+
+--> It will delete all records from database
+
+-----------------------------------------------------------------------------
+
+--> Preventions of such attacks:
+--> Use parameters of Entity Framework or of Sql
+
+1. Example1:
+
+var user = 'johndoe';
+var blogs = context.Blogs
+		.FromSql("EXECUTE dbo.GetMoostPopular {0}",user)
+		.ToList()
+
+2. Example2:
+
+var searchTerm = '.net';
+var blogs = context.Blogs
+		.FromSql("EXECUTE dbo.SearchBlogs({searchTerm}")
+		.where(b => b.Rating > 3)
+		.OrderByDescending(b => b.Rating)
+		.ToList()
+
+
+3. Example3:
+
+var user = 'johndoe';
+var blogs = context.Blogs
+		.FromSql("EXECUTE dbo.GetMoostPopular {user}")
+		.ToList()
+
+4. Example4:
+
+var user = 'johndoe';
+var blogs = context.Blogs
+		.FromSql("EXECUTE dbo.GetMoostPopular @user", user)
+		.ToList()
+
+-----------------------------------------------------------------------------
+
+16. Dependency Injection
+
+--> It is software desing pattern
+--> IOC (Inversion of Control) Container is a framework for implementing automated dependency injection.
+--> It manages object creation, its life time and also injects dependencies of class in constructor in runtime when needed.
+
+--> Consider it as a container for providing, managing and destroying objects whenever need arises.
+
+--> With DI, our classes are not tightly coupled, easy for unit tesing.
+
+-----------------------------------------------------------------------------
+
+17. Cross-site Scripting
+
+--> It is also called XSS attack
+--> An Attacker Injects maliciour script to website as input to website form
+--> This script is saved in database
+--> When data containing maliciour script is loaded, any user logins to website, its cookies will be send to hacker server through any means mentioned in maliciour script.
+
+--> Attacker will behave as user to server which can do any harm to website if user is admin.
+
+--> Solutions:
+1. Razor Pages bydefault uses HTML Encoding so no script tag allowed from client
+2. Validation through token authentication
+
+--> Hacker can access token as it is present in two places, server will verify both
+--> Places are: hidden field in form and cookie token
+
+-----------------------------------------------------------------------------
+
+18. Open Redirect Attacks
+
+--> When a user is redirected to an extenal malicious URL, called an open redirection attack
+--> Problem is that when user is redirected by minute changes in url, he doesn't know that this is fake website or real website
+--> eg. facebook.com/login and facekook.com/login
+
+--> User will enter credentials and it is sent to malicious website.
+
+-----------------------------------------------------------------------------
+
+--> Solution:
+--> Asp.net will redirect user to only known application known url through two methods
+
+1. LocalRedirect instead of RedirectToAction 
+2. Or check using IsLocalUrl method to test URLs
+
+eg.
+
+Inside actionmethod,
+
+if(Url.IsLocalUrl(param))
+{	
+	return Redirect(param);
+}
+
+or
+
+return LocalRedirect(param)
+
+-----------------------------------------------------------------------------
+
+19. Cross-Site Request Forgery
+
+--> A hacker can access users cookie and do operations on his behalf
+--> Solution:
+
+--> In asp.net core 2.0 or later, the FormTagHelper injects antiforgery tokens into html form elements
+--> This applies to all form by default except Get method form
+
+--> The following markup automatically generate antiforgery tokens
+<form method="post">...</form>
+
+-----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

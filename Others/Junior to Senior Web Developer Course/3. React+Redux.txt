@@ -1,0 +1,1716 @@
+1. Bruno
+
+--> hey codewiz! Can you add Redux to our React app? We really need it right away
+
+-----------------------------------------------------------------------
+
+2. Redux Library is an extension to React projects
+
+--> Redux increases readability, maintainability and improve bug-fixes by adding redux library to react application
+
+-----------------------------------------------------------------------
+
+3. Angular / React / Vue
+
+1. Angular
+--> Good for Large Application with massive data
+--> It is framework
+--> It is more strict 
+--> It is all ready kitchen and all necessary tools
+--> You cannot use more 3rd party tools.
+
+2. React
+--> Good for flexible applications with addition of 3rd party tools.
+--> It is library
+--> It is flexible
+--> It is only oven
+--> You can import any flexible tools of 3rd party to add to your application.
+
+3. Vue
+--> It is user-friendly
+--> Better for small applications
+--> Think of it as microwave. Fast but used less.
+
+--> Any senior developer looks at them as tools, not as frameworks and libraries
+--> Choose angular, if you have high number of developers working in a team, this will increase maintainability
+--> Choose react, if you want some creativity in application by using some 3rd party tools
+
+-----------------------------------------------------------------------
+
+4. Introduction to React
+
+--> Before React, there was jquery
+--> It is hard to maintain when application becomes massive
+--> Scaling to jquery is nearly impossible
+--> DOM Manipulation with each record of each element is difficult
+
+
+--> Facebook makes this React Library to solve this issue of view management and scalability
+--> React increases maintainability and scalibility of code
+
+--> Features
+1. Components
+2. One direction data flow
+3. Virtual DOM
+4. Large Ecosystem
+
+3. Virtual DOM
+--> It is plain javascript object containing all properties of DOM
+--> Whenever it sees any change from actual dom, it apply changes on real dom
+--> Consider Virtual DOM as intermediate language which we compile to and intermediate language talks with actual machine to do necessary changes
+--> Bec. of this, React also used in mobile and desktop applications
+
+4. Large Ecosystem
+--> Many 3rd party tools, now combine with React to increase flexibility
+
+-----------------------------------------------------------------------
+
+4. create-react-app
+
+--> It is cli tool to generate new react project infrastructure.
+--> It creates webpack, debugger tool, babel.js(latest javascript feature)
+
+--> npm i create-react-app
+--> create-react-app robofriends
+--> cd robofriends
+--> npm start
+
+-----------------------------------------------------------------------
+
+5. Migrate from create-react-app version1 to version2
+
+--> Open package.json
+--> change version of "react-scripts" in "scripts" key
+--> npm install
+
+--> Updating packages and libraries will improve user experience, performance, bugs and increases features
+
+--> Be aware of some breaking changes in packages before updating
+
+-----------------------------------------------------------------------
+
+6. npx
+
+--> npx create-react-app robofriends
+--> npx is package installed with npm +5.2
+ 
+-----------------------------------------------------------------------
+
+7. Class vs Functional Components
+
+function App() {
+  return (
+    <h1>hello World</h1>
+  );
+}
+
+class App() {
+  render() {
+	return (
+		<h1>Hello World</h1>
+	)
+  }
+
+-----------------------------------------------------------------------
+
+8. Your First React Component
+
+--> Open index.js from src folder
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+--> React is a view library
+--> ReactDOM is a library to work with browser dom
+--> So we can also use React Library with React-native library which works with view of phone.
+
+--> In node, we use require('') to import
+--> webpack underTheHood converts import to require only.
+
+--> import './index.css'	
+--> It is directly imported, no need to apply in link tag
+--> You can also use bootstrap path here 
+
+--> import registerServiceWorker 
+--> It is a new feature, in which application performance is improved and can be work offline
+--> It is used in pwa 
+
+-----------------------------------------------------------------------
+
+--> Create new component
+--> Make new file in src folder --> Hello.js
+
+import React, { Component } from 'react';
+
+export default class Hello extends Component {
+    render() {
+        return (
+		<React.Fragment>
+			<h1>Hello Sansaar</h1>
+		</React.Fragment>
+	);
+    }
+}
+
+--> return can only contain single parent tag
+
+--> To see this in action
+--> In index.js
+
+--> ReactDOM.render(<Hello />, document.getElementById('root'));
+--> Means component can be invoked using its class Name 'Hello'
+
+-----------------------------------------------------------------------
+
+--> Tachyons
+
+--> It is library similar to bootstrap
+
+--> npm i tachyons
+--> In index.js
+--> import 'tachyons'
+
+--> In Hello.js
+<div className="f3 tc">
+                <h1>Hello Sansaar</h1>
+</div>
+
+-----------------------------------------------------------------------
+
+--> JSX
+
+--> We are actually using jsx syntax
+--> This will create virtual dom object from jsx.
+
+-----------------------------------------------------------------------
+
+--> Passing data from parent to child component
+
+--> Information is passed using html attributes to child components
+--> In child components, such information is accessed using this.props.attributeName
+
+--> Parent Component
+ReactDOM.render(<Hello greeting={'Hello Code Ninja'} />, document.getElementById('root'));
+
+--> Child Component
+            <div className="f3 tc">
+                <h1>Hello Sansaar</h1>
+                <p>{this.props.greeting}</p>
+            </div>
+
+--> {} --> javascript expression
+--> props stands for properties
+
+-----------------------------------------------------------------------
+
+--> To better understand this transfer of information
+
+--> Lets use functional component
+
+Child Component
+--> const Hello = (props) => {
+	return (
+		<div>
+			<h1>Hello Sansaar</h1>	
+			<p>{props.greeting}</p>
+		</div>
+	)
+}
+
+--> By default, child component function gets parameter prop object which contains the information from parent component as a key
+
+-----------------------------------------------------------------------
+
+9. Building the React App
+
+--> Make new file Card.js
+
+import React from 'react';
+
+const Card = () => {
+    return (
+        <div className="bg-light-green dib br3 pa3 ma2 grow bw2 shadow-5">
+            <img alt="robots" src="https://robohash.org/test?200x200" height="200" width="200"></img>
+            <h2>John Doe</h2>
+            <p>joi.doe@gmail.com</p>
+        </div>
+    )
+}
+
+export default Card;
+
+--> We have used robohash api to get images of robots
+--> And we have used tachyons to design our cards.
+
+-----------------------------------------------------------------------
+
+--> In App.js
+
+import React from 'react';
+import './App.css';
+import Card from './Card';
+
+class App extends React.Component {
+  render() {
+    return (
+      <div>
+        <Card />
+        <Card />
+        <Card />
+        <Card />
+      </div>
+    );
+  }
+}
+
+
+-----------------------------------------------------------------------
+
+--> Now we have 4 similar cards
+--> These cards will increase in size ahead
+--> So provide data from json file
+
+--> Make new file --> robots.js
+
+export const robots = [
+    {
+        id: 1,
+        name: 'Leanne Graham',
+        username: 'Bret',
+        email: 'Sincere@april.biz'
+    },
+    {
+        id: 2,
+        name: 'Ervin Howell',
+        username: 'Antonette',
+        email: 'Shanna@melissa.tv'
+    },
+    {
+        id: 3,
+        name: 'Clementine Bauch',
+        username: 'Samantha',
+        email: 'Nathan@yesenia.net'
+    },
+    {
+        id: 4,
+        name: 'Patricia Lebsack',
+        username: 'Karianne',
+        email: 'Julianne.OConner@kory.org'
+    },
+    {
+        id: 5,
+        name: 'Chelsey Dietrich',
+        username: 'Kamren',
+        email: 'Lucio_Hettinger@annie.ca'
+    },
+    {
+        id: 6,
+        name: 'Mrs. Dennis Schulist',
+        username: 'Leopoldo_Corkery',
+        email: 'Karley_Dach@jasper.info'
+    },
+    {
+        id: 7,
+        name: 'Kurtis Weissnat',
+        username: 'Elwyn.Skiles',
+        email: 'Telly.Hoeger@billy.biz'
+    },
+    {
+        id: 8,
+        name: 'Nicholas Runolfsdottir V',
+        username: 'Maxime_Nienow',
+        email: 'Sherwood@rosamond.me'
+    },
+    {
+        id: 9,
+        name: 'Glenna Reichert',
+        username: 'Delphine',
+        email: 'Chaim_McDermott@dana.io'
+    },
+    {
+        id: 10,
+        name: 'Clementina DuBuque',
+        username: 'Moriah.Stanton',
+        email: 'Rey.Padberg@karina.biz'
+    }
+];
+
+-----------------------------------------------------------------------
+
+--> In App.js
+
+import { robots } from './robots';		--> When you have multiple imports from file, we use { .. }
+
+class App extends React.Component {
+  render() {
+    return (
+      <div>
+        <Card id={robots[0].id} name={robots[0].name} email={robots[0].email} />
+        <Card id={robots[1].id} name={robots[1].name} email={robots[1].email} />
+        <Card id={robots[2].id} name={robots[2].name} email={robots[2].email} />
+        <Card id={robots[3].id} name={robots[3].name} email={robots[3].email} />
+      </div>
+    );
+  }
+}
+
+-----------------------------------------------------------------------
+
+--> In Card.js
+
+const Card = (props) => {
+    return (
+        <div className="tc bg-light-green dib br3 pa3 ma2 grow bw2 shadow-5">
+            <img alt="robots" src={`https://robohash.org/${props.id}?200x200`} height="200" width="200" />
+            <h2>{props.name}</h2>
+            <p>{props.email}</p>
+        </div>
+    )
+}
+
+
+--> We have used es6 syntax for dynamically src attribute of img element
+--> Make sure to wrap src attribute under {} for javascript syntax of (back-tick - template string)
+
+-----------------------------------------------------------------------
+
+--> Using Destructing
+
+const Card = (props) => {
+    const { id, name, email } = props;
+    return (
+        <div className="tc bg-light-green dib br3 pa3 ma2 grow bw2 shadow-5">
+            <img alt="robots" src={`https://robohash.org/${id}`} height="200" width="200"></img>
+            <h2>{name}</h2>
+            <p>{email}</p>
+        </div>
+    )
+}
+
+or 
+
+const Card = ({ id, name, email }) => {..}
+
+-----------------------------------------------------------------------
+
+10. Building a React App2
+
+--> We make a parent component --> CardList.js 
+
+
+import React from 'react';
+import Card from './Card';
+
+const CardList = ({ robots }) => {
+    return (
+        <div>
+            <Card id={robots[0].id} name={robots[0].name} email={robots[0].email} />
+            <Card id={robots[1].id} name={robots[1].name} email={robots[1].email} />
+            <Card id={robots[2].id} name={robots[2].name} email={robots[2].email} />
+            <Card id={robots[3].id} name={robots[3].name} email={robots[3].email} />
+        </div>
+    );
+}
+
+export default CardList;
+
+
+-----------------------------------------------------------------------
+
+--> Index.js
+
+import CardList from './CardList';
+import { robots } from './robots';
+
+ReactDOM.render(<CardList robots={robots} />,document.getElementById('root'));
+
+-----------------------------------------------------------------------
+
+--> In CardList.js, we are repeating components, instead we can use forloop
+
+
+const CardList = ({ robots }) => {
+
+    const cardComponent = robots.map((user, i) => {
+        return <Card key={i} id={robots[i].id} name={robots[i].name} email={robots[i].email} />
+    })
+
+    return (
+        <div>
+            {cardComponent}
+        </div>
+    );
+}
+
+export default CardList;
+
+-----------------------------------------------------------------------
+or
+
+const CardList = ({ robots }) => {
+
+
+    return (
+        <div>
+            {robots.map((user, i) => {
+                return <Card key={i} id={robots[i].id} name={robots[i].name} email={robots[i].email} />
+            })}
+        </div>
+    );
+}
+
+-----------------------------------------------------------------------
+
+11. Building a React App3 
+
+--> Inserting Search Box
+
+import SearchBox from './SearchBox';
+
+const App = () => {
+  return (
+    <div className="tc">
+      <h1>Robo Friends</h1>
+      <SearchBox />
+      <CardList robots={robots} />
+    </div>
+  )
+}
+
+export default App;
+
+-----------------------------------------------------------------------
+
+--> SearchBox.js
+
+import React from 'react';
+
+const SearchBox = () => {
+    return (
+        <div className="pa-2">
+            <input className="pa3 ba b--green bg-lightest-blue" type='search' placeholder="search robots" />
+        </div>
+    )
+}
+
+export default SearchBox;
+
+-----------------------------------------------------------------------
+
+--> Now problem is SearchBox and CardList needs to talk to each other
+--> Solution is their SearchBox and CardList components are neighbours and their parent is same App.js
+
+--> SearchBox will talk with parent and parent will talk with other child CardList component to change view
+
+--> props are just the data which is only received by parent component and its value is never changed.
+--> There is another feature 'state' which is plain javascript object
+
+--> State is description of your app
+--> Props are simply things which come out of state and passed to child component.
+--> State are changeable while props are not
+
+--> State object should be available to parent component. Data is passed to child component as props.
+--> In below example, insteand of directly passing robots data to child component, we first store in state object, then use state object to pass data to child component.
+
+-----------------------------------------------------------------------
+
+--> App.js  ( Parent component)
+
+import React, { Component } from 'react';
+import './App.css';
+import CardList from './CardList';
+import { robots } from './robots';
+import SearchBox from './SearchBox';
+
+
+class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      robots: robots,
+      searchfield: ''
+    }
+  }
+
+
+  render() {
+    return (
+      <div className="tc">
+        <h1>Robo Friends</h1>
+        <SearchBox />
+        <CardList robots={this.state.robots} />
+      </div>
+    )
+  }
+}
+
+-----------------------------------------------------------------------
+
+--> SearchBox will talk with parent and parent will talk with other child CardList component to change view
+
+--> SearchBox will talk with parent using events
+
+--> App.js (Parent Component)
+
+class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      robots: robots,
+      searchfield: ''
+    }
+  }
+
+  onSearchChange(event) {						----> function which takes an event object
+    console.log(event);
+  }
+
+
+  render() {
+    return (
+      <div className="tc">
+        <h1>Robo Friends</h1>
+        <SearchBox searchChange={this.onSearchChange} />		---> Passing onSearchChange function to child component
+        <CardList robots={this.state.robots} />
+      </div>
+    )
+  }
+}
+
+
+--> OnSearchChange function will always invoked when child awakes.
+--> In this case, onchange event of input field in child component (SearchBox.js)
+
+-----------------------------------------------------------------------
+
+--> Child Component (SearchBox.js)
+
+const SearchBox = ({ searchChange }) => {
+    return (
+        <div className="pa-2">
+            <input
+                className="pa3 ba b--green bg-lightest-blue"
+                type='search'
+                placeholder="search robots"
+                onChange={searchChange}
+            />
+        </div>
+    )
+}
+
+--> As you start typing, an event object is written in console
+--> We only want its value, so event.target.value in console.log() in parent.
+
+  onSearchChange(event) {
+    console.log(event.target.value);
+  }
+
+-----------------------------------------------------------------------
+
+--> Now parent component gets data from child component using event
+--> Now its parent component duty to filter Cards and pass filter data to CardList component
+
+  onSearchChange(event) {
+    console.log(event.target.value);
+    const filteredRobots = this.state.robots.filter(robot => {
+      return robot.name.toLowerCase().includes(this.state.searchfield.toLowerCase());
+    })
+  }
+
+
+--> Now this will give error: "Cannot read property 'state' of undefined"
+
+--> This error came because event object is invoked by child component input element, so 'this' keyword refers to that input field
+--> Now this input field is not part of parent component. So causes this error.
+--> Solution: use arrow syntax method
+
+--> Now another thing, to filter we use state property searchfield
+--> We need to update it with SearchBox text input value which we get from event object
+
+--> For this, we use this.setState({ searchfield : event.target.value }) to reinitialise searchfield and then use filter method to filter robots objects based on this searchfield.
+
+--> We have 2 changing dom element, 1st is searchfield and based on that, CardList component
+
+-----------------------------------------------------------------------
+
+--> App.js (Parent Component)
+
+class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      robots: robots,
+      searchfield: ''
+    }
+  }
+
+  onSearchChange = (event) => {
+    this.setState({ searchfield: event.target.value })
+  }
+
+
+  render() {
+    const filteredRobots = this.state.robots.filter(robot => {
+      return robot.name.toLowerCase().includes(this.state.searchfield.toLowerCase());
+    })
+
+    return (
+      <div className="tc">
+        <h1>Robo Friends</h1>
+        <SearchBox searchChange={this.onSearchChange} />
+        <CardList robots={filteredRobots} />
+      </div>
+    )
+  }
+}
+
+
+-----------------------------------------------------------------------
+
+12. Styling a react App
+
+--> Changing backgroun
+--> Index.css
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  background: linear-gradient(to left, rgba(7,27,82,1) 0%, rgba(0,128,128,1) 100%); /* w3c */
+}
+
+--> Changing font-family of header
+--> App.css ( Make sure to import this file in App.js)
+.App {
+  text-align: center;
+}
+
+h1{
+  font-family: 'SEGA LOGO FONT';
+  font-weight: 200;
+  color: #0ccac4;
+}
+
+-----------------------------------------------------------------------
+
+13. Building A React App4
+
+--> Making use of API instead of saved json data
+--> App is called smart component bec. it contains state of an application
+--> CardList is called dumb component bec. It just passes json data from App.js to Card.js
+
+--> We want api data to load in dom just after page load 
+--> For that, we use lifecycle hooks
+
+--> Mounting
+1. constructor()
+2. componentWillMount()
+3. render()
+4. componentDidMount()
+
+--> Updating
+1. componentWillReceiveProps()
+2. shouldComponentUpdate()
+3. componentWillUpdate()
+4. render()
+5. componentDidUpdate()
+
+--> Unmounting
+
+
+-----------------------------------------------------------------------
+
+--> So while mounting components, first constructor loads data from state, then render functions invokes to render template, then componentDidMount will invokes after rendering
+--> We have to load data from api in componentDidMount cycle
+
+
+class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      robots: [],
+      searchfield: ''
+    }
+  }
+
+  componentDidMount() {
+    this.setState({ robots: robots })
+  }
+
+--> Suppose we place console.log in each function --> constructor, render, componentDidMount, then we get the following order
+
+1. constructor
+2. render
+3. componentDidMount
+4. render
+
+--> Last one is render bec. componentDidMount is changing the state, so Updating Life cycle will awake, and render from that cycle invokes in updating dom.
+
+-----------------------------------------------------------------------
+
+--> Fetching data from API
+
+  componentDidMount() {
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then(response =>  response.json())
+      .then(users => {
+        this.setState({ robots: users })
+      })
+  }
+
+
+-----------------------------------------------------------------------
+
+--> If data is not load up in time, we can show Loading
+
+  render() {
+    const filteredRobots = this.state.robots.filter(robot => {
+      return robot.name.toLowerCase().includes(this.state.searchfield.toLowerCase());
+    })
+
+    if (this.state.robots.length === 0) {
+      return (<h1>Loading</h1>)
+    }
+    else {
+      return (
+        <div className="tc">
+          <h1 className="f1">Robo Friends</h1>
+          <SearchBox searchChange={this.onSearchChange} />
+          <CardList robots={filteredRobots} />
+        </div>
+      )
+    }
+  }
+
+-----------------------------------------------------------------------
+
+14. Building A React App 5
+
+--> Now we need to add a functionality here
+--> While scrolling down the list of Cards, SearchBox should remain at top
+--> If we could wrap CardList component inside another component Scroll Component
+
+<Scroll>
+	<CardList>
+</Scroll>
+
+--> And with that, you can wrap any component, inside Scroll component, having multiple use of this component
+
+-----------------------------------------------------------------------
+
+--> We have learned about state, props and third thing we need to learn about is props.children
+<Scroll>
+	<CardList>
+</Scroll>
+
+--> Every component has this property -> props.children
+
+-----------------------------------------------------------------------
+
+return (
+        <div className="tc">
+          <h1 className="f1">Robo Friends</h1>
+          <SearchBox searchChange={this.onSearchChange} />
+          <Scroll>
+            <CardList robots={filteredRobots} />
+          </Scroll>
+        </div>
+      )
+
+-----------------------------------------------------------------------
+
+--> Scroll Component has the ability to return its children or not
+
+import React from 'react';
+
+const Scroll = (props) => {
+    console.log(props.children);
+    return props.children;
+}
+
+export default Scroll;
+
+
+--> If you do not return props.children, children component that is CardList won't be displayed.
+
+-----------------------------------------------------------------------
+
+--> Now we can do styling to Scroll Component
+--> Now it is duty of parent component Scroll to render its children 'CardList'
+
+import React from 'react';
+
+const Scroll = (props) => {
+    return (
+        <div style={{ overflowY: 'scroll', border: "2px solid black", height: "400px" }}>
+            {props.children}
+        </div>
+    )
+}
+
+export default Scroll;
+
+-----------------------------------------------------------------------
+
+15. Building a React App 6
+
+--> Cleaning the application structure
+--> Make two new folders in src folder
+1. components
+2. containers
+
+--> Component which have state property go in containers == App.js
+--> Component which has not go in components
+
+--> Also restructing some things in App.js
+--> Instead of using if else statement, we can use ternary operator,
+--> Instead of using this.state, we use destructing of javascript object.
+
+render() {
+    const { robots, searchfield } = this.state;
+    const filteredRobots = robots.filter(robot => {
+      return robot.name.toLowerCase().includes(searchfield.toLowerCase());
+    })
+
+    return !robots.length ?
+      <h1>Loading</h1> :
+      (
+        <div className="tc">
+          <h1 className="f1">Robo Friends</h1>
+          <SearchBox searchChange={this.onSearchChange} />
+          <Scroll>
+            <CardList robots={filteredRobots} />
+          </Scroll>
+        </div>
+      )
+  }
+
+-----------------------------------------------------------------------
+
+16. Actually Building a React App
+
+--> npm run build
+--> It will generate new folder build
+--> This folder is deployable to server for hosting
+--> All codes are already done minification automatically
+
+-----------------------------------------------------------------------
+
+17. Keeping your Projects Up to Date
+
+--> Suppose you have build your project one year ago
+--> And now you want to update your project and all libraries
+
+--> git clone <repo_address>
+--> npm install
+--> Some warning displayed about versioning and breaking changes called vulnerabilities.
+
+--> first run: npm audio fix  --> To automatically solve small warning
+
+--> To review big vulnerabilities which have some breaking changes and want some manual reviews.
+--> npm audit
+
+
+--> npm audit fix --force	--> To forcefully update all libraries
+
+--> npm update	--> It will update all minor versions *.minor_version
+
+or
+
+--> Change version number in package.json and run npm install
+--> Now you have checked all vulnerabilites and project is working fine.
+
+--> git add .
+--> git commit -m "fixing security issues updated libraries"
+--> git origin master
+--> Now look at security tab in github
+
+--> Summary: Whenever you want to update the package, just change the version number in package.json file and npm install
+--> To solve vulnerabilities, npm audit fix --force
+
+-----------------------------------------------------------------------
+
+18. Error Boundary in React
+
+--> React 16 has launched a new feature for catching errors
+--> In previous versions of React, when any component throws error, there is not nice way of handling that error, and application breaks.
+--> To improve user experience, react has given a new concept of ErrorBoundary
+
+--> Make new file in src folder --> ErrorBoundary.js
+
+import React, { Component } from 'react';
+
+class ErrorBoundary extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            hasError: false
+        }
+    }
+
+    componontDidCatch() {
+        this.setState({ hasError: true });
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return <h1>Ooops, something wrong</h1>
+        } else {
+            return this.props.children;
+        }
+    }
+}
+
+export default ErrorBoundary;
+
+
+--> This class has a state "hasError" which gets true if componentDidCatch method runs, and this method runs only if there is an error
+
+-----------------------------------------------------------------------
+
+--> React has given new lifecycle component hook method --> componentDidCatch
+--> Whenever any children component of ErrorBoundary Component throws error, this method will notify that.
+
+--> In App.js
+
+            <ErrorBoundary>
+              <CardList robots={filteredRobots} />
+            </ErrorBoundary>
+
+--> In Card.js
+    const Card = (props) => {
+
+    if (true) {
+        throw new Error("NOoooooo");
+    }
+    ...
+ 
+    }
+
+--> Now instead of getting app crashed, user will see msg "Ooops, something wrong" in place of component
+--> This class will work in production mode.
+
+-----------------------------------------------------------------------
+
+19. Deploying our React App
+
+--> We will use Github Pages 
+--> https://create-react-app.dev/docs/deployment/
+
+1. Add this in package.json --> "homepage": "https://myusername.github.io/my-app",
+--> Change username and repository name same as github account.
+
+2. npm install --save gh-pages
+
+3. In package.json
+
+"scripts": {
++   "predeploy": "npm run build",
++   "deploy": "gh-pages -d build",
+
+
+4. npm run deploy		--> You will show published message
+
+5. Open github --> go to that repository --> go to settings availabe in tab --> Under GitHub Pages --> select gh-pages branchh
+--> On upper side of this settings, you will see url
+--> Open it --> This is live project url
+
+6. Open github repository
+--> Just on upper side, there is edit button
+--> Add description to your project, and add website url
+
+-----------------------------------------------------------------------
+
+20. Introduction To Redux and Webpack
+
+--> We use virtual dom to redrew entire dom tree
+--> Redux makes it better for rerendering data from virtual dom
+
+--> When first time, js files transfer to client, they should be low in size for faster performance
+--> For this, webPack tool is used.
+
+--> With Redux, React apps are scalable 
+
+-----------------------------------------------------------------------
+
+21. State Management
+
+--> As components gets increase in size, components with state also grow in size
+--> So data is distrubuted as state property to many numbers of components
+--> It makes hard to keep track different state properties in one place.
+--> There can be many components using that state and what component changes what state may be difficult to track.
+
+
+--> Redux is a library which does state management task easier.
+--> Instead of making components decide state, we provide one global place for state and all components will talk there.
+--> Redux gots this inspiration from database desing like event_sourcing and cqrs.
+
+--> Redux makes changes in state organised.
+
+-----------------------------------------------------------------------
+
+22. Why Redux
+
+--> Benefits:
+
+1. Good for managing large state
+--> React is managing view, not for managing state
+
+2. Useful for sharing data between containers
+
+--------------------------------------------------------------------
+ 
+3. Predictable state management using 3 principles
+
+1. Single source of truth
+2. State is read only
+3. Changes using pure functions
+
+1. Single source of truth
+--> Means we have one single big object that describes the entire state of application
+
+2. State is read only
+--> Means every time, we want to modify state, we create new state object
+
+3. Changes using pure functions
+--> Directly cannot modify
+
+--------------------------------------------------------------------
+ 
+--> New vocabulary of Redux
+
+1. Action
+--> When user clicks anything or do anything, an action is generated
+
+2. Reducer
+--> It is pure function
+--> It takes input of action and generate new state
+
+3. Store
+--> This store contains state
+
+4. React
+--> React compares state with state generated by Reduces and do make necessary changes.
+
+--------------------------------------------------------------------
+ 
+--> Jquery uses only two things
+1. Action
+2. Make Changes
+
+--> Action would invoke some changes directly
+--> This would make complicated when you have dozens of actions and changes also creates some action and action again create some changes
+
+--------------------------------------------------------------------
+ 
+--> While in Redux
+
+--> For every actions invoked, there is only one method 'Reducer' for generating new state.
+--> Flux Pattern (Only for information)
+
+Action --> Dispatcher --> Store --> View
+
+--> Flux is architectural pattern
+--> Architectural in software is used as a way to make sure that we are able to solve problem in a logical way and in an organised fashion.
+
+--> Other is MVC Pattern
+
+Action --> Controller --> Many Models and View
+
+--> If you want to pick one point from this video --> We are extracting this.state from react and pass it to redux
+
+--> Redux does not completely replace state property, you can keep some state property in some components.
+
+--------------------------------------------------------------------
+ 
+23. Installing Redux
+
+--> npm install redux		--> gives some tools to work with redux
+--> npm install react-redux	--> connect with react application
+
+--> We only connect app.js (or smart components) with redux store 
+--> Other component need not to do any modifications.
+
+--------------------------------------------------------------------
+ 
+24. Redux Actions and Reducers
+
+--> Remember this path: actions --> reducer method --> Regenerate the state --> React make the changes
+
+--> Make new file in src folder --> actions.js
+
+import { CHANGE_SEARCH_FIELD } from './constants';
+
+export const setSearchField = (text) => ({
+    type: CHANGE_SEARCH_FIELD,
+    payload: text
+});
+
+
+--> In our app, searchField will generate some action by typing some text.
+--> This action is received by action method in actions.js including the text in searchField
+--> It will return plain javascript object containing two keys
+--> 1. type 	--> This will be useful to reducer method to know which action is generared.
+--> 2. payload	--> actual data comes from searchField.
+
+--> For type, we have used variable constant in separate file, bec. if we take string, typoerrors can generate and in stack trace, bug cannot easily identified. Also constant gives compile time errors. (not magic strings)
+
+--------------------------------------------------------------------
+ 
+--> Make new file in src folder --> constants.js
+
+export const CHANGE_SEARCH_FIELD = 'CHANGE_SEARCH_FIELD';
+
+--------------------------------------------------------------------
+
+--> Now action will go to reducer method
+--> Make new file in src folder --> reducer.js
+
+import { CHANGE_SEARCH_FIELD } from './constants';
+
+const initialState = {
+    searchField: ''
+}
+
+export const SearchRobots = (state = initialState, action = {}) => {
+    switch (action.type) {
+        case CHANGE_SEARCH_FIELD:
+            return Object.assign({}, state, { searchField: action.payload })
+
+    }
+}
+
+
+--> We have initially create initial state of dom
+--> SearchField is reducer method here
+--> It takes as an argument --> state and  action returned object	--> If they are not provided, then we initialize fields with default value
+--> Remember action method is returns javascript object
+--> switch case will find which action method is generated.
+--> reducer method will use Object.assign() to change state from current state
+--> In its arguments, first arguments is {} means it will generate new state object
+--> 2nd arguments is state means it will fill newly created empty state object with this current state
+--> 3rd argument is actually changing the state property
+
+--> Finally, reduces returns new state object.
+
+--------------------------------------------------------------------
+
+--> alternative:
+
+1. return Object.assign({}, state, { searchField: action.payload })
+2. return { ..state, { searchField: action.payload }};
+
+--------------------------------------------------------------------
+
+--> Always remember the concept
+--> searchBox is child component which invokes some events and pass to parent component
+--> parent component will invoke other child (CardList) and supplied different state changed from searchBox component.
+
+
+--------------------------------------------------------------------
+
+25. Redux Store and Provider
+
+--> We create Store object which will contain all data
+--> For creating store, we use library of redux
+
+--> In index.js
+
+import { createStore } from 'redux'
+
+const store = createStore(searchRobots);
+
+
+--> This createStore needs reducer as an argument
+--> Basically there can be more than one reducer, if application gets bigger
+--> So we would define rootReducer which will handle all other reducers later in course.
+
+--------------------------------------------------------------------
+
+--> To view this store object
+
+ReactDOM.render(<App store= {store} />, document.getElementById('root'));
+
+--> In App.js
+  componentDidMount() {
+    console.log(this.props.store);
+
+--> You can see in console
+
+--> This store has one important method getState()
+-->   componentDidMount() {
+	    console.log(this.props.store.getState());
+
+--> It contains the state of our application
+
+--------------------------------------------------------------------
+
+--> Now to pass store data to all components
+--> We can use attributes, but there is no need to that
+--> We have tool 'Provier' from react-redux library which makes it that easy
+
+--> In Index.js
+
+--> const { Provider } from 'react-redux';
+--> And wrap App component with Provider tag and pass store data to Parameter.
+
+--> ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>, document.getElementById('root')
+);
+
+--------------------------------------------------------------------
+
+26. Redux connect()
+
+--> Every smart component needs to subscribe to store state data to aware of any changes in state
+--> To subscribe, we use connect method of react-redux library
+
+1. App.js will subscribe to store state
+
+1. import { connect } from 'react-redux';
+
+2. export default connect(mapStateToProps, mapDispatchToProps)(App);
+
+--> connect()();	
+--> It means connect() will return a function again
+--> This comes in higher order functions
+--> This is called App.js is subscribing to redux-store.
+
+--> mapStateToProps	--> means App.js will listen to any changes in redux-store
+--> mapDispatchToProps	--> means App.js will listen to any events Dispatch from props
+
+
+3. functions
+
+1.
+const mapStateToProps = state => {
+  return {
+    searchField: state.searchRobots.searchField
+  }
+}
+
+
+--> By this method, app.js will subscribe to redux store data and if any neccessary changes occur, react will update that property, in this case: searchField, which is supplied to app childs.
+--> This function will receive state from redux store
+--> And it returns an object having key-value pair, getting value from redux store state and assign to key
+--> Remember that reducer is the one which creates store every time.
+--> When there is single reducer, searchField : state.searchField
+
+
+2.
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onSearchChange: (event) => dispatch(setSearchField(event.target.value))
+  }
+}
+
+--> dispatch is an object which is passed to reducer as an action
+--> onSearchChange is an prop which is passed to App childs and it will listen to events of childs using events
+
+
+3. Both these functions work and return as props to App.js --> that is searchField, onSearchChange
+
+  render() {
+    const { robots } = this.state;
+    const { searchField, onSearchChange } = this.props;
+    const filteredRobots = robots.filter(robot => {
+      return robot.name.toLowerCase().includes(searchField.toLowerCase());
+    })
+
+    return !robots.length ?
+      <h1>Loading</h1> :
+      (
+        <div className="tc">
+          <h1 className="f1">Robo Friends</h1>
+          <SearchBox searchChange={onSearchChange} />
+          <Scroll>
+            <ErrorBoundary>
+              <CardList robots={filteredRobots} />
+            </ErrorBoundary>
+          </Scroll>
+        </div>
+      )
+  }
+
+--------------------------------------------------------------------
+
+27. Redux Middlewares
+
+--> They are tunnels through which action passes and reach to reducer.
+--> middlewares can modify actions or trigger another actions
+--> They are similar that used in express nodejs
+
+--> These middleware can be used to log all actions, state before action and state after action
+
+--> npm i redux-logger
+
+--> In Index.js
+
+import { createStore, applyMiddleware } from 'redux';
+import { createLogger } from 'redux-logger';
+
+const logger = createLogger();
+const store = createStore(SearchRobots, applyMiddleware(logger));
+
+--> Now run the application, and you can see in console all the information which we have talked about.
+
+--> As a senior developer, you will always think about how gonna be system that really really work together in logical and flow nicely
+--> Always think about how data flows in your app
+
+--> You can download Redux-webtools for more usage of redux
+ 
+--------------------------------------------------------------------
+
+28. Redux Async Actions
+
+--> To get data from api, we can use actions 
+--> In this, we will use middlewares for async data
+--> For this to work, we need a package
+--> npm i redux-thunk
+
+--> In Index.js
+
+import thunkMiddleware from 'redux-thunk'
+const store = createStore(SearchRobots, applyMiddleware(thunkMiddleware, logger));
+
+--> These middlewares work in order from left to right in list.
+
+--------------------------------------------------------------------
+
+--> We will make action method to fetch data from api and return data to reducer as a dispatch.
+
+--> actions.js
+
+export const requestRobots = (dispatch) => {
+    dispatch({ type: REQUEST_ROBOTS_PENDING })
+    fetch("https:jsonplaceholder.typicode.com/users")
+        .then(res => res.json())
+        .then(data => dispatch({ type: REQUEST_ROBOTS_SUCCESS, payload: data }))
+        .catch(err => dispatch({ type: REQUEST_ROBOTS_FAILED, payload: err }))
+}
+
+--> This function is returning dispatch which will go to reducer
+
+--------------------------------------------------------------------
+
+--> constants.js
+
+export const REQUEST_ROBOTS_PENDING = 'REQUEST_ROBOTS_PENDING';
+export const REQUEST_ROBOTS_SUCCESS = 'REQUEST_ROBOTS_PENDING';
+export const REQUEST_ROBOTS_FAILED = 'REQUEST_ROBOTS_FAILED';
+
+--------------------------------------------------------------------
+
+--> reducer.js
+
+--> We will make another reducer for requestingRobots, earlier one is searchRobots
+
+const initialStateRobots = {
+    isPending: false,
+    robots: [],
+    error: ''
+}
+
+export const requestRobots = (state = initialStateRobots, action = {}) => {
+    switch (action.type) {
+        case REQUEST_ROBOTS_PENDING:
+            return Object.assign({}, state, { isPending: true });
+        case REQUEST_ROBOTS_SUCCESS:
+            return Object.assign({}, state, { robots: action.payload, isPending: false })
+        case REQUEST_ROBOTS_FAILED:
+            return Object.assign({}, state, { error: action.payload, isPending: false });
+        default:
+            return state;
+    }
+}
+
+--> Also, we have make seperate state for this reducer.
+--> We have added 3 properties to it: robots, isPending, error
+
+--------------------------------------------------------------------
+
+--> Now in App.js
+
+import { setSearchField, requestRobots } from '../actions';
+
+const mapStateToProps = state => {
+  return {
+    searchField: state.searchRobots.searchField,
+    robots: state.requestRobots.robots,
+    isPending: state.requestRobots.isPending,
+    error: state.requestRobots.error
+  }
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onSearchChange: (event) => dispatch(setSearchField(event.target.value)),
+    onRequestRobots: () => dispatch(requestRobots())
+  }
+}
+
+--> In mapDispatchToProps function, we are dispatching action method to reducer without any parameters
+--> This action which we used in parameter, will be handled by middleware thunk-redux 
+--> And we are not returning data, instead we are returning function which is taken care by middleware.
+--> This is called higher order function which is returning another function, so we have to modify some changes in actions.js
+--> What middleware do, as action method passes through middlware and sees it as returning a function, it will dispatch action with type: Pending and as soon as data gets ready asynchronously, it dispatches another function which contains data from api using fetch method.
+
+--------------------------------------------------------------------
+
+export const requestRobots = () => (dispatch) => {
+    dispatch({ type: REQUEST_ROBOTS_PENDING })
+    fetch("https:jsonplaceholder.typicode.com/users")
+        .then(res => res.json())
+        .then(data => dispatch({ type: REQUEST_ROBOTS_SUCCESS, payload: data }))
+        .catch(err => dispatch({ type: REQUEST_ROBOTS_FAILED, payload: err }))
+}
+
+
+--> Meaning, first dispatch of action (pending) on first line will take place and it returns a function, from this middleware will be notify that it is pending request and as soon as data gets ready asynchronously, second dispatch of action (success or failed) will take place which contains the data.
+
+--------------------------------------------------------------------
+
+29. Redux Project Structure
+
+--> There are two ways to structure your project when your application gets bigger.
+--> Make folders for actions, reducers, constants, components, containers 
+
+or
+
+--> Make folders for components and inside it put all reducers, actions, constants
+
+--------------------------------------------------------------------
+
+30. Popular Tools for React + Redux
+
+--> for routing
+1. React Router
+
+--> utility library
+2. Ramda	   	
+3. Lodash	  	
+
+--> stylying react
+4. glamorous		
+5. styled components
+6. CSS Modules
+
+ 
+7. Gatsby js	--> provide simple text like pages (react documentation
+8. Next.js	--> For server side 
+
+--> Share reusable components
+9. Material-UI
+10. Semantic UI
+
+11. Reselect	--> help with selectors
+12. Redux-saga	--> do asynchornous actions
+13. Immutablejs	--> make state immutable if working in team
+
+--------------------------------------------------------------------
+
+31. Module Bundlers
+
+--> Parcel, webpack, rollup.js
+--> webpack is already installed with create-react-app
+--> When we build our application, webpack automatically bundles our static files
+
+--> webpack takes an input of index.html and find all links related to that file and bundle all js, css, html, img files
+
+
+--------------------------------------------------------------------
+
+32. Webpack 4
+
+--> create-react-app do lots of configuration for serving static files to client
+--> This includes usage of babel (for converting es6+ to es5 syntax), webpack (bundling), eslint (compile-time errors)
+--> Configuration in webpack is very difficult manually.
+
+--------------------------------------------------------------------
+
+--> The main objective of this tutorial is to understand how webpack works under the neath in react
+--> While developing front-end, only 2 files are send to user --> index.html and index.js
+--> Webpack automatically bundle all javascript files in single file.
+
+
+--> Webpack is mainly based on configuration that he creates
+--> Every project has different requirements and if developer want, he can change some configuration settings of webpack.
+--> This will optimize our bundles.
+
+--------------------------------------------------------------------
+
+--> Make new folder webpack_project
+--> npm init
+--> npm i --save-dev webpack webpack-dev-server webpack-cli
+
+--> Make new folder 		--> dist
+--> Make new file inside it 	--> index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="app"></div>
+    <script src="/bundle.js"></script>
+</body>
+</html>
+
+--> To send javascript file to client, webpack is used.
+--> This bundle.js will be sent to client by webpack.
+--> We use create-react-app server, underneath it uses webpack server.
+
+--------------------------------------------------------------------
+
+--> In package.json
+
+"scripts": {
+    "start": "webpack-dev-server --config ./webpack.config.js --mode development"
+  }
+
+--------------------------------------------------------------------
+
+--> Make new file in project --> webpack.config.js
+
+module.exports = {
+    entry: [
+        './src/index.js'			--> will compile all code here 
+    ],
+    output: {
+        path: __dirname + '/dist',
+        publicPath: '/',
+        filename: 'bundle.js'			--> this is compiled file which is send to client
+    },
+    devServer : {
+        contentBase: './dist',       
+    }
+}
+
+--> There is one base javascript file --> index.js in src folder
+--> All imports in that file will be compiled and webpack make it bundle with filename bundle.js and send to client.
+
+--> dist folder is served to client
+--> javascript file is compiled from index.js and after compiling, pass to dist folder.
+
+--------------------------------------------------------------------
+
+--> Make new folder : src
+--> Make new file inside it: index.js
+
+--> console.log("Hello World");
+
+--> npm start
+
+--------------------------------------------------------------------
+
+--> babble.js has features of es6,7,8 which transiiled es6+ javascript code and convert it into es5 which is supported by browsers
+
+--> npm install --save-dev
+@babel/core			--> support es6 syntax
+babel-loader@^7			--> transpile and give output to webpack
+@babel/preset-env		--> change es syntax with browser model
+
+--> npm install --save-dev babel-preset-stage-2
+--> npm install --save-dev babel-preset-react
+
+--> To use this babel, in package.json file, add following key
+
+"babel" : {
+    "presets" : [
+	"env",
+	"stage-2",
+	"react"
+    ]
+}
+
+--------------------------------------------------------------------
+
+--> If error comes, npm install --save-dev @babel/core @babel/preset-env
+
+--> It happened to me and a simple solution for me was to uninstall babel-loader@8^ and @babel/core:
+
+npm uninstall --save babel-loader
+npm uninstall --save @babel/core
+
+and then to install version 7 babel-loader:
+
+npm install --save-dev babel-loader@^7
+
+--------------------------------------------------------------------
+
+--> Add some configuration in webpack.config.js
+
+    module: {
+        rules: {
+            test: /\.(.js|.jsx)$/,
+            exclude: /node_modules/,
+            use: ['babel-loader']
+        }
+    },
+    resolve: {
+        extensions: ['js', 'jsx']
+    }
+
+--> npm i react react-dom 
+
+--------------------------------------------------------------------
+
+--> npm i --save-dev eslint eslint-loader
+
+--> Make new file in project folder --> .eslintrc
+
+{
+   "rules: {
+	
+   }
+}
+
+--------------------------------------------------------------------
+
+--> npm i --save-dev babel-eslint
+
+--> .eslintrc
+{
+    "parser": "babel-eslint",
+    "rules": {
+        "no-console": "warn"
+    }
+}
+
+--> Such rules are not applied by developer for eslint manually
+
+--------------------------------------------------------------------
+
+--> There are many 3rd party packages which recommed some good rules and apply automatically.
+
+--> npm i --save-dev eslint-config-airbnb eslint-plugin-import eslint-plugin-jsx-ally
+--> .eslintrc
+{
+    "parser": "babel-eslint",
+    "rules": {
+        "no-console": "warn"
+    },
+    "extends" : ["airbnb.base"]
+}
+
+--------------------------------------------------------------------
+
+33. npm run eject
+
+--> create-react-app encapsulates all of the npm modules it is using internally, so that your package.json will be very clean and simple without you having to worry about it.
+
+--> However, if you want to start doing more complex things and installing modules that may interact with modules create-react-app is using under the hood, those new modules need to know what is available and not, meaning you need to have create-react-app un-abstract them.
+
+--> That, in essence, is what react-scripts eject does. It will stop hiding what it's got installed under the hood and instead eject those things into your project's package.json for everyone to see.
+
+--------------------------------------------------------------------
+
+--> If you aren’t satisfied with the build tool and configuration choices, you can eject at any time. This command will remove the single build dependency from your project.
+
+--> Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc.) into your project as dependencies in package.json. Technically, the distinction between dependencies and development dependencies is pretty arbitrary for front-end apps that produce static bundles.
+
+--------------------------------------------------------------------

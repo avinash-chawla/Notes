@@ -1,0 +1,152 @@
+--> Static Files in asp core
+
+1. wwwroot folder
+
+--> We will serve static files like html, css, javascript
+--> For this, we need content root folder named as 'wwwroot'
+--> This folder is automatically created in .net core 3.1
+--> If it is not present, make one folder with name --> wwwroot
+
+--> Make one file inside it --> foo.html
+--> And also place image inside thid
+
+---------------------------------------------------------------------------
+
+2. Accessing static files
+
+--> Now build the application and go to localhost:1234/foo.html and localhost:1234/banner.img
+
+---------------------------------------------------------------------------
+
+3. app.UseStaticFiles() middleware
+
+--> You won't get this response, bec. to serve static file, we use middleware
+--> In Configure method of startup file, place one more middleware --> app.UseStaticFiles();
+--> Now save the file and refresh the page.
+
+---------------------------------------------------------------------------
+
+4. Folder structure
+
+--> We need to improve folder structure inside wwwroot
+--> Make folders for css, js, images
+--> And also access static file using localhost:1234/images/image1.img
+
+---------------------------------------------------------------------------
+
+5. Default file
+
+--> Every domain url has home page or default page
+--> Make new file inside wwwroot --> default.html or index.html --> Add <h1>Home Page</h1>
+--> go to url: localhost:1234
+--> You won't get response
+
+---------------------------------------------------------------------------
+
+6. app.UseDefaultFiles(); middleware
+
+--> To serve default page, we use this middleware
+--> Make sure app.UseDefaultFiles is above all middlewares
+
+---------------------------------------------------------------------------
+
+7. To use any filename as default file
+
+--> By convention, it is necessary to use file name as default or index
+--> But we can change that in settings
+--> Add all following steps in Configure method
+
+DefaultFilesOptions defaultFilesOptions = new DefaultFilesOptions();
+defaultFilesOptions.DefaultFileNames.Clear();
+defaultFilesOptions.DefaultFileNames.Add("foo.html");
+app.UseDefaultFiles(defaultFilesOptions);
+
+---------------------------------------------------------------------------
+
+8. app.UseFileServer middleware
+
+--> This is alternative of UseFileServer middleware
+
+FileServerOptions fileServerOptions = new FileServerOptions();
+fileServerOptions.DefaultFilesOptions.DefaultFileNames.Clear();
+fileServerOptions.DefaultFilesOptions.DefaultFileNames.Add("foo.html")
+app.UseFileServer(fileServerOptions);
+
+--> UseFileServer combines the functionality of UseStaticFiles, UseDefaultFiles and UseDirectoryBrowser middleware. 
+--> DirectoryBrowser middleware, enables directory browsing and allows users to see files within a specified directory. 
+
+---------------------------------------------------------------------------
+
+9. Options object
+
+--> To change default settings of middleware, we use option objects of corresponding middeware
+
+--> eg. For app.UseDefaultFiles() middleware, we use DefaultFilesOptions
+--> For app.UseFileServer middleware, we use fileServerOptions
+--> For app.UseDeveloperExceptionPage(); middleware, we use DeveloperExceptionPageOptions
+
+---------------------------------------------------------------------------
+
+10. Summary
+
+1. By default, an asp.net core application will not serve static files
+2. The default directory for static files is wwwroot
+3. To serve static files UseStaticFiles() middleware is required
+4. To serve a default file UseDefaultFiles() middleware is required
+5. UseDefaultFiles() must be registered before UseStaticFiles()
+6. UseFileServer combines the functionality of UseStaticFiles, UseDefaultFiles and UseDirectoryBrowser middleware.
+
+
+---------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

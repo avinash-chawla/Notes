@@ -1,0 +1,545 @@
+1. Content making tags
+
+<h1></h1>
+<p></p>
+<li></li>
+<a></a>
+<strong></strong>
+<emp></emp>
+
+2. Media files
+
+<img>
+<audio></audio>
+<video></video>
+
+3. Semantic Structural elements
+
+<header></header>
+<footer></footer>
+<aside></aside>
+<article></article>
+<nav></nav> <!-- navbar links-->
+<section></section>
+
+5. Non-Semantic Elements
+
+--> Only used for Tragetting elements in css
+<div></div>
+<span></span>
+
+--> Styling of inline elements is not possible, so need to convert it to block level
+
+6. Form elements 
+<form></form> (action, method)
+<input> (text, checkbox, radio, submit)
+<label></label> (for)
+<select>
+    <option value="1"></option>
+</select> (dropdown)
+<fieldset>
+    <legend></legend>
+</fieldset>
+
+7. table elements 
+
+<table></table>
+<thead></thead>
+<tbody></tbody>
+<tr></tr>
+<th></th>
+<td></td>
+
+8. shortnames 
+
+a = anchor
+src = source
+rel = relationship
+href = hypertext reference
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+9. CSS 
+
+<link rel="stylesheet" href="main.css">
+cascading = overwriting browser defaults
+
+10. Technical CSS Concepts
+
+1. Cascading
+2. Inheritance 
+3. Specificity
+
+1. Cascading --> Overwriting defaults of browser html using css
+2. Inheritance	--> CSS style applied to parent, will also be applied to all children also
+--> Body { color: green }	--> will apply this style to all document tags children
+
+3. Specificity 
+--> Defining Preference
+--> The tag with higher preference will take into effect
+--> <footer>
+	<p>This is paragraph</p>
+    </footer>
+
+--> p { color: blue }
+--> footer {color: yellow }
+--> Here footer is defined after p tag, so text should be yellow, but this is not the case
+--> p is more specific then footer, so text will be blue in this case
+--> Specificity define rules who get higher preferences
+
+1. p			--> single tag
+2. footer p		--> tag with parent descendants
+3. body footer p	--> more parent
+4. .hightlight		--> classNames 
+5. footer .hightlight	--> classNames with descendants
+
+--> More specific more preference
+
+---------------------------------------------------------------------------------------------------
+
+11. Box-Model
+
+--> If you know boxModel, you know CSS
+--> Every Element in document is box
+--> Mostly div tag is used to design box
+
+--> Properties which are applicable on div tag:
+1. background-color
+2. padding (consider invisible deewar)
+3. border
+4. margin  (consider invisible deewar)
+5. width
+6. height
+7. box-sizing: border-box		--> most important (padding and border inside of box)
+
+---------------------------------------------------------------------------------------------------
+
+12. Creating a page-layout with floats
+
+--> Floats is more used in newspapers
+--> To wrap text around image
+--> image is given float:left/right and width
+--> Text will wrap it automatically
+
+--> parent element: content-area
+--> child element : main-area, sidebar, div with class 'fix'
+
+--> .content-area {
+	border-top: 3px solid black;	
+	border-bottom: 3px solid black;
+
+--> .main-area { width: 66%; float: left }
+--> .sidebar { width: 34%; float: left }
+--> .fix { clear: both }
+
+--> float: left means text-align: left (straight line on left edge)
+--> float: right means text-align: right(straight line on right edge)
+--> Thats why float: left on both main-area and sidebar elements
+
+--> When child is in floats, parent element will lose its awareness
+--> So style on parent elements, will not be applicable to child elements.
+--> Child Elements are like invisible to parents
+--> To make them visible, we use clear: both property on empty div tag
+
+--> Another way of clearing floats rather than empty div tag, we use clearfix property on parent element
+--> Give another class to parent 'group'
+
+.group:before, .group:after{ 
+	content: "",
+	display: table
+}
+
+.group:after {
+	clear: both;
+}
+
+.group {
+	zoom: 1;
+}
+
+--> No need to remember, just copy and paste this style and give this class to parent element
+--> float and width are main properties to create sections in page
+--> If float is given to one element, other element will wrap it
+--> So float is given to both elements, they will stand side by side
+
+-----------------------------------------------------------------------------
+
+13. Container
+
+--> width: 940px;
+--> margin-left: auto;
+--> margin-right: auto;
+
+-----------------------------------------------------------------------------
+
+14. Styling Navigation Menu
+
+--> <nav><ul><li><a>
+
+--> .site-nav{
+	margin-top: 20px;
+    }
+--> .site-nav ul{
+	margin: 0
+	padding: 0
+--> .site-nav li{
+	list-style: none
+	float: left;
+  	margin-right: 5px
+--> .site-nav a{
+	display:block;
+	color: any;
+	text-decoration: none
+	padding: 10px 20px
+	border: 3px solid any
+	border-bottom: none
+    }
+--> .site-nav a:hover{
+	background-color: any;
+    }
+
+
+--> padding to inline element will overlap other elements in document
+--> To avoid that, make it block element
+
+-------------------------------------------------------------------------
+
+15. Overlapping content
+
+--> Position Property
+--> Suppose want to put text on bottom of image with black transparent background
+--> <div class="image-banner">--> <img><div class="banner-description">Text
+
+--> img {
+	max-width: 100%;		--> container is 66% of main screen
+	height: auto;			--> maintain ratio of image size
+    }
+
+--> .image-banner {
+	position: relative;
+	left: 100px;
+	z-index: 10;
+
+--> .image-banner img{
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	color: #fff;
+	background-color: rgba(0,0,0, .65);
+	padding: 15px 25px
+
+-------------------------------------------------------------------------
+
+16. Styling data tables
+
+--> table {
+	border-spacing: 0;			--> Removes spaces between each individual border
+	border-collapse: collapse;		--> Removes multiple borders which are collapsing
+	width: 100%;
+}
+--> .col-item-name{				--> reference to first th column
+	width: 60%;
+}
+
+--> .col-quantity, .col-price{			--> reference to second and third th column
+	width: 20%;
+}
+--> table th{
+	text-align: left;
+	background-color: any;
+	color: #fff;
+	text-shadow: 1px 1px solid rgba(0, 0, 0, .4);		--> text will pop up
+}
+
+--> table th,
+    table td {
+	border: 1px solid any;
+	padding: 10px;
+	vertical-align: top
+}
+
+--> table tbody tr:nth-child(odd) td{		
+	background-color: any
+}
+
+--> table tr:nth-child(2),			--> select each tr element, and apply to second and third column
+    table tr:nth-child(3) {
+	text-align: center
+}
+
+-------------------------------------------------------------------------
+
+17. Form Styling--> 
+
+form {
+	background-color: #ECECEC;
+	padding: 30px 40px;
+}
+
+.hidden-label {				---> making Labels hidden instead of display:none to use at server side
+	position: absolute;
+	height: 0;
+	width: 0;
+	overflow: hidden;
+	visibility: hidden;
+}
+
+input,
+select {
+	font-family: Tahoma, sans-serif;		--> form input does not inherit fontstyle from body, so again specified here
+	font-size: 100%;				--> be dafault, its size is smaller
+}
+
+select {
+	-webkit-appearance: none;			--> to change default styles of select, it is necessary
+	-webkit-border-radius: 0;
+	border-radius: 0;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="number"],
+input[type="tel"],
+select {
+	width: 100%;
+	display: block;					--> Style to inline element is difficult, so block
+	box-sizing: border-box;
+	padding: 0 10px;
+	height: 40px;
+	margin-bottom: 15px;
+	border: 1px solid #CDCDCD;
+	outline: none;					--> prevents blue border on focus in chrome
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus {
+	border: 1px solid #869960;
+	box-shadow: inset 2px 2px 2px rgba(0, 0, 0, .13);
+}
+
+input[type="submit"] {
+	width: 100%;
+	display: block;
+	box-sizing: border-box;
+	background-color: #869960;
+	color: #FFF;
+	padding: 10px 0;
+	border: 1px solid #798A56;
+	border-radius: 3px;
+	outline: none;
+	margin-bottom: 10px;
+}
+
+input[type="submit"]:hover,
+input[type="submit"]:focus {				--> Input Submit hover effect
+	border: 1px solid #535E3B;
+	background-color: #798A56;
+} 
+
+-------------------------------------------------------------------------
+
+18. CSS - Typography
+
+1. font-size: 108%
+2. text-align: left;
+3. text-indent: 25px;
+4. line-height: 1.2px
+5. font-weight: normal
+6. font-style: italic
+7. letter-spacing: 4px
+8. word-spacing: 10px
+9. text-shadow: 2px 10px 10px rgba(0, 0, 0, 0.5)	--> (x-offset, y-offset, blur radius, color)
+10. text-transform: uppercase
+
+-------------------------------------------------------------------------
+
+19. Developer Tools Advantages
+
+1. Tracking down where properties are coming from (who is parent style which is inheriting to its child)
+2. Experimenting or troubleshooting
+3. Inspiration from other websites
+
+-------------------------------------------------------------------------
+
+20. Background Images
+
+--> background-color: #c2bbb1;
+--> background-image: url(../images/bird.jpg);
+--> background-position: center center;	 	--> (horizontal, vertical portion from image)
+--> background-size: cover			--> (200px 200px ) can mention size also, cover will cover whole container
+--> background-repeat: no-repeat / repeat-x     --> to repeat on x-axis
+
+-------------------------------------------------------------------------
+
+21. Gradient Backgrounds
+
+--> background-image: linear-gradient(to bottom, rgba(0,0,0,0), #fff);
+
+-------------------------------------------------------------------------
+
+22. CSS-Spirits
+
+--> Multiple images are in one file to save time from multiple http request
+--> We use background postion to target different icons in single image
+--> background-position: 0 -50px;
+
+-------------------------------------------------------------------------
+
+23. full-width-backgrounds-fixed-with-content
+
+--> .container {
+	max-width: 940px;
+	margin: 0 auto;
+}
+
+-------------------------------------------------------------------------
+
+24. Responsive-web-design
+
+1. <meta name="viewport" content="width=device-width, initial-scale=1">
+2. @media screen and (max-width: 700px) { }	--> for screens smaller than 700px --> other used is 480px
+
+-------------------------------------------------------------------------
+
+25. Grid System
+
+-------------------------------------------------------------------------
+
+26. Box-Shadows
+
+--> box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.15)
+--> box-shadow: inset 3px 3px 5px rgba(0, 0, 0, 0.15)	--> inside shadow
+
+-------------------------------------------------------------------------
+
+27. Rounded-Corners
+
+--> border-radius: 10px
+--> border-radius: 10px 25px   (diagonal positions)
+--> border-radius: 10px 10px 25px 25px   (starting from top left)
+--> border-radius: 10px/25px;	(elliptical rounding)(horizontal radius/vertical radius)
+--> border-radius: 50%   (square --> circle, rectange --> oval)
+
+-------------------------------------------------------------------------
+
+28. Transform
+
+1. Rotate
+2. Scale
+3. Skew
+4. Position( origin and placement)
+
+1. Rotate
+--> transform: rotate(25deg)      (clockwise)
+
+2. Scale
+--> transform: scale(1.2);
+--> transform: scale(0.5);
+
+3. Skew
+--> transform: skewX(25deg)
+--> transform: skewX(-25deg)
+--> transform: skewy(25deg)
+--> transform: skewX(25deg) skewY(25deg)
+
+4. Position
+
+--> Normally scale transform take place from center point 
+--> To shift that center point, we use transform-origin
+--> transform: scale(1.5)
+--> transform-origin: 0 0	(left top corner)
+--> transform-origin: 100% 0  	(right top corner)
+--> transform-origin: 50% 50%	(default) 
+
+
+--> trasnform: translateY(50px);		(move down)
+--> trasnform: translateX(100px);		(move right)
+
+--> traslate is more used for animation
+--> position is more used for page layout
+
+
+-------------------------------------------------------------------------
+
+29. CSS-Transitions
+
+--> image-banner is div containing img and text
+--> banner-description is p containing text inside image-banner
+
+--> .image-banner{
+	overflow: hidden
+}
+--> .banner-description{
+	transition-property: all;
+	transition-duration: 1s;
+	opacity: 0;
+	transform: translate(100%);
+}
+--> .image-banner:hover .banner-description{
+	opacity:1;
+	transform: translate(0);
+
+--> .image-banner img{
+	display: block;
+	transition: all 1s;
+}
+--> .image-banner:hover imag{
+	transform: scale(1.5);
+}
+
+
+--> overflow:hidden means any child element gets out of parent child, it will not be seen
+--> transition: all 1s ease-in
+--> transition-timing-function: ease-out
+
+-------------------------------------------------------------------------
+
+30. Animation
+
+--> It came into effect when loading of page is done
+@keyframes fadeBounce {
+	0% {
+		opacity: 0;
+		transform: translateY(-200%);
+	}
+		
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.box-a {
+	opacity: 0;
+	animation: fadeBounce 1s forwards;
+}
+
+-------------------------------------------------------------------------
+
+31. Designing work involves
+
+--> Artwork
+--> User Interfaces
+--> Button styles
+--> Color
+--> Texture
+--> Balance
+--> Typography
+--> Impact
+--> Hierarchy
+--> Motion
+--> Rhythm
+
+--> Programming involves kind of work
+
+--> Programming
+--> Handle user input
+--> Interact with database
+--> Automatically send out an email
+--> Any tast that can be automated
+
+-------------------------------------------------------------------------

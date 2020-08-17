@@ -1,0 +1,672 @@
+1. Creating a view to insert data using mvc-->
+
+--> In Employee Controller, create Create actionMethod-->
+
+[HttpGet]
+public ActionResult Create()
+        {
+            return View();
+        }
+
+--> This ActionMethod will only respond to get httpMethod.
+----------------------------------------------------------
+
+--> View
+
+--> right click actionMethod
+--> Add View
+--> tick strongly typed reference
+--> select Employee(Business Layer) model
+--> select Create in template
+--> OK
+
+--> This will autogenerate view for creating Employee as a List
+--> For Gender, we have to replace textBox with DDL
+
+<div class="editor-field">
+            @Html.DropDownList("Gender", new List<SelectListItem>
+           {
+               new SelectListItem{ Text = "Male", Value = "Male"},
+               new SelectListItem{ Text = "Female", Value = "Female"}
+           }, "Select")
+        @Html.ValidationMessageFor(model => model.Gender)
+    </div>
+
+--> run the application
+--> localhost:12345/employee/index
+
+--> click create actionLink
+--> url will be redirected to localhost:11055/employee/create
+
+
+----------------------------------------------------------------------------------
+
+2. FormCollection-->
+
+--> This class will automatically receive the posted form values in the controller action method, in key/value pairs.
+
+------------------------------------------------------
+Create proc spAddEmployee
+@Name nvarchar(50),
+@Gender nvarchar(10),
+@City nvarchar(50)
+as
+Begin
+	Insert into tblEmployee (Name, Gender, City)
+	Values (@Name, @Gender, @City)
+End
+
+-------------------------------------------------------------------
+
+--> Models function is to communicate with database
+--> So function of creating employee and saving in database is also function of model.
+
+--> Employee.cs  --> provide only structure of DataFields
+--> EmployeeBusinessLayer --> methods communicating with database
+
+--> Go to EmployeeBusinessLayer, make new method AddEmployee-->
+
+public void AddEmployee(Employee employee)
+        {
+            string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+            using (SqlConnection con = new SqlConnection(CS))
+            {
+                SqlCommand cmd = new SqlCommand("spAddEmployee", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlParameter paramName = new SqlParameter();
+                paramName.ParameterName = "@Name";
+                paramName.Value = employee.Name;
+                cmd.Parameters.Add(paramName);
+
+                SqlParameter paramGender = new SqlParameter();
+                paramGender.ParameterName = "@Gender";
+                paramGender.Value = employee.Gender;
+                cmd.Parameters.Add(paramGender);
+
+                SqlParameter paramCity = new SqlParameter();
+                paramCity.ParameterName = "@City";
+                paramCity.Value = employee.City;
+                cmd.Parameters.Add(paramCity);
+
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+------------------------------------------------------------
+
+--> Checking formCollection class -->
+
+	[HttpPost]
+        public ActionResult Create(FormCollection formCollection)
+        {
+            foreach(string key in formCollection.AllKeys)
+            {
+                Response.Write("key: " + key + " ,Value: " + formCollection[key] + "<br />");
+                    
+            }
+            return View();
+        } 
+-----------------------------------------------------------
+
+--> Server takes values of form fields using formCollection class and pass values to employee model (populating model) and that model is passed to employeeBusinessLayer
+
+	[HttpPost]
+        public ActionResult Create(FormCollection formCollection)
+        {
+
+
+            Employee employee = new Employee();
+            employee.Name = formCollection["Name"];
+            employee.Gender = formCollection["Gender"];
+            employee.City = formCollection["City"];
+
+            EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+            employeeBusinessLayer.AddEmployee(employee);
+
+            return RedirectToAction("Index");
+        } 
+
+--> Create ActionMethod is saving data in database
+--> Index ActionMethod is retrieving data from database
+
+
+-----------------------------------------------------------------------------------
+
+3. Model Binder-->
+
+--> name attribute attached to Textbox in viewPage can be retrieved on ActionMethod-->
+
+public ActionResult Create(string name, string gender, string city)
+        {
+
+            Employee employee = new Employee();
+            employee.Name = name;
+            employee.Gender = gender;
+            employee.City = city;
+
+	    ...
+
+
+--> order of parameters doesn't matter.
+
+---------------------------------------------------------------------------------
+
+4. Updatedmodel function-->
+
+[HttpPost]
+public ActionResult Create(Employee employee)
+{
+	EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+        employeeBusinessLayer.AddEmployee(employee);
+
+        return RedirectToAction("Index");
+}
+
+
+--> Directly retrieving employee model data from webForm and passing it to employeeBusinessLayer
+
+------------------------------------------------------------------------
+
+--> Validating model fields first-->
+
+[HttpPost]
+public ActionResult Create(Employee employee)
+{
+	if(ModelState.IsValid)
+	{
+	EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+        employeeBusinessLayer.AddEmployee(employee);
+
+        return RedirectToAction("Index");
+	}
+
+	return View();
+}
+
+--------------------------- 
+--> Third Approach to populate model from webFrom using UpdateModel() method-->
+
+[HttpPost]
+[ActionName("Create")]
+public ActionResult Create_Post()
+{
+	if(ModelState.IsValid)
+	{
+	Employee employee = new Employee();
+	UpdateModel(employee);
+	
+	EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+        employeeBusinessLayer.AddEmployee(employee);
+
+        return RedirectToAction("Index");
+	}
+
+	return View();
+}
+
+--> Above actionMethod becomes same as HttpGet Create method so throw exception
+--> so changing actionName to Create_Post
+--> But system will take as ActionName attribute name
+
+--> UpdateModel() function inspects all the HttpRequest inputs such as posted Form data, QueryString, Cookies and Server variables and populate the employee object.
+
+--> If getting error in running application,
+Error: Adding the specified count to the semaphore would cause it to exceed its maximum count.
+1. Restart IIS
+2. Disable connection string pooling in the connection string of your web.config file
+
+-------------------------------------------------------------------------------------
+
+--> So total ways to populate model-->
+
+1. formsCollection
+2. field parameters
+3. direct model name in paramater
+4. UpdateModel()
+
+-----------------------------------------------------------------------------------
+
+5. Difference between updatemodel and tryupdatemodel-->
+
+--> UpdateModel() throws an exception if validation fails, where as TryUpdateModel() will never throw an exception.
+--> Similarity: Both the functions are used to update the Model with the Form values and perform the validations
+
+--> Why do we need them if we can use Model parameter?
+--> If you want to limit on what can be bound, explicitly invoking model binding can be very useful.
+
+------------------------------------------------------------------------------------
+--> Applying Required Attribute on model objects-->
+
+--> Required Attribute is present in System.ComponentModel.DataAnnotations namespace which is in Entity Framework.
+--> Go to nugetPackageManager
+--> Go to installed packages
+--> click on Manage option beside Entity Framework
+--> Select for BusinessLayerModel
+
+--> Employee.cs-->
+
+using System.ComponentModel.DataAnnotations;
+
+namespace BusinessLayer
+{
+    public class Employee
+    {
+        public int EmployeeId { get; set; }
+        [Required]
+        public string Name { get; set; }
+        [Required]
+        public string Gender { get; set; }
+        [Required]
+        public string City { get; set; }
+    }
+}
+
+-------------------------------------------------------------------------------
+
+6. Editing a model-->
+
+--> local:11055/employee/Index
+--> Employee List template contain column for Action
+--> This Action contains Edit | Details | Delete  and on upper side Create
+
+----------------------------------------------------------------------------------
+
+--> Making GET actionMethod for Edit-->
+
+[HttpGet]
+public ActionResult Edit(int id)
+{
+     EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+     Employee employee = employeeBusinessLayer.employees.Single(em => em.EmployeeId == id);
+
+     return View(employee);
+}
+
+--> all controller actionMethod takes two arguments- one for model and second for view
+
+-----------------------------------------------------------------------------
+
+--> View
+
+--> right click actionmethod edit
+--> strongly typed --> model(businesslayer) --> Edit template
+--> delete script tag from view
+--> place Gender ddl
+
+@Html.DropDownList("Gender", new List<SelectListItem>
+{
+      new SelectListItem{ Text = "Male", Value = "Male"},
+      new SelectListItem{ Text = "Female", Value = "Female"}
+}, "Select Gender")
+
+-------------------------------------------------------------------------------------
+
+7. Updating data from edit button-->
+
+--> First we need to make sp to update data in BusinessModel.
+
+create proc spSaveEmployee
+@Id int, 
+@Name nvarchar(50),
+@Gender nvarchar(10),
+@City nvarchar(50)
+as
+begin
+	update tblEmployee set name = @Name, Gender = @Gender, City = @City
+	where Id = @Id
+End
+
+---------------------------------------------------------------------------------------
+
+--> Make model method to communicate with database -->
+
+public void SaveEmployee(Employee employee)
+        {
+            string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+            using (SqlConnection con = new SqlConnection(CS))
+            {
+                SqlCommand cmd = new SqlCommand("spSaveEmployee", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlParameter paramId = new SqlParameter();
+                paramId.ParameterName = "@EmployeeId";
+                paramId.Value = employee.EmployeeId;
+                cmd.Parameters.Add(paramId);
+
+                SqlParameter paramName = new SqlParameter();
+                paramName.ParameterName = "@Name";
+                paramName.Value = employee.Name;
+                cmd.Parameters.Add(paramName);
+
+                SqlParameter paramGender = new SqlParameter();
+                paramGender.ParameterName = "@Gender";
+                paramGender.Value = employee.Gender;
+                cmd.Parameters.Add(paramGender);
+
+                SqlParameter paramCity = new SqlParameter();
+                paramCity.ParameterName = "@City";
+                paramCity.Value = employee.City;
+                cmd.Parameters.Add(paramCity);
+
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+--> Make controller method for post Edit actionMethod -->
+
+ 	[HttpPost]
+        [ActionName("Edit")]
+        public ActionResult Edit_Post(Employee employee)
+        {
+            if (ModelState.IsValid)		---> check for required field
+            {
+                EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+                employeeBusinessLayer.SaveEmployee(employee);
+            }
+            return View(employee);
+        }
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+8. Unintended Updates-->
+
+--> Suppose Name in webForm, we have to make only ReadValue, not to update that.
+--> If you want to ReadOnly then DisplayFor
+--> If you want to hide then HiddenFor
+--> If you want text then EditorFor
+
+<div class="editor-field">
+            @Html.DisplayFor(model => model.Name)
+            @Html.HiddenFor(model => model.Name)
+            @Html.ValidationMessageFor(model => model.Name)
+</div>
+
+--> We have used hidden field also because if not, null reference will be sent to EmployeeModel so kept it hidden also
+
+--> Now there is one disadvantage of using hidden field, bec. hacker can access hiddenfield in webForm using hacker tools like fidler
+
+---------------------------------------------------------------------
+
+9. Preventing Unintended Updates-->
+
+--> UpdateModel method can be used to prevent unintended updates to model objects(fields)
+
+	[HttpPost]
+        [ActionName("Edit")]
+        public ActionResult Edit_Post(int id)
+        {
+            
+            EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+            Employee employee = employeeBusinessLayer.employees.Single(em => em.EmployeeId == id);
+            UpdateModel(employee, new string[] {"Id", "Gender", "City"});				---> include only specific properties
+
+            if (ModelState.IsValid)
+            {
+                employeeBusinessLayer.SaveEmployee(employee);
+                return RedirectToAction("Index");
+            }
+            return View(employee);
+        }
+
+--> We can select which properties of model should get update using UpdateModel method
+
+--> UpdateModel(employee, new string[] {"Id", "Gender", "City"});	--> include properties parameters accept stringArray
+--> Above overloaded is for including properties
+
+--> UpdateModel(employee, null, null, new string[] {"Name"});
+--> Above overloaded is for excluding properties
+
+--> UpdateModel comes under concept of model binding. Bind name attribute of html to model object
+
+------------------------------------------------------------------------------
+
+10. Including and Excluding properties from model binding-->
+
+        [HttpPost]
+        [ActionName("Edit")]
+        public ActionResult Edit_Post([Bind(Include="Id, Gender, City")]Employee employee)
+        {
+            
+            EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+            employee.Name = employeeBusinessLayer.employees.Single(em => em.EmployeeId == id).Name;
+            
+            if (ModelState.IsValid)
+            {
+                employeeBusinessLayer.SaveEmployee(employee);
+                return RedirectToAction("Index");
+            }
+            return View(employee);
+        }
+
+
+--> Similarly can used for excluding properties using bind method
+--> public ActionResult Edit_Post([Bind(Exclude="Name")]Employee employee){...}
+
+--> Bind Attribute only bind that attributes which are specified in bracket, then pass Employee object
+--> So Name field is not binded so will give null from webForm, so retrieving its value from businessLayerModel and attaching name property to employee model and then pass it to SaveEmployee model method.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+
+11. Model Binding - Using Interfaces-->
+
+--> We can make interface and make model inherits that interface
+--> And in UpdateModel, we specify that interface as a input type UpdateModel<IEmployee>
+
+--------------------------------------------
+
+--> Employee.cs-->
+
+public interface IEmployee
+{
+	int Id { get; set}
+	string Gender { get; set}
+	string City { get; set}
+}
+public class Employee : IEmployee
+{
+	...
+}
+
+----------------------------------------------------------------------
+
+--> IN EmployeeController.cs--> 
+
+public ActionResult Edit_Post(int id)
+{
+	EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+        Employee employee = employeeBusinessLayer.employees.Single(em => em.EmployeeId == id);
+        UpdateModel<IEmployee>(employee);
+
+            if (ModelState.IsValid)
+            {
+                employeeBusinessLayer.SaveEmployee(employee);
+                return RedirectToAction("Index");
+            }
+            return View(employee);
+        } 
+
+--> Here we have used UpdateModel<IEnumerable>(employee);
+
+----------------------------------------------------------------------------------
+
+12. Why deleting database records using get request is bad-->
+
+--> Creating Stored procedure in database-->
+
+create proc spDeleteEmployee
+@Id int
+as
+Begin
+	Delete from tblEmployee
+	where Id = @Id
+end
+
+---------------------------------------------------------------
+
+--> Making DeleteEmployee method in model class-->
+
+public void DeleteEmployee(int id)
+        {
+            string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+            using (SqlConnection con = new SqlConnection(CS))
+            {
+                SqlCommand cmd = new SqlCommand("spDeleteEmployee", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlParameter paramId = new SqlParameter();
+                paramId.ParameterName = "@EmployeeId";
+                paramId.Value = id;
+                cmd.Parameters.Add(paramId);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+---------------------------------------------------------
+
+--> Make ActionMethod for deleting database record-->
+
+[HttpGet]
+        public ActionResult Delete(int id)
+        {
+            EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+            employeeBusinessLayer.DeleteEmployee(id);
+            return RedirectToAction("Index");
+        }
+
+------------------------------------------------------------------------------
+
+--> Gmail automatically opens image in gmail.com, if any malicious gmail contains code for deleting data from url, if it is get request in our application, then it is executed.
+--> Delete should be in post request. 
+
+------------------------------------------------------------------------------
+
+13. Deleting database records using post request--> 
+
+--> Before deleting any record, confirmation message should appear for asking Are you sure you want to delete record with ID=1
+
+<input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete record with ID= @item.Id');" />
+
+--------------------------------------------------------------------------------
+
+--> Making Delete ActionMethod PostRequest-->
+
+ 	[HttpPost]
+        public ActionResult Delete(int id)
+        {
+            EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+            employeeBusinessLayer.DeleteEmployee(id);
+            return RedirectToAction("Index");
+        }
+
+---------------------------------------------------------------------------
+
+--> By Default, Delete Link in Employee Index actionMethod receives GetRequest 
+--> so converting Link to Delete Button
+--> How do we do that-->
+
+---------------------------------------------------
+
+--> We make small form tag using BeginForm method under html helper and then put delete button in there
+
+@foreach (var item in Model)
+    {
+        using (Html.BeginForm("Delete", "Employee", new { id = item.EmployeeId }))
+        {
+<tr>
+<td> ... </td>
+<td> ... </td>
+<td>
+   @Html.ActionLink("Edit", "Edit", new { id = item.EmployeeId }) |
+
+   <input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete record with ID= @item.EmployeeId');" />
+
+</td>
+}
+
+-------------------------------------------------------------------
+
+--> @using in above is used before like-->
+
+using (Html.BeginForm("Delete", "Employee", new { id = item.EmployeeId }))
+{
+	<input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete record with ID= @item.EmployeeId');" />
+}
+
+--> But proper balance was not maintained in delete button in view
+--> So making all in one line, dislocating "using" to entire row instead of single button
+
+-------------------------------------------------------------------------------------
+
+14. Insert Update Delete using entity framework-->
+
+--> DataBase-->
+
+tblEmployee --> EmployeeId, Name, Gender, City, DepartmentId
+tblDepartment --> Id, Name
+
+Alter table tblEmployee
+add foreign key (DepartmentId)
+references tblDepartment(Id)
+
+------------------------------------------------------------------------------------
+-->  Letting Asp.net framework build Model entity for us
+
+--> Make new WebApplication3
+--> download entity framework from nuget package manager
+Step1: right click model --> add new item --> under DATA tab in C# --> choose ADO.Net Entity Data Model --> Name it EmployeeDataModel
+
+Step2: Choose Model Contents --> select EF Designer from database
+--> Means connect to existing database
+
+Step3: Choose your DataConnection --> New Connection --> Data Source: Microsoft Sql Server, Servername : LENOVOLAPTOP, select database,  Test Connection --> OK --> name it : EmployeeContext
+
+Step4:  Choose your DataBase Objects-->
+
+Select required table --> Employee and Department
+Model Name: Models
+
+
+--> Rename tables as Department by replacing tblDepartment and Employee by replacing tblEmployee2
+--> Similarly rename name for Navigation Properties
+--> Build the solution
+
+
+--> Table Names = Entity Name
+--> Table Columns = Entity Property
+---------------------------------------------------------------------------
+
+--> Add Controller --> Name it Employee --> 
+--> Template: MVC controller with read/write actions and views, using Entity Framework
+--> Model: Employee
+--> Data Context class: EmployeeContext
+--> OK
+
+
+--> This also generate Views with Create, Delete, Details, Edit, Index
+-----------------------------------------------------------------------
+
+--> To run EmployeeController as default url of domain-->
+
+App_Start folder --> RouteConfig.cs --> change Home to Employee
+
+----------------------------------------------------------------------
+
+--> delete all scripts tags from all view files
+
+--> Now run the application
+---------------------------------------------------------------------
+
+15. 
+
+------------------------------------------------------- 

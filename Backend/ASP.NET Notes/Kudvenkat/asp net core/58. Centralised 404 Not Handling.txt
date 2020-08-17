@@ -1,0 +1,231 @@
+--> This is for type 2 404 Not Found
+--> Route does not match any url pattern
+
+---------------------------------------------------------------------------------
+
+1. Types of 404 errors
+
+--> There are two types:
+
+Type 1 : Resource with the specified ID does not exit. 
+Type 2 : The provided URL does not match any route in our application. 
+
+---------------------------------------------------------------------------------
+
+2. Default 404 error Page
+
+--> If we navigate to http://localhost/foo/bar, we see the browser's default 404 error page.
+
+---------------------------------------------------------------------------------
+
+3. Middleware used to handle such errors
+
+UseStatusCodePages
+UseStatusCodePagesWithRedirects
+UseStatusCodePagesWithReExecute
+
+---------------------------------------------------------------------------------
+
+4. UseStatusCodePages Middleware
+
+--> In Configure method of startup file, we define middewares
+--> If environment mode is Development, we want to show DeveloperExceptionPage
+--> If environment mode is Production, we want to show user, Custom ErrorPage on wrong url
+--> To do that, we can use above any middewares
+
+ if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    else
+    {
+        app.UseStatusCodePages();
+    }
+
+--> If we navigate to http://localhost/foo/bar, it returns the following simple text response.
+--> Status Code: 404; Not Found
+
+--> It has default view of this.
+
+---------------------------------------------------------------------------------
+
+4.1. Note
+
+--> Make sure to change Environment mode to Production
+
+---------------------------------------------------------------------------------
+
+5. UseStatusCodePagesWithRedirects Middleware
+
+--> This middleware is used to show custom Error View
+--> If user navigate to http://localhost/foo/bar, we will show custom view error page
+
+if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    else
+    {
+        app.UseStatusCodePagesWithRedirects("/Error/{0}");
+    }
+
+--> We are redirecting user to Error Controller with {0} status code --> It will pass required status code ( 404 )
+
+---------------------------------------------------------------------------------
+
+--> In Controllers folder, make new controller --> ErrorController.cs
+
+public class ErrorController : Controller
+    {
+        [Route("Error/{statusCode}")]
+        public IActionResult HttpStatusCodeHandler(int statusCode)
+        {
+            switch (statusCode)
+            {
+                case 404:
+                    ViewBag.ErrorMessage = "Sorry, the resource you requested could not be found";
+                    break;
+            }
+
+            return View("NotFound");
+        }
+    }
+
+---------------------------------------------------------------------------------
+
+--> Make new view in Views folder under Error folder --> NotFound.cshtml
+--> NotFound.cshtml
+
+@{
+    ViewBag.Title = "Not Found";
+}
+
+<h1>@ViewBag.ErrorMessage</h1>
+
+<a asp-action="index" asp-controller="home">
+    Click here to navigate to the home page
+</a>
+
+---------------------------------------------------------------------------------
+
+6. UseStatusCodePagesWithRedirects Middleware
+
+--> REPLACE app.UseStatusCodePagesWithRedirects("/Error/{0}") 
+--> With app.UseStatusCodePagesWithReExecute("/Error/{0}");
+
+--> There is no difference on user side
+--> To know the difference, refer topic on next tutorial.
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

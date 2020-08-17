@@ -1,0 +1,36 @@
+1. Architecture
+
+--> Angular sends login credentials to server
+--> Server in response sends jwt(json web token) to angular
+--> JWT is simple json object which contains information about user
+--> This JWT is saved in local storage of browser
+--> When client sends some request to server, request is sent with JWT to verify authentication of user(is he admin or guest user)
+
+--> Normally Authentication is done using server database and not with json webtoken.
+--> But some Client-side applications like Angular uses this approach to authenticate.
+
+----------------------------------------------------------------------
+
+2. JSON Web Token
+
+--> It is json object only 
+--> But while transfering from server to client, it is encoded in base64algorithm
+--> This web token consists of 3 parts: Header, Payload and verify signature
+--> Header is json object with some standards
+--> Payload is json object with user information like Id, name, isAdmin
+--> Verify Signature is json object with encryption which has secret_key which is only available at server.
+--> This Json web token can be decoded in plain json object using this secret_key
+
+
+--> Hacker can only access information using secret_key but cannot modify it.
+--> Because if he change json object and sent it to server, whole base64algorithm changes which can not be find in server
+
+---------------------------------------------------------------------------
+
+3. Making Auth API
+
+--> Refer dev ed youtube video to make this on nodejs
+
+---------------------------------------------------------------------------
+
+4. 

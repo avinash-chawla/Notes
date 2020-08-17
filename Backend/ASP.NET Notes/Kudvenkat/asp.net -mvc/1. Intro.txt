@@ -1,0 +1,619 @@
+1. Know which mvc version is using your application-->
+
+--> solution explorer 
+--> references 
+--> system.web.mvc 
+--> right click 
+--> properties 
+--> version
+
+
+--> To know version of .Net Framework
+--> Right click Project Name --> Properties --> Application
+
+-----------------------------------------------------------------------------------------------------------------------
+
+2. Creating first mvc application-->
+
+--> There are two view engines in asp.net - aspx and razor
+--> We will use asp.net framework 4.0 
+
+--> Make new controller --> name it HomeController
+
+public class HomeController : Controller
+    {
+        public string Index()
+        {
+            return "Hello from mvc application";
+        }
+    }
+
+----------------------------------------------------
+
+--> Basic Difference between mvc and non-mvc applications-->
+
+In MVC, URLs are mapped to controller Action Methods
+In WebForms, URLs are mapped to Physical Files
+
+http://localhost:5000/Home/Index		----->  /Controller/Action
+http://localhost:5000/WebForm1.aspx
+
+--> Functions in controller are called Controller Action Methods.
+
+----------------------------------------------------------------------------------------------------------------------------
+
+3. Controllers-->
+
+--> url : http://localhost:5000/home/Index/3?name=Avinash
+
+public string Index(string id, string name)				--> name is passed as queryString in url, not as parameter
+{
+	return "Id: "+id+ " and Name: " + name;
+}
+
+or
+
+public string Index(string id)
+{
+	return "Id: "+ id + " and Name: " + Request.QueryString["name"];
+}
+
+
+--> How are the URLs mapped to Controller Action Method?
+--> In global.asax, application start is calling RouteConfig file and RegisterRoutes method.
+
+
+----------------------------------------------------------------------------------
+
+--> routes.IgnoreRoute meaning-->
+
+--> In RouteConfig.cs in App_Start folder contains RegisterRoutes method
+--> In that, first line is routes.IgnoreRoute
+--> It means that this method is allowing to request any axd file from request url in browser, not following pattern of controller/action/parameter
+
+--> It only means do url pattern as controller/action/parameter except for axd file
+--> Bec. There is no controller for axd file.
+
+-------------------------------------------------------------------------------------
+--> demo
+
+--> Make tracing enabled in application-->
+--> code in web.config file-->
+
+<system.web>
+	<trace enabled="true" pageOutput="false"/>
+
+--> http:localhost/MVCDemo/trace.axd    --> run it 
+--> Now this will run in browser
+
+--> Now comment that IgnoreRoutes line in RegisterRoutes
+--> Run again that url --> show error --> not able to find controller for that.
+
+----------------------------------------------------------------------------------
+
+4. View-->
+
+public List<string> Index()
+        {
+            return new List<string>() 
+            { 
+                 "India", "UK", "Spain", "Italy"
+            };
+        }
+
+--> output: System.Collections.Generic.List`1[System.String]
+
+--------------------------------------------------------------------------------------
+
+public ActionResult Index()
+{
+     ViewBag.Countries =  new List<string>() 
+     { 
+           "India", "UK", "Spain", "Italy"
+     };
+     return View();
+}
+
+-------------------------------------------------------
+
+Index.cshtml-->
+
+<h2>Countries List</h2>
+<ul>
+    @foreach (string country in ViewBag.Countries)
+    {
+        <li>@country</li>
+    }
+</ul>
+
+--> output: 
+
+Countries List
+India
+UK
+Spain
+Italy
+
+-------------------------------------------------------------------------------
+
+5. ViewBag and ViewData-->
+
+--> They pass data from controller to View
+
+--> ViewData is dictionary of objects that are stored and retrieved using strings as keys
+ViewData["YourKey"] = "SomeData";
+
+---------------------------------------------------------------
+
+--> ViewBag uses the dynamic feature. It allows an object to have properties dynamically added to it.
+ViewBag.YourProperty = "SomeData";
+
+--> ViewBag properties internally stored as name/value pairs in the ViewData dictionary.
+
+--> Disadvantage --> Both does not provide compile time error checking if miss-spelled
+--> Solution: Use Strongly typed view models over ViewBag and ViewData bec. it provides compile time error checking.
+
+----------------------------------------------------------------------------------
+
+--> demo-->
+
+ViewData["CountriesList"] =  new List<string>() 
+     { 
+           "India", "UK", "Spain", "Italy"
+     };
+     return View();
+
+-----------------------------------------------------------------------
+
+<h2>Countries List</h2>
+<ul>
+    @foreach (string country in (List<string>ViewData["CountriesList"]);
+    {
+        <li>@country</li>
+    }
+</ul>
+
+-----------------------------------------------------------------------
+
+6. Model-->
+
+--> creating model-->
+
+public class Employee
+    {
+        public int EmployeeId { get; set; }
+        public string Name { get; set; }
+        public string Gender { get; set; }
+        public string City { get; set; }
+    }
+
+---------------------------------------------------------------
+
+--> creating controller-->
+
+public class EmployeeController : Controller
+    {
+        public ActionResult Details()
+        {
+            Employee employee = new Employee()
+            {
+                EmployeeId = 1,
+                Name = "Homeo",
+                Gender = "Male",
+                City = "London"
+            };
+
+            return View(employee);
+        }
+
+    }
+
+--> build the solution
+--> right click anywhere in action method
+--> add view
+--> select strongly typed reference, select Employee model
+--> add
+
+--> without building solution, model name is not displayed in strongly typed reference
+
+--------------------------------------------------------------
+
+--> creating view-->
+
+@model MvcApplications2.Models.Employee
+
+<table style="font-family: Arial" border="1">
+    <tr>
+        <td>EmploeeId</td>
+        <td>@Model.EmployeeId</td>
+    </tr>
+    <tr>
+        <td>Name</td>
+        <td>@Model.Name</td>
+    </tr>
+    <tr>
+        <td>Gender</td>
+        <td>@Model.Gender</td>
+    </tr>
+    <tr>
+        <td>City</td>
+        <td>@Model.City</td>
+    </tr>
+</table>
+
+-----------------------------------------------------------------------------
+
+7. Entity Framework-->
+
+--> We will use Database First Migration Approach 
+
+--> In Sample Database, create table-->
+
+create table tblEmployee
+(
+EmployeeId int primary key identity,
+Name nvarchar(20),
+Gender nvarchar(20),
+City nvarchar(20)
+)
+
+----------------------------------------------------------------------------
+
+--> Models can be entities or business objects.
+--> Models gets populated with data from database using entity framework.
+
+Step1: Install entity framework using nuget package manager
+Step2: Add EmployeeContext.cs class file to the Models folder.
+Step3: Add a connection string to the web.config file, in the root directory
+Step4: Map "Employee" model class to the database table tblEmployee using "Table" attribute
+Step5: Make the required changes to "Details()" action method in "EmployeeController"
+Step6: Paste the following code in Applicatoin_Start() function in Global.asax file.Existing databases do not need, database initializer so it can be turned off.
+
+-------------------------------------------------------------------------------
+
+Step1: Install entity framework using nuget package manager
+Step2: Add EmployeeContext.cs class file to the Models folder.
+
+using System.Data.Entity;
+public class EmployeeContext : DbContext 
+    {
+        public DbSet<Employee> Employees { get; set; }
+    }
+
+
+--> place cursor before D in DbContext and press ctrl+(dot) or ctrl+. --> select first option --> automatically import that reference.
+--> The object of this class will be used as reference to talk with database
+--> This object is replacement of model class which to passed to view now.
+--> This class should be ApplicationContext bec. it can have many DataSets object each representing different table and hence different model class
+--> connectionString--> add name as EmployeeContext
+-------------------------------------------------------------------------------
+
+Step3: Add a connection string to the web.config file, in the root directory
+
+<connectionStrings>
+      <add name="EmployeeContext" connectionString="data source=LENOVOLAPTOP; database=mvcdemo; integrated security=SSPI" providerName="System.Data.SqlClient" />
+</connectionStrings>
+
+-------------------------------------------------------------------------------
+
+Step4: Map "Employee" model class to the database table tblEmployee using "Table" attribute
+
+    using System.ComponentModel.DataAnnotations.Schema;
+
+    [Table("tblEmployee")]
+    public class Employee
+    {
+        public int EmployeeId { get; set; }
+        public string Name { get; set; }
+        public string Gender { get; set; }
+        public string City { get; set; }
+    }
+
+--> EntityFramework will look for Employee table in database same as model name( DbSet<Employee> )--> default convention used by entityframework
+--> To change this convention, we use Table Attribute
+
+-------------------------------------------------------------------------------
+
+Step5: Make the required changes to "Details()" action method in "EmployeeController"
+
+public ActionResult Details(int id)
+        {
+            EmployeeContext employeeContext = new EmployeeContext();
+            Employee employee = employeeContext.Employees.Single(emp => emp.EmployeeId == id);
+
+            return View(employee);
+        }
+
+--> Above LINQ query is used --> Single
+
+
+-------------------------------------------------------------------------------
+
+Step6: Paste the following code in Applicatoin_Start() function in Global.asax -->
+
+
+using System.Data.Entity;
+protected void Application_Start()
+        {
+            Database.SetInitializer<MvcApplication2.Models.EmployeeContext>(null);		---> null means we dont want to create database
+            AreaRegistration.RegisterAllAreas();
+
+            WebApiConfig.Register(GlobalConfiguration.Configuration);
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+        }
+
+--> Entity provides two workflows: Database first and CodeFirst
+--> In Database first, we have to make database and then connect to application
+--> In CodeFirst, database is automatically generated.
+
+--> Which workflow we are using, is determined from Database.SetInitializer
+--> In this, we are using DatabaseFirst Approach.
+
+-------------------------------------------------------------------------------
+
+8. Generate hyperlinks using actionLink html helper-->
+
+--> id parameter does not work independently in url, user does need link to click to select particular id.
+
+--> So Employee controller should have index method to list all employees-->
+
+public ActionResult Index()
+        {
+            EmployeeContext employeeContext = new EmployeeContext();
+            List<Employee> employees = employeeContext.Employees.ToList();
+
+            return View(employees);
+        }
+
+--> we have populated Employee model using EmployeeContext class of EntityFramework
+--> And passing List of models to view
+
+----------------------------------------------------------------------------------
+
+--> Razor View Engine for above action method-->
+
+@model IEnumerable<MvcApplication2.Models.Employee>
+@using MvcApplication2.Models
+
+<h2>List of Employess</h2>
+<ul>
+    @foreach (Employee employee in @Model)
+    {
+           <li>@Html.ActionLink(employee.Name, "Details", new { id = employee.EmployeeId})</li>
+    }
+</ul>
+
+--> model is defining only one employee
+--> we are sending list of models so used IEnumberable
+--> ActionLink("Text", "required ActionMethod", "object default")
+--> In this case, object default will be parameter
+
+-------------------------------------------------------------------------------
+--> Creating link of BackToList in details actionMethod Razor view-->
+
+@Html.ActionLink("Back to Page", "Index")
+
+--> Index --> Details  and Details --> Index
+
+--------------------------------------------------------------------------------
+
+9. Working with mulitple Tables-->
+
+--> In Each Page-->
+--> DepartmentList --> EmployeeList in each Dept. --> Each EmployeeDetail
+
+--> Sql Server-->
+
+create table tblDepartment
+(
+Id int primary key identity,
+Name nvarchar(20)
+)
+
+create table tblEmployee2
+(
+EmployeeId int primary key identity,
+Name nvarchar(20),
+Gender nvarchar(6),
+City nvarchar(20),
+DepartmentId int
+)
+
+--> Make FK in tblEmployee DepartmentId column
+
+----------------------------------------------------------------------------
+
+--> make model class Department -->
+
+[Table("tblDepartment")]
+    public class Department
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+--------------------------------------------------------------------
+
+--> Add Department DbSet in EmployeeContext -->
+
+public class EmployeeContext : DbContext 
+    {
+        public DbSet<Employee> Employees { get; set; }
+        public DbSet<Department> Departments { get; set; }
+    }
+
+----------------------------------------------------------------------------
+
+--> make department controller-->
+
+public class DepartmentController : Controller
+    {
+        public ActionResult Index()
+        {
+            EmployeeContext employeeContext = new EmployeeContext();
+            List<Department> departments = employeeContext.Departments.ToList();
+            return View(departments);
+        }
+
+    }
+
+
+--> It will retrieve List of Department Models and pass it to View
+----------------------------------------------------------------------------------
+
+--> Make View for Department Index ActionMethod-->
+
+@model IEnumerable<MvcApplication2.Models.Department>
+
+<h2>List of Departments</h2>
+<ul>
+    @foreach(Department department in @Model)
+    {
+        <li>@Html.ActionLink(department.Name, "Index", "Employee", new { departmentId = department.Id }, null) </li>
+    }
+</ul>
+
+--> This ActionLink will also send parameter for departmentId
+
+--------------------------------------------------------------------------------
+
+--> Make changes in EmployeeController Index ActionMethod to retrieve link along with departmentId-->
+
+public class EmployeeController : Controller{
+
+public ActionResult Index(int departmentId)
+        {
+            EmployeeContext employeeContext = new EmployeeContext();
+            List<Employee> employees = employeeContext.Employees.Where(emp => emp.DepartmentId == departmentId).ToList();
+
+            return View(employees);
+        }
+
+--> Here, Where method is used of LINQ to match parameter and obtaining list of employees for that departmentId and passes to view
+
+-----------------------------------------------------------------------------
+
+--> Some changes in EmployeeController Details ActionMethod in ActionLink to BackToEmployeesList-->
+
+@Html.ActionLink("Back to Page", "Index", new { departmentId = @Model.DepartmentId } )
+
+--------------------------------------------------------------------------------------
+
+--> Adding ActionLink of BackToDepartments in EmployeeController Index ActionMethod-->
+
+@Html.ActionLink("Back To Departments Page", "Index", "Department")
+
+--------------------------------------------------------------------------------------------------
+
+10. Business Models as model-->
+
+--> Entites are mapped to database tables, and object relational mapping tools like Entity Framewrok, nHibernate, etc. are used to retrieve and save data.
+
+--> Business objects contain both state(data) and behaviour, that is logic specific to the business.
+
+----------------------------------------------------------------------------------
+
+--> Business Model can be present anywhere
+--> right click solution --> Add project --> select class Library --> name it BusinessLayer
+
+--> rename Class1 with Employee -->
+
+ 	public int EmployeeId { get; set; }
+        public string Name { get; set; }
+        public string Gender { get; set; }
+        public string City { get; set; }
+
+-----------------------------------------------------------
+
+--> Add class EmployeeBusinessLayer to BusinessLayer-->
+
+public class EmployeeBusinessLayer
+    {
+        public IEnumerable<Employee> employees
+        {
+            get
+            {
+            
+                string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+
+                List<Employee> employees = new List<Employee>();
+
+                using(SqlConnection con = new SqlConnection(CS))
+                {
+                    SqlCommand cmd = new SqlCommand("spGetAllEmployees", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    con.Open();
+
+                    SqlDataReader rdr = cmd.ExecuteReader();
+                    while(rdr.Read())
+                    {
+                            Employee employee = new Employee();
+                            employee.EmployeeId = Convert.ToInt32(rdr["EmployeeId"]);
+                            employee.Name = rdr["Name"].ToString();
+                            employee.Gender = rdr["Gender"].ToString();
+                            employee.City = rdr["City"].ToString();
+                            employees.Add(employee);
+                    }
+                }
+                return employees;
+            }
+        }
+    }
+
+--> There are no references of System.Configuration in ClassLibrary so,
+--> right click references in businessLayer --> add reference --> find System.Configuration
+
+-----------------------------------------------------------------------------
+
+--> Sql server
+
+--> Make table tblEmployee with EmployeeId, Name, Gender, City
+--> Make sp as below-->
+
+create proc spGetAllEmployees
+as
+begin
+	select EmployeeId, Name, Gender, City
+	from tblEmployee
+end
+
+----------------------------------------------------------------------------------
+
+--> There is no reference of businessLayer in this project
+
+--> right click reference in mvcApplication project
+--> add reference --> find BusinessLayer in project tab
+
+--> Now in MvcApplication, make controller for Employee-->
+
+using BusinessLayer;
+
+namespace MvcApplication2.Controllers
+{
+    public class EmployeeController : Controller
+    {
+        public ActionResult Index()
+        {
+            EmployeeBusinessLayer employeeBusinessLayer = new EmployeeBusinessLayer();
+            List<Employee> employees = employeeBusinessLayer.employees.ToList();
+            return View(employees);
+        }
+   }
+}
+
+---------------------------------------------------------------------------------
+
+--> Make view  -->
+
+--> right click action method
+--> Add view
+--> Select strongly typed --> select businessLayer in model(don't forget to recompile before)
+--> select scaffold template as List instead of empty
+
+--> Run the application
+--> localhost:12345/employee/index
+
+-------------------------------------------------------------------------
+
+11. 

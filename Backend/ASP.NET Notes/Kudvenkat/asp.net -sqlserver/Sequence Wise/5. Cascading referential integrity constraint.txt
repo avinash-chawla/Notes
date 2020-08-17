@@ -1,0 +1,47 @@
+1. What is Cascading referential integrity constraint
+
+--> Cascading referential integrity constraint allows to define the actions Microsoft SQL Server should take when a user attempts to delete or update a key to which an existing foreign keys points.
+
+--> This happens in FK constraint
+--> When one column data is coupled with other table column and when we try to delete data then all its FK references will be affected
+--> How will they get affected is decided by this CRI constraint
+
+--> By default, we get an error and the DELETE or UPDATE statement is rolled back.
+
+-------------------------------------------------------------------------------
+
+2. Options in Cascading referential integrity constraint
+
+1. No Action
+2. Cascade
+3. Set Null
+4. Set Default
+
+-------------------------------------------------------------------------------
+
+3. No Action option
+
+--> This is the default behaviour. 
+--> No Action specifies that if an attempt is made to delete or update a row with a key referenced by foreign keys in existing rows in other tables, an error is raised and the DELETE or UPDATE is rolled back.
+
+-------------------------------------------------------------------------------
+
+4. Cascade Option
+
+--> Specifies that if an attempt is made to delete or update a row with a key referenced by foreign keys in existing rows in other tables, all rows containing those foreign keys are also deleted or updated.
+
+-------------------------------------------------------------------------------
+
+5. Set NULL
+
+--> Specifies that if an attempt is made to delete or update a row with a key referenced by foreign keys in existing rows in other tables, all rows containing those foreign keys are set to NULL.  
+
+-------------------------------------------------------------------------------
+
+6. Set Default
+
+--> Specifies that if an attempt is made to delete or update a row with a key referenced by foreign keys in existing rows in other tables, all rows containing those foreign keys are set to default values.
+
+--> If you don't have default constraint - you will get an error
+
+-------------------------------------------------------------------------------

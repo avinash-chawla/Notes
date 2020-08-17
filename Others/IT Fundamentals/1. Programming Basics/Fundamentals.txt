@@ -1,0 +1,81 @@
+1. Fundamentals
+
+--> Computers work using programs.
+--> Programs are sequence of instructions.
+--> Programming is solving a problem with steps of instructions.
+
+------------------------------------------------------------------------------
+
+2. Iterative Tasks
+
+--> Repetitive tasks can be handled better by using Loops.
+--> Loops can have fixed number of repetitions.
+--> Loops can have conditional number of repetitions(until a condition is met).
+
+------------------------------------------------------------------------------
+
+3. Variable
+
+--> They are memory boxes with labels
+--> Computers use them to store and remember stuff
+--> They can change their values
+
+------------------------------------------------------------------------------
+
+4. Decisions
+
+--> Computers can't decide for themselves.
+--> We help the computers decide by creating conditions based on situations.
+--> These conditions make the programs seem intelligent.
+--> Programs with conditions help computers perform the right actions in the right situations.
+
+------------------------------------------------------------------------------
+
+5. Lists
+
+--> Lists are used to store a set of related values.
+--> Items of the list can be sorted, rearranged, replaced and removed.
+--> You can perform tasks on each item of the list together at once.
+
+------------------------------------------------------------------------------
+
+6. Functions and Procedures
+
+--> Group of similar instructions are written together and stored as procedures or functions.
+--> Procedures and functions are used to make the programs reusable and shorter.
+--> Functions can display the result while procedures can only carry out the tasks.
+
+------------------------------------------------------------------------------
+
+7. Avoiding Mistakes
+
+--> Mistakes in programs are called bugs.
+--> Debugging is the process of finding bugs in a program.
+--> Bugs are usually logic or syntax based.
+--> Bugs can be avoided by commenting, using proper names and testing the program.
+
+------------------------------------------------------------------------------
+
+8. Programming Language
+
+--> Programming Language is a communication aid between you and the computer.
+--> Compiler converts the programming language into 0s and 1s which computer understands.
+--> Source code is the instructions written in a programming language.
+--> A variety of programming languages are used for various purposes.
+
+------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

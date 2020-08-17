@@ -1,0 +1,51 @@
+1. Strongly Typed View
+
+--> The preferred approach to pass data from a controller to a view is by using a strongly typed view.
+
+--> Controller Class
+
+public ViewResult Details()
+{
+    Employee model = _employeeRepository.GetEmployee(1);
+    ViewBag.PageTitle = "Employee Details";
+    return View(model);
+}
+
+---------------------------------------------------------------------------------
+
+2. Accessing this model in View file
+
+--> @model directive is used for telling type of object
+--> @Model property is used to access object 
+
+---------------------------------------------------------------------------------
+
+
+@model EmployeeManagement.Models.Employee
+
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <h3>@ViewBag.PageTitle</h3>
+
+    <div>
+        Name : @Model.Name
+    </div>
+    <div>
+        Email : @Model.Email
+    </div>
+    <div>
+        Department : @Model.Department
+    </div>
+</body>
+</html>
+
+---------------------------------------------------------------------------------
+
+3. Strongly Typed View Benefits
+
+--> A strongly typed view provides compile-time type checking and intellisense.
+
+---------------------------------------------------------------------------------

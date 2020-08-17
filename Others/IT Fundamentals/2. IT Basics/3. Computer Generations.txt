@@ -1,0 +1,33 @@
+7. Computer Generations
+
+First Generation: Vacuum Tubes
+
+--> The first computers were built around 1946 and were huge!
+--> This is because they used Vacuum Tubes.
+--> Vacuum tubes were glass tubes with the air removed, creating a vacuum. They contained electrodes and were used as a switch or amplifier.
+--> Vacuum tubes produced a lot of heat and took up a lot of space. So first generation computers were expensive to maintain and slow, compared to those models that evolved later.
+
+---------------------------------------------------------------------------------
+
+Second Generation: Transistors
+
+--> The second generation began in 1959 with the use of transistors instead of vacuum tubes. 
+--> This made them cheaper, consume less power, more compact in size and more reliable.
+
+---------------------------------------------------------------------------------
+
+Third Generation : Integrated Circuits
+
+--> In 1965, the third generation of computers began with integrated circuits built into them. This made computers drastically more compact in size, as well as more reliable and efficient.
+--> For the first time, users could interact with the computer using a keyboard and a monitor! This was amazing progress!
+
+---------------------------------------------------------------------------------
+
+Fourth & Fifth Generations: 
+
+--> Very Large Scale Integrated Circuits (VLSI) & Ultra Large Scale Integration (ULSI)
+--> From 1971 onwards, computers began to look like the desktop version we all know and recognize.
+--> The major changes that have happened since then have been increased processing speed and the reduced size of the machines.
+--> Thus today, we have a mobile phone, which is much more powerful than our average laptops or desktops.
+
+---------------------------------------------------------------------------------

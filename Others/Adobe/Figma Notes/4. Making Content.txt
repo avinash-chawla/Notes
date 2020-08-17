@@ -1,0 +1,254 @@
+1. Working with Frames-->
+
+--> Select IPhone8 Frame
+
+--> To duplicate
+--> hold Alt + drag
+
+--> If have any content in artboard/layer
+--> drag with name
+
+--> To align horizontally equally spaced
+--> Use align options
+
+--> Layout Grid
+--> Select All
+--> Columns
+--> Count = 6, width=auto, Gutter=10, Type=Strtch, Margin=20, Color=ff0000, opacity=5%
+--> If only one layer is selected, it is not possible to copy Layout Grid
+--> Make sure all layers selected
+--> To create more contrast between background and layer, change background color
+--> Give each layer a different Name: Splash, home, recipe-details, recipt-details-complete, menu
+
+-----------------------------------------------------
+
+2. Working with Shapes-->
+
+--> Making Splash Layer
+
+--> Image Background
+--> Select Rectangle and draw over splash layer
+--> Fill: Default Red Color
+--> Fill2: Image 
+--> Make Image Fill downward
+--> Make Red Fill Opacity 90%
+
+--> To round corner of only one corner
+--> Hold down Alt key and drag round corner dot
+
+--> Make Chef's Hat
+--> Draw Three circles side by side with some intersection
+--> Make middle circle 20px up --> shift + uparrow key (2 times)
+--> Align them Horizontally
+--> Group them (ctrl + g)
+--> Make Rectangle below them to make like chef hat
+--> Align them
+--> All ungroup them
+--> Give some corner radius-7
+--> Union Selection
+--> Add only Stroke-7 (white)
+
+--> Draw two lines below hat
+--> copy and paste styles from hat
+--> Make rounded corners
+
+--> Group them
+
+-----------------------------------------------------
+
+--> Making Home Layer
+
+--> Draw hamburger icon
+--> Make 3 rectangle (40x6) of different width and align left
+--> Make them one side rounded corner
+--> This option is displayed on design panel below w and h
+--> Make them group to give same fill all at a time
+
+--> Making Search Icon
+--> Make Circle with only stroke
+--> Make handle to it
+
+--> For Precise Setting
+--> Select handle 
+--> hold ctrl key + keyboard arrow key
+--> This will inc. or dec. height and width
+or
+--> use only arrow key
+--> this is position precisely
+
+--> Always do this 3 things
+1. Rounded corners
+2. Union Selection
+3. Group them
+
+--> Draw heart icon
+--> Make rectangle with 10x15
+--> Make one side full rounded
+--> Duplicate it
+--> Rotate it by 90
+--> Join them to look like heart
+--> Rotate whole by 45 deg
+
+--> To set precisely this heart
+--> Place at corner
+--> shift + left arrow key
+--> shift + down arrow key
+--> so precisely 10 pixel from boundary
+
+--> To see the position of object
+--> Select object
+--> hold down alt key
+
+--> Scaling Object
+--> Always use Scale tool to scale
+--> Using move tool or setting w and h by maintaining ratio won't scale rounded corners
+
+--> Making Star
+--> There are 3 options- corner radius, count, ratio (for sharp radius)
+--> Duplicate them
+--> In last star, we have make half filled star
+--> Use Subtract selection with rectangle
+
+-----------------------------------------------------
+
+3. Drawing Icons-->
+
+--> We will use Pen tool
+--> Draw Shopping Bag with round handle
+
+--> Click + drag will make curve line
+
+--> Change only one direction of node point
+--> Hold down alt key and then change
+
+--> Paint Bucket Tool
+--> It will specific section of curve
+--> While normal Fill will fill whole all sections of curve
+
+--> To give rounded corners to curve
+--> Select node points holding shift and mouse click
+--> From design panel, give corner radius
+
+--> To break symmety between drag handles in pen tool
+--> Hold down alt key and drag handle to preview upcoming shape
+--> This happens when you draw first curve, it will symmetrical handle, so not able to preview next curve shape
+
+--> Modifying node points and its magnitude and directions
+--> Use Move tool
+
+--> Align Node points
+--> Select Node points and use align options
+
+-----------------------------------------------------
+
+4. Drawing Shapes using Pencil Tool-->
+
+--> Draw Your Name Text using Pencil Tool
+--> Select Move tool
+--> Select bunch of node points
+--> Vector menu --> Delete and heal selection
+
+--> Devices for using Pencil tool more precisely
+--> iPad Pro + Apple Pencil
+--> Astropad App (https://astropad.com)
+
+-----------------------------------------------------
+
+5. Working with Text-->
+
+--> AutoExpand box of Text
+--> From 3 dots, choose AutoResize as Height
+
+--> To make all Text lighter at same time
+--> Edit menu --> Click on Select all with same style
+
+-----------------------------------------------------
+
+6. Masking Images and Shapes-->
+
+--> Without Masking
+--> Place image inside Shape directly
+--> But this does not give masking options to adjust image portion inside shape
+
+--> Masking
+--> Select both image and shape
+--> click on Mask in objects menu
+--> Now you can scale image and adjust image
+
+--> Another way of masking
+--> Place an image directly into shape
+--> In fill options, select Crop instead of normal
+--> Now you can scale image and adjust image
+
+-----------------------------------------------------
+
+7. Importing Icons-->
+
+--> Importing png files is not good
+--> Because it is rasterize image which is in pixels not in vector
+
+--> Open icon in adobe illustrator 
+--> Drag and drop from it
+--> Ungroup it
+
+--> To change color of png
+--> use Blending modes by placing color below
+
+--> Or use svg file
+
+-----------------------------------------------------
+
+8. Working with Color-->
+
+--> To change all same color at one time
+--> edit menu --> Select all with same Fill
+--> And then change fill
+
+--> To choose color from image
+--> use eye dropper
+
+-----------------------------------------------------
+
+9. Working with Styles-->
+
+--> Blured white background
+--> Draw Rectangle over Layer
+--> Fill with white 
+--> Effects --> Blur Background
+--> Reduce the opacity of fill rectangle
+
+--> Drop Shadow
+--> It looks like windows pop up
+--> Make two drop shadows
+--> Blur: 4, x:0, y:4, opacity: 25%
+--> Blur: 20, x:0, y:4, opacity: 10%
+
+--> Another good way
+--> Draw small rectangle for bottom shadow
+--> Give Black fill and give 30% opacity
+--> Under Effects, give Layer Blur and value of blur: 30 or more
+--> Adjust Blending Modes
+
+-----------------------------------------------------
+
+10. Setting up components-->
+
+-----------------------------------------------------
+
+11. Using Constraints for Responsive Design-->
+
+--> It is for Responsive Web Design
+
+--> First Constraint is while resizing Horizontal
+--> Second constraint is while resizing Vertical
+
+--> Hamburger should be on left top corner
+--> Search should be on right top corner
+--> Title should be in top and Center corner
+
+--> Frame under Frame
+--> It will prevent distance changing between Texts while resizing
+--> Group will not prevent
+
+--> 
+

@@ -1,0 +1,344 @@
+1. Intro-->
+
+--> File --> New --> Print tab --> Specify Dimensions
+--> Normally inches dimension is used
+
+--> To Resize the current Document again
+--> Click on Artboard from toolbox, select dimension.
+
+-------------------------------------------------------
+
+--> Black Arrow is used for selection
+--> White Arrow is used for expansion (blue dot)
+
+--> Zoom tool --> Alt + Mouse Scroll
+
+--> Undo and Redo from Edit menu
+
+--> Hand tool --> Spacebar + Mouse Left click
+
+--> Artboard --> Page of document
+--> Select it --> Draw rectangle in workspace and specify dimensions.
+--> One document can consist more than one Page using Artboard.
+
+-------------------------------------------------------
+
+--> Group --> It groups multiple elements
+--> Select all elements using shift and mouse click
+--> Object menu --> Group (ctrl + G)
+--> Now you can whole with move tool
+
+--> Isolation Mode
+--> Double click with move tool to Grouped element
+--> Now you can edit it individual inside group and else other part becomes grayed out.
+
+--> To exit from isolation mode, double click anywhere or click on Layer above blue line
+
+------------------------------------------------------------------
+
+2. Drawing with the shapes and Line Tools-->
+
+--> Select Letter Size document
+--> Click on File menu --> Place (import option) 
+--> Select Sleeping Fox.jpg file
+--> Tick Template
+--> click ok
+
+--> Template makes extra layer on top of image file where we can draw different shapes and also locks image file
+
+------------------------------------------------------
+
+--> Unlock image file --> Drag it to middle
+--> Lock it
+--> Select Layer which was created.
+
+1. Rectangle -->
+
+--> Select Rectangle Tool
+--> Select Stroke
+
+--> Draw Rectangle over Fox body
+--> For Corner Radius, if we use moov tool, it make all corners round
+--> For specific corners, select white arrow tool, make one or more point blue by holding shift, and round the corner.
+
+-----------------------------------------------------------
+
+2. Triangle-->
+
+--> Choose Polygon under rectangle tool
+--> click once, specify sides
+--> Draw it
+--> Give Fill and Stroke
+--> Make corner round if needed
+--> To see face, make stroke and fill empty for now.
+
+-----------------------------------------------------------
+
+3. Transform
+
+--> With height and width ratio fixed
+--> Hold shift key to transform and rotate
+
+-----------------------------------------------------------
+
+4. Anchor-->
+
+--> While moving shapes/elements, choose corner/anchor points to move
+--> It will intersect easily with other elements
+
+-----------------------------------------------------------
+
+5. Line tool				--> For beard hair 
+6. Arc tool place under Line tool 	--> For Sleeping eyes
+7. Star tool under Rectangle tool
+
+--> To Select Element with only Stroke with move tool, select it with clicking on edge.
+
+--> Some Elements are forward of other elements, to send it backward
+1st way--> click element --> Arrange on right side --> SendToBack
+2nd way--> right click element --> Same
+
+--> Not Send Backward
+
+---------------------------------------------------
+
+--> copy and paste --> ctrl+c and ctrl+v
+--> Can Drag elements for simplicity
+
+--> Scaling whole layer
+--> Select whole layer using Move Tool
+--> Make sure Scale Srokes and Effects is selected under Preferences
+
+--> Similarly, draw Sky and Ground
+
+---------------------------------------------------
+
+3. Improve your designs with Shape Builder Tool-->
+
+--> It combines more than two elements by removing common border and displaying outer border
+--> Select All Elements with Move tool
+--> Select Shape Builder Tool
+--> Drag from between elements.
+
+-----------------------------------------------------------------
+
+--> Hold Alt key for minusing Elements
+--> Just drag through borders
+
+------------------------------------------------------
+
+--> It also colourises elements with one click
+--> Select Fill using Shape Builder Tool
+--> Select Between any element
+
+--> Now can seperate this shapes using move tool
+
+----------------------------------------------------
+
+--> It means Shape Builder Tool can be used to give color to any section in an element
+--> Like in intersection of two circles, between them
+
+--> Likewise we can draw section for shadow and fill color in that.
+
+-----------------------------------------------------------------
+
+4. Draw a Modern Fox with the Shape Builder--> 
+
+--> Create New document
+--> Place Modern Fox image with Template ticked
+--> Use Shape Builder to draw such image
+
+--> Remember first select elements using move tool, then use Shape Builder
+
+--> This modern is build using all such tools like Triangle, Circle --> and doing copy paste for similar objects 
+--> and adding and cutting with Shape Builder
+
+--> To perfectly align, use keyboard arrow keys
+
+
+--> Notes of using Shape builder-->
+
+1. Fill: null , only stroke
+2. Make smaller as efficient
+3. Inside unneccessary shapes --> Join them
+4. Outside unncessary shapes  --> Subtract them
+
+--> After getting shapes, fill with color and remove all strokes
+
+-----------------------------------------------------
+
+5. Draw a Impossible 3D Triangle Shape-->
+
+--> Draw horizontal line using Shift key
+--> Make 2 such copies (copy and paste)
+--> Make them parallel using Align property by selecting all three.
+--> Both horizontally and verically
+
+----------------------------------------------
+
+--> Make copy of above 3, one at 120 deg and other at 240 deg from properties
+
+--> Intersect them
+--> Join 3rd line with 3rd line counting from inside with line tool
+--> Cut the outer sections using Shape builder tool
+
+--> Join 3 different Outer section with middle section 
+--> Join remaining lines with besides section.
+--> Now color them.
+
+--------------------------------------------------------------
+
+6. Draw with the Curvature Tool - Ninjas, Crowns, Owls -->
+
+--> Select new document (letter size)
+--> Place Image with Template ticked
+
+--> Make fill: null, only stroke
+--> Select Curvature tool
+--> Draw it
+--> After drawing, adjust with anchor points and vectors using white move tool
+
+
+--> Use less points as possible
+--> Click unneccessary anchor points and click delete button.--> You can add more anchor points using curvature tool, just click anywhere in line, anchor point will made.
+
+
+
+----------------------------------------------------------
+
+--> For Straight lines-->
+
+--> double click point of curvature tool, now it will draw continuous straight line after each double click
+
+---------------------------------------------------------------
+
+--> In converting from curve to line or line to curve-->
+
+--> Select half line (by double clicking) and then half curve
+--> Or try Double click or single click
+
+------------------------------------------------------------
+
+7. Draw with the Pen Tool-->
+
+--> Pen tool works different than Curvature tool
+--> Click and drag is the main principle
+--> If clicked only, then it will set corner line instead of curved line.
+--> hard to master
+
+--> Tips: Always create anchor point at center of curvature
+--> Tips: Use White Move tool for readjustments (anchor points and vector length and direction.
+--> Tips: At end point, also drag mouse for completion curve.
+
+
+--> To convert from curve to sharp corner-->
+--> Use curve only using pen tool
+--> Now select anchor point tool, select that anchor point where need sharp corner, but curve is made
+
+----------------------------------------------------------------
+
+8. How to use Pencil Tool and Advanced Stroke Options-->
+
+--> Create New Document (Letter size)
+--> Place Image (without template) 
+--> Because we dont want to reduce opacity of image
+
+
+--> Create New Layer on above of image, name it Drawing
+--> Lock the Image layer
+
+
+--> Select Drawing Layer
+--> Select Pencil tool under Sharper Tool
+
+
+--> Select Fill: None, White Stroke
+--> Now we need to modify pencil properties bec. it is hard to use
+
+--> Double click Pencil
+--> Maximize Smoothness
+--> It smoothens hand-drawn 
+--> Uncheck Keep selected ( it prevents replacing of pencil with new one)
+
+
+
+-->  Draw Pineapple Flames on back of bicycle
+--> Select All and in properties
+--> Click Stroke word
+--> It will display extra options
+--> weight = size (6pt)
+--> cap = rounded, flat
+--> corner = intersection of two pencil
+--> Profiles = different styles for strokes
+
+
+
+--> Putting Arrow Symbol at end of line pencil
+--> this option is availble in Strokes --> Arrowheads
+--> Make two half rounds around paddle and Select Both
+--> While scaling, such arrows are scaling with bigger propertion
+--> We can reduce that proportion by 'scale' available in Strokes
+
+
+
+--> Dashed Line around Person
+--> Using Pencil tool, make border with pencil tool around person and Select with Move tool
+--> In Strokes, check Dashed Line
+--> Make caps as rounded
+--> Make length select for dashed and its gap
+
+
+--> Dotted Line 
+--> Using Pencil tool, make curvy lines after handle
+--> In Strokes, choose Rounded Caps 
+--> And Dash: 0pt and gap: 12pt and tick mark Dashed Line
+
+----------------------------------------------------------------
+
+9. Using Brushes In Illustrator-->
+
+--> Draw Wings with Pencil tool around Person
+--> Make one wing at a time, not continuous one
+--> Select with Move tool
+
+--> Windows tab --> Brush Libraries --> Vector Packs --> Select first
+--> Try different options and try different strokes(mostly smaller in case of brush styles - 0.25)
+
+--> Make star using Normal brush
+--> To get normal brush, in properties, under brush styles, select first dot one
+--> Select all
+--> Apply brush style
+--> Fill color with Shape Builder
+--> Make sure all pencil lines are intersecting properly to fill color
+
+--> Shape builder accepts if there is small gaps
+--> Can seen in properties by double clicking to Shape builder
+
+--> Howto get ideas for custom design using Pencil
+--> Choose themes
+
+1. Holidays (Sun)
+2. Fort (Princess)
+3. Money symbols (Rich)
+4. 
+Horror
+
+
+----------------------------------------------------
+
+10. Using the Width Tool-->
+
+--> Draw some desings with Pencil Tool
+--> Like Leaves, & symbol
+
+--> Select Width Tool
+--> Click and Drag at any point on line
+--> Gives nice style
+
+--> In & symbol
+--> Make first use of Width Tool (common width throughout except at end)
+--> To again use of width tool at specific place, click and drag the middle line point where you want the bigger width.
+
+--> To drag only one side, hold alt key and then drag one line of width which is perpendicular to main line.
+
+--------------------------------------------------------------------

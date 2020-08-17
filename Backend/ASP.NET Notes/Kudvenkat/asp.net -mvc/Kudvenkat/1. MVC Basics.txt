@@ -1,0 +1,262 @@
+1. Know which mvc version is using your application-->
+
+--> solution explorer 
+--> references 
+--> system.web.mvc 
+--> right click 
+--> properties 
+--> version
+
+
+--> To know version of .Net Framework
+--> Right click Project Name --> Properties --> Application
+
+-----------------------------------------------------------------------------------------------------------------------
+
+2. Creating first mvc application-->
+
+--> We will use asp.net framework 4.0 and mvc template
+--> There are two view engines in asp.net - aspx and razor
+--> Razor view gives feature of template engine for looping over tags, if block statements(decision blocks)
+
+---------------------------------------------------------------------------------------------------------------
+
+3. Creating Controller-->
+
+--> The main object of controller is take data from model class and send to view
+--> The other object is it also takes request parameter and filters model data
+
+--> Make new controller --> name it HomeController
+
+public class HomeController : Controller
+    {
+        public string Index()
+        {
+            return "Hello from mvc application";
+        }
+    }
+
+--> Every method under controller class is called action method
+--> Url follows pattern like {controller}/{actionMethod}
+--> localhost:5000/movies/add
+--> localhost:5000/movies/edit
+--> localhost:5000/movies/delete
+--> localhost:5000/movies/:id
+
+----------------------------------------------------
+
+--> Basic Difference between mvc and non-mvc applications-->
+
+In MVC, URLs are mapped to controller Action Methods
+In WebForms, URLs are mapped to Physical Files
+
+http://localhost:5000/Home/Index		----->  /Controller/Action
+http://localhost:5000/WebForm1.aspx
+
+-----------------------------------------------------
+
+--> Request Parameters
+
+--> Passing Request parameters to controller action methods
+--> Request Parameters are like id, sortBy, page (additional request to arrange data)
+
+--> url : http://localhost:5000/home/Index/3?name=Avinash
+
+public string Index(string id, string name)				--> name is passed as queryString in url, not as parameter
+{
+	return "Id: "+id+ " and Name: " + name;
+}
+
+or
+
+public string Index(string id)
+{
+	return "Id: "+ id + " and Name: " + Request.QueryString["name"];
+}
+
+
+--> How are the URLs mapped to Controller Action Method?
+--> In global.asax, application start is calling RouteConfig file and RegisterRoutes method.
+
+
+----------------------------------------------------------------------------------
+
+--> routes.IgnoreRoute meaning-->
+
+--> In RouteConfig.cs in App_Start folder contains RegisterRoutes method
+--> In that, first line is routes.IgnoreRoute
+--> It means that this method is allowing to request any axd file from request url in browser, not following pattern of controller/action/parameter
+
+--> It only means do url pattern as controller/action/parameter except for axd file
+--> Bec. There is no controller for axd file.
+
+-------------------------------------------------------------------------------------
+--> demo of IgnoreRoute Property
+
+--> Make tracing enabled in application-->
+--> code in web.config file-->
+
+<system.web>
+	<trace enabled="true" pageOutput="false"/>
+
+--> http:localhost/MVCDemo/trace.axd    --> run it 
+--> Now this will run in browser
+
+--> Now comment that IgnoreRoutes line in RegisterRoutes
+--> Run again that url --> show error --> not able to find controller for that.
+
+----------------------------------------------------------------------------------
+
+4. View-->
+
+public List<string> Index()
+        {
+            return new List<string>() 
+            { 
+                 "India", "UK", "Spain", "Italy"
+            };
+        }
+
+--> output: System.Collections.Generic.List`1[System.String]
+
+--------------------------------------------------------------------------------------
+
+public ActionResult Index()
+{
+     ViewBag.Countries =  new List<string>() 
+     { 
+           "India", "UK", "Spain", "Italy"
+     };
+     return View();
+}
+
+-------------------------------------------------------
+
+Index.cshtml-->
+
+<h2>Countries List</h2>
+<ul>
+    @foreach (string country in ViewBag.Countries)
+    {
+        <li>@country</li>
+    }
+</ul>
+
+--> output: 
+
+Countries List
+India
+UK
+Spain
+Italy
+
+-------------------------------------------------------------------------------
+
+5. ViewBag and ViewData-->
+
+--> They pass data from controller to View
+
+--> ViewData is dictionary of objects that are stored and retrieved using strings as keys
+ViewData["YourKey"] = "SomeData";
+
+---------------------------------------------------------------
+
+--> ViewBag uses the dynamic feature. It allows an object to have properties dynamically added to it.
+ViewBag.YourProperty = "SomeData";
+
+--> ViewBag properties internally stored as name/value pairs in the ViewData dictionary.
+
+--> Disadvantage --> Both does not provide compile time error checking if miss-spelled
+--> Solution: Use Strongly typed view models over ViewBag and ViewData bec. it provides compile time error checking.
+
+----------------------------------------------------------------------------------
+
+--> demo-->
+
+ViewData["CountriesList"] =  new List<string>() 
+     { 
+           "India", "UK", "Spain", "Italy"
+     };
+     return View();
+
+-----------------------------------------------------------------------
+
+<h2>Countries List</h2>
+<ul>
+    @foreach (string country in (List<string>ViewData["CountriesList"]);
+    {
+        <li>@country</li>
+    }
+</ul>
+
+-----------------------------------------------------------------------
+
+6. Model-->
+
+--> Models are application data
+
+--> creating model-->
+
+public class Employee
+    {
+        public int EmployeeId { get; set; }
+        public string Name { get; set; }
+        public string Gender { get; set; }
+        public string City { get; set; }
+    }
+
+---------------------------------------------------------------
+
+--> creating controller-->
+
+public class EmployeeController : Controller
+    {
+        public ActionResult Details()
+        {
+            Employee employee = new Employee()
+            {
+                EmployeeId = 1,
+                Name = "Homeo",
+                Gender = "Male",
+                City = "London"
+            };
+
+            return View(employee);
+        }
+
+    }
+
+--> build the solution
+--> right click anywhere in action method
+--> add view
+--> select strongly typed reference, select Employee model
+--> add
+
+--> without building solution, model name is not displayed in strongly typed reference
+
+--------------------------------------------------------------
+
+--> creating view-->
+
+@model MvcApplications2.Models.Employee
+
+<table style="font-family: Arial" border="1">
+    <tr>
+        <td>EmploeeId</td>
+        <td>@Model.EmployeeId</td>
+    </tr>
+    <tr>
+        <td>Name</td>
+        <td>@Model.Name</td>
+    </tr>
+    <tr>
+        <td>Gender</td>
+        <td>@Model.Gender</td>
+    </tr>
+    <tr>
+        <td>City</td>
+        <td>@Model.City</td>
+    </tr>
+</table>
+
+-----------------------------------------------------------------------------

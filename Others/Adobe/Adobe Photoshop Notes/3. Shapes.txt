@@ -1,0 +1,71 @@
+1. Creating a specified sized document-->
+
+--> Image tab--> Canvas Size --> Select Size
+--> Another way 
+--> In starting of project 
+--> select custom size 
+--> arts and illustrator 
+--> Post card
+
+----------------------------------------------------------------
+
+2. Creating Shapes-->
+
+--> Select PostCard Canvas and select shoes image.
+
+1. Rectangle
+--> Select Rectangle from tools
+--> From Properties--> Fill, stroke, corner-radius
+
+2. Circle
+--> Select Ellipse
+--> Draw holding shift key to create circle
+
+--> To change any property
+--> Select that rectangle or polygon from tools, change it there, in last created shape.
+--> All such shapes are vector dependent, not pixel dependent
+
+3. Star
+--> Select Polygon
+--> Sides = 5
+--> Click Setting icon = Indent Sides By
+--> Select Star in there also
+
+--> Create different shapes by changing indent sides and sides
+1. IS=80%, sides=5
+2. IS=15%, sides=100
+
+4. Create another star inside star
+--> Duplicate Layer of start
+--> To Make center point of both same and size different
+--> Shift + Alt key in transform scale
+--> It resizes it from center
+--> don't change color, reduce opacity to create match with background.
+
+----------------------------------------------------------------
+
+3. Stealing Colors and Adobe Themes-->
+
+--> Go to Windows tab
+--> Extensions
+--> Adobe Themes
+
+--> Explore
+--> Choose any template and click three dot options
+--> Add to swatches
+
+--> Go to properties of circle (logo circle here)
+--> Those colors will be present in default colors
+
+--> Such addition  of colors is useful in design of logos of specific color.
+
+-------------------------------------------------------
+
+--> Stealing colors-->
+
+--> Select Particular layer where you want to add color
+--> Under Properties --> click color --> select first row, last column icon
+
+--> This will create a color picker, pick any color from image and click okay.
+--> Now color of that selected layer is changed.
+

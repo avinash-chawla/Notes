@@ -1,0 +1,291 @@
+1. Create new Project
+
+--> File --> New --> Java Project
+--> Name it: springEdurekaDemo
+
+----------------------------------------------------------------------------------
+
+2. Create new Java File
+
+--> Right click Project
+--> New --> Java class
+--> Name it: Employee
+--> Also give packagename --> co.edureka
+
+public class Employee {
+	int eid;
+	String ename;
+	int esalary;
+}
+
+--> Generete Constructor, getters and setters, toString() method
+--> Right click in codeblock --> Source 
+--> Generate constructor from fields
+--> Generate getters and setters
+--> Genreate toString() method
+
+----------------------------------------------------------------------------------
+
+3. Create main method
+
+--> Create new class including main method --> Client.java
+--> Tightly coupled way:
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		Employee e = new Employee();
+		e.setEid(1);
+		e.setEname("John");
+		e.setEsalary(20000);
+		
+		System.out.println(e);
+	}
+
+--> We are tightly coupled here.
+
+----------------------------------------------------------------------------------
+
+4. Loosely coupled way
+
+--> Inversion of Control (IOC)
+1. Add Jar Files for Spring Core
+2. Configure Java Object in an xml file
+3. Use Spring IOC Container, eg. BeanFactory or ApplicationContext
+
+----------------------------------------------------------------------------------
+
+5. Download Spring Jar Files and include them in Java project
+
+--> Head over to: https://repo.spring.io/release/org/springframework/spring/
+--> Download Jar files from this url
+--> Make new folder in project --> lib
+--> Paste all jar files in this folder
+
+--> To include them in our project
+--> Right click Project
+--> Build --> Configure Build path
+--> Add Jar files --> Select all such files and Apply
+
+----------------------------------------------------------------------------------
+
+6. Configure Java Object in an xml file
+
+--> Make new xml file --> employeebean.xml
+--> Make sure to have this file in src folder and not in package folder.
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/context/spring-util.xsd"> 
+
+
+   <bean id="emp1" class="co.edureka.Employee"> 
+   	<property name="eid" value="101"/>
+	<property name="ename" value="Jennie"/>
+	<property name="esalary" value="50000"/>
+   </bean>
+   
+   <bean id="emp2" class="co.edureka.Employee"> 
+   	<property name="eid" value="102"/>
+	<property name="ename" value="Jack"/>
+	<property name="esalary" value="46000"/>
+   </bean>
+
+</beans>
+
+----------------------------------------------------------------------------------
+
+7. Use Spring IOC Container, eg. BeanFactory or ApplicationContext
+
+--> In Main method in Client.java,
+--> We will create container which will get object from xml file
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class Client {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		Employee e = new Employee();
+		e.setEid(1);
+		e.setEname("John");
+		e.setEsalary(20000);
+		
+		//System.out.println(e);
+		
+		ApplicationContext context = new ClassPathXmlApplicationContext("employeebean.xml");
+		Employee e1 = (Employee)context.getBean("emp1");
+		Employee e2 = context.getBean("emp2", Employee.class);
+		
+		System.out.println(e1);
+		System.out.println(e2);
+	}
+}
+
+--> xml file is not part of source code
+--> So it is not converted to java byte and to jvm to execute this code
+--> It is spring framework Ioc container that is providing object at runtime from xml file.
+ 
+----------------------------------------------------------------------------------
+
+8. Using Bean Factory method
+
+--> Ioc container can be created using BeanFactory method.
+
+public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		Employee e = new Employee();
+		e.setEid(1);
+		e.setEname("John");
+		e.setEsalary(20000);
+		
+		System.out.println(e);
+		
+		Resource resource = new ClassPathResource("employeebean.xml");
+		BeanFactory factory = new XmlBeanFactory(resource);
+		Employee e1 = (Employee)factory.getBean("emp1");
+		Employee e2 = factory.getBean("emp2", Employee.class);
+		
+		System.out.println(e1);
+		System.out.println(e2);
+	}
+
+--> The Spring Ioc Container by using POJO classes and configuration metadata produces a fully configured and executable system or application.
+
+--> Bean Factory 
+--> It is the simplest container providing the basic support for DI
+
+--> ApplicationContext
+--> It is built on top of the BeanFactory interface.
+--> This container adds on top of the BeanFactory interface.
+--> This container adds more enterprise-specific functionality.
+
+----------------------------------------------------------------------------------
+
+8. Checking how many times object is created
+
+--> In Employee.java,
+
+public Employee() {
+   System.out.println("Employee object created");
+}
+
+--> Run the application:
+--> Output:
+
+Employee object created				--> created by developer (hardly coupled)
+Employee [eid=1, ename=John, esalary=20000]
+Employee object created				--> created by container (loosely coupled)
+Employee object created
+Employee [eid=101, ename=Jennie, esalary=50000]
+Employee [eid=102, ename=Jack, esalary=46000]
+
+
+--> Note:
+
+--> Inversion of Control means object is created by Ioc.
+--> Major difference between BeanFactory and ApplicationContext containers:
+
+1. Beanfactory
+--> Object is not created by Ico until you don't use getBean method.
+
+2. ApplicationContext
+--> Object is created by this container whether you use getBean or not.
+
+--> Treat BeanFactory and Application as APIs
+
+----------------------------------------------------------------------------------
+
+9. Jar Files
+
+--> A JAR serves the same function an an Assembly in the C#/.net world. 
+--> It's a collection of java classes, a manifest, and optionally other resources, such as properties files.
+
+--> A library is a more abstract concept, in java, a library is usually packaged as a JAR (Java ARchive), or a collection of JARs.
+
+--> If not mistaken a .jar file is a group of compiled classes in .class format and was created by Java creators so a program will be OS independent; which means within a JVM you will run your app in .jar format on a Linux, Windows, etc without re-coding tour app for various OSs.
+
+----------------------------------------------------------------------------------
+
+10. Bean Object
+
+--> It is the object that is provided at runtime by container.
+--> Beans are the objects that form the backbone of our application and are managed by the Spring Ioc container
+--> Spring Ioc container instantiates, assemblies, and manages the bean object
+--> The configuration metadata that are supplied to the container are used create Beans object.
+
+----------------------------------------------------------------------------------
+
+11. Bean Life Cycle
+
+--> Container is responsible for creating and also destroying the object which its scope is out of scope.
+
+--> Demo
+
+--> Employee.java
+
+	public void myInit() {
+		System.out.println("----Object Initialised");
+	}
+	
+	public void myDestroy() {
+		System.out.println("----Object Destroyed now");
+	}
+
+--> employeebean.xml
+
+<bean id="emp1" class="co.edureka.Employee" init-method="myInit" destroy-method="myDestroy"> 
+
+--> Client.java
+
+ApplicationContext context = new ClassPathXmlApplicationContext("employeebean.xml");
+		Employee e1 = (Employee)context.getBean("emp1");
+
+		System.out.println(e1);
+
+		ClassPathXmlApplicationContext cxt = (ClassPathXmlApplicationContext)context;
+		cxt.close();
+
+--> Output:
+
+Employee object created
+----Object Initialised
+Employee [eid=101, ename=Jennie, esalary=50000]
+----Object Destroyed now
+
+----------------------------------------------------------------------------------
+
+12. Dependency Injection
+
+--> It is a design pattern which removes the dependency from the programming code, that makes the Application easy to manage and test
+--> DI makes our programming code loosely coupled, which means change in implementation doesn't affects the user.
+
+--> Spring avails two ways to inject dependency:
+
+1. By Constructor
+--> The <constructor-arg> subelement of <bean> is used for constructor injection
+
+2. By Setter method
+--> The <property> subelement of <bean> is used for setter injection
+
+----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

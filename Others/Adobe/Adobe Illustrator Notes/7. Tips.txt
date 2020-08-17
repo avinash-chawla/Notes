@@ -1,0 +1,78 @@
+1. Drawing Circle from center-->
+--> Hold Alt key and then draw circle
+
+2. To Move opposite edges of rectangle same length-->
+--> Hold Alt key and drag one edge
+
+3. When copy pasting, you want to paste at same place
+--> Copy element and Edit menu --> Paste at same place
+
+4. Duplicating Shapes Shortcuts
+--> Select Move tool
+--> Hold Alt key to only duplicate
+--> Hold Alt and shift key, drag with move tool, move parallel
+
+5. Make sure to Group them after making any shape
+
+6. Select multiple elements
+--> Hold shift key and then select with move tool
+
+7. To change position of radial center gradient
+--> Radial gradient is available in Windows --> Gradient
+--> To center its location, click gradient tool from toolbox
+--> Gradient Line appeart on screen, drag center of it where you want
+--> Like in instagram logo
+
+8. Save colors in swatches
+--> Choose color using Eye dropper
+--> Click Add to swatch
+--> Sometimes very useful
+
+9. To convert to wiremode to better look at things-->
+--> ctrl + y
+
+10. To perfectly align
+--> Select points or shapes
+--> Use align property
+--> Sometimes, you want to align points/anchor only
+
+11. To slice, add/join or divide/seperate sections of element
+--> Answer is one: Shape Builder tool
+
+12. Use Ruler to get distance reference
+--> View menu --> Rules --> Show Rules
+--> It draws reference Lines
+
+13. Tools for drawing-->
+
+Pen 		--> Loop straight lines
+		--> Click and drag for curved Lines
+
+Curved Pen 	--> Loop curved lines
+		--> Double click for straight Lines
+		--> Used in combination of both curved and line
+
+Pencil 		--> hand drawn
+Brush 		--> Brush drawn
+ 
+Shapes		--> Draw Shapes
+
+12. To get Mirror object
+--> Transform --> Reflect
+
+13. First draw shapes with Stroke only, then Fill with color
+
+14. To convert curve to corner, like in ellipse
+--> double click curve end point with curvature tool
+
+15. To try center of Rotation at different point
+--> Select Object
+--> Select Rotate Tool and select center of rotation point and define deg
+--> Rotation deg = 360 / no of patterns in one rotation
+
+
+
+
+
+
+

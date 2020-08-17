@@ -1,0 +1,871 @@
+1. Intro-->
+
+--> There are different techniques to achieve same result
+1. Hyperlink control
+2. Response.Redirect
+3. Server.Transfer
+4. Server.Execute
+5. Cross-Page postback
+6. Window.Open
+
+----------------------------------------------------------------------------------
+
+2. Hyperlink Control-->
+
+<asp:HyperLink ID="HyperLink1" NavigateUrl="~WebForm1.aspx" runat="server">Go to WebForm2</asp:HyperLink>
+
+--> Properties
+
+1. NavigateUrl
+2. Target
+
+--> It can be used to naviage pages/websites on the same webserver or different webserver.
+--> It also retails memory of its history url.
+
+Disadvantage--> There is no server side event to intercept the click event.
+-------------------------------------------------------------------------------------
+
+3. Response.Redirect -->
+
+--> This method is invoked on button_click event
+
+Response.Redirect("~/WebForm2.aspx");
+
+--> Response.Redirect causes 2 request/response cycle.
+--> When user clicks button, the server receivs a request for redirection. Server sends a response header to the client
+--> The client then automatically issues a new GET request to server. Server will then serve the new page.
+
+--> It can be used to naviage pages/websites on the same webserver or different webserver.
+--> It also retails memory of its history url.
+
+-------------------------------------------------------------------------------------
+
+4. Server.Transfer()-->
+
+--> Same as Response.Redirect
+--> Does not change url when navigated
+--> Easily transfer data from form1 to form2 without queryString in url
+
+--> webform1.aspx-->
+on button click event-->
+
+Server.Transfer("~/WebForm2.aspx");
+
+another paramter is --> Server.Transfer("~/WebForm2.aspx", false");		--> means variable data is transferable from one page to another in bool --> false
+--> Request.Form won't work here.
+--> But Page.PreviousPage will work here
+
+-------------------------------------------------------------------------------
+
+--> webform2.aspx-->
+--> It can retrieve previous form data details
+
+in page_load events-->
+
+System.Collections.Specialized.NameValueCollection previousFormcollection = Request.Form;
+
+Label1.Text = previousFormcollection["TextBox1"];
+Label2.Text = previousFormcollection["TextBox2"];
+
+--------------------------------------------------------------------------------
+
+--> Another way of retrieving-->
+
+Page previousPage = Page.PreviousPage;
+if(previousPage != null)
+{
+	Label1.Text = ((TextBox)previousPage.FindControl("TextBox1")).Text;
+	Label2.Text = ((TextBox)previousPage.FindControl("TextBox2")).Text;
+}
+
+--> above methods won't work in Response.Redirect
+--> Server.Transfer is faster than Response.Redirect
+--> Server.Transfer runs on single request-response cycle.
+--> Server.Transfer won't work for webpages which are in different server
+--> Form Variables preserve data from the original request.
+----------------------------------------------------------------------------------
+
+5. Server.Execute-->
+
+--> It is similar to Server.Transfer.
+--> Url remains of the first page url
+--> Have access to same web server
+--> Preserve form variables across diff pages.
+--> It combines the result of two webpages in one webpage.
+
+--> Difference-->
+1. Server.Transfer terminates the execution of current page and starts the execution of the new page
+Server.Execute process the second Web form without leaving the first Web form
+2. Server.Execute after completing the execution of first WebForm, the control returns to the first webform.
+3. It combines the result of two webpages in one webpage.
+
+-------------------------------------------------------------------------------
+
+--> WebForm1.aspx-->
+--> on button_click event-->
+
+Server.Execute("~/WebForm2.aspx");
+Label1.Text = "Completed processing webform1";
+
+--> after executing webform2 webpage, control comes back to webpage1 and execute Label1.Text while this Label1 won't get filled if Server.Transfer is used
+---------------------------------------------------------------------------------
+
+--> WebForm2.aspx-->
+--> on page_load event-->
+
+System.Collections.Specialized.NameValueCollection previousFormcollection = Request.Form;
+
+Label1.Text = previousFormcollection["TextBox1"];
+Label2.Text = previousFormcollection["TextBox2"];
+
+-----------------------------------------------------------------------------
+
+--> creating second request-response cycle to change header-->
+
+--> WebForm2.aspx -->
+--> Button
+
+--> run it -->
+--> after navigating to webform2.aspx, click this button
+--> now see header and page is actually navigate to webpage2 and terminates webpage1 
+
+--> Above happens bec. of autopostback = true; property of button 
+
+
+-----------------------------------------------------------------------------------
+
+6. Cross Page Posting-->
+
+--> Button_click event make post request to same page by default.
+--> It is possible that same button_click event make post request for another page using the PostBackUrl property.
+
+--> Such method for redirecting is called Cross Page Posting
+
+-------------------------------------------------------------------------------
+
+--> WebForm1.aspx
+
+--> design-->
+
+2 TextBoxes -> Name and Email
+1 Button    -> Post Button
+
+--> set property of button, PostBackUrl property to WebForm2.aspx
+----------------------------------------------------
+
+--> WebForm2.aspx-->
+--> Retrieving Data from webform1-->
+
+Page previousPage = this.Page.PreviousPage;
+if(previousPage != null)
+{
+	Label1.Text = ((TextBox)previousPage.FindControl("TextBox1")).Text;
+	Label2.Text = ((TextBox)previousPage.FindControl("TextBox2")).Text;
+}
+
+--> Why checking for previousPage for null
+--> Bec. if any user lands on webform2.aspx directly by typing url in browser so previousPage will be null in that case and throws exception.
+
+----------------------------------------------------------------------
+
+--> Now When you want any user land on webform2.aspx page through CrossPage method only sees this information and any user landed through another way like directly typing url on browser, or Response.Redirect won't be able to see this information on webform2.aspx-->
+
+--> We will use property IsCrossPagePostBack property of Page class
+
+if(previousPage != null && Page.IsCrossPagePostBack)
+...
+else
+	Label1.Text = "You landed on this page using another technique other than cross page post back.";
+
+-------------------------------------------------------------------------
+
+7. Cross Page Postback strongly typed reference-->
+
+--> Error can generate if instead of TextBox1, we do any typing mistake.
+--> Label1.Text = ((TextBox)previousPage.FindControl("TExtBox1")).Text;		--> error in typing TExtBox1
+--> Raise NullReference Exception
+
+--> To obtain a strongly typed reference-->
+1. Create Public Properties (Read-Only is sufficient) (Getter)
+2. Obtain a strongly typed reference by TypeCasting or by using the PreviousPage directive
+
+--------------------------------------------------------------------------
+
+First Step-->
+WebForm1.aspx.cs-->
+
+public string Name
+{
+	get{
+		return txtName.Text;
+	}
+}
+
+public string Email
+{
+	get{
+		return txtEmail.Text;
+	}
+}
+
+------------------------------------------------------------------------------------
+
+Second Step-->
+--> Creating strongly typed reference-->
+--> webform2.aspx.cs-->
+--> in page_load event-->
+
+WebForm1 previousPage = (WebForm1)this.PreviousPage;		--> strongly typed reference that this webpage is of webform1
+if(previousPage != null && previousPage.IsCrossPagePostBack)
+{
+	lblName.Text = previousPage.Name;
+	lblEmail.Text = previousPage.Email;
+
+}
+
+
+--> instead of using FindControl method, we directly use getter of previousPage
+--> If any error in typing, will give compile time error instead of run-time error
+--> this.PreviousPage and this.Page.PreviousPage are different	
+--> FindControl method is available in this.Page.PreviousPage and
+----------------------------------------------------------------------------------
+
+--> Second Step using PreviousPageType directive-->
+
+--> webform2.aspx-->
+<%@ PreviousPageType VirtualPath="~/WebForm1.aspx" %>
+
+--> Now no need to do type conversion of this.PreviousPage because defined in directive
+--------------------------------------------------------------------------------
+
+--> webform2.cs-->
+
+WebForm1 previousPage = this.PreviousPage;		(or PreviousPage)
+if(previousPage != null && previousPage.IsCrossPagePostBack)
+{
+	lblName.Text = previousPage.Name;
+	lblEmail.Text = previousPage.Email;
+
+}
+
+--> this.PreviousPage or only PreviousPage will return WebForm1 instead of Page object because we have used PreviousPageType directive.
+--> Do not use this.Page.PreviousPage here will show error bec. this.Page.PreviousPage is inheriting from Page class while this.PreviousPage is connected with current webform.
+------------------------------------------------------------------------------
+
+8. Window.Open-->
+
+--> This is property of javascript
+--> We will make a simple button (not server-side) and apply onclick event to it to navigate to different page
+--> window.open() is a method in javascript
+
+--> webform1.aspx-->
+
+<input id="Button1" onclick="window.open('WebForm2.aspx')" style="width:300px" type="button" value="Html button" />
+
+--> run it and button will navigate to different page
+
+-----------------------------------------------------------------------------------
+
+--> parameters that window.open() method take--> 
+
+window.open(URL, name?, features?, replace?)
+
+URL --> url of the page to open, if not specified, will open a new blank page
+Name --> _blank, _self, _parent, _top, title of window(if none above)
+Features --> features of window 
+replace --> boolean (whether replace the current webform1 with webform2 in url history or make new history url)
+
+--> replace is more used if target is _self.
+
+-------------------------------------------------------------------------------
+--> webform1.aspx-->
+
+<input id="Button1" onclick="OpenNewWindow()" style="width:300px" type="button" value="Html button" />
+
+<script type="text/javascript">
+function OpenNewWindow() {
+	var Name = document.getElementById('txtName').value;
+	var Email = document.getElementById('txtEmail').value;
+	
+	window.open('WebForm2.aspx?Name='+Name+'&Email='+Email, '_blank', 'location=no, resizable=no', true);
+
+}
+</script>
+
+--> location --> no --> means url can't be changed in new tab.
+--> resizable --> no --> means window can't be minimized 
+
+--------------------------------------------------------------------------------------
+
+--> Retrieving data from previousForm using queryString-->
+--> WebForm2.cs-->
+--> in page_load event-->
+
+Label1.Text = Request.QueryString("Name");
+Label2.Text = Request.QueryString("Email");
+
+--------------------------------------------------------------------------------
+
+--> Same Approach can be used for server-button and assign this javascript function in OnClientScript-->
+
+<asp:Button ID="Button2" Text="ASP.Net Button" OnClientClick="OpenNewWindow()" runat="server"></asp:Button>
+
+--------------------------------------------------------------------------------
+
+--> Response.Write can also run javascript function
+--> webform1.cs-->
+
+in asp.net button click event-->
+--> remove OnClientScript from button instead we are using serverSideScript
+
+string strJavascript = "<script>window.open('WebForm2.aspx?Name=" + TextBox1.Text +
+"&Email=" + TextBox2.Text + "'); </script>";
+
+Response.Write(strJavacript);
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+9. Techniques to send data from one webform to another-->
+
+--> Those Techniques are-->
+
+1. CrossPage PostBack
+2. Context.Header object
+3. QueryStrings
+4. Cookies
+5. Session state
+6. Application State
+
+--> CrossPage PostBack -->
+
+1. Request.Form method
+2. this.Page.PreviousPage method
+
+-------------------------------------------------------------------
+--> Context.Handler-->
+
+--> The members of one webform are unavailabe from a subsequently displayed webform.
+--> However, using Server.Transfer and Server.Execute methods, data can be retrieve from previous webform using Context.Handler object.
+
+-----------------------------------------------------------
+
+--> webform1.aspx-->
+
+2 Textboxes --> Name, Email
+1 Button    --> Submit to webform2
+
+--> webform1.cs-->
+
+Server.Transfer("~/WebForm2.aspx");
+--------------------------------------------
+
+--> webform2.cs-->
+--> in page_load event-->
+
+Page lastPage = (Page)Context.Handler;
+lblName.Text = ((TextBox)lastPage.FindControl("txtName.Text")).Text;
+lblEmail.Text = ((TextBox)lastPage.FindControl("txtEmail.Text")).Text;
+
+
+--> Context.Handler returns IHttp object, and Page inherits IHttp object 
+--> FindControl returns Control object, and TextBox inherits Control object
+--> so type casting is done
+
+--> run it
+
+-----------------------------------------------
+
+--> Making strongly typed reference by using getter and not using FindControl-->
+
+--> WebForm1.cs-->
+
+public string Name{
+	get { return txtName.Text }
+public string Email{
+	get { return txtEmail.Text }
+
+-------------------------------------------------------------
+
+--> WebForm2.cs-->
+--> in page_load event-->
+
+WebForm2 lastPage = (WebForm2)Context.Handler;
+lblName.Text = lastPage.Name;
+lblEmail.Text = lastPage.Email;
+
+--> Now not used Page instead used WebForm2 for typecasting bec. WebForm also inherits Page class and get method is available in WebForm2 class
+
+---------------------------------------------------------------------------
+
+--> If there is button in WebForm2 and if it is clicked, it will generate postback event and in that case Contect.Handler will be null bec. it is dependent on previous page.
+
+--> solution-->
+
+if(!IsPostBack)
+{
+WebForm2 lastPage = (WebForm2)Context.Handler;
+lblName.Text = lastPage.Name;
+lblEmail.Text = lastPage.Email;
+}
+
+-----------------------------------------------------------------
+
+--> Another problem is if any user trying to access webform2 directly than in that case too, Context.Handler will not typly convert to webform2 which is first line in cs file of webform2, so throw exception.
+
+--> solution:
+--> webform2.cs-->
+
+Page lastPage = (Page)Context.Handler;
+if(lastPage is WebForm1)
+{
+	lblName.Text = ((WebForm1)lastPage).Name;
+	lblEmail.Text = ((WebForm2)lastPage).Email;
+}
+
+--> Type converion to page instead of WebForm1 so throws no error now
+
+------------------------------------------------------------------------------------
+
+10. QueryStrings-->
+
+--> webform1.cs-->
+--> on button_click event-->
+Response.Redirect("~/WebForm2.aspx?Name="+ txtName.Text + "&Email=" + txtEmail.Text");
+
+--> webform2.cs-->
+--> in page_load event-->
+
+lblName.Text = Request.QueryString("Name");
+lblEmail.Text = Request.QueryString("Email");
+
+-----------------------------------------------------------------------------
+--> Problem if user typed in textbox --> Sam & Tom
+--> this & is taken by queryString and treat as second parameter
+--> above problem can only persist if QueryString(0) takes int index parameter instead of string parameter.
+
+--> solution->
+
+Response.Redirect("~/WebForm2.aspx?Name="+ Server.UrlEncode(txtName.Text) + "&Email=" + Server.UrlEncode(txtEmail.Text"));
+
+--> This will convert & into %20 
+
+--> solution2-->
+
+Response.Redirect("~/WebForm2.aspx?Name="+ txtName.Text.Replace("&", "%20") + "&Email=" + txtEmail.Text".Replace("&", "%20"));
+
+-----------------------------------------------------------------------------
+
+11. Cookies-->
+
+--> It store small amounts of information on the client's machine.
+--> In general, websites use cookies to store user-preference or other infomation that is client-specific.
+
+--> Types-->
+1. Persistent cookies --> Remain on the client computer, even after the browser is closed. You can configure how long the cookies remain using the expires property of the HttpCookie object
+
+2. Non-Persistent cookies --> Cookies only remain in memory until the browser is closed.
+
+--------------------------------------------------------------------------------------
+--> Setting cookie in browser-->
+
+--> webform1.cs-->
+--> on button_click event-->
+
+HttpCookie cookie = new HttpCookie("UserInfo");		--> giving name to cookie
+cookie["Name"] = txtName.Text;
+cookie["Email"] = txtEmail.Text;
+
+Response.Cookies.Add(cookie);		--> save in clients browser
+Response.Redirect("~/WebForm2.aspx");
+
+--> HttpCookie is collection object
+--> if only one value is to give to cookie, then it can be set in parameter also.
+--> HttpCookie cookie = new HttpCookie("Name", "avinash");
+
+--------------------------------------------------------------------------------------
+--> Retrieving Cookie from browser-->
+
+--> webform2.cs-->
+--> in page_load event
+
+HttpCookie cookie = Request.Cookies["UserInfo"];
+if(cookie != null)
+{
+lblName.Text = cookie["Name"];
+lblEmail.Text = cookie["Email"];
+}
+
+----------------------------------------------------------------
+
+--> Making Persistant cookie-->
+--> webform1.cs-->
+
+HttpCookie cookie = new HttpCookie("UserInfo");		
+cookie["Name"] = txtName.Text;
+cookie["Email"] = txtEmail.Text;
+
+cookie.Expires = DateTime.Now.AddDays(30);	--> retain for 30 days on browsers
+
+Response.Cookies.Add(cookie);		
+Response.Redirect("~/WebForm2.aspx");
+
+
+--> cookie.Expires need DateTime object
+--> Remain till 30 days or if user deletes cookie manually then we will not be persisted.
+
+----------------------------------------------------------------------------------
+
+12. How to check if cookies are enabled or disabled in users browsers --->
+
+--> Propery used is Request.Browser.Cookies
+--> it returns boolean value
+
+--> It does not returns whether user enabled or disabled storing cookies but will tell if browser supports it or not
+--> So it is always true bec. all browsers now support cookies
+
+---------------------------------------------------------------------------
+--> webform1.cs-->
+--> in page_load event-->
+
+if(!IsPostBack)
+{
+	if(Request.Browser.Cookies)
+	{
+		if(Request.QueryString["CheckCookie"] == null)
+		{
+			HttpCookie cookie = new HttpCookie("TestCookie", "1");
+			Response.Cookies.Add(cookie);
+			Response.Redirect("~/WebForm2.aspx");
+		}
+		else
+		{
+			HttpCookie cookie = Request.Cookies["TestCookie"]
+			if(cookie == null)
+			{
+				lblMessage.Text = "Cookies are disabled in your browser";
+			}
+
+	}
+	else
+	{
+		lblMessage.Text = "Your Browser doesn't support cookies";
+	}
+}
+
+--> Request.QueryString["CheckCookie"] == null  checks for if there is any cookie available
+
+----------------------------------------------------------------------------------------------------------------------------
+
+13. Sessions-->
+
+--> Session state variables are stored on the web server by default, and are kept for the life time of a session
+--> The default session state mode is InProc.
+
+--> Cookies save data in client's browser and sessions save data in web server.
+
+------------------------------------------------------
+--> saving data in session variables-->
+
+--> webform1.cs-->
+--> on button_click event-->
+
+Session["Name"] = txtName.Text;
+Session["Email"] = txtEmail.Text;
+
+Response.Redirect("~/WebForm2.aspx");
+
+--> webform2.cs-->
+--> in page_load event-->
+
+lblName.Text = Session["Name"].ToString()
+lblEmail.Text = Session["Email"].ToString()
+
+-----------------------------------------------------------------------------------------------
+
+--> It is necessary to give timeout for session bec. if not webserver may become out of memory at some point.
+
+--> web.config --> under <system.web>
+
+<sessionState mode="InProc" timeout="20"></sessionState>
+
+--> timeout="20"	--> default is 20 min
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+--> Session state variables are available across all pages, but only for a given single session. Session variables are like single-user global data. 
+--> means many webforms can access any session variable --> but that session variable is not transferable between multiple users.
+
+--> It is always a good practice to check, if a session state variable is null before callind any of its methods, such as ToString() to prevent NullReference Exception.
+
+if(Session["Name"] != null)
+{
+	lblName.Text = Session["Name"].ToString();
+}
+
+--------------------------------------------------------------------------------------------------------------
+
+--> Application performance can be improved by disabling session state, if its not required -->
+
+1. Disable for some webform-->
+--> in page directive include attribute, EnableSessionState="False"
+
+2. Disable for whole application-->
+--> in web.config file, <sessionState mode="Off" timeout="20"></sessionState>
+
+------------------------------------------------------------------------------------
+
+14. Cookie less sessions-->
+
+--> By default, sessions use cookies.
+--> The session-id is stored as a cookie on the client computer to identify if the request if coming from the same user or different user.
+
+--> what if client disabled cookie storage manually so in that case, sessions may not work as expected. 
+--> To overcome this problem, cookieless sessions can be enabled.
+--> web.config-->
+
+<sessionState mode="InProc" cookieless="true"></sessionState>
+
+
+--> after this, session-id will not be saved in cookie, either transfer through url
+http://12344/(asfdjskdfljsdkfj232432lsaf)/webform2.aspx
+
+--> When cookieless sessions are enabled, the session-id is part of the URL and is sent back and forth between the client and webServer with every request and response
+
+--> For cookieless sessions to work correctly, relative URL's must be used in the application, when redirecting users to different webforms.
+
+Response.Redirect("~/WebForm2.aspx");	(Correct)
+Response.Redirect("http://pragimtech.com/WebForm2.aspx");	(Wrong)
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+15. Inporc session state mode management-->
+
+--> Session state mode can have 4 values-->
+1. Off
+2. InProc
+3. StateServer
+4. SqlServer
+5. Custom
+
+-----------------------------------------------------------------
+1. Off    --> disable session mode
+2. InProc
+
+--> The session state variables are stored on the web server memory inside the asp.net worker process. 
+--> This is default session state mode.
+
+Note:
+Web Garder: Web application deployed on a server with multiple processors.
+Web Farm: Web application deployed on multiple server.
+
+--> worker process is something which runs this application which is IIS.
+
+--------------------------------------------------------
+Advantages-->
+
+1. Very easy to implement.
+2. Will Perform best because the session state memory is kept on the webserver
+3. Suitable for web applications hosted on a single server
+4. Objects can be added without serialization but needed in sqlServer mode
+
+Disadvantages-->
+
+1. Session data is lost, when the worker process or application pool is recycled/restarted.
+2. Not suitable for webfarms and webgardens (multi-servers)
+3. Scalability could be an issue.  (number of users)
+
+
+--> If there is multi-server application, problem is load-balancer will pass client request to server which is least busy, so session variable will be saved in that server, not all servers.
+
+
+----------------------------------------------------------------------------------
+
+3. StateServer session state mode-->
+
+--> The session state variables are stored in a process, called as asp.net state service. This process is different from asp.net worker process.
+
+--> The asp.net state service can be present on a web server or a dedicated machine
+--> run program --> type --> services.msc  --> ASP.NET State Service 
+
+<sessionState mode="StateServer" stateConnectionString="tcp=localhost:42424></sessionState>
+
+--> ASP.NET State Service can be installed on any other server, so in that case, we have to mention whats its ip address--> stateConnectionString 
+
+-----------------------------------------------------------------------------------
+
+--> Advantages-->
+1. ASP.net worker process run independently.
+2. Can be used with webfarms and webgardens
+2. Offers more scalability then InProc.
+
+--> Disadvantages-->
+1. StateServer is slower than InProc
+2. Complex objects needs to be serialized and deserialized
+3. If the StateServer, is on a dedicated machine, and if the server goes down all the sessions are lost.
+
+----------------------------------------------------------------------------------
+5. Custom --> if store in database other than sqlserver, like oracle.
+
+4. SqlServer-->
+
+--> The session state variables are stored in a SQLServer database..
+
+-->Steps-->
+1. Create the ASPState database using aspnet_regsql.exe tool
+2. Set the Session state mode=SQLServer and sqlConnectionString
+
+<sessionState mode="SQLServer" sqlConnectionString="data source=. ; integrated security=SSPI" timeout="20"></sessionState>
+
+
+--> aspnet_regsql.exe is present in os that is Windows
+--> C:\\Windows\Microsoft.Net\Framework\v4.0.30319
+
+--> run it from command Prompt
+--> go to that directory
+
+--> type:
+
+aspnet_regsql.exe -S SQLServerName -E --ssadd -sstype p
+
+-S  --> flag for serverName
+-E  --> flag for authentication to sqlserver, E for windows auth
+
+-U  --> if sqlserver authentication, U for username
+-P  --> if sqlserver authentication, P for password
+
+--ssadd --> Sqlserver add --> add support for sqlserver mode session state
+--sstype --> specifies the type of session mode to use: t | p | c
+
+t --> Temporary --> data is not persisted if sqlserver is restarted --> stored in tempdb database
+
+p --> persisted --> stored in ASPState database
+
+c --> Custom --> stored in custom named database --> name can be specified with -d flag.
+
+
+Note: For reference --> go to link below:
+msdn.microsoft.com/en-us/library/ms229862(v=cs.100).aspx
+
+--> To find SQLServerName --> go to ssms --> right click sqlserver in sidebar --> properties 
+
+aspnet_regsql.exe -S LENOVOLAPTOP -E -ssadd -sstype p
+
+--> Now see new database is created in ssms
+
+--> To Change application pool default to local service instead of global service
+
+1. go to control panel --> click to windows features on or off --> tick mark IIS 
+2. go to run --> type: inetmgr --> click application pool --> select default one --> click on advanced properties --> select local service from dropdown
+
+--> Now mode="SqlServer" sessions works.
+
+----------------------------------------------------------------------------
+
+--> Advantages-->
+
+1. SqlServer is the most reliable option.
+2. Can be used with webfarms and web gardens.
+3. more scalable the InProc and StateServer
+
+--> Disadvantages-->
+
+1. Slower than StateServer and InProc
+2. Complex objects need to be serialized and deserialized
+
+--------------------------------------------------------------------------------------
+
+16. Application State-->
+
+--> Application State variables are available across all pages and across all sessions.
+
+
+--> Application state variables are like multi-user global data.
+--> Session State variables are single-user global data.
+
+--> Application state variables are cleared, only when the process hosting the application is restarted, that is when the application ends.
+
+--> Application state variables are not shared across a Web Farm or Web Garden. 
+
+----------------------------------------------------------------------------------------
+
+--> saving data in session variables-->
+
+--> webform1.cs-->
+--> on button_click event-->
+
+Application["Name"] = txtName.Text;
+Application["Email"] = txtEmail.Text;
+
+Response.Redirect("~/WebForm2.aspx");
+
+--> webform2.cs-->
+--> in page_load event-->
+
+lblName.Text = Application["Name"].ToString()
+lblEmail.Text = Application["Email"].ToString()
+
+----------------------------------------------------------------------------------------
+
+--> Application state variables are not thread safe. 
+--> Lock and Unlock methods are used to protect againast race conditions, deadlocks and across violationss
+
+Application.Lock();
+Application["GlobalVariable"] = (int)Application["GlobalVariable"] + 1;
+Application.UnLock();
+
+--> Application state variables should not be used to send data from webform to another, but you should consider other alternatives
+
+--> Application State variables --> When the variables need to have global access and when you need them for entire time
+
+--> Cache object -->   When the variables need to have global access and when you need them for certain time
+
+-------------------------------------------------------------------------------------
+
+17. Real time example of Application state variable-->
+
+--> Application state variables are global and all sessions have access to them.So, these variables can be used to track the number of users online.
+
+--> Every time a new user connects to application, we want to inc the number of online users by 1
+--> Whenever a user session ends, then we need to dec. the number of users online by 1
+
+--> Session_Start() event is fired whenever a new session is established.
+--> Session_End() event is fired whenever a session ends 
+
+--> session ends can be by logout or timeout
+
+--> Such event handlers are in global.asax file.
+
+--> By default, the browser instances share the session cookie. Means accessing application through different tabs of browser, application treats as one user only bec. it is getting same session id.
+
+--> To have a new session id assigned, when a new browser instance request the webform, set cookieless="true" for the sessionstate element in web.config.
+
+---------------------------------------------------------------------------------------------------------------
+
+--> global.asax-->
+--> in application_start event-->
+
+Application["UsersOnline"] = 0;
+
+--> in session_start event-->
+
+Application.Lock();
+Application["UserOnline"] = (int)Application["UsersOnline"] + 1;
+Application.UnnLock();
+
+--> in session_end event-->
+
+Application.Lock();
+Application["UserOnline"] = (int)Application["UsersOnline"] - 1;
+Application.UnnLock();
+
+--> in page_load event of webform.cs-->
+
+Response.Write("Number of Users online = " + Application["UsersOnline"].ToString());
+
+
+--> Means now every user is now able to see total number of online users in their browser. 
+--> It is only possible by using application state variable not simple session variable. 
+--> Application is available for multi-user multi-sessions. It is variable at application level while session variables are not at application level.
+-----------------------------------------------------------------------------

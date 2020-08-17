@@ -1,0 +1,188 @@
+1. Create React Project
+
+--> npx create-react-app react-redux-demo
+--> npm i redux react-redux
+--> Make new component --> CakeComponent.js 
+
+--> code snippet --> rfce
+
+import React from 'react'
+
+function CakeContainer() {
+    return (
+        <div>
+            <h1>Number of Cakes</h1>
+            <button>Buy Cake</button>
+        </div>
+    )
+}
+
+export default CakeContainer
+
+-------------------------------------------------------------------------------
+
+--> In App Component
+--> <CakeComponent />
+
+-------------------------------------------------------------------------------
+
+2. Actions
+
+--> First Decide folder structure
+--> Make new folder --> components --> Place all compenenets here
+--> Make new folder --> redux
+
+--> Inside it --> make new folder --> cake
+--> Inside it --> Make 2 files --> cakeActions.js and cakeTypes.js
+
+-------------------------------------------------------------------------------
+
+--> cakeTypes.js
+export const BUY_CAKE = "buy_cake";
+
+--> cakeActions.js
+
+import { BUY_CAKE } from './cakeTypes';
+
+export const buyCake = () => {
+    return {
+        type: BUY_CAKE,
+    }
+}
+
+-------------------------------------------------------------------------------
+
+3. Reducer
+
+import { bindActionCreators } from "redux";
+import { BUY_CAKE } from './cakeTypes';
+
+const initialState = {
+    numOfCakes: 10
+}
+
+const cakeReducer = (state = initialState, action) => {
+    switch (action.type) {
+        case BUY_CAKE:
+            return {
+                ...state,
+                numOfCakes: state.numOfCakes - 1
+            }
+
+        default:
+            return state;
+    }
+}
+
+export default cakeReducer;
+
+-------------------------------------------------------------------------------
+
+4. Store
+
+--> Make new file in redux --> store.js
+
+import cakeReducer from './cake/cakeReducer';
+import { createStore } from 'redux';
+
+const store = createStore(cakeReducer);
+
+export default store;
+
+-------------------------------------------------------------------------------
+
+5. Assigning Provider
+
+--> In App.js
+
+import store from './redux/store';
+import { Provider } from 'react-redux';
+
+function App() {
+  return (
+    <Provider store={store}>
+      <div className="App">
+        <CakeContainer />
+      </div>
+    </Provider>
+
+  );
+}
+
+-------------------------------------------------------------------------------
+
+6. Connect
+
+--> We need two methods to connect
+--> mapStateToProps and mapDispatchToProps
+
+--> mapStateToProps brings data from store
+--> mapDispatchToProps will dispatch action from components like click handler
+
+--> And these are available as props in component to access store and dispatch action
+
+-------------------------------------------------------------------------------
+
+--> CakeComponent.js
+
+import React from 'react'
+import { connect } from 'react-redux';
+import { buyCake } from './../redux/cake/cakeActions';
+
+function CakeContainer(props) {
+    return (
+        <div>
+            <h1>Number of Cakes - {props.numOfCakes}</h1>
+            <button onClick={props.buyCake}>Buy Cake</button>
+        </div>
+    )
+}
+
+const mapStateToProps = state => {
+    return {
+        numOfCakes: state.numOfCakes
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        buyCake: () => dispatch(buyCake())
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(CakeContainer);
+
+-------------------------------------------------------------------------------
+
+7.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

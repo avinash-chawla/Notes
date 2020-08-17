@@ -1,0 +1,16 @@
+--> Reversing an int
+
+1. function reverseInt(n){
+     const reversed = n.toString().split('').reverse().join('');
+     if(n<0) {
+	return parseInt(reversed) * -1;
+     }
+     return parseInt(reversed);
+   }
+
+2. function reverseInt(n){
+	return parseInt(n.toString().split('').reverse().join('')) * Math.sign(n)
+   }
+
+--> Math.sign(-453) --> -1
+--> Math.sign(324) --> 1

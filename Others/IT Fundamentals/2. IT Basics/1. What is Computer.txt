@@ -1,0 +1,45 @@
+1. Information Is Important
+
+--> Most of the fictional characters above need no introduction.
+--> All of us had a favourite childhood game, where we pretended to be one of them!
+--> What made them so very cool was that they always seemed to know everything.
+--> The information they possessed made them, their employers, and their governments more powerful.
+
+---------------------------------------------------------------------------------
+
+2. Information Means Power
+
+--> In exactly the same way, having information on various topics keeps us one step ahead of the game.
+--> Whether as an individual, a company or a community, we are better prepared to take smarter decisions, if we know the current trends, the latest news and past occurrences and consequences of a problem.
+
+---------------------------------------------------------------------------------
+
+3. Definition Of Information Technology
+
+--> The Oxford Dictionary says that IT is: ‘ The study, or use, of computer systems for storing, retrieving or sending information
+
+--> They are used to create, store, retrieve and transmit data or information across large distances, thus they have become indispensable to our 21st century lives.
+
+---------------------------------------------------------------------------------
+
+4. Why Do We Need Computers?
+
+--> Modern times meant complex problems with complex solutions. We needed help.
+--> Computers gave us a way to store, retrieve and process data.
+--> Computers process data and carry out complex calculations within a few seconds.
+--> They can also be connected to a network making it possible to share information over large distances.
+
+---------------------------------------------------------------------------------
+
+5. How Do Computers Work?
+
+--> A computer is an electronic device that can receive information, perform actions on the basis of rules and provide an output.
+--> Using these functions a computer can access, store, process and relay information to its user within seconds!
+--> You can think of a computer as a black box.
+
+input --> process --> Output
+
+--> It accepts data, makes changes to it, based on certain conditions, and displays the result.
+--> Computers are able to convert these 0s and 1s to mean various things such as in a game, a web page and even the application you are using at this very moment.
+
+---------------------------------------------------------------------------------

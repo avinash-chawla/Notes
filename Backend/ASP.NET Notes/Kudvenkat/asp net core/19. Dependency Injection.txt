@@ -1,0 +1,77 @@
+1. Dependency Injection Container
+
+--> It is container where all dependencies are registered 
+--> If at runtime, any class wants to create object, this container provide object for that.
+
+--------------------------------------------------------------------------------
+
+2. Interface and its Implementation
+
+--> We use interface for dependency injection
+--> But interface can not provide object for its interface
+--> We want that class which implements this interface and contains all the necessary properties and method which are required.
+
+--> To get the instance of that class at runtime, we need to register first in startup file in ConfigureServices method
+--> We will register both interface and class implementing that interface.
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddMvc();
+    services.AddSingleton<IEmployeeRepository, MockEmployeeRepository>();
+}
+
+--------------------------------------------------------------------------------
+
+3. Why interface is used as Dependency Injection
+
+--> HomeController is dependant on IEmployeeRepository for retrieving Employee data.
+--> Instead of the HomeController creating a new instance of an implemention of IEmployeeRepository, we are injecting IEmployeeRepository instance into the HomeController using the constructor. 
+
+--> This is called constructor injection, as we are using the constructor to inject the dependency.
+--> Notice, we are assigning the injected dependency to a read-only field. 
+--> This is a good practice as it prevents accidentally assigning another value to it inside a method.
+
+--------------------------------------------------------------------------------
+
+4. If not registerend in startup file
+ 
+--> InvalidOperationException: Unable to resolve service for type 'EmployeeManagement.Models.IEmployeeRepository' while attempting to activate 'EmployeeManagement.Controllers.HomeController'.
+
+--> This is because the ASP .NET dependency injection container does not know which object instance to provide if someone requests an object that implements IEmployeeRepository
+
+--> IEmployeeRepository may have several implementations. At the moment in our project we only have one implementation and that is MockEmployeeRepository
+
+--------------------------------------------------------------------------------
+
+5. Registering Services in startup file
+
+--> There are 3 methods to register services with the dependency injection container. 
+
+1. AddSingleton() - As the name implies, AddSingleton() method creates a Singleton service. A Singleton service is created when it is first requested. This same instance is then used by all the subsequent requests. So in general, a Singleton service is created only one time per application and that single instance is used throughout the application life time.
+
+2. AddTransient() - This method creates a Transient service. A new instance of a Transient service is created each time it is requested. 
+
+3. AddScoped() - This method creates a Scoped service. A new instance of a Scoped service is created once per request within the scope. For example, in a web application it creates 1 instance per each http request but uses the same instance in the other calls within that same web request.
+
+--------------------------------------------------------------------------------
+
+6. Advantage of Dependency Injection
+
+1. Loosly coupled	--> If any change in class, Change at one place, instead of in all instances of this class
+2. Easy Testing		
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+

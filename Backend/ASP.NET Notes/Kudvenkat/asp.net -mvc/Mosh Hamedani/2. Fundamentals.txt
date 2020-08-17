@@ -1,0 +1,570 @@
+---> ctrl+F5		--> compile application one time and run
+---> ctrl+shift+B	--> to recompile and then refresh page
+
+1. ActionResult-->
+
+--> all action methods like View() under controller class return ActionResult type object which is base class in asp.net 
+--> ActionMethod automatically changes based on return type
+--> View is helper method from Controller class 
+
+--> we have different return type for different view objects
+
+ActionResult		--> ActionMethods (any)
+
+ViewResult 		--> View()
+PartialViewResult 	--> PartialView()
+ContentResult		--> Content()		---> text
+RedirectResult		--> Redirect()		---> to url
+RedirectToRouteResult	--> RedirectToAction()	---> to action
+JsonResult		--> Json()
+FileResult		--> File()
+HttpNotFoundResult	--> HttpNotFound()
+EmptyResult		--> new EmptyResult()		--> blank page
+
+--> Of all above all action results, ActionResult is base class of all.
+-------------------------------------------------------------------------------------------
+--> demo -->
+
+public ActionResult Random()
+        {
+            var movie = new Movie() { Name = "Avinash"};
+            return View(movie);
+        }
+
+public ActionResult Random()
+        {
+            var movie = new Movie() { Name = "Avinash"};
+            return Content("hello World");
+        }
+
+return HttpNotFound();
+return new EmptyResult();		--> empty page
+return RedirectToAction("Index","Home");		--> (ActionMethod, ControllerClass)	--> They come with application, so used that here
+return RedirectToAction("Index","Home", new { page = 1, sortBy = "name" } );		--> passed additional arguments
+
+(action, controller, anonymous obj) additional information which to pass to new controller
+--> by changing return type, no need to restart the server, ctrl+shift+b -> for recompile and ctrl+r to refresh page
+
+-------------------------------------------------------------------------------------------
+
+2. Action Parameters-->
+
+--> we now looked at actionresults which is output to actionMethods
+--> Now we look at action parameters which are input to actionMethods from request object like id
+--> Every method in controller are called action methods
+--> Parameters sources can be from:
+
+1. In the URL: /movies/edit/1
+2. In query string: /movies/edit?id=1
+3. In form data: id=1
+
+--> mvc framework automatically map parameters from these sources and passes to action methods taking parameter whichever action matches such request first
+--> handles by action method--> 
+
+public ActionResult Edit(int id)
+{
+    return Content("id: "+id);
+} 
+
+1. http://localhost:55425/Movies/edit/1			---> id: 1
+2. http://localhost:55425/Movies/edit?id=1		---> id: 1
+
+--------------------------------------------------------------------------------
+
+--> now if we replace id with movieId and enter url as:
+public ActionResult Edit(int movieId)
+        {
+            return Content("id: "+movieId);
+        } 
+
+1. http://localhost:55425/Movies/edit/1			--> url encoding
+2. http://localhost:55425/Movies/edit?id=1		--> query string
+
+--> ctrl + L --> for getting cursor in url link in browser
+--> we got exception bec default route is accepting id as parameter and it can not find id as parameter in any actionMethod.
+--> App_Start--> RouteConfig.cs  --> url: "{controller}/{action}/{id}"		---> It can be seen here, it is checking for id variable name
+--> But it can accept parameter as querystring --> ?movieId=1
+
+-------------------------------------------------------------------------------------------
+
+--> optional parameters--> 
+--> Passed as QueryString  --> movies?pageIndex=1&sortBy=Name
+
+public ActionResult Index(int? pageIndex, string sortBy)
+{
+	if(!pageIndex.HasValue)
+		pageIndex = 1;
+	if(String.IsNullorWhiteSpace(sortBy))
+		sortBy = "Name";
+	
+	return Content(String.Format("pageIndex={0}&sortBy={1}"));
+}
+
+--> this is index method means default method runs when navigated to www.domainName/Movies	--> domainName/Movies/Index (run default)
+--> int? means making it nullable instead of 0, if not mentioned
+--> string, it is reference type, so automatically nullable initialially, if not mentioned
+
+http://localhost:55425/Movies
+http://localhost:55425/Movies?pageIndex=3&sortBy=ReleaseDate  --> used queryString
+
+-------------------------------------------------------------------------------------------
+
+
+3. Custom-Routes-->
+
+--> asp.net mvc has default route of {controller}/{action}/{id}
+--> To add additional parameters other than id, we use custom-routes
+
+--> eg. movies/released/2015/04   --> accepting year and month parameter instead of id
+--> App_Start folder --> RouteConfig.cs-->
+--> Add below method in above of generic route handler
+
+routes.MapRoute(
+	"MoviesByReleaseDate",						-------> Name of route
+	"movies/released/{year}/{month}",				-------> url path
+	new { controller = "Movies", action = "ByReleaseDate"},		-------> object default  --> if not mentioned, asp.net look at each actionMethod (optional)
+	new { year = @"2015 | 2016", month = @"\d{2}" });		-------> adding constraints to input parameter (optional)
+	
+--> last line is optional and giving pattern for input of routes
+--> first one: just name, second: url, third: actionpass to method
+--> always specify custom route before generalize route
+
+--> snippet to quickly generate actionMethod->
+mvcaction4[tab]	
+--> in movie controller class-->
+
+public ActionResult ByReleaseDate(int? year, int? month){
+	return Content(year + "/" + month);
+}
+	
+--> http://localhost:55425/Movies/released/2015/04		--> 2015/4
+--> http://localhost:55425/Movies/released/2015/4		--> Exception bec. parameter input does not match pattern from constraint specified
+-------------------------------------------------------------------------------------------
+
+4. Attribute Routing-->
+
+--> defining custom route, above method only using decorator, instead of writing in routeConfig.cs
+--> Above code is fragile bec. with any change in method name, we have to change in RouteConfig.cs --> which we easily forget after some time
+--> And second thing is that route.config file will grow in size, not maintainable.
+
+--> First, we need to activate Attribute Routing
+--> RouteConfig.cs-->
+routes.MapMvcAttributeRoutes();
+
+--> MoviesController.cs-->
+
+[Route("movies/released/{year}/{month}")]		--> route function accepting url path
+public ActionResult ByReleaseDate(int? year, int? month)
+{
+     return Content(year + "/" + month);
+}
+
+------------------------------------------------------------------------------------
+
+--> Adding contraints-->
+
+[Route("movies/released/{year}/{month: regex(\\d{2}): range(1, 12)}")]		--> route function accepting url path with constraints
+public ActionResult ByReleaseDate(int? year, int? month)
+{
+     return Content(year + "/" + month);
+}
+
+--> Bunch of other inbuilt constraints like range are min, max, minlength, maxlength, int, float, guid
+
+--------------------------------------------------------------------------------------
+
+5. Different ways to pass data to view-->
+
+1. ViewDataDictionary property -->
+
+public ActionResult Random()
+        {
+            Movie movie = new Movie() { Name = "Avinash" };
+
+            ViewData["Movie"] = movie;
+            return View();
+        }
+
+--> random.cshtml (view file)-->
+<h2>@(((Movie)ViewData["Movie"]).Name)</h2>
+
+--> return type of ViewData is object so type conversion
+
+---------------------------------------------------------
+2. ViewBag property-->
+
+--> It is similar like ViewData property 
+public ActionResult Random()
+        {
+            Movie movie = new Movie() { Name = "Avinash" };
+
+            ViewBag.Movie = movie;
+            return View();
+
+------------------------------------------------------------
+
+3. directly passing movie object-->
+
+public ActionResult Random()
+        {
+            Movie movie = new Movie() { Name = "Avinash" };
+            return View(movie);
+     	}
+
+--> How does this View(movie) is sending data to view
+--> Actually behind the scene, movie object is attached as property to ViewData
+--> code:
+var viewResult = new ViewResult();
+return viewResult.ViewData.movie
+
+--> random.cshtml (view file)-->
+
+<h2>@Model.Name</h2>
+
+
+--------------------------------------------------------------------------------
+
+4. View Models-->
+
+--> It combines two model classes in one view
+--> demo-->
+
+--> Make customer model class --> 
+
+public class Customer
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+------------------------------------------------------
+
+---> Make new folder in project as ViewModels
+--> add class named RandomMovieViewModel
+
+public class RandomMovieViewModel
+    {
+        public Movie Movie { get; set; }
+        public List<Customer> Customers { get; set; }			---> List of customers object
+    }
+
+----------------------------------------------------------------
+
+--> Movies Controller class--> 
+
+public ActionResult Random()
+        {
+            Movie movie = new Movie { Name = "Avinash" };		---> Movie model
+            var customers = new List<Customer>				---> List of customers model
+            {
+                new Customer { Name = "Customer1"},			---> initializing values of list
+                new Customer { Name = "Customer2"}
+            };
+
+            var viewModel = new RandomMovieViewModel			---> ViewModel class
+            {
+                Movie = movie,						---> initializing values of viewModel class
+                Customers = customers
+            };
+            return View(viewModel);					---> passing viewModel to view
+        }
+
+-------------------------------------------------------
+
+--> Random.cshtml-->
+
+@model Vidly.ViewModels.RandomMovieViewModel		---> referencing viewModel class
+@{
+    ViewBag.Title = "Random";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@Model.Movie.Name</h2>
+
+
+---------------------------------------------------------------------------------
+
+5. Razor View Engine-->
+
+--> The view which we use is Razor view.
+--> Razor view Engine parses razor view into normal html
+--> we can use control statements like (for, foreach, if, while) in view 
+--> Razor view has a property "Model" to access model data.
+
+<h2>@Model.Movie.Name</h2>
+@if(Model.Customers.Count == 0 )
+{
+    <text>There are no customers before.</text>			---> inbuilt tag used to only display simple text
+}
+else
+{
+<ul>
+    @foreach (var customer in Model.Customers)
+    {
+        <li>@customer.Name</li>
+    }
+</ul>
+
+}
+
+--> cs code written with @ symbol between html tags
+--> all model data is stored under Model property
+--> There is no need to recompile program after changing any view file, after saving, just refresh the page
+
+----------------------------------------------------------------------------------
+
+6. Dynamic className in html tag-->
+
+--> Syntax
+@{
+	....any cs code here
+}
+
+------------------------------------------------
+
+@{
+	var className = Model.Customers.Count > 5 ? "popular" : null;
+}
+
+<h2 class="@className">@Model.Movie.Name</h2>
+
+--------------------------------------------------------------------
+
+7. Comments in View-->
+
+@*
+	This is comments
+*@
+
+--------------------------------------------------------------------
+
+8. Partial Views-->
+
+---> It substitutes the large html lines in main page to only one line.
+---> eg. _NavBar contains all html codes related to navbar, so in main page-->
+
+@Html.Partial("_NavBar");
+
+--> demo -->
+
+--> go to views folder--> shared --> _Layout.cshtml
+--> there is view property as @RenderBody()
+--> The code we type in view renders here
+
+--> right click view folder 
+--> Add new view and name it : _NavBar
+--> select partial view as generator
+--> cut all code of navbar from _Layout.cshtml to this view
+
+--> go to _Layout.cshtml, in that where to render navbar, paste only one line code-->
+
+@Html.Partial("_NavBar");
+
+
+-------------------------------------------------
+--> If partial view _Navbar is linked to any model, then
+
+@model Vidly.ViewModels.RandomMovieViewModel
+@Html.Partial("_NavBar", Model.Movie);
+
+
+-----------------------------------------------------------------------------
+
+9. Exercise
+--> Make 3 controllers - Home, Movies and Customers
+--> Each showing list 
+--> On click list item will show detail based on id parameter action
+
+1. Html.ActionLink(Name, ActionMethod, Controller, additional argument like id)
+2. Instead of model, we can pass list of model objects to view, but we need to specify to view that it is Enumerable<vidly.Models.Movie> class
+--> This will only able to iterate over the models
+--> To pass as a List, you have to make one new model, which will take list of model and pass it to view but no need, entity framework will provide some relief functions to automatic add in database without List of models objects
+
+--> Exercise Solution:
+
+-----------------------------------------------------
+
+MoviesController.cs-->
+
+public class MoviesController : Controller
+    {
+        public ViewResult Index()
+        {
+            var movies = GetMovies();
+
+            return View(movies);
+        }
+
+        private IEnumerable<Movie> GetMovies()
+        {
+            return new List<Movie>
+            {
+                new Movie { Id = 1, Name = "Shrek" },
+                new Movie { Id = 2, Name = "Wall-e" }
+            };
+        }
+    }
+
+-----------------------------------------------------
+
+CustomersController.cs
+
+public class CustomersController : Controller
+    {
+        // GET: Customers
+        public ViewResult Index()
+        {
+            var customers = GetCustomers();
+
+            return View(customers);
+        }
+
+        public ActionResult Details(int id)
+        {
+            var customer = GetCustomers().SingleOrDefault(c => c.Id == id);
+
+            if (customer == null)
+                return HttpNotFound();
+
+            return View(customer);
+        }
+
+        private IEnumerable<Customer> GetCustomers()
+        {
+            return new List<Customer>
+            {
+                new Customer { Id = 1, Name = "John Smith" },
+                new Customer { Id = 2, Name = "Mary Williams" }
+            };
+        }
+    }
+
+-----------------------------------------------------
+
+--> Customer.cs in Models
+
+public class Customer
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+-----------------------------------------------------
+
+--> View Index.cshtml of MoviesController
+
+@model IEnumerable<vidly.Models.Movie>
+
+@{
+    ViewBag.Title = "Movies";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Movies</h2>
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Movie</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var movie in Model)
+        {
+            <tr>
+                <td>@movie.Name</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+-----------------------------------------------------
+
+--> View of Customers --> Index.cshtml
+
+@model IEnumerable<vidly.Models.Customer>
+@*
+    Note: I've set the model for this view to IEnumerable<Customer>.
+    This is a simple interface implemented by the list class. Since
+    in this view we only want to iterate over this list, and we don't
+    need any of the operations in the List class (eg Add, Remove, etc),
+    it's better to use the IEnumerable interface, which allows use to
+    iterate over the list. If in the future, we replace the List with a
+    different data structure, as long as it is enumerable, our view code
+    will remain unchanged.
+*@
+
+@{
+    ViewBag.Title = "Customers";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Customers</h2>
+@if (!Model.Any())
+{
+    <p>We don't have any customers yet.</p>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Customer</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in Model)
+            {
+                <tr>
+                    <td>@Html.ActionLink(customer.Name, "Details", "Customers", new { id = customer.Id }, null)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+-----------------------------------------------------
+
+--> View of Customers --> Details.cshtml
+
+@model vidly.Models.Customer
+
+@{
+    ViewBag.Title = Model.Name;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@Model.Name</h2>
+
+
+-----------------------------------------------------
+
+--> View of NavLink for Navigation to different components
+
+<div class="navbar navbar-reverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            @Html.ActionLink("Vidly", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li>@Html.ActionLink("Customers", "Index", "Customers")</li>
+                <li>@Html.ActionLink("Movies", "Index", "Movies")</li>
+            </ul>
+            @Html.Partial("_LoginPartial")
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+

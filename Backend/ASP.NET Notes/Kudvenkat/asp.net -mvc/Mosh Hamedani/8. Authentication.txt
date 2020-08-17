@@ -1,0 +1,324 @@
+1. Intro
+
+--> Restrict all capabilities to loggin-in-users
+--> This application that we made will be used video-rental store, if data gets deleted by anonymous user, lots of loss will be done.
+--> To protect from such activities like adding, updating and deleting movies will be only done by authorized person (store managers)
+
+---------------------------------------------------------------------------
+
+2. Authentication Options
+
+--> When starting project in selecting mvc template, there is option button of Change Authentication
+--> There are 4 types of authentication which asp.net support
+1. No Authentication
+2. Individual User Accounts
+3. Organizational Accouts
+4. Windows Authentication
+
+-----------------------------------------------------
+
+3. ASP.NET Identity Framework
+
+--> It is framework to work with authentication and authorization
+--> It provides bunch of classes and methods 
+--> Identity model in models folder is an example to this.
+
+--> It has 3 types of classes: 
+1. Domain ( IdentityUsers, Role)
+2. API/Service ( UserManager, RoleManager, SignInManager)
+3. Persistence ( UserStore, RoleStore)  
+
+1. You can try Register and Login buttons in starting page
+2. Identity model internally creates table like AspNetUserRoles, AspNetRoles during migration
+3. There is controller AccountController which contains actionMethods like Register, SignIn
+4. There are also bunch of views which are used by such actionMethods
+
+-----------------------------------------------------
+
+4. Restricting Access to Anonymous user
+
+--> Apply [Authorize] attribute to actionMethod to protect actionMethods
+--> Apply [Authorize] attribute to class to protext all actionMethods under that class
+--> Apply [Authorize] attribute globally to all actionMethods in our application
+
+--> Authorize attribute will prevent any anonymous user to access that page and redirect user to login page
+
+--> To apply globally:
+--> In filterconfig.cs under App_start: add below:
+--> filters.Add(new AuthorizeAttribute());
+
+-----------------------------------------------------
+
+--> To allow certain actionMethods from Authorize attribute
+--> add attribute: [AllowAnonymous]
+--> Apply to whole HomeController.cs
+--> This is home page controller
+
+--> Try to access list of customers or movies
+--> %2F in url --> means "/"
+--> When you click on Customers Navlink --> url: ?ReturnUrl=%2FCustomers
+
+-----------------------------------------------------
+
+5. Seeding Users and Roles
+
+--> We will use Register [HttpPost]actionMethod of AccountsController to register store manager who has all the access (admin)
+--> First we create Role and then assign user to it
+--> //temp code in if(result.Succeeded) code block
+
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+
+var roleStore = new RoleStore<IdentityRole>(new ApplicationDbContext());
+                    
+var roleManager = new RoleManager<IdentityRole>(roleStore);
+                    
+await roleManager.CreateAsync(new IdentityRole("CanManageMovie"));
+                    
+await UserManager.AddToRoleAsync(user.Id, "CanManageMovie");
+
+--> Recompile application
+--> Register user in homepage
+--> Now this will be our admin user
+--> Delete these code of lines, this was only to register admin user
+--> When we deploy our application, this admin user will also be deployed with migration
+--> add-migrations SeedUsers
+--> Now this will empty migration file
+
+----------------------------------------------------------------------------
+
+--> To autogenerate SQL commands:
+--> Click on Show all files
+--> Expand App_Data
+--> click database file
+or
+--> In server explorer, connect the database first
+--> Expand Data Connections
+--> Expand Tables
+
+1. Right click AspNetUsers
+--> Show Table Data
+--> Right click row index arrow of displaying user(admin), Click on Script
+--> Copy Script code
+--> Paste in migration up method under Sql(@"  <here> ")
+
+2. Right click AspNetRoles
+--> Show Table Data
+--> Right click row index arrow of displaying role(CanManageMovie), Click on Script
+--> Copy Script code
+--> Paste in migration up method under Sql(@"  <here> ")
+public static class RoleName
+    {
+        public const string CanManageMovies = "CanManageMovie";
+    }
+3. Right click AspNetUserRoles
+--> Same Process
+--> It links users with roles
+
+---------------------------------------------------------------------
+--> Now we need to remove data from database and use migration to create data
+--> Bec. while deploying our application, migration file will create the required database with mentioned (persistant)data
+
+--> Right click tables in server explorer, show tables, right click row index --> delete
+--> Delete records of AspNetRoles and AspNetUsers
+
+--> update-database
+
+-----------------------------------------------------
+
+6. Working with Roles
+
+--> We will remove the options of Add, Edit and Delete Movie from view
+--> We will create a new view for staff members
+--> Duplicate Index.cshtml and name it: ReadOnlyList.cshtml
+--> Delete Link for new Movie
+--> Delete 3rd column for Delete Buttons
+--> Delete click event handler in Delete button
+--> Remove render property in columns property of Datatables and only name property will remain there
+
+--> In Index actionMethod in CustomersController
+--> if(User.IsInRole("CanManageMovie"))		--> User is inbuilt property of controller class, which defines current user logged in.
+	return View("ReadOnlyMovie")
+--> return View();
+
+
+--> Test application with different logins			
+
+-----------------------------------------------------------------------------
+
+--> There are still bunch of insecurities
+--> Any anonymous user can still access using direct url or using postman
+--> Like: localhost:49333/customers/new
+--> We have to decorate such actionMethods with attribute [Authorize(Roles="CanManageMovie")]
+--> This attribute will overwrite global attribute.
+
+-----------------------------------------------------------------------------
+
+--> We have to replace this magic string "CanManageMovie"
+--> Create new class in Models folder: RoleName
+    public static class RoleName
+    {
+        public const string CanManageMovies = "CanManageMovie";
+    }
+--> Replace magic string with RoleName.CanManageMovies
+
+-----------------------------------------------------------------------------
+
+7. Adding Profile Data
+
+--> Adding additional fields in Register page
+
+-------------------------------------------------------------------------
+
+--> Open IdentityModels.cs from Models folder
+--> Add this new field in ApplicationDbContext
+[Required]
+        
+[StringLength(255)]
+        
+public string DrivingLicence { get; set; }
+
+--> This is not actual model
+--> We are changing conventions of IdentityModel class to allow add new fields
+--> add-migration AddDrivingLicenseToApplicationUser
+--> update-database
+
+-------------------------------------------------------------------------
+
+--> Open RegisterViewModel in Models folder 
+--> This is actual model
+public class RegisterViewModel
+    
+{
+        
+[Required]
+        
+[Display(Name = "Driving Licence")]
+        
+public string DrivingLicence { get; set; }
+
+-------------------------------------------------------------------------
+
+--> Now in View, open Register.cshtml under Accounts in View
+<div class="form-group">
+        @Html.LabelFor(m => m.DrivingLicence, new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.DrivingLicence, new { @class = "form-control" })
+        </div>
+    </div>
+
+--> Paste this just before submit button
+--> This view is referencing from AccountController
+
+-------------------------------------------------------------------------
+
+public Register(RegisterView model) --> 
+var user = new ApplicationUser { UserName = model.Email, Email = model.Email, DrivingLicence = model.DrivingLicence };
+
+--> Add new field to it
+
+-------------------------------------------------------------------------
+
+--> NOTE:
+
+--> Before add-migration, always compile-first
+
+-------------------------------------------------------------------------
+
+8. OAuth
+
+--> OAuth stands for Open Authorization
+--> User login Vidly using Facebook(Social) icon links
+
+--> First Vidly app makes partnership with Facebook to get access to user information directly from facebook
+--> Facebook provides key and secret (username and password) to Vidly app
+--> Whenever user logins through facebook icon, user is redirected to facebook along with key and secret (to let facebook know, that it is vidly app which wants access to user information)
+--> Facebook sends authentication token (that facebooks authenticates user based on facebook credentials)
+--> Vidly again sends key and secret along with token (to verify that this token comes from facebook not any other else)
+--> Facebook then sends access token(which contains some information)
+--> This whole process is done automatically under the hood (this is low level details)
+
+-------------------------------------------------------------------------
+
+9. Using Social logins
+
+--> 2 Steps: 
+1. Enable SSL (for secure communication)
+2. Register our app with Facebook
+
+-------------------------------------------------------------------------
+
+--> Select Project Name
+--> Press F4
+--> In Properties, make ssl : True and copy ssl url: https://localhost:44310/
+--> Right click Project --> properties
+--> Under Web tab, replace url to copied one in IIS express
+--> Run the application
+
+-------------------------------------------------------------------------
+
+--> But application is still accessible using http
+--> Open filterconfig.cs
+paste this code:
+
+
+--> To make partnership with facebook, open developers.facebook.com
+--> Login
+--> Create new App
+--> Application Name: Vidly
+--> In Dashboard, click facebook Login from products
+--> Choose Web
+--> In Site url: https://localhost:44310/: Save
+--> In Settings, open Basic: There is AppID and AppSecret
+--> Open Startup.Auth.cs from App_Start folder
+--> There is property: app.UseFacebookAuthentication
+--> Uncomment that and paste appID and appSecret
+--> Compile the application
+
+--------------------------------------------------------------------------
+
+--> Go to Log In page
+--> Click on Facebook --> Log in to facebook
+--> Will show error
+--> Bec. we have defined property of Driving Licence which is required
+--> we have to work at 3 places: View model controller
+1. View-->
+
+--> Account/ExternalLoginConfirmation.cshtml
+--> Add following code before submit button
+<div class="form-group">
+        @Html.LabelFor(m => m.DrivingLicence, new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.DrivingLicence, new { @class = "form-control" })
+        </div>
+    </div>
+
+2. Model
+
+--> Find ExternalLoginConfirmation.cs model using Search solution Explorer
+--> Paste below code
+[Required]
+        
+[Display(Name = "Driving Licence")]
+        
+public string DrivingLicence { get; set; }
+
+3. Controller
+
+--> ExternalLoginConfirmation controller is : AccountController
+--> There will be link of this controller in View page, right click --> go to controller
+--> In actionMethod --> public async Task<ActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnUrl)
+--> var user = new ApplicationUser { UserName = model.Email, Email = model.Email, DrivingLicence = model.DrivingLicence };
+
+--> There is table: dbo.AspNetUserLogins which contains data 
+--> ProviderKey is access token which contains user information
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+--> If not logging in using facebook --> 
+
+--> Install-Package Microsoft.Owin.Security.Facebook
+--> And update all packages with word owin
+--> They recompile and try
+
+------------------------------------------------------------------------------------------------------------------------------------------------

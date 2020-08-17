@@ -1,0 +1,518 @@
+1. Adding Validation
+
+--> Model binding before assigning each value of form data to Paramter of actionMethod, it can also do validation
+
+--> Validation rules are defined in Data Annotations
+--> There is object of Model Binding --> ModelState which has a property IsValid for doing server side validation
+--> In Save actionMethod, while saving required form.
+
+
+[HttpPost]
+        public ActionResult Save(Customer customer) 
+        {
+            
+            if (!ModelState.IsValid)
+            {
+                CustomerFormViewModel viewModel = new CustomerFormViewModel()
+                {
+                    Customer = customer,
+                    MembershipTypes = _context.MembershipTypes.ToList()
+                };
+                return View("CustomerForm", viewModel);
+            }
+
+
+------------------------------------------------------------------------------
+
+--> To display message in form, we use Html.ValidationMessageFor helper method
+--> In CustomerForm
+
+<div class="form-group">
+    @Html.LabelFor(c => c.Customer.Name)
+    @Html.TextBoxFor(c => c.Customer.Name, new { @class = "form-control" })
+    @Html.ValidationMessageFor(c => c.Customer.Name)
+</div>
+
+------------------------------------------------------------------------------
+
+--> So there are total 3 steps:
+1. Apply Data Annotation
+2. Apply ModelState.IsValid Property to validate incoming form data
+3. Response with Html.ValidationMessageFor
+
+------------------------------------------------------------------------------
+
+--> Also displaying ValidationMessage for DropDownList of Membership Types
+
+--> In CustomerForm.cshtml,
+
+@Html.ValidationMessageFor(c => c.Customer.MembershipTypeId)
+
+------------------------------------------------------------------------------
+
+2. Styling Validation Errors
+
+--> When validation takes place, Html helper method puts dynamically class to input and validationMessageFor elements
+--> For ValidationMessageFor, it puts class = "field-validation-error"
+--> For textBoxFor, it puts class= "input-validatoin-error"
+
+--> Such validation errors only arise for invalid data
+--> To style such errors,
+
+--> In content folder, there is Site.css file
+--> We provide styling in there.
+
+
+.field-validation-error{
+    color: red;
+}
+
+.input-validation-error{
+    border: 2px solid red;
+}
+
+--> There is one problem in asp.net mvc4, In bundle-config file, replace site.css with Site.css
+
+------------------------------------------------------------------------------
+
+--> As you can required validation is also applied on MembershipType
+--> But we have not applied any required data annotation there.
+--> Reason is data type of MembershipType is byte which is not nullable.
+--> So mvc implicitly applied required property to that field.
+
+------------------------------------------------------------------------------
+
+3. Data Annotations
+
+--> There are differnet data annotatations for validation purposes
+
+[Required]
+[StringLength(255)]
+[Range(1,10)]
+[Compare("OtherProperty")]
+[Phone]
+[EmailAddress]
+[Url]
+[RegularExpression("...")]
+
+------------------------------------------------------------------------------
+
+--> To display custom error Msg
+
+[Required(ErrorMessage="Please enter customer's name")]
+public string Name { get; set; }
+
+------------------------------------------------------------------------------
+
+4. Custom Validation
+
+--> We will make custom Data Annotation
+--> Mostly data annotations are used for validation
+
+--> Make a new class in Models folder --> Min18YearsIfAMember.cs
+
+--> Here is the business logic,
+A user can only select membership if he is above 18 years
+
+------------------------------------------------------------------------------
+
+--> Make this class implements ValidationAttribute
+
+public class Min18YearsIfAMember : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            Customer customer = (Customer)validationContext.ObjectInstance;
+
+            if(customer.MembershipTypeId == 0 || customer.MembershipTypeId == 1)
+            {
+                return ValidationResult.Success;
+            }
+
+            if(customer.Birthdate == null)
+            {
+                return new ValidationResult("Birthdate is required");
+            }
+
+            var age = DateTime.Today.Year - customer.Birthdate.Value.Year;
+            return age >= 18 ? ValidationResult.Success : new ValidationResult("Customer should be at least 18 years old to go on a membership");
+        }
+    }
+
+------------------------------------------------------------------------------
+
+--> We have used overrided method IsValid of ValidationAttribute
+--> Before understanding this, lets put custom data-annotation
+
+--> In Customer domain class,
+
+        [Display(Name="Date of Birth")]
+        [Min18YearsIfAMember]
+        public DateTime? Birthdate { get; set; }
+
+------------------------------------------------------------------------------
+
+--> In CustomerForm.cshtml,
+
+   @Html.ValidationMessageFor(c => c.Customer.MembershipTypeId)
+
+------------------------------------------------------------------------------
+
+--> Now understanding method
+
+--> IsValid either return ValidationResult.Success (Validation success) or new ValidationResult("..") (Validation fails)
+--> To check user input from form, we use other overrided method which accepts two paramaters - validationContext contains our domain class
+--> var customer = (Customer)validationContext.ObjectInstance;
+
+--> Now we get our customer object, we will implement required logic
+--> If customer.MembershipTypeId is 0 or 1, then Success, NO Birthdate is required
+--> Otherwise for other MembershipTypeId we will check age and respond with success or error which will be handled by model binding and Html helper msg.
+
+--> We have used Birthdate.Value.Year, we have used Value bec. we have make Birthdate nullable type.
+
+------------------------------------------------------------------------------
+
+5. Refactoring Magic numbers
+
+--> We have used magic numbers in our Validation class for membershipTypeId == 0 || 1
+--> We have two solutions:
+1. Define such magic numbers in an enum and use that enum but you have to type cast it to (byte) from default int
+2. Define such magic numbers in domain class where they belong as static readonly field
+
+--> We can use both approaches, we will second one here
+
+--> In MembershipType domain class,
+
+        public static readonly byte unknown = 0;
+        public static readonly byte PayAsYouGo = 1;
+
+--> In Validation class,
+
+if(customer.MembershipTypeId == MembershipType.unknown || customer.MembershipTypeId == MembershipType.PayAsYouGo)
+
+------------------------------------------------------------------------------
+
+6. Validation Summary
+
+--> In CustomerForm,
+
+@Html.ValidationSummary()
+
+------------------------------------------------------------------------------
+
+--> It is also showing this error Message
+
+The Id field is required.
+
+--> As in New form, we are not passing any customer object in viewModel
+--> Means object is not initialised in viewModel
+--> Means id hidden field will take value="" as empty string.
+--> And when we get customer object from form data, model binding doesn't know how to convert empty string to int Id
+--> So this error message is generated
+
+--> Solution:
+--> We will pass empty Customer object which will have id value as 0 int (in object initialization)
+--> In customersController.cs
+
+        public ActionResult New()
+        {
+            IEnumerable<MembershipType> membershipTypes = _context.MembershipTypes.ToList();
+            CustomerFormViewModel viewModel = new CustomerFormViewModel()
+            {
+                Customer = new Customer(),
+                MembershipTypes = membershipTypes
+            };
+            return View("CustomerForm", viewModel);
+        }
+ 
+------------------------------------------------------------------------------
+
+--> We are duplicating error msgs in summary and in individual fields
+--> We want summary to show only this msg: Please fix the following errors.
+
+@Html.ValidationSummary(true, "Please fix the following errors")
+
+--> 1st parameter is to exclude individial fields error msgs
+--> 2nd parameter is error Msg.
+
+------------------------------------------------------------------------------
+
+--> Styling such validation error msgs
+
+--> First find class of this summary errors in browser by inspecting element.
+--> Then in Site.css, define styles
+
+.validation-summary-errors{
+    color: red;
+}
+
+------------------------------------------------------------------------------
+
+7. Client Side Validation
+
+--> By default, asp.net disable client side validation
+--> There is library in bundle-config file --> jqueryval (jquery validation)
+--> But it is not used anywhere
+--> In _layout file also, bootstrap and jquery are referenced but jqueryval not.
+--> There is placeholder in _layout where all view files scripts will be rendered there --> @RenderSection("scripts", required: false)
+
+--> so in CustomerForm view, we will add jqueryval reference to enable client side validation in that form
+
+@section scripts{
+    @Scripts.Render("~/bundles/jqueryval")   
+}
+
+--> We provide reference of bundles 
+
+------------------------------------------------------------------------------
+
+--> There is one good thing about client-side validation in asp
+--> We just to enable it. Thats it.
+--> All configuration is done by asp by itself.
+--> Lets understand how
+--> Html helper method implicitly apply additional attributes for validation
+--> jqueryval reads those html attributes and apply validation.
+--> one attribute eg. data-val=true	(data-validation)
+--> data-val-length="The field Name must be a string with a maximum length of 255."
+--> data-val-required="The Name field is required."
+--> data-val-length-max="255"
+
+------------------------------------------------------------------------------
+
+8. Anti-forgery Tokens
+
+--> CSRF attack
+--> Cross-site Request Forgery
+--> In this, when admin closes the browser, user is still active for some time.
+--> In this, meanwhile, hacker sends malicious page to client to user
+--> Hacker will read form data in developer tools and also sees url endpoint where form data is sent.
+--> Hacker uses this url endpoint to send any crud request from that browser using that malicious page.
+
+------------------------------------------------------------------------------
+
+--> Anti-forgery Tokens validates that request is coming from customerForm and not from any other websites.
+--> We will place such token in form as hidden field and also in cookie by sending such token.
+--> Server will verify this token as coming from customerform not from any other website.
+--> Even if hacker has access to this cookie, he does not have access to hidden field.
+--> Server verifies both.
+
+------------------------------------------------------------------------------
+
+--> Anti-forgery Tokens in Action:
+
+1. First place as hidden input field
+--> In CustomerForm,
+
+@Html.AntiForgeryToken()
+
+2. Second, place Anti-forgery Attribute above Save actionMethod where form data is submitted
+--> This attribute will check both cookie and hidden field.
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Save(Customer customer) 
+
+------------------------------------------------------------------------------
+
+--> you can see hidden field and cookie localStorage value of that token
+--> It has key of _RequestVerificationToken
+
+------------------------------------------------------------------------------
+
+9. Exercise
+
+--> Enable validation for MovieForm
+--> Remember these 3 steps:
+1. Data Annotation
+2. ModelState.IsValid in post actionMethod of form
+3. @Html.ValidationMessageFor(m => m.Name)
+
+--> I am not showing coding of this
+--> It is same as Customer Form
+
+------------------------------------------------------------------------------
+
+10. In above example,
+
+--> When you create new form and fill with empty movie object
+--> Fields like NumberInStock and ReleaseDate are also initialised with initial values : 0 and 1 Jan 1960 in create Movie form
+
+------------------------------------------------------------------------------
+
+--> One Solution:
+
+--> Remove that empty movie object from viewModel in New actionMethod
+--> Add HtmlHidden method in view for hidding id property
+--> As we were adding that empty object for id only
+
+@Html.Hidden("Movie.Id", (Model.Movie != null) ? Model.Movie.Id : 0)
+
+--> It will add as hidden field for id as 0 not empty string
+
+--> One problem, it is magic string, no reference so if changed, code will break here.
+
+------------------------------------------------------------------------------
+
+--> Second Solution
+
+--> Update viewModel
+
+--> In MovieFormViewModel
+
+--> Replace Movie property to individual movie properties
+--> Instead of creating empty object, we send properties directly to viewModel to view.
+--> We have make id, numberInStock, ReleaseDate all nullable type
+--> Deleted Genre from this viewModel, as this is not domain model class, it is only for view.
+--> Also made two constructors, one empty and other with parameter movie
+--> New actionMethod will use empty paramter with Id = 0
+--> Edit and Save actionMethod will use parameter movie to initialise all fields of viewModel with values and fill up the corresponding form.
+
+public class MovieFormViewModel
+    {
+        public IEnumerable<Genre> Genres { get; set; }
+        public int? Id { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+
+
+        [Display(Name = "Genre")]
+        [Required]
+        public byte? GenreId { get; set; }
+
+
+        [Display(Name = "Release Date")]
+        [Required]
+        public DateTime? ReleaseDate { get; set; }
+
+        [Display(Name = "Number in Stock")]
+        [Range(1, 20)]
+        [Required]
+        public byte? NumberInStock { get; set; }
+        public string Title
+        {
+            get
+            {
+                return (Id != 0) ? "Edit Movie": "New Movie";
+            }
+        }
+
+        public MovieFormViewModel()
+        {
+            Id = 0;
+        }
+
+        public MovieFormViewModel(Movie movie)
+        {
+            Id = movie.Id;
+            Name = movie.Name;
+            GenreId = movie.GenreId;
+            ReleaseDate = movie.ReleaseDate;
+            NumberInStock = movie.NumberInStock;
+        }
+    }
+
+
+------------------------------------------------------------------------------
+
+--> In MoviesController.cs
+
+public ActionResult New()
+        {
+            MovieFormViewModel viewModel = new MovieFormViewModel()
+            {
+                Genres = _context.Genres.ToList()
+            };
+            return View("MovieForm", viewModel);
+        }
+
+        [HttpPost]
+        public ActionResult Save(Movie movie)
+        {
+            if (!ModelState.IsValid)
+            {
+                MovieFormViewModel viewModel = new MovieFormViewModel(movie)
+                {
+                    Genres = _context.Genres.ToList()
+                };
+                return View("MovieForm", viewModel);
+            }
+
+            if (movie.Id == 0)
+            {
+                movie.DateAdded = DateTime.Now;
+                _context.Movies.Add(movie);
+            }
+            else
+            {
+                Movie movieInDb = _context.Movies.Single(m => m.Id == movie.Id);
+                movieInDb.Name = movie.Name;
+                movieInDb.ReleaseDate = movie.ReleaseDate;
+                movieInDb.GenreId = movie.GenreId;
+                movieInDb.NumberInStock = movie.NumberInStock;
+            }
+            _context.SaveChanges();
+            return RedirectToAction("Index", "Movies");
+        }
+
+        public ActionResult Edit(int id)
+        {
+            Movie movie = _context.Movies.FirstOrDefault(m => m.Id == id);
+
+            if (movie == null)
+            {
+                return HttpNotFound();
+            }
+
+            MovieFormViewModel viewModel = new MovieFormViewModel(movie)
+            {
+                Genres = _context.Genres.ToList()
+            };
+            return View("MovieForm", viewModel);
+        }
+
+------------------------------------------------------------------------------
+
+--> In MovieForm view,
+
+@model Vidly3.ViewModels.MovieFormViewModel
+@{
+    ViewBag.Title = "New";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@Model.Title</h2>
+
+@using (Html.BeginForm("Save", "Movies"))
+{
+    <div class="form-group">
+        @Html.LabelFor(m => m.Name)
+        @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Name)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.ReleaseDate)
+        @Html.TextBoxFor(m => m.ReleaseDate, "{0: d MMM yyy}", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.ReleaseDate)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.GenreId)
+        @Html.DropDownListFor((m => m.GenreId), new SelectList(Model.Genres, "Id", "Name"), "Select Genre", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.GenreId)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.NumberInStock)
+        @Html.TextBoxFor(m => m.NumberInStock, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.NumberInStock)
+    </div>
+
+    @Html.HiddenFor(m => m.Id)
+    <button type="submit" class="btn btn-primary">Save</button>
+}
+
+@section scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+------------------------------------------------------------------------------

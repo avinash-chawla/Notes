@@ -1,0 +1,126 @@
+0. Intro
+
+--> Including Pagination in our project, will improve our performance
+--> We only get that data which is required.
+--> We will use query string to pass data to server
+--> We narrow down mongoose search query of getting small data. 
+
+--------------------------------------------------------------------------
+
+1. Adding the Pagination component
+
+--> In app.module.ts
+
+import { MatPaginatorModule } from '@angular/material/paginator';
+
+--> Also include in imports array
+
+--------------------------------------------------------------------------
+
+--> In post-list.html
+
+</mat-accordion>
+<mat-paginator [length]="totalPosts" [pageSize]="postsPerPage" [pageSizeOptions]="pageSizeOptions"
+    (page)="onChangedPage($event)"></mat-paginator>
+
+--> In post-list.ts
+
+import { PageEvent } from '@angular/material/paginator';
+
+totalPosts = 10;
+postsPerPage = 2;
+pageSizeOptions = [1, 2, 5, 10]
+
+onChangedPage(pageData: PageEvent) {
+console.log(pageData);
+}
+
+--------------------------------------------------------------------------
+
+2. Working on Pagination backend
+
+router.get('/', (req, res) => {
+    const pageSize = +req.query.pagesize;
+    const currentPage = +req.query.page;
+    const postQuery = Post.find();
+    if (pageSize && currentPage) {
+        postQuery.skip(pageSize * (currentPage - 1))
+            .limit(pageSize)
+    }
+    postQuery.then(documents => {
+        res.status(200).json({
+            message: "Posts fetched Successfully",
+            posts: documents
+        });
+    })
+});
+
+--------------------------------------------------------------------------
+
+3. Connecting Angular paginator with backend
+
+--> In Service class,
+
+ getPosts(postsPerPage: number, currentPage: number) {
+    const queryParams = `?pagesize=${postsPerPage}&page=${currentPage}`;
+    this.http
+      .get<{ message: string; posts: any }>("http://localhost:3000/api/posts" + queryParams)
+      ...
+ }
+
+ --> post-list class,
+
+totalPosts = 10;
+postsPerPage = 2;
+currentPage = 1;
+pageSizeOptions = [1, 2, 5, 10]
+
+ngOnInit() {
+    this.isLoading = true;
+    this.postsService.getPosts(this.postsPerPage, this.currentPage);
+    ...
+}
+
+onChangedPage(pageData: PageEvent) {
+    this.currentPage = pageData.pageIndex + 1;
+    this.postsPerPage = pageData.pageSize;
+    this.postsService.getPosts(this.postsPerPage, this.currentPage);
+    console.log(pageData);
+}
+
+--------------------------------------------------------------------------
+
+4. Fetching Posts Correctly
+
+--> On backend, in routes,
+--> We are returning in response maxPosts count
+
+router.get('/', (req, res) => {
+    const pageSize = +req.query.pagesize;
+    const currentPage = +req.query.page;
+    const postQuery = Post.find();
+    let fetchedPosts;
+    if (pageSize && currentPage) {
+        postQuery.skip(pageSize * (currentPage - 1))
+            .limit(pageSize)
+    }
+    postQuery.then(documents => {
+        this.fetchedPosts = documents
+        return Post.count()
+    }).then(count => {
+        res.status(200).json({
+            message: "Posts fetched Successfully",
+            posts: this.fetchedPosts,
+            maxPosts: count
+        });
+    })
+});
+
+
+--> As we are returning new property in get request
+--> We need to apply changes in postsUpdated property of service class containing original array.
+--> I am not writing code here, you can see in repository. Because it needs many restructing of code. 
+
+--> This was only done to respond totalNumberofPosts in database.
+
+--------------------------------------------------------------------------

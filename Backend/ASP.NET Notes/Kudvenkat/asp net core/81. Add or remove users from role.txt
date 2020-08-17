@@ -1,0 +1,281 @@
+1. Add or remove users from role
+
+--> On Edit role view, when Add or remove users from this role button is clicked, we want to redirect to Edit users in role view
+
+--> All operations of adding or removing user will be done from this EditForm view.
+--> In EditRole View,
+
+--------------------------------------------------------------------------------
+
+<div class="card-footer">
+    <a asp-controller="Administration" asp-action="EditUsersInRole"
+       asp-route-roleId="@Model.Id" class="btn btn-primary">
+        Add or remove users from this role
+    </a>
+</div>
+
+--------------------------------------------------------------------------------
+
+2. UserRole View
+
+--> For adding or removing users, this is the view 
+--> This view is specific to Role.
+
+--> This view contains the list of all users with checkboxes
+--> There are two buttons - Update and Cancel
+--> On click of Cancel button, we will redirect to EditRole view
+--> On click of Update button, we will assign different users in same role based on ticked checkbox
+
+--> There is many to many relationship between users and roles
+--> One role can contains many users
+--> One user can have many roles.
+
+--------------------------------------------------------------------------------
+
+3. AspNetUserRoles identity database table
+
+--> Application users are stored in AspNetUsers database table, 
+--> where as roles are stored in AspNetRoles table. 
+--> UserRoles i.e user to role mapping data is stored in AspNetUserRoles table
+
+--> This table has just 2 columns - UserId and RoleId. Both are foreign keys. 
+--> UserId column references Id column in AspNetUsers table and RoleId column references Id column in AspNetRoles table.
+
+--------------------------------------------------------------------------------
+
+4. UserRoleViewModel Class
+
+public class UserRoleViewModel
+{
+    public string UserId { get; set; }
+    public string UserName { get; set; }
+    public bool IsSelected { get; set; }
+}
+
+--------------------------------------------------------------------------------
+
+--> In the UserRoleViewModel class, in addition to UserId property, we have UserName and IsSelected properties. 
+--> UserName property is required so we can display the UserName on the view. 
+
+--> IsSelected property is required to determine if the user is selected to be a member of the role.
+--> We could include RoleId property also in the UserRoleViewModel class, but as far as this view is concerned, there is a one-to-many relationship from Role to Users. So, in order not to repeat RoleId for each User, we will use ViewBag to pass RoleId from controller to the view.
+
+--> We are excluding roleId from this viewModel, because we are going iterate this viewModel class for each user and assign or remove from single role.
+--> We will provide roleId using query String.
+
+--------------------------------------------------------------------------------
+
+5. HttpGet EditUsersInRole Action
+
+[HttpGet]
+public async Task<IActionResult> EditUsersInRole(string roleId)
+{
+    ViewBag.roleId = roleId;								-------> To pass data to view
+
+    var role = await roleManager.FindByIdAsync(roleId);					-------> Finding given role from roleId
+
+    if (role == null)
+    {
+        ViewBag.ErrorMessage = $"Role with Id = {roleId} cannot be found";
+        return View("NotFound");
+    }
+
+    var model = new List<UserRoleViewModel>();					-------> Iterating over viewModel or over users in userRole view
+
+    foreach (var user in userManager.Users.ToUsers)					-------> For Each user
+    {
+        var userRoleViewModel = new UserRoleViewModel			-------> Filling model Data (which will used to pass data to post method)
+        {
+            UserId = user.Id,
+            UserName = user.UserName
+        };
+
+        if (await userManager.IsInRoleAsync(user, role.Name))		-------> Checking if user already assigned to this role
+        {
+            userRoleViewModel.IsSelected = true;			-------> If yes, make selected property already to true (checkbox)
+        }
+        else
+        {
+            userRoleViewModel.IsSelected = false;			-------> If not, make untick checkbox while getting this form
+        }
+
+        model.Add(userRoleViewModel);					-------> Adding this IEnumerable UserRole to model property
+    }
+
+    return View(model);							-------> Passing this IList<Users> to view for displaying
+}
+
+--------------------------------------------------------------------------------
+
+6. EditUsersInRole View
+
+@model List<UserRoleViewModel>
+
+@{
+    var roleId = ViewBag.roleId;
+}
+
+<form method="post">
+    <div class="card">
+        <div class="card-header">
+            <h2>Add or remove users from this role</h2>					---------> Heading
+        </div>
+        <div class="card-body">
+            @for (int i = 0; i < Model.Count; i++)					------> iterating over UserRole model
+            {
+                <div class="form-check m-1">
+                    <input type="hidden" asp-for="@Model[i].UserId" />			------> Attaching hidden field for UserId
+                    <input type="hidden" asp-for="@Model[i].UserName" />		------> Attaching hidden field for UserName
+                    <input asp-for="@Model[i].IsSelected" class="form-check-input" />  ------> Making checkbox based on user assigned to role or not
+                    <label class="form-check-label" asp-for="@Model[i].IsSelected">
+                        @Model[i].UserName
+                    </label>
+                </div>
+            }
+        </div>
+        <div class="card-footer">
+            <input type="submit" value="Update" class="btn btn-primary"			----------> Submit will go to PostMethod of EditRole
+                   style="width:auto" />
+            <a asp-action="EditRole" asp-route-id="@roleId"
+               class="btn btn-primary" style="width:auto">Cancel</a>
+        </div>
+    </div>
+</form>
+
+--> Based on the checkvalues of Users, we do assign or remove users from that given role in HttpPost method.
+--> For each user, we are passing userId, userName, IsSelected Property and roleId in query String
+
+--------------------------------------------------------------------------------
+
+7. HttpPost EditUsersInRole Action
+
+[HttpPost]
+public async Task<IActionResult> EditUsersInRole(List<UserRoleViewModel> model, string roleId)	--> We will get List of users and roleId
+{
+    var role = await roleManager.FindByIdAsync(roleId);				--------> First find given role from roleId
+
+    if (role == null)
+    {
+        ViewBag.ErrorMessage = $"Role with Id = {roleId} cannot be found";
+        return View("NotFound");
+    }
+
+    for (int i = 0; i < model.Count; i++)				------> Iterating over each user and will check for checkbox
+    {
+        var user = await userManager.FindByIdAsync(model[i].UserId);
+
+        IdentityResult result = null;
+
+	// We will assign user to role if he is checked and not already assigned to same role
+        if (model[i].IsSelected && !(await userManager.IsInRoleAsync(user, role.Name)))	 
+        {
+            result = await userManager.AddToRoleAsync(user, role.Name);
+        }
+
+	// We will Remove user from role who is unchecked and previously in role
+        else if (!model[i].IsSelected && await userManager.IsInRoleAsync(user, role.Name))
+        {
+            result = await userManager.RemoveFromRoleAsync(user, role.Name);
+        }
+
+	// Conditions left are: User unchecked as well as not assigned earlier and User checked as well as already asssigned earlier.
+        else
+        {
+            continue;
+        }
+
+        if (result.Succeeded)		--> Checking for each user, if result is Succeded
+        {
+            if (i < (model.Count - 1))			--> If count is not completed, continue, else redirect to EditRole View 
+                continue;
+            else
+                return RedirectToAction("EditRole", new { Id = roleId });
+        }
+    }
+
+    return RedirectToAction("EditRole", new { Id = roleId });
+}
+
+--------------------------------------------------------------------------------
+
+8. Note:
+
+--> I was getting error:
+
+Error: No service for type 'Microsoft.AspNetCore.Identity.UserManager`1[Microsoft.AspNetCore.Identity.IdentityUser]' has been registered
+Solution: I was using SignInManager<IdentityUser> instead of SignInManager<ApplicationUser> in _Layout.cshtml
+
+--------------------------------------------------------------------------------
+
+--> Another:
+
+Error: If you are getting "InvalidOperationException: There is already an open DataReader associated with this Command which must be closed first."
+Solution: Replace userManager.Users with userManager.Users.ToList() while looping over users in EditUsersInRole actionMethod.
+
+--------------------------------------------------------------------------------
+
+9. After solving All
+
+--> Go to http://localhost:5000/administration/ListRoles
+--> Click on Edit, To modify users in any role, go to specific role or create new role
+
+--> You will reach to http://localhost:5000/Administration/EditRole/bb7284c9-bd93-4526-9634-fd05cd955d43
+--> Modify name or click on addOrRemove Users
+
+--> You will reach to http://localhost:5000/Administration/EditUsersInRole?roleId=bb7284c9-bd93-4526-9634-fd05cd955d43
+--> Select or Deselect users which you need in this role.
+
+--> Update
+
+--------------------------------------------------------------------------------
+
+10. Congratulations you have assigned user to specific role
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

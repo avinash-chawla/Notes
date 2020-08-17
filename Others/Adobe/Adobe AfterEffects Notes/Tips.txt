@@ -1,0 +1,73 @@
+1. What-->
+--> After Effects makes Video Footage
+--> Animations means play with time frames
+
+2. It animates Text, Icons, Camera View
+
+3. Put Plain Background to Footage
+--> Layer menu --> New --> Solid 
+
+4. Keyframe for text--> 
+--> opacity: 0, delay (100%), 0
+
+5. Keyframe for icon
+--> Scale: 0 to 100%
+
+6. Changing speed of transition
+--> Select keyframe
+--> Keyframe Velocity
+
+7. Circle Bursting
+--> Rectangle --> Size: (30,0) to (0, 60) and Position: 0 to -x
+--> Repeater  --> Copies: 12, Position: (0,0) and Rotation: 360/12
+--> Transform --> to Icon Position
+
+8. Motion Blurr
+--> Click Motion Blurr button
+
+9. Bouncing Effect on icon
+--> Set keyframe on Scale between 0 and 1sec
+0  --> 0%
+14 --> 120%
+18 --> 90%
+22 --> 105%
+25 --> 100%
+--> Then reduce timespan of keyframes, by clicking them all
+
+10. To Zoom Timeline-->
+--> alt + mouse scroll
+
+11. To convert diamond keyframe to normal-->
+--> ctrl + click
+
+12. Play with Graph curve for anticipation
+--> Select keyframes and click graph icon
+
+13. Shortcuts
+--> P = Position
+--> R = Rotation
+--> S = Scale
+--> T = Opacity
+
+14. Showing Grids for proper design-->
+--> View --> Show Grid
+
+
+
+19. Time Travel-->
+--> Click on Time display which is displaying time
+--> Type time: 400  --> will bring to 4s
+--> Type time: 415  --> will bring to 4s and 15 frame
+--> Drag time pointer with shift key
+
+
+20. Green Preview-->
+--> Timer follows green bar which is preview
+--> If it is slow, make Resolution Less.
+
+21. Abstract Background-->
+--> It is good to use
+--> Just type in google 
+--> also videos of it
+
+22. 

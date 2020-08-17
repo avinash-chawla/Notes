@@ -1,0 +1,215 @@
+1. What is LINQ
+
+--> LINQ stands for Language Integrated Query. 
+--> LINQ enables us to query any type of data store (SQL Server, XML documents, Objects in memory etc).
+
+--------------------------------------------------------------------------------
+
+2. Why LINQ?
+
+--> If the .NET application that is being developed
+a) Requires data from SQL Server - Then the developer has to understand ADO.NET code and SQL specific to SQL Server Database
+
+b) Requires data from an XML document - Then the developer has to understand XSLT & XPATH queries
+
+c) Need to query objects in memory (List<Customer>, List<Order> etc) - Then the developer has to understand how to work with objects in memory
+
+
+--------------------------------------------------------------------------------
+
+LINQ enables us to work with these different data sources using a similar coding style without having the need to know the syntax specific to the data source. In our upcoming videos we will discuss querying different data sources using LINQ.
+
+Another benefit of using LINQ is that it provides intellisense and compile time error checking.
+
+--------------------------------------------------------------------------------
+
+3. Linq Architecture
+
+--> Linq Provider is translator
+
+1. LINQ query can be written using any .NET supported programming language
+2. LINQ provider is a component between the LINQ query and the actual data source, which converts the LINQ query into a format that the underlying data source can understand. For example LINQ to SQL provider converts a LINQ query to T-SQL that SQL Server database can understand.
+
+
+--> LINQ Providers
+1. Linq to XML
+2. Linq to SQL
+3. Linq to Objects
+4. Linq to Entities
+5. Linq to DataSet
+
+--------------------------------------------------------------------------------
+
+4. Demo
+
+Step 1: We first create the required table
+Create Table Students
+(
+     ID int primary key identity,
+     FirstName nvarchar(50),
+     LastName nvarchar(50),
+     Gender nvarchar(50)
+)
+GO
+
+Insert into Students values ('Mark', 'Hastings', 'Male')
+Insert into Students values ('Steve', 'Pound', 'Male')
+Insert into Students values ('Ben', 'Hoskins', 'Male')
+Insert into Students values ('Philip', 'Hastings', 'Male')
+Insert into Students values ('Mary', 'Lambeth', 'Female')
+GO
+
+--------------------------------------------------------------------------------
+
+5. Without Linq Query
+
+--> We are using plain ado.net
+--> We do not need entity framework to use Linq query.
+--> In this, we are querying using sql server syntax in string
+--> So typo errors can happen, in string
+--> Not give any compile time errors and no intellisense.
+
+
+Step 2: Write the required ADO.NET code to retrieve data from SQL Server database as shown below.
+
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data.SqlClient;
+namespace Demo
+{
+    public partial class WebForm1 : System.Web.UI.Page
+    {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            string cs = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+            SqlConnection con = new SqlConnection(cs);
+            SqlCommand cmd = new SqlCommand
+                ("Select ID, FirstName, LastName, Gender from Students where Gender='Male'", con);
+            List<Student> listStudents = new List<Student>();
+            con.Open();
+            SqlDataReader rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+            {
+                Student student = new Student();
+                student.ID = Convert.ToInt32(rdr["ID"]);
+                student.FirstName = rdr["FirstName"].ToString();
+                student.LastName = rdr["LastName"].ToString();
+                student.Gender = rdr["Gender"].ToString();
+
+                listStudents.Add(student);
+            }
+            con.Close();
+
+            GridView1.DataSource = listStudents;
+            GridView1.DataBind();
+        }
+    }
+
+    public class Student
+    {
+        public int ID { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Gender { get; set; }
+    }
+}
+
+--------------------------------------------------------------------------------
+
+6. With Linq Query
+
+--> First we will connect visual studio with database
+--> To connect, we have to follow certain steps
+--> We do not need entityFramework or IdentityModel class to connect to database
+--> We will use "LINQ to SQL" inbuilt Classes
+
+
+Step 1: Create a new empty asp.net web application and name it Demo
+
+Step 2: Click on "View" menu item and select "Server Explorer"
+
+Step 3: In "Server Explorer" window, right click on "Data Connections" and select "Add Connection" option
+adding data connection in sql server
+
+Step 4: Specify your SQL Server name and the credentials to connect to SQL Server. At this point we should be connected to SQL Server from Visual Studio.
+
+Step 5: Adding LINQ to SQL Classes
+a) Right click on the "Demo" project in solution explorer and select "Add New Item" option
+b) In the "Add New Item" dialog box, select "Data" under "Installed Templates"
+c) Select "LINQ to SQL Classes"
+d) Set Name = Sample.dbml
+e) Finally click "Add" button
+Adding linq to sql classes
+
+Step 6: From "Server Explorer" window drag and drop "Students" table onto "Sample.dbml" designer file.
+
+Step 7: Add a webform. Drag and drop a gridview control.
+
+ 
+--------------------------------------------------------------------------------
+
+--> Now we are connected to Sql Server, through a class called SampleDataContext
+--> To use this class in our webForm class, we need to instantiate it first
+--> Then we can do Linq Query on this object
+--> This object is similar to database and it contains all tables as properties.
+
+
+Step 8: Copy and paste the following code in the code-behind file
+using System;
+using System.Linq;
+namespace Demo
+{
+    public partial class WebForm1 : System.Web.UI.Page
+    {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            SampleDataContext dataContext = new SampleDataContext();
+            GridView1.DataSource = from student in dataContext.Students
+                                   where student.Gender == "Male"
+                                   select student;
+            GridView1.DataBind();
+        }
+    }
+}
+
+--------------------------------------------------------------------------------
+
+7. To query Array object with Linq Query
+
+
+int [] numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+GridView1.DataSource =  from number in numbers
+		        where (number % 2) == 0
+			select number;
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

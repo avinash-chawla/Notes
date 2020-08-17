@@ -1,0 +1,100 @@
+1. Intro
+
+--> We have many-to-many relationship between make and model
+--> 1 make can have multiple models
+--> 1 model can be applied to multiple makes.
+
+--> Implementing Options
+1. We give two api-endpoint to user
+Get /api/makes
+{ id:1, name: 'make1'}
+
+Get /api/makes/1/models
+{ id: 1, name: 'model1' }
+
+2. We give single api-endpoint to user
+Get /api/makes
+{ id:1, name: 'model1', models: [...]}
+
+--> As this will be small scale applications, we choose second approach.
+
+--------------------------------------------------------------------------------
+
+2. Building the Domain Model
+
+--> Make new folder in project --> Models
+--> Create new file Model.cs
+
+    public class Model
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public Make Make { get; set; }
+
+        public int MakeId { get; set; }
+    }
+
+--> Create another new class --> Make.cs
+
+    public class Make
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public ICollection<Model> Models { get; set; }
+
+        public Make()
+        {
+            Models = new Collection<Model>();
+        }
+    }
+
+--------------------------------------------------------------------------------
+
+--> While querying make model, we also get collections of models in that make
+
+--> IList is used to alter object of list and also provide index to each record
+--> ICollection is used to iterate over list and does not provide index to each record.
+
+--> Now make new property in Model class --> Make which saves make for model
+--> Now to update in make class should also update in model class
+
+--> We set foreign key 
+--> To set foreign property --> we use ParentName followed by parent id
+--> In model class, MakeId automatically references Make model class
+--> This column does not show in table also.
+--> It will set as foreign key to make table.
+
+--------------------------------------------------------------------------------
+
+3. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,88 @@
+--> Seeding Data using Migrations
+
+1. Seeding Data
+
+--> We will use DbContext class to seed initial data into database
+--> Currently AppDbContext class is deriving this DbContext class
+--> We will use override method of DbContext class in AppDbContext class
+--> In AppDbContext class, when you type override  --> It will list all override methods from DbContext class, select onModelCreating.
+
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Employee>().HasData(
+                new Employee
+                {
+                    Id = 1,
+                    Name = "Mark",
+                    Department = Dept.IT,
+                    Email = "mark@pragim.com"
+                });
+        }
+
+---------------------------------------------------------------------------------
+
+2. Migration
+
+--> To get affect in database, we will use migration
+--> add-migration SeedEmployeesTable
+
+---------------------------------------------------------------------------------
+
+3. Altering Existing Database Seed data
+
+--> You can also alter initial data by changing in above override method indeed.
+--> You can also as many as initial data as you want.
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Employee>().HasData(
+                new Employee
+                {
+                    Id = 1,
+                    Name = "Mary",
+                    Department = Dept.IT,
+                    Email = "mark@pragim.com"
+                },
+		new Employee
+                {
+                    Id = 2,
+                    Name = "John",
+                    Department = Dept.HR,
+                    Email = "mark@pragim.com"
+                }
+	    );
+        }
+
+---------------------------------------------------------------------------------
+
+4. Keeping DbContext Class Clean
+
+--> Instead of polluting our AppDbContext class, we can seed data in another class and provide its reference in AppDbContext class
+
+--> Make new class in Models folder : ModelBuilderExtensions
+--> We provide this class object as extension methods to overrided modelBuilder method in AppDbContext class.
+
+public static class ModelBuilderExtension
+{	
+
+public static void Seed(this ModelBuilder modelBuilder)
+{
+   modelBuilder.Entity<Employee>().HasData(
+	...
+}
+
+--> Remember, we use 'this' keyword in parameter for making extension methods and method should be static.
+
+--> Now in AppDbContext class
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Seed();
+	}
+
+--> Build the solution, everything will be working fine.
+
+---------------------------------------------------------------------------------
+
+

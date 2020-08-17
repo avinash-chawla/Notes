@@ -1,0 +1,246 @@
+1. Intro
+
+--> We will discuss user role membership i.e how to add or remove roles for a given user using the asp.net core identity api. 
+--> This is very similar to Part 81 where we discussed how to add or remove users from a given role.
+
+-------------------------------------------------------------------------------------
+
+2. Edit User View
+
+--> On Edit user view, when "Manage Roles" button is clicked, we want to redirect to ManageUserRoles view.
+
+<div class="card-footer">
+    <a asp-action="ManageUserRoles" asp-route-userId="@Model.Id"
+       class="btn btn-primary">
+        Manage Roles
+    </a>
+</div>
+
+--> ManageUserRoles view is as shown below. If you want the role to be assigned to the given user, check the checkbox, otherwise leave it unchecked. 
+--> asp.net core identity add role to user
+--> Once the Update button is clicked the data should be updated in the underlying AspNetUserRoles database table.
+
+-------------------------------------------------------------------------------------
+
+3. UserRolesViewModel Class
+
+public class UserRolesViewModel
+{
+    public string RoleId { get; set; }
+    public string RoleName { get; set; }
+    public bool IsSelected { get; set; }
+}
+
+--> In the UserRolesViewModel class, in addition to RoleId property, we have RoleName and IsSelected properties. 
+--> RoleName property is required so we can display the RoleName on the view. 
+--> IsSelected property is required to determine if the role is selected to be assigned to the given user.
+--> We could include UserId property also in the UserRolesViewModel class, but as far as this view is concerned, there is a one-to-many relationship from User to Roles. So, in order not to repeat UserId for each Role, we will use ViewBag to pass UserId from controller to the view.
+
+-------------------------------------------------------------------------------------
+
+4. HttpGet ManageUserRoles Action
+
+[HttpGet]
+public async Task<IActionResult> ManageUserRoles(string userId)
+{
+    ViewBag.userId = userId;
+
+    var user = await userManager.FindByIdAsync(userId);
+
+    if (user == null)
+    {
+        ViewBag.ErrorMessage = $"User with Id = {userId} cannot be found";
+        return View("NotFound");
+    }
+
+    var model = new List<UserRolesViewModel>();
+
+    foreach (var role in roleManager.Roles)
+    {
+        var userRolesViewModel = new UserRolesViewModel
+        {
+            RoleId = role.Id,
+            RoleName = role.Name
+        };
+
+        if (await userManager.IsInRoleAsync(user, role.Name))
+        {
+            userRolesViewModel.IsSelected = true;
+        }
+        else
+        {
+            userRolesViewModel.IsSelected = false;
+        }
+
+        model.Add(userRolesViewModel);
+    }
+
+    return View(model);
+}
+
+-------------------------------------------------------------------------------------
+
+5. HttpPost ManageUserRoles Action
+
+[HttpPost]
+public async Task<IActionResult>
+    ManageUserRoles(List<UserRolesViewModel> model, string userId)
+{
+    var user = await userManager.FindByIdAsync(userId);
+
+    if (user == null)
+    {
+        ViewBag.ErrorMessage = $"User with Id = {userId} cannot be found";
+        return View("NotFound");
+    }
+
+    var roles = await userManager.GetRolesAsync(user);
+    var result = await userManager.RemoveFromRolesAsync(user, roles);
+
+    if (!result.Succeeded)
+    {
+        ModelState.AddModelError("", "Cannot remove user existing roles");
+        return View(model);
+    }
+
+    result = await userManager.AddToRolesAsync(user,
+        model.Where(x => x.IsSelected).Select(y => y.RoleName));
+
+    if (!result.Succeeded)
+    {
+        ModelState.AddModelError("", "Cannot add selected roles to user");
+        return View(model);
+    }
+
+    return RedirectToAction("EditUser", new { Id = userId });
+}
+
+-------------------------------------------------------------------------------------
+
+6. ManageUserRoles View
+
+@model List<UserRolesViewModel>
+
+@{
+    var userId = ViewBag.userId;
+}
+
+<form method="post">
+    <div class="card">
+        <div class="card-header">
+            <h2>Manage User Roles</h2>
+        </div>
+        <div class="card-body">
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <div class="form-check m-1">
+                    <input type="hidden" asp-for="@Model[i].RoleId" />
+                    <input type="hidden" asp-for="@Model[i].RoleName" />
+                    <input asp-for="@Model[i].IsSelected" class="form-check-input" />
+                    <label class="form-check-label" asp-for="@Model[i].IsSelected">
+                        @Model[i].RoleName
+                    </label>
+                </div>
+            }
+            <div asp-validation-summary="All" class="text-danger"></div>
+        </div>
+        <div class="card-footer">
+            <input type="submit" value="Update" class="btn btn-primary"
+                   style="width:auto" />
+            <a asp-action="EditUser" asp-route-id="@userId"
+               class="btn btn-primary" style="width:auto">Cancel</a>
+        </div>
+    </div>
+</form>
+
+-------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

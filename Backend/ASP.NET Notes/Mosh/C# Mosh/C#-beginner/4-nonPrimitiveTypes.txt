@@ -1,0 +1,223 @@
+1. Classes-->
+
+--> Containers
+--> Building blocks
+--> contains fields and methods 
+--> every field and method has access modifier
+--> static method --> means only single instance of this method is created in memory
+
+--> no need to create object bec. single instance in memory
+
+--> Person.cs -->
+namespace HelloWorld
+{
+    public class Person
+    {
+        public string firstName;
+        public string lastName;
+
+        public void Introduce()
+        {
+            Console.WriteLine("My name is " + this.firstName + " " + this.lastName);
+        }
+    }
+}
+
+--> Program.cs -->
+
+namespace HelloWorld
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Person avinash = new Person();
+            avinash.firstName = "Avinash";
+            avinash.lastName = "Chawla";
+            avinash.Introduce();
+            
+        }
+    }
+}
+
+-------------------------------------------------------------------------------------------------------------------
+--> Calculator.cs-->
+namespace HelloWorld.Math
+{
+    public class Calculator
+    {
+        public int Add(int a, int b)
+        {
+            return a + b;
+        }
+    }
+}
+
+--> Program.cs -->
+using HelloWorld.Math;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Calculator calc = new Calculator();
+            Console.WriteLine("Total is :"+calc.Add(1, 2));
+            
+        }
+    }
+}
+
+
+-------------------------------------------------------------------------------------------------------------------
+
+--> access modifier is important to mention
+
+namespace avinash.Math;
+
+--> public class Calculator{
+	public static int Add(int a, int b){
+	  return a+b;
+	}
+    }
+
+
+
+    var result = Calculator.add(2,3);
+
+--> that's y main method is static, compiler no need to create obj of main and has single entry point to run main
+--> just like current data-time, there should be single instance of it. other examples are Console, Math, Main, etc
+
+--> no need to export class --> shared by public keyword
+--> ctrl + tab --> to switch between classes
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+2. Arrays-->
+
+int [] numbers = new int[3];
+int [] numbers = new int[3] { 1,2,3} ;
+
+var numbers = new int[3];
+numbers[0] = 1;
+Console.WriteLine(numbers[1]); --> 0 
+
+var flags = new bool[3];
+flags[0] = true;
+Console.WriteLine(flags[2]) --> False
+
+
+-------------------------------------------------------------------------------------------------------------------
+
+3. Strings-->
+
+defining-->
+
+string firstName = "mosh";
+string name = firstName + " " + lastName;
+string name = string.Format("{0} {1}", firstName, lastName);
+
+array to string-->
+
+var numbers = new int[3] { 1,2,3};
+string list = string.Join(",", numbers);		---> convert array to string
+
+accessing string char-->
+
+string name = "mosh";
+char firstChar = name[0];
+name[0] = 'n'; --> error --> strings are immutable once defined not changed possible
+
+verbatim Strings-->
+string path = @"c:\projects\project1\folder1"; --> no need to use \\
+
+String is a class-->
+--> int, bool, .. --> are maped to struts
+--> string --> is maped to class
+
+String firstName = "mosh"; --> need to import System namespace to use it bec. String class defined in System namespace
+string name = "john"; --> need not to import System namaspace
+
+Int32 i;	--> Int32 strut also defined in system namespace
+
+var names = new string[3] {"john", "mosh", "jack"};
+var listOfName = string.Join(",", names);
+Console.WriteLine(listOfName);
+
+-------------------------------------------------------------------------------------------------------------------
+
+4. ENUMS-->
+
+to group all related constants in one place
+public enum ShippingMethod: byte{		--> by default, constants are int, if not mentioned
+	Express = 1,
+ 	ByAir = 2,
+ 	ByWater = 3;
+}
+
+var method = ShippingMethod.Express;
+var method2 = ShippingMethod.ByAir;
+
+-------------------------------------------------------------------------------------------------------------------
+
+5. Reference Types and Value Types-->
+
+primitive types --> int, float, bool, char
+non-primitive	--> class, string, array	--> array maped to System.Array class
+
+Value Types-->
+Structures
+Allocated on stack(un-sustainable)(non persistant-data)
+Memory allocation done automatically
+immediately removed when out of scope
+value copied
+
+Reference Types-->
+Classes
+You need to allocate memory
+Memory allocated on heap(sustainable)(persistant-data)
+Garbage collected by CLR
+reference copied
+
+-------------------------------------------------------------------------------------------------------------------
+
+6. Example1-->
+
+value type-->
+	var a = 10;
+	var b = a;
+	b++;
+	Console.WriteLine(string.Format("a: {0}, b: {1}", a, b));	--> a: 10, b: 11
+
+reference type-->
+	var array1 = new int[] {1,2,3};
+	var array2 = array1;
+	array2[0] = 0;
+	Console.WriteLine(array1[0]);	--> 0;
+
+-------------------------------------------------------------------------------------------------------------------
+
+7. Example2-->
+
+class Program{
+ 	static void Main(string[] args){
+	   var number = 1;
+	   Increment(number);
+	   Console.WriteLine(number);   -----> 1 (bec. value is copied to int number parameter in function)
+
+	   var person = new Person() { Age = 20};
+	   MakeOld(person);
+	   Console.WriteLine(person.Age);  -------> 30 (bec. reference is copied to Person person parameter in function)
+	}
+
+	public static void Increment(int number){
+	   number += 10;
+	}
+
+	public static void MakeOld(Person person){
+	   person.Age += 10;
+	}	
+
+--> main difference between value and reference types is memory management
+

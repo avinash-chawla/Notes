@@ -1,0 +1,228 @@
+1. What are Servlets?
+
+--> Java class that is processed on the server
+--> Java class generates HTML that is returned to browser
+--> Can read HTML form data, use Cookies and sessions etc.
+--> At a high-level, similar functionality to JSPs
+
+---------------------------------------------------------------------------------
+
+2. Show me the code
+
+@WebServlet("/HelloWorldServlet")
+public class HelloWorldServlet extends HttpServlet {
+       
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		// Step 1: set the content type
+		response.setContentType("text/html");
+		
+		// Step 2: get the printwriter
+		PrintWriter out = response.getWriter();
+		
+		// Step 3: generate HTML content
+		out.println("<html><body>");
+		
+		out.println("<h2>Hello World</h2>");
+		out.println("<hr>");
+		out.println("Time on the server is: " + new java.util.Date());
+		
+		out.println("</body></html>");
+	}
+}
+
+--> url for this will be: localhost:8080/<projectName>/HelloWorldServlet
+--> This is using directive @WebServlet
+--> We are generating required html code using class instead of jsp expressions
+--> Servlets are basically class
+--> Any class that want to be servlet class need to extends HttpServlet and override method for GET and POST
+--> For GET, doGet method to override
+--> It accepts two arguments request and response
+
+---------------------------------------------------------------------------------
+
+3. Comparing JSP and Servlets
+
+--> JSPs
+1. Html file with .jsp extension
+2. Contains static HTML
+3. JSP to generate HTML
+4. Has built-in JSP objects
+
+--> Servlets
+1. Java class file
+2. Generate all HTML
+3. More steps to access web objects
+
+---------------------------------------------------------------------------------
+
+--> Which One?
+1. Can use either one for building Java web apps...
+2. Build entire site using only Servlets... or
+3. Build entire site using only JSPs
+
+---------------------------------------------------------------------------------
+
+--> Best Practice
+
+--> Integrate them both together!
+1. Servlet does the business logic
+2. JSP handles the presentation view
+
+--> Model-view-Controller(MVC) Design Pattern
+
+---------------------------------------------------------------------------------
+
+4. Reading HTML Form Data with Servlets
+
+--> Student-form.html
+
+<html>
+<body>
+<form action="StudentServlet" method="GET">
+
+	First name: <input type="text" name="firstName" /> 
+	
+	<br/><br/>
+	
+	Last name: <input type="text" name="lastName" />
+
+	<br/><br/>
+
+	<input type="submit" value="Submit" />
+		
+</form>
+</body>
+</html>
+
+--> Here method="GET" will call StudentServlet doGet method which is overrided one.
+
+---------------------------------------------------------------------------------
+
+--> StudentServlet.java
+
+--> Right click project
+--> Add
+--> Servlet
+--> Give any package name, com.luv2code.servletdemo
+--> Name it: StudentServlet 
+
+---------------------------------------------------------------------------------
+
+package com.luv2code.servletdemo;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/StudentServlet")
+public class StudentServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /public StudentServlet() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		// Step 1: set content type
+		response.setContentType("text/html");
+		
+		// Step 2: get the printwriter
+		PrintWriter out = response.getWriter();
+		
+		// Step 3: generate the HTML content
+		out.println("<html><body>");
+
+		out.println("The student is confirmed: "
+					+ request.getParameter("firstName") + " "
+					+ request.getParameter("lastName"));
+		
+		out.println("</body></html>");
+		
+	}
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+}
+
+---------------------------------------------------------------------------------
+
+5. Difference between GET and POST
+
+--> Get
+--> Form data is added to end of URL as name/value pairs
+
+--> Post
+--> Form data is passed in the body of HTTP request message
+
+1. Get
+--> Good for debugging
+--> Bookmark or email URL
+--> Limitations on data length
+
+2. POSt
+--> Can't bookmark or email URL
+--> No limitations on data length
+--> Can also send binary data
+
+---------------------------------------------------------------------------------
+
+6. Servlet Configuration Parameters
+
+--> Any web app needs configuration parameters
+--> All configuration will be saved in WEB_INF/web.xml
+
+--> web.xml demo
+
+<web-app>
+  <context-param>
+    <param-name>max-shopping-cart-size</param-name>
+    <param-value>99</param-value>
+  </context-param>
+  <context-param>
+    <param-name>project-team-name</param-name>
+    <param-value>The Coding Gurus</param-value>
+  </context-param>
+</web-app>
+
+---------------------------------------------------------------------------------
+
+--> Reading Configuration Parameters
+
+--> In servlet class,
+
+ServletContext context = getServletContext(); // inherit from HttpServlet
+
+String maxCartSize = context.getInitParameter("max-shopping-cart-size");
+String teamName = context.getInitParameter("project-team-name");
+
+--> we use getServletContext method which is inherited from HttpServlet class
+--> Notes:
+1. getInitParameter will always return data as a String
+2. getInitParameter will return null if param name not found.
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

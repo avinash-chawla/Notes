@@ -1,0 +1,53 @@
+1. Intro
+
+--> We will use Google Platform for backend
+--> We will save data for angular frontent on this backend
+--> We will also perform CRUD operations on this.
+
+----------------------------------------------------------------------------------
+
+2. Architecture
+
+--> Architecture of Web Applications
+
+1. Front-end	(Angular)
+2. Back-end	(nodejs, asp.net)
+3. Database	(sql server, mongo)
+
+
+--> Data is transfered between Front-end and Backend using http services/requests
+
+----------------------------------------------------------------------------------
+
+3. Firebase Features
+
+--> Fast, scalable and real-time database in the cloud
+--> Authentication
+--> Cloud messaging
+--> Storage
+--> Analytics
+--> Multiple Platform Support - iOS, android, Javascript, C++
+
+----------------------------------------------------------------------------------
+
+4. Working with Firebase Databases
+
+--> Open project in firebase
+--> Look for database option in sidemenu of your project
+
+--> In web application, there are two types of databases
+1. Relational
+2. NoSql
+
+1. Relational
+--> Tables
+--> Relationships
+--> Schema
+
+2. NoSql
+--> No schema
+--> No tables and columns
+--> Tree of nodes (key/value pairs)
+--> eg. MongoDB, Firebase
+
+----------------------------------------------------------------------------------

@@ -1,0 +1,335 @@
+1. What we will lean
+
+1. How we store password in DB
+2. Creating the User Model
+3. The Repositoty Pattern
+4. Creating the Authentication
+5. Data Transfer Objects
+6. Token Authentication
+7. Authentication Middleware
+
+-----------------------------------------------------------------------------
+
+2. Storing Passwords in Database
+
+--> Hashing of password
+1. It converts normal text to bunch of hashed texted
+2. Everytime you put text , convert to same hashed text
+3. Cracking of this is easy
+
+--> Hashing with Salt
+1. Salt is randomly generated text and added to password
+2. Everytime you put text, you get different hashed text.
+3. It is more secure
+
+-----------------------------------------------------------------------------
+
+3. Creating the User Model
+
+--> Make new class in Models --> User.cs
+
+public class User
+{
+    public int Id { get; set; }
+    public string Username { get; set; }
+    public byte[] PasswordHashed { get; set; }
+    public byte[] PasswordSalt { get; set; }
+}
+
+-----------------------------------------------------------------------------
+
+--> Register in DataContext class
+
+public DbSet<User> Users { get; set; }
+
+-----------------------------------------------------------------------------
+
+--> Updating database using migrations
+
+dotnet ef migrations add AddedUserEntity
+
+--> Check migration file generated
+
+dotnet ef database update
+
+--> Check in database 
+
+-----------------------------------------------------------------------------
+
+4. The Repositoty Pattern
+
+--> It is another abstraction over EntityFramework
+
+--> Without Repository pattern,
+--> controllers call Ef to query the database
+
+--> With Respository Pattern,
+--> controllers call interface methods, such methods will do query work and save as methods in class implementing interface.
+--> Each method is uniquely querying database.
+--> Controllers use these methods instead of querying itself.
+
+--> Benefits:
+1. Changing the database or architecture, will affect only one place, not at all controllers.
+--> Suppose table name is changed, we have to change in class implementing that interface, not in controllers
+
+2. Interface approach
+--> We can change class implementation at any time or even replace it with another to optimize queries.
+
+1. Mimizes duplicate query logic
+2. Decouples application from persistant framework
+3. All DB queries in the same place
+4. Promotes testability
+
+--> Note:
+--> Class contains methods to query database, so it is called Repository
+
+-----------------------------------------------------------------------------
+
+5. Creating the interface for our Repository
+
+--> Make new interface in Data folder --> IAuthRepository.cs
+
+public interface IAuthRepository
+{
+    Task<User> Register(User user, string password);
+    Task<User> Login(string username, string password);
+    Task<bool> UserExists(string username);
+}
+
+-----------------------------------------------------------------------------
+
+6. Creating the Concrete Auth Repository and Register method
+
+--> This class is implementing methods of an interface
+--> In Register method, we get paraemters like user, password
+--> We want to save hashed password
+--> For hashing, we use System.Security.Cryptogrphy class
+--> It inherites IDisposable class, means we have dispose this object after completing our job --> done by 'using' statement
+--> For hashing password, we create another method and we are using out parameter
+--> Because parameter which we are inputting, we also want back to store in database.
+--> Then, we save user in database using _context.Users.AddAsync(user)	and save changes using _context.SaveChanges().
+
+
+-----------------------------------------------------------------------------
+
+public class AuthRepository : IAuthRepository
+    {
+        private readonly DataContext _context;
+
+        public AuthRepository(DataContext context)
+        {
+            this._context = context;
+        }
+
+        public async Task<User> Register(User user, string password)
+        {
+            byte[] passwordHash, passwordSalt;
+            CreatePasswordHash(password, out passwordHash, out passwordSalt);
+
+            user.PasswordHashed = passwordHash;
+            user.PasswordSalt = passwordSalt;
+
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
+
+            return user;
+        }
+
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        {
+            using (var hmac = new System.Security.Cryptography.HMACSHA512())
+            {
+                passwordHash = hmac.Key;
+                passwordSalt = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+        }
+
+        public Task<User> Login(string username, string password)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<bool> UserExists(string username)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+-----------------------------------------------------------------------------
+
+7. Creating the Login Repository method
+
+--> Login method takes username and password
+--> First, it will look up for username
+--> Second, it will verify password
+--> If above gets get true, then return user, otherwise return null
+
+--> In UserExists method
+--> Checking for username and if find it, return true.
+
+--> For verifying password,
+--> We use same class, to compare password, we first provide key(salt) and then get ComputedPasswordHash and then compare.
+
+public async Task<User> Login(string username, string password)
+        {
+            var user = await this._context.Users.FirstOrDefaultAsync(x => x.Username == username);
+            if(user == null)
+                return null;
+
+            if(!VerifyPasswordHash(password, user.PasswordHashed, user.PasswordSalt)){
+                return null;
+            }
+
+            return user;
+        }
+
+        private bool VerifyPasswordHash(string password, byte[] passwordHashed, byte[] passwordSalt)
+        {
+            using (var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
+            {
+                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                for (int i = 0; i < computedHash.Length; i++)
+                {
+                    if(computedHash[i] != passwordHashed[i])
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public async Task<bool> UserExists(string username)
+        {
+            if(await this._context.Users.AnyAsync(x => x.Username == username))
+                return true;
+            
+            return false;
+        }
+}
+
+
+-----------------------------------------------------------------------------
+
+
+8. Registering Services in startup class
+
+--> To use this repository service as dependency injection, we have 3 methods:
+
+1. AddSingleton
+--> It will create single instance of repository class and use that in all httpRequests
+--> We want seperate instance for each new request
+
+2. AddTransient
+--> It will create single instance of repository class each time a new request came.
+--> But it will also create new instance in each individual class
+
+3. AddScoped
+--> It will create single instance of repository class each time a new request came in the same scope
+--> It will not create another new instance in same http request
+
+--> In startup class
+
+services.AddScoped<IAuthRepository, AuthRepository>();
+
+-----------------------------------------------------------------------------
+
+9. Creating the Register method in AuthController
+
+--> We have created our model class and repository from which controller will use database methods directly
+--> Right click controller folder --> Create new C# class --> AuthController
+
+--> [Route("api/[controller]")]  --> Gives attribute route to our controller
+--> [ApiController]		 --> Explained later
+--> ControllerBase		 --> Controller class supports MVC and ControllerBase is for api --> Controller have interfaces for View like IViewResult while controllerbase have support for api
+--> Register method takes username and password from client app and uses the method of Repository class to save an user.
+--> Note point: We will receive json object, so we have to use json serializable to implement this.
+    
+
+using System.Threading.Tasks;
+using DatingApp.API.Models;
+using Microsoft.AspNetCore.Mvc;
+
+namespace DatingApp.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthControllers : ControllerBase
+    {
+        private readonly IAuthRepository _repo;
+
+        public AuthControllers(IAuthRepository repo)
+        {
+            this._repo = repo;
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(string username, string password)
+        {
+            // Validate body
+            username = username.ToLower();
+
+            if (await this._repo.UserExists(username))
+                return BadRequest("Username already exists");
+
+            var userToCreate = new User
+            {
+                Username = username
+            };
+
+            var createdUser = await this._repo.Register(userToCreate, password);
+            return StatusCode(201);
+        }
+    }
+}
+
+-----------------------------------------------------------------------------
+
+10. Using DTOs (Data Transfer Objects)
+
+--> Other name for this is ViewModel class
+
+--> Assume there is a remote client which is making calls to get Customer data and the Products they bought. 
+--> Now the client has to make two calls, one to get Customer data and the other to get Products data. 
+--> Now that is quiet inefficient. 
+--> It would be great if we can get data in one call.
+
+class CustomerProductDTO
+{
+  // Customer properties
+        public string CustomerName { get; set; }
+   // Product properties
+        public string ProductName { get; set; }
+        public double ProductCost { get; set; }
+}
+
+-----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

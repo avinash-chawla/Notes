@@ -1,0 +1,248 @@
+1. Structuring Files and folders
+
+--> Make new folder --> store 
+--> Place all action, reducer and store files here
+--> UI and State code should be seperated
+
+
+--> Inside store folder
+--> Make different sections for each domain component - auth, bugs, project.
+--> eg. auth will contain all action, reducer, actionTypes related to it.
+
+-----------------------------------------------------------------------------------
+
+2. Ducks Pattern
+
+--> Make new folder: store
+--> Make new file  : bugs.js	--> inside store folder
+
+--> Place all actionTypes, action and reducer in this single file
+--> This is Ducks Pattern 
+
+-----------------------------------------------------------------------------------
+
+3. Redux Toolkit
+
+--> npm i @reduxjs/toolkit@1.2.5
+--> They provide bunch of helper functions to work with redux
+
+-----------------------------------------------------------------------------------
+
+4. Creating the Store
+
+--> This library of toolkit provide bunch of good tools
+--> One of them is it automatically connects application with dev-tools
+--> Second it supports asynchronous dispatch actions while redux not.
+
+import { configureStore } from '@reduxjs/toolkit';
+import reducer from './reducer';
+
+const state = configureStore({ reducer });
+
+export default state;
+
+--> Note: ({ }) in return statement means we are writing javascript object inside code block, we cannot write {{ }} , one for code block and other for javascript object
+--> It is also called configuration object.
+
+-----------------------------------------------------------------------------------
+
+5. Creating Actions
+
+--> We this, no need to give payload and set argument for action methods
+--> Like export const bugAdded = (description) => ({
+	type: BUG_ADDED,
+	payload: {
+		description
+   	}
+   });
+
+--> To this, const bugAdded = createAction(BUG_ADDED)
+
+--> Data is given in action using dispatch method in store
+--> store.dispatch(actions.bugAdded({ description: "Bug1" }));
+
+--> No need to use constants for actionMethod, as in reducer, we define actionMethod using --> case bugAdded.toString():  or case bugAdded.type
+
+-----------------------------------------------------------------------------------
+
+--> In action.js
+
+import { createAction } from '@reduxjs/toolkit';
+
+export const bugAdded = createAction("bugAdded");
+export const bugRemoved = createAction("bugRemoved");
+export const bugResolved = createAction("bugResolved");
+
+-----------------------------------------------------------------------------------
+
+--> In reducer.js
+case bugAdded.toString():
+case bugRemoved.type:
+case bugResolved.type:
+
+-----------------------------------------------------------------------------------
+
+--> In Index.js
+
+store.dispatch(actions.bugAdded({ description: "Bug1" }));
+store.dispatch(actions.bugResolved(1));
+
+-----------------------------------------------------------------------------------
+
+6. Creating Reducers
+
+--> It replaces all if-else and switch statements
+
+--> Earlier,
+
+const reducer = (state = [], action) => {
+    switch (action.type) {
+        case bugAdded.toString():
+            return [
+                ...state,
+                {
+                    id: ++lastId,
+                    description: action.payload.description,
+                    resolved: false
+                }
+            ]
+
+        case bugRemoved.type:
+            return state.filter(bug => bug.id !== action.payload.id);
+
+        case bugResolved.type:
+            return state.map(bug => bug.id !== action.payload.id ? bug : { ...bug, resolved: true })
+
+        default:
+            return state;
+    }
+}
+
+-----------------------------------------------------------------------------------
+
+--> Now,
+
+import { bugAdded, bugRemoved, bugResolved } from './actions';
+import { createReducer } from '@reduxjs/toolkit';
+
+let lastId = 0;
+
+export default CreateReducer([], {
+    [bugAdded.type]: (state, action) => {
+        state.push({
+            id: ++lastId,
+            description: action.payload.description,
+            resolved: false
+        })
+    },
+
+    [bugResolved.type]: (state, action) => {
+        let index = state.findIndex(bug => bug.id === action.payload.id);
+        state[index].resolved = true;
+    },
+
+    [bugRemoved.type]: (state, action) => {
+        let index = state.findIndex(bug => bug.id === action.payload.id);
+        state.splice(index, 1);
+    }
+})
+import { createReducer } from '@reduxjs/tookit;
+
+--> In createReducer, each action name is key and modify state is value
+--> Much simpler structure.
+
+-----------------------------------------------------------------------------------
+
+7. Creating Slices
+
+--> It combines action and reducers(actionHandler)
+
+--> In reducer.js
+
+import { createSlice } from '@reduxjs/toolkit';
+
+let lastId = 0;
+
+const slice = createSlice({
+    name: "bugs",
+    initialState: [],
+    reducers: {
+        bugAdded: (state, action) => {
+            state.push({
+                id: ++lastId,
+                description: action.payload.description,
+                resolved: false
+            })
+        },
+
+        bugResolved: (state, action) => {
+            let index = state.findIndex(bug => bug.id === action.payload);
+            state[index].resolved = true;
+        },
+
+        bugRemoved: (state, action) => {
+            let index = state.findIndex(bug => bug.id === action.payload);
+            state.splice(index, 1);
+        }
+    }
+})
+
+export default slice.reducer;
+export const { bugAdded, bugRemoved, bugResolved } = slice.actions;
+
+--> in reducers key of createSlice, they all are actionNames in keys and corresponding handler in values.
+
+-----------------------------------------------------------------------------------
+
+--> Index.js
+
+import { bugResolved, bugRemoved, bugAdded } from './reducer';
+
+store.dispatch(bugAdded({ description: "Bug1" }));
+
+-----------------------------------------------------------------------------------
+
+8. Exercise: Create new reducer for projects
+
+--> projects.js
+
+import { createReducer, createSlice } from '@reduxjs/toolkit';
+
+let lastId = 0;
+
+const slice = createSlice({
+    name: "projects",
+    initialState: [],
+    reducers: {
+        projectAdded: (state, action) => {
+            state.push({
+                id: ++lastId,
+                name: action.payload.name
+            })
+        }
+    }
+})
+
+export default slice.reducer;
+export const { projectAdded } = slice.actions;
+
+-----------------------------------------------------------------------------------
+
+--> store.js
+
+import { configureStore } from '@reduxjs/toolkit';
+import reducer from './projects';
+
+const state = configureStore({ reducer });
+
+export default state;
+
+-----------------------------------------------------------------------------------
+
+--> Index.js
+
+import { projectAdded } from './projects';
+
+store.dispatch(projectAdded({ name: "project1" }))
+
+-----------------------------------------------------------------------------------

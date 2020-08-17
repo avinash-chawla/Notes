@@ -1,0 +1,184 @@
+1. Intro
+
+--> We Have It Good
+--> Today, just by using a few keys on a computer, we can read articles, ‘meet’ our friends and family, living far away, through a video call and have food delivered to our doorstep.
+--> What’s more, we have become so accustomed to using the Internet, we no longer bat an eyelid at any of these wonders it offers!
+--> You would agree, that our ability to send and receive information over a global telecommunications network has forever changed our world.
+
+--------------------------------------------------------------------------------
+
+2. Networks Had to Happen
+
+--> Once computers became more compact and cheaper to make, the world of personal computing became accessible.
+--> An obvious next step was to harness it to aid one of the most fundamental needs of human beings. The need to communicate.
+
+--------------------------------------------------------------------------------
+
+3. Networks Had to Happen Continued
+
+--> The size of networks grew from a single room to the whole city, then to many cities and finally breached the borders of countries.
+--> The biggest computer network that connects the entire world together, has come to be known as the Internet.
+
+--------------------------------------------------------------------------------
+
+4. Internetwork Communication.
+
+--> The internet, literally is a series of connections between multiple smaller networks. Thus the name Internet, as it allows Internetwork communications.
+--> In order to make communication smoother, certain standard protocols have been defined for data transfer.
+
+--------------------------------------------------------------------------------
+
+5. Let’s Get Learning
+
+--> You are at present connected to the Internet, where you are accessing data from our Programming Hub servers to learn more about the Internet.
+--> Isn’t that cool? :D
+
+--------------------------------------------------------------------------------
+
+6. You Are A Little Dot On The Internet
+
+--> To access this application right now, your first connection is probably a LAN, which is all the devices connected to your WiFi router.
+--> This is then connected to a WAN that might span your city or town and, which belongs to your Internet Service Provider (ISP) at the regional level.
+--> That router in turn may connect to an even bigger WAN that represents your country. There might be more connections, but you will eventually be connected to the backbone of the internet.
+
+--------------------------------------------------------------------------------
+
+7. Data Travels A Huge Physical Distance
+
+--> Now, every time you click on a link or request a video, the data representing this, makes the journey to the backbone of the network.
+--> It travels along the backbone and then completes the journey to your machine.
+--> Yes. This happens every single time.
+
+--------------------------------------------------------------------------------
+
+8. Example
+
+--> To understand this better, think of the data as a product you have ordered online, being delivered to you.
+
+--------------------------------------------------------------------------------
+
+--> The product is first picked up from the seller
+--> Taken to a storage hub close to the seller
+--> Transported to another storage hub closest to you
+--> From where it begins its final journey to your address
+
+--> There might be many more stages with multiple emails being sent to you at each stage, but you get the picture right?
+--> Each stage in the journey of your data is called a Hop.
+
+--------------------------------------------------------------------------------
+
+9. Example
+
+--> To continue the example, consider you and your neighbour both order something at the same time, except, your neighbour’s parcel is huge!
+--> Both parcels arrive at your apartment building at the same time.
+--> However, since your neighbour’s parcel is much bigger than yours, that delivery boy decides to use the lift first.
+--> Both, you and your neighbour ordered at the same time but you had to wait longer to receive your order because the route to your house was occupied.
+
+
+--------------------------------------------------------------------------------
+
+10. What Is A Data Packet?
+
+--> The same thing can happen across a network.
+--> A small message going to someone may have to wait for a long time if the line is busy with a large file transfer.
+--> This is why transmission messages are chopped up into equal sized segments called packets.
+--> These packets then make individual journeys to the destination, using different routes through the network.
+--> Deciding which path each packet should take so as to reach its destination quickly is called routing and is done by routers at each network hop.
+
+--------------------------------------------------------------------------------
+
+11. Networks Had To Happen
+
+--> But how do the routers know where the data needs to be sent?
+--> Just like across a simple LAN connection, each message or each packet contains a destination address so that routers know where to forward them.
+--> The format for this address is defined by the Internet Protocol (IP) and hence is called the IP address.
+--> As we know already, each computer in the network is assigned this unique name called the IP Address. IP Addresses look something like this: 172.16.13.113
+
+--> As mentioned in the previous few screens, there exists a standard protocol through which computers communicate with each other across the network.
+
+--------------------------------------------------------------------------------
+
+12. TCP/IP
+
+--> Just as we use the rules of grammar when we speak, the Internet uses rules of a protocol called the TCP/IP (Transmission Control Protocol/Internet Protocol) to ensure that interconnected devices can understand each other.
+
+--------------------------------------------------------------------------------
+
+13. DNS
+
+--> Now when your computer is trying to display a website for you, it needs the website’s IP Address to locate and fetch the data.
+
+--> However, it is tedious to remember a site by their IP Addresses and we would rather type in the name such as ‘google.com’.
+DNS
+--> The Domain Name System helps with this by maintaining a registry of website names and their corresponding IP Addresses.
+--> So every time you type the name of a website into your browser, it checks for the name of that website at the DNS server and then proceeds to find the data.
+
+--------------------------------------------------------------------------------
+
+14. Summary
+
+--> The general setup of the Internet.
+--> The journey of data to the backbone and from there towards the user.
+--> Routing, Hops, Packets and how they are useful.
+--> TCP/IP and DNS.
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

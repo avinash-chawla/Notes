@@ -1,0 +1,432 @@
+1. Intro
+
+--> React is a library used to build user interfaces
+--> Redux is a predictable state container for Javascript apps
+--> React-Redux is a library that provides bindings to use React and Redux together in an application
+
+----------------------------------------------------------------------------------
+
+2. packages
+
+--> Make new project folder --> redux-demo
+--> npm init --yes
+--> npm redux
+--> Make new  file --> index.js
+--> node index.js
+
+----------------------------------------------------------------------------------
+
+3. 3 Core Concepts
+
+1. A store that holds the state of your application
+2. An action that describes the changes in the state of the application
+3. A reducer which actually carries out the state transition depending on the action
+
+----------------------------------------------------------------------------------
+
+4. 3 Principles
+
+1. The state of your application is stored in an object tree within a single store
+2. The only way to change the state is to emit an action, an object describing what happened
+3. To specify how the state tree is transformed by actions, you write pure reducers
+
+--> Javascript app	--> UI
+--> Redux store		--> State of application
+
+--> Javascript app dispatch/emits action
+--> Reducer handles that action and generate new state
+--> Components subscribe to that state gets rerendered.
+--> Javascript app can not directly update the redux store state.
+
+----------------------------------------------------------------------------------
+
+4. Actions
+
+--> The only way your application can interact with the store
+--> Carry some information from your app to the redux store
+--> Plain Javascript objects
+--> Have a type property that indicates the type of action being performed.
+--> The type property is typically defined as string constants
+
+--> action is a plain javascript object with type property
+--> actionCreator is a function that returns an action
+
+1. action: { type: BUY_CAKE, info: 'first redux action }
+
+2. actionCreator:
+
+function buyCake() {
+   return {
+	type: BUY_CAKE,
+	info: 'First redux action'
+   }
+}
+
+----------------------------------------------------------------------------------
+
+5. Reducer
+
+--> It is action handler and in output, generate new state
+
+const initialState = {
+	numOfCakes: 10
+}
+
+const reducer = (state = initialState, action) => {
+   switch(action.type){
+	case BUY_CAKE:
+	    return {
+		...state,
+		numOfCakes : numOfCakes - 1;
+	    }	
+	default:
+            return state;
+   }
+}
+
+----------------------------------------------------------------------------------
+
+6. Redux Store
+
+--> One store for the entire application
+--> Responsibilities:
+1. Holds applcation state
+2. Allows access to state via getState()
+3. Alows state to be updated via dispatch(action)
+4. Registers listeners via subscribe(listener)
+4. Handles unregistering of listeners via the function returned by subscribe(listener)
+
+----------------------------------------------------------------------------------
+
+const redux = require('redux');
+const createStore = redux.createStore;
+
+const BUY_CAKE = "buy_cake";
+
+function buyCake() {
+    return {
+        type: BUY_CAKE,
+        info: 'First redux action'
+    }
+}
+
+
+const initialState = {
+    numOfCakes: 10
+}
+
+const reducer = (state = initialState, action) => {
+    switch (action.type) {
+        case BUY_CAKE:
+            return {
+                ...state,
+                numOfCakes: state.numOfCakes - 1
+            }
+
+        default:
+            return state;
+    }
+}
+
+const store = createStore(reducer);
+console.log("Initial state", store.getState());
+const unsubscribe = store.subscribe(() => console.log("Updated state", store.getState()))
+
+store.dispatch(buyCake());
+store.dispatch(buyCake());
+unsubscribe();
+store.dispatch({ type: BUY_CAKE, payload: "Second action" });		--> action is dispatched, but won't be shown on console, bec. unsubscribed
+
+----------------------------------------------------------------------------------
+
+7. Multiple reducers
+
+const redux = require('redux');
+const createStore = redux.createStore;
+
+const BUY_CAKE = "buy_cake";
+const BUY_ICECREAM = "buy_icecream";
+
+function buyCake() {
+    return {
+        type: BUY_CAKE,
+        info: 'First redux action'
+    }
+}
+
+function buyIcecream() {
+    return {
+        type: BUY_ICECREAM,
+        info: 'First Ice-cream'
+    }
+}
+
+
+const initialState = {
+    numOfCakes: 10,
+    numOfIceCreams: 20
+}
+
+const reducer = (state = initialState, action) => {
+    switch (action.type) {
+        case BUY_CAKE:
+            return {
+                ...state,
+                numOfCakes: state.numOfCakes - 1
+            }
+
+        case BUY_ICECREAM:
+            return {
+                ...state,
+                numOfIceCreams: state.numOfIceCreams - 1
+            }
+
+        default:
+            return state;
+    }
+}
+
+const store = createStore(reducer);
+console.log("Initial state", store.getState());
+const unsubscribe = store.subscribe(() => console.log("Updated state", store.getState()))
+
+store.dispatch(buyCake());
+store.dispatch(buyIcecream());
+
+
+----------------------------------------------------------------------------------
+
+8. Combine Reducers
+
+const combineReducers = redux.combineReducers;
+
+rootReducer = combineReducers({ cake: cakeReducer, icecream: iceCreamReducer })
+const store = createStore(rootReducer);
+
+----------------------------------------------------------------------------------
+
+9. Middlewares
+
+const reduxLogger = require('redux-logger');
+
+const logger = reduxLogger.createLogger();
+const applyMiddleware = redux.applyMiddleware;
+
+const store = createStore(rootReducer, applyMiddleware(logger));
+
+----------------------------------------------------------------------------------
+
+10. Async Actions
+
+--> Useful in fetching data from api endpoints using middlewares
+--> How gonna be our project
+
+1. State
+
+state = {
+   loading: true,
+   data: [],
+   errors: ''
+}
+
+2. Actions
+
+--> FETCH_USERS_REQUEST
+--> FETCH_USERS_SUCCESS
+--> FETCH_USERS_FAILURE
+
+3. Reducers
+
+case: FETCH_USERS_REQUEST
+	loading: true
+
+case: FETCH_USERS_SUCCESS
+	loading: false
+	users: data
+
+case: FETCH_USERS_FAILURE
+	loading : false
+	error: error
+	
+----------------------------------------------------------------------------------
+
+const redux = require('redux');
+
+const createStore = redux.createStore;
+
+const FETCH_USERS_REQUEST = "FETCH_USERS_REQUEST";
+const FETCH_USERS_SUCCESS = "FETCH_USERS_SUCCESS";
+const FETCH_USERS_FAILURE = "FETCH_USERS_FAILURE";
+
+const fetchUsersRequest = () => {
+    return {
+        type: FETCH_USERS_SUCCESS
+    }
+}
+
+const fetchUsersSuccess = (users) => {
+    return {
+        type: FETCH_USERS_REQUEST,
+        payload: users
+    }
+}
+
+const fetchUsersFailure = (error) => {
+    return {
+        type: FETCH_USERS_FAILURE,
+        payload: error
+    }
+}
+
+state = {
+    loading: true,
+    data: [],
+    errors: ''
+}
+
+const reducer = (state = initialState, action) {
+    switch (action.type) {
+        case fetchUsersRequest:
+            return {
+                ...state,
+                loading: true
+            }
+        case fetchUsersSuccess:
+            return {
+                loading: false,
+                users: action.payload,
+                errors: ''
+            }
+
+        case fetchUsersFailure:
+            return {
+                loading: false,
+                users: [],
+                errors: action.payload
+            }
+
+        default:
+            return state;
+    }
+}
+
+const store = createStore(reducer);
+
+----------------------------------------------------------------------------------
+
+11. Redux Thunk Middleware
+
+--> npm i redux-thunk
+--> npm i axios
+
+const redux = require('redux');
+const thunkMiddleware = require('redux-thunk');
+const createStore = redux.createStore;
+const applyMiddleware = redux.applyMiddleware;
+const axios = require('axios');
+
+const store = createStore(reducer, applyMiddleware(thunkMiddleware));
+
+
+----------------------------------------------------------------------------------
+
+const redux = require('redux');
+const thunkMiddleware = require('redux-thunk').default;
+const createStore = redux.createStore;
+const applyMiddleware = redux.applyMiddleware;
+const axios = require('axios');
+
+const FETCH_USERS_REQUEST = "FETCH_USERS_REQUEST";
+const FETCH_USERS_SUCCESS = "FETCH_USERS_SUCCESS";
+const FETCH_USERS_FAILURE = "FETCH_USERS_FAILURE";
+
+const fetchUsersRequest = () => {
+    return {
+        type: FETCH_USERS_REQUEST
+    }
+}
+
+const fetchUsersSuccess = (users) => {
+    return {
+        type: FETCH_USERS_SUCCESS,
+        payload: users
+    }
+}
+
+const fetchUsersFailure = (error) => {
+    return {
+        type: FETCH_USERS_FAILURE,
+        payload: error
+    }
+}
+
+const initialState = {
+    loading: false,
+    users: [],
+    error: ''
+}
+
+const reducer = (state = initialState, action) => {
+    switch (action.type) {
+        case FETCH_USERS_REQUEST:
+            return {
+                ...state,
+                loading: true
+            }
+        case FETCH_USERS_SUCCESS:
+            return {
+                loading: false,
+                users: action.payload,
+                error: ''
+            }
+
+        case FETCH_USERS_FAILURE:
+            return {
+                loading: false,
+                users: [],
+                error: action.payload
+            }
+
+        default:
+            return state;
+    }
+}
+
+const fetchUsers = () => {
+    return function (dispatch) {
+        dispatch(fetchUsersRequest());
+        axios.get('https://jsonplaceholder.typicode.com/users')
+            .then(response => {
+                const users = response.data.map(user => user.id);
+                dispatch(fetchUsersSuccess(users))
+            })
+            .catch(error => {
+                dispatch(fetchUsersFailure(error.message))
+            });
+    }
+}
+
+
+const store = createStore(reducer, applyMiddleware(thunkMiddleware));
+store.subscribe(() => { console.log(store.getState()) })
+store.dispatch(fetchUsers());
+
+----------------------------------------------------------------------------------
+
+--> We are dispatching a function instead of plain object with type property
+--> This function is first handled by thunkMiddleware and dispatch multliple actions based on logic.
+
+----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+

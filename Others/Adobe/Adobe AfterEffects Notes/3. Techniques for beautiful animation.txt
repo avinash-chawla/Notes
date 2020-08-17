@@ -1,0 +1,294 @@
+1. Over shoot Effect-->
+
+--> There can be more than one composition in one project, where you can work differently
+--> It is Bouncing Effect
+--> There are 25 frames /sec
+
+----------------------------------------------------------
+
+--> Manually:
+
+--> Select Icon
+--> Set keyframe on Scale between 0 and 1sec
+0  --> 0%
+14 --> 120%
+18 --> 90%
+22 --> 105%
+25 --> 100%
+
+--> At 25 frame, it is one sec.
+--> Give Transition as: 75%
+
+--> Now there are 5 keyframes
+--> Sometimes, we want to reduce timespan(less than 1s) for keyframes
+--> Two ways:
+1. Linearly-->
+--> Select more than one keyframe and drag them
+2. Proportionately-->
+--> Select more than one keyframe
+--> Alt + drag the selected keyframes
+
+----------------------------------------------------------
+
+--> Automatic-->
+
+--> First convert EaseIn (diamond shaped)keyframe to normal by:- Ctrl + click on keyframe
+--> There are some equations in maths called expression
+--> Ctrl + click on timer of Scale
+--> Blank is created, paste the expression there
+--> Expression is available in assets
+--> Reduce span of keyframes for adjustments
+
+------------------------------------------------------------
+
+2. Vignette Effect-->
+
+--> It adds shadow effect to background
+--> Layer menu --> New --> Adjustment Layer
+--> Adjustment Layer is invisible and upper layer
+--> Always Keep adjustment on upper of all layers in comp
+--> In effects from window menu, search Lumetri
+--> Drag this to Adjustment layer
+--> Under Vignetter --> reduce amount -
+
+------------------------------------------------------------
+
+3. Anticipication Effect-->
+
+--> Set Keyframes on Position as: 1.Same, 2.some upper, 3.lower and out
+
+--> Shortcuts
+--> P = Position
+--> R = Rotation
+--> S = Scale
+--> T = Opacity
+
+--> Select all keyframes
+--> Graph icon
+--> click on x like symbol
+--> Set graph curve, gradual upper and drastic lower
+--> Again click graph icon
+--> Adjust timespan of keyframes
+
+------------------------------------------------------------
+
+4. Offsets Two object-->
+
+--> Select two icons
+--> If want bottom up, rearrange layer in comp
+--> Select both at a time and apply keyframe as Position: Coming from outside and bouncing little
+--> Offset timeline of both some looks like small icon is following bigger icon
+
+-------------------------------------------------------------
+
+5. Vector Redraw-->
+
+--> It is Effect when Text coming out of screen
+--> When Keyframe is set as Scale
+--> Image gets blurred
+--> Click last keyframe and click on vector redraw icon (sun like icon)
+--> Adjust Graph Editor curve, exponential like
+--> If handles are not shown, click on point on graph, click on handle icon below
+--> Try blur motion too
+
+-------------------------------------------------------------
+
+6. Pupper tool-->
+
+--> It is used for animating tip.
+--> Like woman hair tip
+--> Select Icon
+--> Set Keyframe on Position as: coming from outside sideways, to middle
+--> Make sure to set timer on from 0 sec
+--> At 0sec, set position either using Transform or directly use move tool to position
+--> While dragging with move tool, hold shift key to move with axis
+--> At 0sec, set position
+--> drag current timer to 14frame, set position
+
+--> At any timer on timeline, select puppet tool
+--> Make points from where to bend
+--> This will create keyframes at this timeline
+--> Select these keyframes and drag it to 0sec, distort puppet points
+--> move the timer, again distort puppet points
+
+-------------------------------------------------------------
+
+7. Grouping-->
+
+--> Grouping means getting similar animations for all icons.
+--> For one icon, we have done animation: Circle Burst, Icon, Blop sound
+--> We have to repeat for every other icon
+--> Select 3 of them: Circle Burst, Icon, Blop sound
+--> right click --> Pre-compose --> Specify name
+--> it will create new comp in project files with name which you specified-> Icon1-comp
+--> Double click it to go under that
+--> On main comp, it will now show one layer
+--> All comp are shown on tabs
+
+--> Now, copy and paste this new comp in project files, not in comp
+--> Bec. in comp, if one changes, other also changes
+--> Rename it -> Icon2-comp
+--> Open it by double clicking
+--> Select Icon1 in Icon2-comp ( imp step)
+--> Replace icon1 with icon2 by pressing alt key and mouse dragging from project files
+--> To insert Icon2-comp in main comp-->
+--> drag Icon2-comp to main screen and place position
+--> Adjust Icon2-comp timeline on main comp
+
+-------------------------------------------------------------
+
+8. Camera-->
+
+--> Layer menu --> New --> Camera 
+--> Select Camera --> Transform
+--> Make sure Resolution is Low
+--> Set keyframes on Position: x, y, z (z for zoom)
+--> How keyframes are made:
+--> Start timer at 0sec
+--> At each selected current time pointer, set position
+--> Change view to 2 view
+--> One is Active Camera and other is custom View1 change by selecting camera view on screen
+
+---------------------------------------------------------------
+
+9. Speed Up After Effects-->
+
+--> 1st Step: 
+
+--> Under Preview from Windows menu
+--> Set Resolution to low
+--> Skip means skip framerate --> 1 means 1,3,5
+
+--> 2nd Step:
+
+--> Under Preferences from Edit menu
+--> Media and Disk Cache
+--> After every playing timeline, preview is saved in memory
+--> Untick Enable Disk Cache
+--> Click on Empty Disk Cache
+--> Click on Clean Database and Cache
+
+--> 3rd Step:
+
+--> Reduce working timeline to repeat specific short timeline
+--> Press ; or ' to see borders of working layer timeline
+--> Reduce that
+--> This prevent by playing full timeline
+
+---------------------------------------------------------------
+
+10. How to animate the lines of an icon-->
+
+--> Draw a circle
+--> Click Add in Contents under Shape Layer 1
+--> Select Trim Paths
+--> Start timer at 0 sec of Start under Trim Path --> Make it 0%
+--> Drag time pointer after some frames, --> Make it Start to 100%
+--> Give some Keyframe Velocity
+
+--------------------------------------------------------------------
+
+--> While Drawing new shape, first deselect old shape
+--> Draw hour and minute hand
+--> Repeat Trim Path method same here also
+
+--------------------------------------------------------------------
+
+--> Motion will be generated based on how you draw line: left to right or right to left
+--> Similarly, you can change motion through start or end under trim path
+
+--------------------------------------------------------------------
+
+--> For ai files of illustrator
+
+--> Select ai file
+--> After effects does not accept svg file
+--> Layer menu --> Create Shapes from Vector Layer
+--> Add from Contents
+--> Select Trim Path
+--> Start the timer at start
+--> Make it 100% at 0sec
+--> Drag the time pointer
+--> Make it 0%
+--> Make Keyframe velocity to 75%
+
+-----------------------------------------------------------------
+
+11. Null Object-->
+
+--> Null Object gives motion to bunch of shapes at same time
+--> Mostly Position (translation)
+
+--> We have created 3 shapes --> Circle, Minute and hour hand
+--> Layer menu --> New --> Null object --> Rename it in comps (Null2)
+--> Set parent as Null2 of above 3 shapes
+--> Set keyframe of Position of Null2
+--> Start the timer at position
+--> Make it little above at 0sec
+--> Drag the time pointer
+--> Make it original position
+--> Make Keyframe velocity to 75%
+
+--> Now all three will experience translation from up to down, along with Trim Path.
+
+------------------------------------------------------------------
+
+12. Pan Behind Tool (Anchor Point)
+--> When we try to scale shapes from x and y axis, sometimes its center point is different in middle of screen
+--> Drag that center point with anchor point tool and drag it to shape midpoint on any edge
+--> Unlink Scale ratio chain, then inc or dec scale on x or y 
+--> This is used to animate bar charts in after effects
+
+------------------------------------------------------------------
+
+13. Make use Graph in Illustrator-->
+--> Click graph tool from toolbox
+--> Paste Data on first black cell
+--> For change in data, object menu --> Graph --> Data
+--> Change it
+--> This graph is single object
+--> Object --> Ungroup
+--> This will apart all elements
+
+------------------------------------------------------------------
+
+14. Copy Animation-->
+--> Copy and paste keyframes
+
+------------------------------------------------------------------
+
+15. To get equal time between all transitions-->
+--> Select all layers where you want time interval of equal transitions
+--> Take time pointer to 0 sec.
+--> Animations menu --> Keyframe Assitant --> Sequence Layers
+--> Duration is total duration of all layers
+--> but it counts from backward side
+--> Suppose whole time of all layers transitions is 20 frame
+--> And in creating new project, we assign 5 sec
+--> So duration is : 00:00:04:20
+--> tick overlap
+--> OK
+
+------------------------------------------------------------------
+
+16. PieChart Motion-->
+
+--> Draw Circle Shape Layer
+--> From Effects and Presets, searct Clock Wipe and drag it to Circle
+--> It automatically adds keyframes for transition and start timer automatically
+--> Select keyframe and adjust Transition completion in percentage
+--> Copy and Paste this Shape Layer
+--> Apply different rotation angles and different keyframes and give different fill colors
+
+------------------------------------------------------------------
+
+17. Two Node Camera-->
+
+--> Layer menu --> New --> Camera 
+--> Type: 2 node Camera
+--> What it does is: Focus of Camera remains same but angle of camera changes
+--> Transition to keyframe is given in property of Position (x,y,z) 
+--> Move Position on counter with mouse while holding shift bec. it is 3D
+--> It looks like image to swinging in y-axix
+
+----------------------------------------------------------------------

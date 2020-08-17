@@ -1,0 +1,24 @@
+1. Different operators are divided into groups
+
+--> Min, Max, Sum, Count, Average, Aggregate are grouped ungrouped undder Aggragate Operators
+
+--> LINQ Standard Query Operators also called as LINQ extension methods can be broadly classified into the following categories
+Aggregate Operators
+Grouping Operators
+Restriction Operators
+Projection Operators
+Set Operators
+Partitioning Operators
+Conversion Operators
+Element Operators
+Ordering Operators
+Generation Operators
+Query Execution
+Join Operators
+Custom Sequence Operators
+Quantifiers Operators
+Miscellaneous Operators
+
+------------------------------------------------------------------------------
+
+2. 

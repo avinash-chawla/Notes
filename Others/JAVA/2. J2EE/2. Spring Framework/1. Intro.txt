@@ -1,0 +1,192 @@
+1. Spring in a Nutshell
+
+--> Very popular framework for building Java applications
+--> Initially a simple and lightweight alternative to J2EE
+--> Provies a large number of helper classes... makes things easier
+
+--------------------------------------------------------------------------------
+
+2. J2EE History
+
+1. J2EE 1.2
+--> Servlets
+--> JSP
+--> EJB  (Enterprise Java Beans)
+--> JMS  (Java Message Service)
+--> RMI  (REmote Method Invocation)
+
+2. J2EE 1.3
+
+--> EJB
+--> CMP  (Container Managed Persistence)
+--> JCA  (Java Connector Architecture)
+
+3. J2EE 1.4
+--> WEb Services, Mgmt, Deployment
+
+4. Java EE 5
+--> Ease of use
+--> EJB3
+--> JPA   (Java Persistance API)
+--> JSF   (Java Service Faces)
+--> JAXB  (Java Api for xml binding)
+--> Jax-ws (Java Web services) (SOAP)
+
+5. Java EE 6
+--> Pruning,
+--> Jax-rs  (Java Web Services) (REST)
+--> CDI (Context Dependency Injection) (IOC)
+--> Bean-validation
+
+6. Java EE 7
+--> JMS 2
+--> Batch
+--> TX concurrency
+--> Web Sockets
+
+--------------------------------------------------------------------------------
+
+3. EJB was complex
+
+--> They were extremely complex
+--> Multiple deployment descriptors
+--> Multiple interfaces
+--> Poor Performance of Entity Beans
+
+--------------------------------------------------------------------------------
+
+4. Rod Johnson
+
+--> This man found the replacement of EJB
+--> He wrote two books
+
+1. J2EE Development without EJB
+2. Java Development with the Spring Framework
+
+--> From Java EE 6, Java team also modify EJB and also included Ico Dependency Injection
+--> But as spring becomes, everyone is using it
+
+--> You should learn both.
+1. Java EE
+2. Spring
+
+--------------------------------------------------------------------------------
+
+5. Spring Modules
+
+--> The Spring framework comprises of many modules such as core, beans, context, expression language, AOP, Aspects, Instrumentation, JDBC, ORM, OXM, JMS, Transaction, Web, Servlet, Struts etc. 
+
+--> These modules are grouped into Test, Core Container, AOP, Aspects, Instrumentation, Data Access / Integration, Web (MVC / Remoting)
+
+--------------------------------------------------------------------------------
+
+1. Test
+
+--> This layer provides support of testing with JUnit and TestNG.
+
+--------------------------------------------------------------------------------
+
+2. Spring Core Container
+
+--> The Spring Core container contains core, beans, context and expression language (EL) modules.
+
+--> Core and Beans
+These modules provide IOC and Dependency Injection features.
+
+--> Context
+This module supports internationalization (I18N), EJB, JMS, Basic Remoting.
+
+--> Expression Language
+It is an extension to the EL defined in JSP. It provides support to setting and getting property values, method invocation, accessing collections and indexers, named variables, logical and arithmetic operators, retrieval of objects by name etc.
+
+--------------------------------------------------------------------------------
+
+3. AOP, Aspects and Instrumentation
+
+--> These modules support aspect oriented programming implementation where you can use Advices, Pointcuts etc. to decouple the code.
+--> The aspects module provides support to integration with AspectJ.
+--> The instrumentation module provides support to class instrumentation and classloader implementations.
+
+--------------------------------------------------------------------------------
+
+4. Data Access / Integration
+
+--> This group comprises of JDBC, ORM, OXM, JMS and Transaction modules. These modules basically provide support to interact with the database.
+
+--------------------------------------------------------------------------------
+
+5. Web
+
+--> This group comprises of Web, Web-Servlet, Web-Struts and Web-Portlet. These modules provide support to create web application.
+
+--------------------------------------------------------------------------------
+
+6. Spring Projects
+
+--> They are additional Spring modules built on top of the core Spring Framework
+--> Spring Cloud
+--> Spring Batch
+--> Spring for Android
+--> Spring Web Services
+
+--> Each one is available in official documentation www.spring.io
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

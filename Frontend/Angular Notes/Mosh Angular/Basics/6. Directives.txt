@@ -1,0 +1,366 @@
+topics--> 
+ngFor, ngIf, ngSwitchCase, ngClass, ngStyle, custom directives
+
+
+--> directives are used to manupulate dom
+--> directives can manipulate either dom structure (element) or dom attribute
+
+--------------------------------------------------------------------------------------------------------------------------
+
+1. ngIf-->
+
+app.component.ts-->
+courses = ["course1", "course2"];
+
+app.component.html-->
+1st way-->
+<div *ngIf="courses.length">List of courses</div>
+<div *ngIf="courses.length == 0">No courses here</div>
+
+
+2ng way-->
+<div *ngIf="courses.length; else noCourses">List of courses</div>
+<ng-template #noCourses>No courses here</ng-template>
+
+--> template variable is used here for identifier
+
+3rd way-->
+<div *ngIf="courses.length > 0 ; then *coursesList else noCourses"></div>
+<ng-template #coursesList>List of Courses</ng-template>
+<ng-template #noCourses>No courses here</ng-template>
+
+--------------------------------------------------------------------------------------------------------------------------
+
+2. hidden property-->
+
+we can use property binding based on condition
+
+<div [hidden]="courses.length == 0">List of courses</div>
+<div [hidden]="courses.length > 0">No courses</div>
+
+--------------------------------------------------------------------------------------------------------------------------
+
+3. ngSwitch-->
+
+app.component.ts-->
+viewMode = 'otherwise';
+
+app.component.html-->
+<ul class="nav nav-pills">
+    <li [class.active]="viewMode == 'map'"><a (click)="viewMode = 'map'">Map View</a></li>
+    <li [class.active]="viewMode == 'list'"><a (click)="viewMode = 'list'">List View</a></li>
+</ul>
+
+<div [ngSwitch]="viewMode">
+    <div *ngSwitchCase="'list'">Map View</div>
+    <div *ngSwitchCase="'map'">List View</div>
+    <div *ngSwitchDefault>Otherwise</div>
+</div>
+
+-------------------------------------------------------------------------------
+
+4. ngFor-->
+
+app.component.ts-->
+courses = [
+    { id: 1, title: 'course1' },
+    { id: 2, title: 'course2' },
+    { id: 3, title: 'course3' },
+  ]
+
+app.component.html-->
+<ul>
+    <li *ngFor="let course of courses; index as i ">	
+        {{ i+1 }} - {{ course.title}}
+    </li>
+</ul>
+
+--> index is called optional exported value from directive
+---------------------------------------------------------
+
+<ul>
+    <li *ngFor="let course of courses; even as isEven ">
+        {{ course.title}} <span *ngIf="isEven">(EVEN)</span>
+    </li>
+</ul>
+
+--------------------------------------------------------------------------------------------------------------------------
+
+
+5. ngFor and Change Detection-->
+
+--> when any event changes dom element, angular automatically detect changes in dom
+
+app.component.html-->
+<button (click)="onAdd()">Add</button>
+
+<ul>
+    <li *ngFor="let course of courses ">
+        {{ course.title}}
+        <button (click)="onRemove(course)">Remove</button>
+    </li>
+</ul>
+
+app.component.ts-->
+courses = [
+    { id: 1, title: 'course1' },
+    { id: 2, title: 'course2' },
+    { id: 3, title: 'course3' },
+  ]
+
+  onAdd() {
+    this.courses.push({ id: 4, title: 'course4' })
+  }
+
+  onRemove(course) {
+    let index = this.courses.indexOf(course);
+    this.courses.splice(index, 1);
+  }
+
+  onUpdate(course) {
+    course.name = "updated course";
+  }
+
+--------------------------------------------------------------------------------------------------------------------------
+
+6. ngFor and TrackBy-->
+
+app.component.html-->
+<button (click)="loadCourses()">Load Courses</button>
+
+<ul>
+    <li *ngFor="let course of courses; trackBy: trackCourse ">
+        {{ course.title}}
+    </li>
+</ul>
+
+app.component.ts-->
+courses;
+  loadCourses() {
+    this.courses = [
+      { id: 1, title: 'course1' },
+      { id: 2, title: 'course2' },
+      { id: 3, title: 'course3' },
+    ];
+  }
+
+  trackCourse(index, course) {
+    return course ? course.id : undefined;
+  }
+
+--> loadCourses button initialises course object, but problem is angular each time initializes course object when button is clicked, if object is same only
+--> why is that, bec. angular compares object memory location of previous and present and find changes it that so rerenders obj.
+--> we can change this default setting by including another parameter in ngfor loop
+which is trackBy, now it will find through based on course.id not memory location
+--> from this, it increases performance level if list is very long
+
+--------------------------------------------------------------------------------
+
+7. the leading asterisk-->
+
+the * in directive rewrites the block code again under ng-template internally and set ngIf like below-->
+
+from-->
+
+<div *ngIf="courses.length > 0; else noCourses">
+    List of Courses
+</div>
+<div #noCourses>
+    No Courses here
+</div>
+
+
+to-->
+<ng-template ngIf="courses.length > 0">
+    <div>List of Courses</div>
+</ng-template>
+<ng-template ngIf="!(courses.length > 0)">
+    <div>No Courses</div>
+</ng-template>
+
+--------------------------------------------------------------------------------------------------------------------------
+
+
+8. ngClass-->
+
+--> it is attribute dom type means it manipulate dom attributes
+<span class="gyphicon" 
+[class.glyphicon-star]="isFavorite" 
+[class.glyphicon-star-empty]="!isFavorite"
+(click)="onClick()">
+</span>
+
+--> here class binding is achieved based on condition
+--> ngClass makes it easier in syntax for multiple class binding
+
+<span class="glyphicon"
+[ngClass]="{
+	'glyphicon-star' : isSelected,
+	'glyphicon-star-empty' : !isSelected
+}"
+(click)="onClick()"
+></span>
+
+
+---------------------------------------------------------------------------
+9. ngStyle-->
+
+--> similar to ngClass, it binds multiple style attributes based on condition
+
+[ngStyle]="{
+	'backgroundColor' : canSave ? 'blue' : 'gray',
+	'color' : canSave ? 'white' : 'black',
+	'fontWeight' : canSave ? 'bold' : 'normal'
+}"
+
+app.component.ts-->
+canSave = true/false;
+
+--> if not-->
+
+<button
+[style.backgroundColor] = "canSave ? 'blue' : 'gray' "
+;
+;
+</button>
+
+---------------------------------------------------------------------------
+
+10. Safe Traversal Operator-->
+
+--> sometimes it happens that when we consume data from httpservice, data is null for first few seconds during loading in dom element
+--> so angular will throw error in getting null in getting object
+--> it mostly happens in complex data
+
+--> simulating the scenario
+task = {
+	title: 'Review',
+	assignee: {
+		name: 'John Smith'
+	}
+}
+
+
+--> simulating scenario
+task = {
+	title: 'Review',
+	assignee: null
+}
+
+--> app.component.html-->
+<span>{{ task.assignee.name }}</span> 	--> this generates error
+
+1st method-->
+<span *ngIf="task.assignee">{{ task.assignee.name }}</span>
+
+2nd method-->
+<span>{{ task.assignee?.name }}</span>
+
+--> if assignee is null, angular will ignore this and whenever it is available, angular re-renders this object :)
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+11. custom directive-->
+
+--> Function of directive is to manipulate DOM
+--> When any user enter telephone number in input text field, we want to reformat it like (123)456-789
+--> Basically manipulate dom
+
+-----------------------------------------------------------------------
+
+--> We can also use ng cli to generate custom directive
+
+ng g d input-format
+
+-----------------------------------------------------------------------
+
+--> This will generate class like this:
+
+import { Directive } from '@angular/core';
+
+@Directive({
+  selector: '[appInputFormat]'
+})
+export class InputFormatDirective {
+
+  constructor() { }
+
+}
+
+-----------------------------------------------------------------------
+
+--> selector: [appInputFormat] --> This is selector for any attribute
+--> Any element containing this attribute will be applied by this directive on this element
+
+-----------------------------------------------------------------------
+
+--> now we need event listeners for focus and blurr--> HostListener decorator in '@angular/core';
+
+input-format.directive.ts-->
+import { Directive, HostListener } from '@angular/core';
+
+export class InputFormatDirective {
+  @HostListener('focus') onFocus() {
+    console.log('on focus');
+  }
+  @HostListener('blur') onBlur() {
+    console.log('on blur');
+  }
+
+  constructor() { }
+
+}
+
+app.component.html-->
+<input type="text" appInputFormat />
+
+---------------------------------------------------------------------------------
+--> first we have to convert input.value to lowercase
+--> so we need reference to input element
+--> which is provided by ElementRef class
+
+constructor(private el: ElementRef){}
+
+@HostListener('blur') onBlur(){
+	let value: string = this.el.nativeElement.value;
+        this.el.nativeElement.value = value.toLowerCase();	
+}
+
+--> this property (nativeElement) will provide actual object containing this attribute
+
+-------------------------------------------------------------------------------
+
+--> now to give more flexibility, for uppercase also, we provide custom attribute to input class and provide condition or remote to it
+
+<input type="text" appInputFormat [format]="'uppercase'">
+
+--> "''" --> means it is not property of component, it is string
+
+--> custom.directive.ts-->
+
+import { Input } from '@angular/core';
+
+@Input('format') format;
+
+@HostListener('blur') onBlur(){
+	let value: string = this.el.nativeElement.value;
+	if(this.format == 'lowercase') {
+		this.el.nativeElement.value = value.toLowerCase();
+	} else {
+		this.el.nativeElement.value = value.toUpperCase();
+	}
+      }
+
+-----------------------------------------------------------------------
+
+now we want like this-->
+<input type="text" appInputFormat="'uppercase'">
+
+input-format.directive.ts-->
+@Input('appInputFormat') format;
+
+
+--> so we used directive to change dom during event like focus and blur
+--> we use input decorator to give options to fields based on condition inputs given to them

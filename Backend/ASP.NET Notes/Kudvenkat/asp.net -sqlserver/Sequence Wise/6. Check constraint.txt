@@ -1,0 +1,32 @@
+1. What is Check Constraint
+
+--> CHECK constraint is used to limit the range of the values, that can be entered for a column.
+--> eg. Age between 1 and 120.
+
+--------------------------------------------------------------------------------
+
+2. Check Constrain using Query
+
+ALTER TABLE tblPerson
+ADD CONSTRAINT CK_tblPerson_Age CHECK (Age > 0 AND Age < 150)
+
+
+--> If the BOOLEAN_EXPRESSION returns true, then the CHECK constraint allows the value, otherwise it doesn't. 
+--> If Age column is nullable, this will pass the check constraint.
+
+--------------------------------------------------------------------------------
+
+3. General Formula
+
+ALTER TABLE { TABLE_NAME }
+ADD CONSTRAINT { CONSTRAINT_NAME } CHECK ( BOOLEAN_EXPRESSION )
+
+--------------------------------------------------------------------------------
+
+4. To drop the CHECK constraint
+
+ALTER TABLE tblPerson
+DROP CONSTRAINT CK_tblPerson_Age
+
+--------------------------------------------------------------------------------
+

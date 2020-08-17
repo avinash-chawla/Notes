@@ -1,0 +1,196 @@
+1. Starting with backend
+
+--> Create new folder in project --> server
+--> npm init
+
+--------------------------------------------------------------------------------
+
+2. Dependencies
+
+--> npm i express
+--> npm i mongoose
+--> npm i body-parser
+--> npm i nodemon
+
+--------------------------------------------------------------------------------
+
+3. Setting Database
+
+--> From now, we will talk all inside Server folder
+--> make new file  --> db.js
+
+const mongoose = require('mongoose');
+
+mongoose.connect("mongodb://localhost:27017/CrudDB", (err) => {
+    if (!err) {
+        console.log("Connected To DB...");
+    } else {
+        console.log("Error in DB Connection", JSON.stringify(err, undefined, 2));
+    }
+});
+
+module.exports = mongoose;
+
+--------------------------------------------------------------------------------
+
+4. Creating index.js
+
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+const mongoose = require('./db');
+
+
+app.use(bodyParser.json());
+
+
+app.listen(3000, () => {
+    console.log("Connected to Server...");
+})
+
+--------------------------------------------------------------------------------
+
+6. Model
+
+--> Creating Model
+--> Make new folder --> models
+--> Make new file   --> Employee.js
+
+const mongoose = require('mongoose');
+
+const EmployeeSchema = new mongoose.Schema({
+    name: String,
+    position: String,
+    office: String,
+    salary: Number
+});
+
+module.exports = mongoose.model("Employee", EmployeeSchema);
+
+
+--> By default, plural form of modelName provided is taken as collectionName of 
+mongodb
+--> So, "employees" collection will be created.
+--> To overwrite this default, you can pass 3 argument in string specifying name of collection manually.
+
+--------------------------------------------------------------------------------
+
+7. Get Request
+
+--> Make new folder --> routes
+--> Make new file   --> employees.js
+
+
+const router = require('express').Router();
+const Employee = require('../models/Employee');
+
+router.get('/', async (req, res) => {
+    try {
+        const employees = await Employee.find();
+        res.status(200).send(employees);
+    } catch (err) {
+        res.status(401).send({ message: err });
+    }
+})
+
+module.exports = router;
+
+--------------------------------------------------------------------------------
+
+--> In index.js
+
+const employeeRoute = require('./routes/employees');
+app.use("/api/employees", employeeRoute)
+
+--------------------------------------------------------------------------------
+
+8. Post Request
+
+router.post('/', async (req, res) => {
+    const employee = new Employee({
+        name: req.body.name,
+        position: req.body.position,
+        office: req.body.office,
+        salary: req.body.salary
+    });
+
+    try {
+        const savedEmployee = await employee.save()
+        res.status(200).send(savedEmployee);
+    } catch (err) {
+        res.status(401).send("Bad Request");
+    }
+});
+
+--------------------------------------------------------------------------------
+
+9. Getting Specific id
+
+
+const ObjectId = require('mongoose').Types.ObjectId;
+
+router.get('/:id', async (req, res) => {
+
+    if(!ObjectId.isValid(req.params.id))
+	return res.status(400).send(`No record with given Id: ${req.params.id}`);    
+
+    try {
+        const employee = await Employee.findById({ _id: req.params.id });
+        res.status(200).send(employee);
+    } catch (err) {
+        res.status(400).send({ message: err });
+    }
+})
+
+--------------------------------------------------------------------------------
+
+10. Update Request
+
+--> First checked if id provided is valid or not.
+--> Second we use findByIdAndUpdate method of mongoose to update employee
+--> first argument is { _id : req.params.id}
+--> second argument is updated object with $set key.
+--> We have {new : true} as third argument, it returns new updated employee instead of old one.
+
+
+router.put("/:id", async (req, res) => {
+    if (!ObjectId.isValid(req.params.id))
+        return res.status(400).send(`No record with given Id: ${req.params.id}`);
+
+    try {
+        const updatedEmployee = await Employee.updateOne({ _id: req.params.id }, {
+            $set: {
+                name: req.body.name,
+                position: req.body.position,
+                office: req.body.office,
+                salary: req.body.salary
+            }
+        })
+        res.send(updatedEmployee);
+    } catch (err) {
+        res.status(400).send({ message: err });
+    }
+});
+
+
+--> Alternately, you can use findByIdAndUpdate method
+
+--------------------------------------------------------------------------------
+
+11. Delete Request
+
+router.delete('/:id', async (req, res) => {
+    if (!ObjectId.isValid(req.params.id))
+        return res.status(400).send(`No record with given Id: ${req.params.id}`);
+
+    try{
+        const removedEmployee = await Employee.deleteOne({ _id: req.body.id });
+        res.send(removedEmployee);
+    }catch(err){
+        res.status(400).send({ message: err});
+    }
+})
+
+--> Alternately, you can use findByIdAndRemove method
+
+--------------------------------------------------------------------------------

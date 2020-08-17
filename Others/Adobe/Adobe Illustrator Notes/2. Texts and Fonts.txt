@@ -1,0 +1,76 @@
+1. How to use Texts and Fonts-->
+
+--> Outside page, there is paste board area
+--> You can work it there, and paste in Page
+
+--> Select Pencil
+--> Set Smoothness: high and uncheck keep selected
+
+--> Draw Curve with it
+
+--> Select Text tool
+--> Place cursor on Curve
+--> Random text generated
+
+--> Select whole with Move tool
+--> You can drag cursor to adjust Text position
+
+--> When you type Text on curve, curve becomes invisible
+--> So if you want curve also, make sure to make copy of curve first.
+
+--> To type Text on Circle Path
+--> Select Ellipse and draw circle
+--> Select Type Text on Path tool under Text tool
+--> Click on Circle
+
+--> Drag the text on inside or outside
+
+--> Another way of flipping text on path-->
+--> Type tab --> Type on a Path --> Type on a Path options
+--> select Preview --> Select different Options
+
+--> You can see Color boxes one above another in toolbox
+--> One is Fill and other is Stroke
+
+--> To center inside shapes like text inside rectangle, we use align in property.
+
+-------------------------------------------------------------
+
+2. PostCard Making-->
+
+--> Make new Document of size 5.8in x 4.1in (postcard size)
+--> We will divide this page in two sections
+1. Image (1/3rd)
+2. Font  (2/3rd)
+
+--> Select Rectangle tool and draw on whole page
+--> Make copy of this rectangle and in properties, unlink chain between height and width and make width: 5.8 in /3 
+
+--> Make new Layer above background and select that.
+
+--> There are two types
+1. Point type Text (just click anywhere)
+2. Body type Text (Drag to make box)
+
+--> Free font download sites-->
+1. Ada Fonts
+2. 1001 Free Fonts
+
+----------------------------------------------------------------
+
+3. Break Apart and Destroy Texts-->
+
+--> Destroying means modifying Text design
+--> Type Text and Scale it with Move tool
+--> Type menu --> Select Create Outlines
+--> Now text is destroyed, not editable
+
+--> Select white tool
+--> 1st design: Select inside of text, delete it 2 times
+
+--> 2nd design: Select M first line by dragging with white tool, drag to bottom 
+
+--> 3rd design: Make L bottom line of more width, select 3 points with white tool at corner of bottom line, drag it to make it of more width
+
+----------------------------------------------------------------
+

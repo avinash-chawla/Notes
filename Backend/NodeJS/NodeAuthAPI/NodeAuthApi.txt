@@ -1,0 +1,543 @@
+1. Dependencies
+
+--> npm init --yes
+--> npm i express
+--> npm i nodemon
+--> npm i body-parser
+--> npm i mongoose
+--> npm i cors
+--> npm i dotenv
+--> npm i @hapi/joi
+--> npm i bcryptjs
+--> npm i jsonwebtoken
+
+-------------------------------------------------------------------------------
+
+2. Express
+
+--> Make new file in project --> index.js
+
+const express = require('express');
+const app = express();
+
+app.listen(3000, () => {
+    console.log("Server Started...");
+})
+
+-------------------------------------------------------------------------------
+
+3. Nodemon
+
+--> In package.json
+
+"scripts" : {
+   "start": "nodemon app.js"
+}
+
+-------------------------------------------------------------------------------
+
+4. Auth Routes
+
+--> Make new folder in project  --> routes
+--> Make new file inside it	--> auth.js
+
+const router = require('express').Router();
+
+router.post("/register", (req, res) => {
+    res.send(req.body);
+});
+
+module.exports = router;
+
+-------------------------------------------------------------------------------
+
+--> In Index.js
+
+const authRoute = require('./routes/auth');
+
+app.use(bodyParser.json());
+app.use("/api/user", authRoute)
+
+
+--> In postman, try this post request to url:http://localhost:3000/api/user/register
+
+-------------------------------------------------------------------------------
+
+5. Mongoose
+
+--> npm i mongoose
+--> In index.js
+
+const mongoose = require('mongoose');
+
+mongoose.connect(process.env.DB_CONNECTION, { useNewUrlParser: true, useUnifiedTopology: true }, () => {
+    console.log("Connected to DB...");
+})
+
+or 
+
+mongoose.connect('mongodb://localhost/authapi', { useNewUrlParser: true, useUnifiedTopology: true }, () => {
+    console.log("Connected to DB...");
+})
+
+-------------------------------------------------------------------------------
+
+6. dotenv
+
+--> Make new file in project --> .env
+--> Copy Paste following code
+
+DB_CONNECTION=mongodb+srv://<username>:<password>@cluster0-vgenq.mongodb.net/<dbName>?retryWrites=true&w=majority
+
+-------------------------------------------------------------------------------
+
+7. Model
+
+--> Create new folder --> model
+--> Create new file   --> User.js
+
+const mongoose = require('mongoose');
+
+const UserSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        required: true
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    }
+})
+
+module.exports = mongoose.model("User", UserSchema);
+
+-------------------------------------------------------------------------------
+
+8. BodyParser
+
+--> In index.js
+
+const bodyParser = require('body-parser');
+
+app.use(bodyParser.json());
+
+or
+
+app.use(express.json());
+
+-------------------------------------------------------------------------------
+
+9. Post Request
+
+--> In Auth.js
+
+const router = require('express').Router();
+const User = require('../model/User');
+
+router.post("/register", async (req, res) => {
+    const user = new User({
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password
+    });
+
+    try {
+        const newUser = await user.save()
+        res.json(newUser);
+    } catch (err) {
+        res.json({ message: err })
+    };
+});
+
+module.exports = router;
+
+-------------------------------------------------------------------------------
+
+10. Validation using Joi
+
+--> We use this schema for validation bec. it can generate error messages
+--> While mongoose schema can not.
+--> Another reason is we do validation before storing data in mongodb.
+--> This will be faster validation than mongoose validation
+
+-------------------------------------------------------------------------------
+
+--> npm i @hapi/joi
+
+--> In auth.js
+
+--> We have defined schema for request object.
+--> schema.validate(req.body) will validate the request object with schema and generate object
+--> This object has one key error which contains errors
+
+
+const Joi = require('@hapi/joi');
+
+const schema = Joi.object({
+    name: Joi.string().min(6).required(),
+    email: Joi.string().min(6).required().email(),
+    password: Joi.string().min(6).required()
+})
+
+
+router.post("/register", async (req, res) => {
+
+    const validation = schema.validate(req.body);
+    res.send(validation);
+});
+
+--> Lets look how the validation object looks like
+
+-------------------------------------------------------------------------------
+
+--> In postman, in post request, post the data in correct form
+
+{
+   "error" : null,
+   "value": {
+        
+	"name": "Avinash",
+        
+	"email": "avinash@gmail.com",
+        
+	"password": "Avinash"
+    
+}
+
+-------------------------------------------------------------------------------
+
+--> post the data in incorrect form
+
+{
+    "value": {
+        "name": "12",
+        "email": "12@g",
+        "password": "Avinash"
+    },
+    "error": {
+        "_original": {
+            "name": "12",
+            "email": "12@g",
+            "password": "Avinash"
+        },
+        "details": [
+            {
+                "message": "\"name\" length must be at least 6 characters long",
+                "path": [
+                    "name"
+                ],
+                "type": "string.min",
+                "context": {
+                    "limit": 6,
+                    "value": "12",
+                    "label": "name",
+                    "key": "name"
+                }
+            }
+        ]
+    }
+}
+
+-------------------------------------------------------------------------------
+
+11. Error Message from validation object
+
+const { error } = schema.validate(req.body);
+res.send(error.details[0].message);
+
+-------------------------------------------------------------------------------
+
+12. Resulted Post Request
+
+router.post("/register", async (req, res) => {
+
+    const { error } = schema.validate(req.body);
+    if(error) return res.status(400).send(error.details[0].message);
+
+    const user = new User({
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password
+    });
+
+    const savedUser = await user.save();
+    res.send(savedUser);
+})
+
+-------------------------------------------------------------------------------
+
+13. Get Request
+
+--> It is just to see all registered users.
+
+router.get('/register', async (req, res) => {
+    const users = await User.find();
+    res.send(users);
+})
+
+-------------------------------------------------------------------------------
+
+14. Cleaning auth.js from Joi validation
+
+--> Make new file in project --> validation.js
+--> Lets make a function which accepts req.body and returns validation object.
+--> We can have multiple validation functions like one for register and other for login
+
+const Joi = require('@hapi/joi');
+
+const registerValidation = (data) => {
+    const schema = Joi.object({
+        name: Joi.string().min(6).required(),
+        email: Joi.string().min(6).required().email(),
+        password: Joi.string().min(6).required()
+    });
+    return schema.validate(data);
+}
+
+const loginValidation = (data) => {
+    const schema = Joi.object({
+        email: Joi.string().min(6).required().email(),
+        password: Joi.string().min(6).required()
+    });
+    return schema.validate(data);
+};
+
+module.exports.registerValidation = registerValidation;
+module.exports.loginValidation = loginValidation;
+
+--> Export it as in single object, we then use spread operator to extract properties or methods from object in import.
+
+-------------------------------------------------------------------------------
+
+--> In index.js
+
+const { registerValidation, loginValidation } = require('../validation');
+
+router.post("/register", async (req, res) => {
+
+    const { error } = registerValidation(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+    ...
+});
+
+-------------------------------------------------------------------------------
+
+15. Checking Uniqueness of Email
+
+--> In post request of register, we will verify email, if it present in already existing data
+--> Do after Joi validation,
+
+    const emailExists = await User.findOne({ email: req.body.email });
+    if (emailExists) return res.status(400).send("Email already exists");
+
+-------------------------------------------------------------------------------
+
+16. Hashed Password
+
+--> To hash the password before saving password in database
+--> We use package called bcryptjs
+--> npm i brycptjs
+
+--> In auth.js
+
+const bcrypt = require('bcryptjs');
+
+const salt = await bcrypt.genSalt(10);
+const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+--> Salt is just complexity added to password.
+
+-------------------------------------------------------------------------------
+
+17. Resulted Register Post Request
+
+
+router.post("/register", async (req, res) => {
+
+    const { error } = registerValidation(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    const emailExists = await User.findOne({ email: req.body.email });
+    if (emailExists) return res.status(400).send("Email already exists");
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+    const user = new User({
+        name: req.body.name,
+        email: req.body.email,
+        password: hashedPassword		--> Saving hashed Password
+    });
+
+    const savedUser = await user.save();
+    res.send(savedUser);
+})
+
+-------------------------------------------------------------------------------
+
+18. Responsing Selected Data 
+
+--> In response of post request of register, we return only _id of user, not all properties.
+
+    const savedUser = await user.save();
+    res.send({ user: user._id });
+
+instead of 
+
+    const savedUser = await user.save();
+    res.send(savedUser);
+
+-------------------------------------------------------------------------------
+
+19. Login Post Request
+
+--> First do Joi validation for bad request
+--> Second do email verification
+--> Third do password verification
+
+
+router.post("/login", async (req, res) => {
+
+    const { error } = loginValidation(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) return res.status(400).send("Email is not found");
+
+    const validPass = await bcrypt.compare(req.body.password, user.password);
+    if (!validPass) return res.status(400).send("Password is wrong");
+
+    res.send("Successfully logged In");
+})
+
+-------------------------------------------------------------------------------
+
+20. JWT token to authorized user
+
+--> JWT makes sure to send data to only authorized user.
+--> In layman languare, everytime user for doing crud shows token to server that I am authorized user.
+
+-------------------------------------------------------------------------------
+
+21. Creating and assigning a token to user
+
+const jwt = require('jsonwebtoken');
+
+const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
+res.header("auth-token", token).send(token);
+
+
+
+--> .env file
+
+TOKEN_SECRET = abcdefghijk
+
+-------------------------------------------------------------------------------
+
+22. Can anyone send my jwt token
+
+--> The answer is no
+--> Paste the provided token to official website
+--> It shows payload
+--> You cannot modify payload, if you do whole jwt token gets changed.
+
+-------------------------------------------------------------------------------
+
+23. Making Routes to Protected Routes
+
+--> This is we do by using middleware function
+--> To any route we want to protect, we apply this middleware function to verify token
+
+--> Make new file in routes folder --> verifyToken.js
+--> Here is middleware function
+--> First checking for token availability
+--> Second verifying token with jwt.verify method	--> it returns a payload consisting two properties -> _id and ait
+--> Third attaching property to req object with user 
+--> We can apply this middleware to protect any route
+--> User must have token provided during logging to access protected route.
+
+const jwt = require('jsonwebtoken');
+
+function auth(req, res, next) {
+    const token = req.header('auth-token');
+    if (!token) return res.status(401).send("Access is denied");
+
+    try {
+        const verified = jwt.verify(token, process.env.TOKEN_SECRET);
+        req.user = verified;
+	next();
+    } catch (err) {
+        res.status(400).send("Invalid Token");
+    }
+}
+
+module.exports = auth;
+
+-------------------------------------------------------------------------------
+
+24. Protected Route
+
+--> Make new file in routes folder --> posts.js
+--> We will protect this route.
+--> Middleware will check the availability of token and also verify it.
+--> If it is ok, then it will pass to next route handler
+--> If it is not ok, then it will respond with 'Access denied'
+
+
+const router = require('express').Router();
+const verify = require('./verifytoken');
+const User = require('../model/User');
+
+router.get('/', verify, (req, res) => {
+    res.json({ posts: { id: 1, name: "WinterSeason" } });
+});
+
+router.get('/user', verify, (req, res) => {
+    res.send(req.user);
+    //User.findById({ _id: req.user._id});
+})
+
+module.exports = router;
+
+-------------------------------------------------------------------------------
+
+--> In index.js
+
+const postRoute = require('./routes/posts');
+app.use("/api/posts", postRoute);
+
+-------------------------------------------------------------------------------
+
+25. Note
+
+--> You can put time on jwt token provided to user.
+
+-------------------------------------------------------------------------------
+
+26. Summary
+
+--> We have learn 3 things
+1. Joi validation
+2. Hashing Password
+3. Json Web Token
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+

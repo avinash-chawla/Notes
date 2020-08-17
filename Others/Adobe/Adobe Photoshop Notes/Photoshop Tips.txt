@@ -1,0 +1,325 @@
+// Composing Image
+// Making PNG - Removing Background - Layer Mask
+// Removing Object	--> Using Spot Healing Brush or Content Fill Aware
+// Adjustment Layers	--> Change Colors
+// Layer Styles		--> Shadow, Glow, Color Overlay, Gradient
+// Blend Modes		--> Merge two layers
+// Filter		--> Make Painting Like Image
+// Spark Healing 	--> Remove black skin marks
+// Retouching photos	--> Remove Blemishes, Smoothing Skin, Enhancing Eye, Lip and Hair color, Liquify tool
+
+
+1. Create Frame of custom size using new Project
+   Open File to directly work on Image
+
+2. Every tool comes with set of properties
+
+3. Multiple artboards in one project
+--> Under move tool
+--> Select size in properties
+--> Click + icon to readily draw
+--> Alt + drag to duplicate artboard
+
+4. Layers-->
+--> An output image is made of Layers
+--> Make sure Show Transform Controls and Auto-Select in property is selected
+--> Fill percentage is similar to opacity
+
+5. Aligning Layers-->
+--> It is accessible only after selecting multiple layers
+--> Center an object precisely using alignment
+--> To align single layer, click 3 dots, Align To: Selection --> Canvas
+
+6. Organising Layers-->
+--> Click on folder icon to generate group
+--> Drag all required layers to group folder
+--> To move all group layers at once, change setting of move tool from Layer to Group
+
+7. To duplicate Layer-->
+--> Drag Layer or Group to '+' icon below
+
+8. Linking Layers-->
+1st way --> Group them
+2nd way --> Merge them  --> Non-detachable then
+3rd way --> Flatten Image --> Assemble all layers and set as background for other
+4th way --> Linking Layers --> Select both layer and click on link icon below
+--> Using Linking, it is easy to move related layers together
+
+9. Adjustment Layer-->
+--> They are effects and only affect layer below it
+--> You can move this adjustment layer to any layer and it will different layer which is below it
+--> Adjustment Layers are non destructive layers
+--> Adjustment layer from Image menu are destructive for rasterize image and non-destructive for Smart Object
+
+10. Layer mask-->
+--> It converts image to png
+--> It removes background
+--> It is replacement of Eraser Tool
+--> It makes png like image
+--> use x on keyboard to transition between black and white brush
+
+11. Shadow Effect on Elephant-->
+--> Duplicate Layer and paste at its place only
+--> Choose Color Overlay from effects and Choose Black Color
+--> Hold Ctrl and drag top middle edge point (will distort) to below to make like shadow
+--> Lower the opacity
+--> Make this below original
+--> To create more like blurry
+--> Filter menu --> Blur --> Gaussian blur 
+--> Tick preview on and adjust radius of blur
+
+12. Quick Selection Tools-->
+--> Select Subject option in quick selection tool will automatically select subject
+
+13. Magic Wand And Object Selection Tool-->
+--> Select Magic Want, just click anywhere  --> It is automatic selection tool
+--> Object Selection Tool, draw lasso or rectangle over object --> Thats it.
+
+14. Quick Selection Tool, Lasso tool, Marquee tool are used for selections and only used for Layer Mask
+
+15.  Improving Edge Selection with the Refine Edge Tool-->
+--> Select and mask option is available in properties of Quick Selection Tool
+--> Select object using quick Selection tool and click on that property
+--> Set View Mode to required and Select Refine Edge Brush Tool
+--> Refine edges with this, keep hardness to 9% and size accordingly
+
+16. Another way of Selecting Object using specific color-->
+--> Only possible when background is having plain color
+--> Select Color Range from Select menu
+--> Select plus Eye and select multiple background points color
+--> It will automatically do selection based on color
+--> More effective way if background is same in color
+
+17. How to add plain background layer
+--> click on adjustment layers below, click on solid colors
+--> Select color
+
+18. Remove Objects-->
+--> Select object using Lasso tool
+--> Edit menu --> Content-aware Fill
+--> Background to fill with is selected in green color
+--> Use brush if any mistake happens in green color
+
+19. Using Rulers-->
+--> View menu --> Rulers
+--> Drag line from rulers (horizontal and vertical) - reference lines
+--> While dragging over image, it locks at center both h and v
+
+20. General Tips-->
+1. Use Opacity in Images
+2. Use keyboard for precide adjustment
+
+21. Exposure and Contrast are very basic adjustment layers
+
+22. Levels
+--> Shows histogram of dark and bright colors in images
+--> Left side shows dark proportion in image and right side shows bright color proportion in images
+--> you are moving darkest and brightest edge of histogram points below
+
+23. Other Adjustment Layers-->
+1. Hue/Saturation	--> For changing color
+2. Photo Filter		--> For giving Warmth/Cool Temperature Look
+3. Vibrance		--> For brightning bluish and greenish colors
+4. Black and White
+5. Color Balance	--> For changing colors in Highlights, Shadows, Midtones
+
+24. Cropping-->
+--> Crops to selected frame or custom dragging edges
+--> Straighten feature will straighten the image where you draw axis
+
+23. Dodge and Burn Tool
+--> They are destrctive tools
+--> Best tool to highlight/darken specific parts
+--> Select Range: Midtones, highlights, shadow
+--> Darken Shadow using this Range only
+--> Use Exposure for adjusting intensity
+
+24. Shapes
+--> Rectangle, Ellipse, Polygon
+--> Fill, Stroke, width, height
+--> Gradient
+--> Can be used for shadow --> Choose Gradient in rectangle, make one color opacity 0% and other black color
+
+25. Custom Shapes
+--> Pen - single click --> straight lines, click and drag -curved lines
+
+26. Text
+--> Text tool is selected and you want to move text, hold ctrl key, then drag 
+--> Warp Text --> Displaying Text in styles like Fish, arc, bulge --> available in properties of Text tool
+--> Making Text follow a path - line or curve
+--> Custom Paragraph shapes --> Draw ellipse, Select Text Tool and click on inside ellipse --> all texts will write insdie ellipse shape.
+--> free download website --> dafont.com
+--> 3D Text --> either duplicate Text and drag little bit or Use shadow with 100% opacity
+
+27. Layer Style
+--> Blending Options, This is specific to layer
+--> Stroke, Shadow, Glow, Pattern, Color Overlay, Bevel and Emboss
+--> They can copied and paste
+--> Outer Glow: Will create colored glow stroke around object
+--> Try on Text all Layer Styles
+
+28. Blend Mode
+--> How different Layers interact
+--> Only interact with Image beneath it.
+--> shortcut: shift + '+'
+
+29. Easily Remove Black and White Background with Blend Modes
+--> Multiply: Will remove white color and make it transparent
+--> Screen: Will remove black color and make it transparent
+--> When you want to invert the selection, ctrl + I (to inverse)
+
+30. To Cut specific shape from image
+--> Marquee Tool and copy paste
+
+31. Merging Adjustment Layer and Blending Modes-->
+--> Make sure Adjustment is only affecting layer beneath it, by click first icon
+
+32. Smooth edge in layer mask-->
+--> Use different brush and make smooth edge
+
+33. Want to brush out something on top of final layer
+--> Make new brush and brush on that
+
+34. Filter
+--> Make artistic photo --> Like Painting
+--> This is destructive Layer
+--> Use Smart Object for non-destructive
+--> you can add multiple filters
+--> In combination, you can use Blending modes and opacity
+
+35. Remove Blemishes
+--> Removing Skin dark marks
+--> Spot Healing Brush Tool
+--> It is destructive layer so make new layer and do on that.
+--> It is automatic tool while Healing brush tool is manual, giving options to choose background to replace with
+
+36. Healing Brush Tool
+--> It replaces object with Selection Box color
+--> First select box with Alt + drag with mouse
+--> Now brush over image
+--> It will replace that portion of image with selected box
+
+37. How to merge Layers safely
+--> Right click selected Layers, hold Alt key and click on merge Layers
+--> It will merge and make duplicated layer
+
+38. Smoothing Skin
+--> Fixed Steps
+--> Remove Skin marks using spot healing brush tool
+--> Merge safely
+--> Invert Image (ctrl + i)
+--> Change Blend Mode to vivid Light
+--> Filter menu --> Other --> High Pass Filter
+--> Set to 20px --> So it is completely blur (in main screen)
+--> Filter menu --> blur --> Gaussian blur
+--> Set to 9.3px --> so that details are completely blur (in blur window)
+--> Select Layer Mask and convert black mask to white (by pressing ctrl + I)
+--> Black Mask means completely transparent and white means object
+--> Keep Mask color black only means beneath layer is completely visible
+--> Select white brush and drag over skin
+--> To make it more effective --> duplicate this layer
+--> Adjust opacity
+
+39. Clone Stamp Tool-->
+--> Select color of brush from brush only 
+--> Use that brush for replacing stuff like removing bags under eye
+
+40. Patch Tool-->
+--> Select area using Lasso tool and select another area from image to replacewith
+--> Patch tool will replace selection area with another area
+
+41. Removing Bags Under the Eye-->
+1. Use Dodge Tool
+2. Use Clone Stamp Tool
+3. Use Patch tool
+4. Use Adjustment Layer
+
+--> Select Layer and click on Curves Adjustment Layer
+--> Select curve in Layer
+--> Double click on Eye dropper in curves
+--> Select skin color from image 
+--> Ok
+--> Click in the area where there are eye bags shadows
+--> Invert the Mask to black (ctrl + i)
+--> Use Brush Tool, make opacity to 10%, smoothing - 10%;, Flow-25
+--> Drag below eye
+
+42. Professional Dodging and Burning to Enhance Image-->
+--> Select Dodge tool -- Flow=5%, Opacity-100%
+--> Select Blend Mode -- Soft Light
+--> Brighten only specific parts
+
+--> Select Burn tool -- Flow=5%, Opacity-100%
+--> Select Blend Mode -- Soft Light
+--> Instead of selecting black, select eye dropper tool and choose dark skin color from image
+--> Brush that where you want shadows dark
+
+--> Adjust Opacity
+
+43. Enhancing Eye Color-->
+--> Select Layer
+--> Filter menu --> Other --> High Pass --> Set radius : 30
+--> Blend Mode --> Soft Light
+--> Create Layer Mask in black, holding alt key + drag layer to layer mask below
+--> Select white brush tool and drag over eyes
+
+2nd way-->
+--> Select Layer
+--> Add Photo Filter adjustment Layer
+--> Choose bluishish tint from many tints
+--> Inverse the Mask selection to black, ctrl + i
+--> drag over eyes
+--> Tints means color over all image
+--> You can choose any color other than tints
+--> You can increase the density
+--> Adjust Opacity and blend modes
+
+
+44. Enhancing Lip Color-->
+--> Make new Layer
+--> Using Eye Dropper, select Lip color
+--> Using Brush, draw over Lip brush --> make it funky
+--> Try different blending options - best is soft light
+--> Adjust opacity
+
+2nd way--> Use dodge and burn tools
+3rd way -->
+--> Select new layer
+--> Use Color balance and make whole image to lip color by dragging indicators
+--> Inverse layer mask to black
+--> Drag brush over lips
+
+45. Liquify Tool
+--> Filter menu --> Liquify
+--> Try Face-Aware Liquify options to auto adjust that
+--> Brush tools + and -
+--> Pucker and Boat tool (shrink and expand)
+--> Twirl tool	(spiral it)
+--> Try all tools
+
+
+46. AutoToner-->
+--> Image --> Select AutoToner 
+--> This is destructive
+--> This is automatic
+--> Levels in Adjustment is manual
+
+47. Transform Tool-->
+--> Ctrl + t
+--> Hold shift key + drag --> to maintain ratio
+
+48. Images Stock-->
+
+pexels.com
+freeimages.com	
+unsplash.com	
+join.deathtothestockphoto.com
+google images		---> (large and with modification)
+
+Paid Ones-->
+Adobe Stock
+shutterstock
+IStock
+
+
+

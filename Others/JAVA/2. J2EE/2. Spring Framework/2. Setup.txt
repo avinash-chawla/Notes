@@ -1,0 +1,132 @@
+1. JDK
+
+--> The Java Development Kit (JDK) is a software development environment used for developing Java applications and applets. 
+
+--> It includes the Java Runtime Environment (JRE), an interpreter/loader (Java), a compiler (javac), an archiver (jar), a documentation generator (Javadoc) and other tools needed in Java development.
+
+-------------------------------------------------------------------------------
+
+2. Softwares
+
+1. JDK
+2. Java Application Server
+
+--> There are different options available like Glassfish, JBoss, WebLogic
+--> We choose TomCat as server
+
+3. Java Integrated Development Environment ( IDE)
+--> We choose Eclipse IDE
+
+-------------------------------------------------------------------------------
+
+3. Installing Tomcat
+
+--> Head over to: https://tomcat.apache.org/download-90.cgi
+--> Download 32-bit/64-bit Windows Service Installer (pgp, sha512) under Core options
+--> Run it
+--> Next, Next, in Choose Components --> Select Full
+--> Make sure that all are selected
+--> Install it
+
+--> In Last window, run it
+--> Go to: localhost:8080
+--> If it is running, successfully installed
+
+--> To stop this server, there is icon in taskbar below
+--> Right click it --> Configure
+--> There are different settings showing
+
+--> Another way is: search services.msc in run command
+--> There you will see tomcat9 service running
+--> You can also run or stop from there.
+
+-------------------------------------------------------------------------------
+
+4. Installing Eclipse
+
+--> Head over to: https://www.eclipse.org/downloads/packages/release/photon/r/eclipse-ide-java-ee-developers
+
+--> Make sure it is Eclipse IDE for Java EE Developers and latest version
+
+--> Download for Windows 64bit
+--> Extract in C drive
+--> Just Run the application
+--> It asks for workspace --> map location
+--> It will start
+
+-------------------------------------------------------------------------------
+
+5. Connecting Tomcat to Eclipse
+
+--> Open Servers tab in botton of eclipse
+--> Open Server or right click -> Add new
+--> Select Apache --> Tomcat9 --> Next
+--> Select its installation path
+--> Finish
+--> Done
+
+--> Make sure to install latest version of eclipse Oxygen2017 or Photon2018
+
+-------------------------------------------------------------------------------
+
+6. Downloading Spring 5 Jar files
+
+--> First change display
+--> Go to Windows tab --> Perspective --> Open Perspective --> Java
+
+--> Create new Project
+--> file menu --> New --> Java Project
+--> Name it: spring-demo-one
+
+--> Downloading spring jar files
+--> Head over to: https://repo.spring.io/release/org/springframework/spring/
+--> Select latest version
+--> Choose dist zip file
+--> Unzip it
+--> Under lib folder --> copy all jar files
+--> Make new folder inside project folder --> lib
+--> Paste all jar files here
+
+--> To apply such changes
+--> Right click Project 
+--> Properties
+--> Go to Java-Build
+--> Click on Add Jars
+--> Select all jar files under lib folder which was just created.
+--> Apply changes.
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

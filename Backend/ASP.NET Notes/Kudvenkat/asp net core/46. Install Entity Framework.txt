@@ -1,0 +1,48 @@
+1. Single Layer Web Application
+
+--> If it's a small project, you may have your presentation layer, business layer and data access layer all in one project. 
+--> So if you have created a web application project using ASP.NET Core 2.1 or higher, then in that web application project, you already have Entity Framework Core installed.
+
+---------------------------------------------------------------------------------
+
+--> In Project, expand dependencies
+--> expand packages
+--> expand Microsoft.AspNetCore.App
+
+--> This package is called - metapackage. A metapackage contains list of all dependencies (other packages). 
+--> In the dependencies you will find the Entity Framework Core nuget packages already installed.
+
+---------------------------------------------------------------------------------
+
+2. Multi Layer Web Application
+
+--> In a large application we will usually have at least the following 3 layers
+1. Presentation Layer
+2. Business Logic Layer
+3. Data Access Layer
+
+--> These layers are implemented as separate projects. 
+--> Entity Framework Core is usually required in the Data Access Layer project. 
+--> The Data Access Layer project is a class library project and does not usually have the meta package referenced. 
+--> So this means, Entity Framework Core is not installed for the Data Access Layer project.
+
+---------------------------------------------------------------------------------
+
+3. To install Entity Framework Core with SQL server database
+
+--> you need to install the following nuget packages.
+
+Microsoft.EntityFrameworkCore.SqlServer	
+--> This nuget package contains SQL Server specific functionality
+
+Microsoft.EntityFrameworkCore.Relational	
+--> This nuget package contains functionality that is common to all relational databases
+
+Microsoft.EntityFrameworkCore	
+--> This nuget package contains common entity frameowrk core functionality
+
+
+
+--> When we install Microsoft.EntityFrameworkCore.SqlServer package, it also installs all the other dependancies automatically. 
+
+---------------------------------------------------------------------------------

@@ -1,0 +1,82 @@
+--> Select List Validation
+
+1. Department Select List HTML
+
+<div>
+    <label asp-for="Department"></label>
+    <div>
+        <select asp-for="Department" asp-items="Html.GetEnumSelectList<Dept>()">
+        </select>
+    </div>
+</div>
+
+-------------------------------------------------------------------------------
+
+2. Select List First Option
+
+<div>
+    <label asp-for="Department"></label>
+    <div>
+        <select asp-for="Department" asp-items="Html.GetEnumSelectList<Dept>()">
+            <option value="">Please Select</option>
+        </select>
+        <span asp-validation-for="Department" class="text-danger"></span>
+    </div>
+</div>
+
+-------------------------------------------------------------------------------
+
+3. Making Select List Required
+
+public class Employee
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Email { get; set; }
+    [Required]
+    public Dept Department { get; set; }
+}
+
+--> At this point if we run the project and submit the form without selecting a valid department from the select list we get the error - The value '' is invalid.
+
+-------------------------------------------------------------------------------
+
+4. The value '' is invalid.
+
+--> The error that we are getting here is not the required validation error. 
+
+--> The datatype of the Department property is Dept enum.
+--> By default an enum underlying data type is int.
+--> An empty string is set as the value for Please Select option of the select list in the HTML.
+--> So when this option Please Select is selected from the select list, the value empty string is used as the value for Department property whose underlying data type is int.
+
+ 
+--> Obviously an empty string is not a valid value for int.
+--> This is the reason we get - The value '' is invalid.
+--> Value types (such as int, float, decimal, DateTime) are inherently required and don't need the Required attribute.
+
+-------------------------------------------------------------------------------
+
+5. Select List Required Validation
+
+public class Employee
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Email { get; set; }
+    [Required]
+    public Dept? Department { get; set; }
+}
+
+--> enum is bydefault return int type
+--> First we make enum to nullable type by including ?, now it can accept null values
+--> Earlier, it is failed to convert empty string to int enum type
+--> Now make it Required.
+
+-------------------------------------------------------------------------------
+
+6. Also Add Validation Error Place
+
+<span asp-validation-for="Department" class="text-danger"></span>
+
+-------------------------------------------------------------------------------

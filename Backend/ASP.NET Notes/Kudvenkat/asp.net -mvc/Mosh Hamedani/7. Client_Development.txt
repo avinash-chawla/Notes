@@ -1,0 +1,517 @@
+1. Intro
+
+--> We will combine display of mvc templates and api crud operations
+--> We will create delete button in Customers List in Index actionMethod of customers
+--> This delete button will send delete request to /api/customers/:id and will delete that from record
+
+-----------------------------------------------------------------------------
+
+2. Calling an API Using JQuery_Ajax
+
+--> First we will create delete button
+--> Then we apply event Listener on that button using jquery
+--> Then we will send Delete request to api endpoint for deleting that record and on successfully deletion, remove from view also
+--> Index.cshtml
+
+<table id = "customers" class="table table-bordered table-hover">
+        	-----------------> given id to table
+	<thead>
+            
+		<tr>
+                
+			<th>Customer</th>
+                
+			<th>Membership Type</th>
+                
+			<th>Delete</th>
+            				-----------------> th
+		</tr>
+        
+	</thead>
+        
+	<tbody>
+            
+	@foreach (var customer in Model)
+            
+	{
+                
+		<tr>
+                    
+			<td>@Html.ActionLink(customer.Name, "Edit", "Customers", new {id = customer.Id}, null)</td>
+                    		
+			<td>@customer.MembershipType.Name</td>
+                    
+			<td><button data-customer-id="@customer.Id" class="btn-link js-delete">Delete</button></td>
+      ------------------> td
+		</tr>
+            
+	}
+        
+	</tbody>
+    
+	</table>
+}
+
+
+@section scripts
+
+{
+    
+<script>
+        $(document).ready(function () {
+            $("#customers .js-delete").on("click", function () {
+                var button = $(this);
+                if(confirm("Are you sure you want to delete this customer")){
+                    $.ajax({										------------------> ajax request
+                        url: "/api/customers/" + button.attr("data-customer-id"),
+                        method : "DELETE",
+                        success: function () {
+                            button.parents("tr").remove();
+                        }
+                    })
+                }
+            })
+        })
+    
+</script>
+}
+
+-----------------------------------------------------------------------------
+
+3. Bootbox Plug-in
+
+--> Replacing Native js dialog box  with bootstrap dialog-box
+--> Bootbox is an abstraction over bootstrap
+--> install-package bootbox -version:4.3.0
+--> you can see in Scripts folder --> bootbox.js
+
+--> BundleConfig.cs
+--> Add reference to bootbox.js
+
+bundles.Add(new ScriptBundle("~/bundles/bootstrap").Include(
+  
+	"~/Scripts/bootstrap.js",
+                      
+	"~/Scripts/bootbox.js",
+                      
+	"~/Scripts/respond.js"));
+
+--> Replace Native confirm with bootbox confirm
+--> Bootbox will not return boolean value, instead it takes callback function 
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            $("#customers .js-delete").on("click", function () {
+                var button = $(this);
+                bootbox.confirm("Are you sure you want to delete this customer", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "/api/customers/" + button.attr("data-customer-id"),
+                            method: "DELETE",
+                            success: function () {
+                                button.parents("tr").remove();
+                            }
+                        })
+                    }
+                })
+            })
+        })
+    </script>
+}
+
+-----------------------------------------------------------------------------
+
+4. Optimizing jQuery Code
+
+--> $("#customers .js-delete").on("click", function () {
+--> In above jquery code, we have made click listener on each js-delete className
+--> If list is very long, this will become very inefficient for jquery
+
+--> Replacement:
+--> $("#customers").on("click", ".js-delete", function () {
+--> Above will watch any click event and if that click is on className = js-delete, then it will act
+--> This has lot improvement
+--> This is called filter event listener
+
+-----------------------------------------------------------------------------
+
+5. Data Tables Plug-in
+
+--> This is jquery library plug-in
+--> This will provide Pagination, sorting, searching and filtering options
+--> install-package jquery.datatables -version:1.10.11
+
+--> BundleConfig.cs
+--> Replace "~/bundles/jquery"  with  "~/bundles/lib"
+--> Delete "~/bundles/bootstrap"
+--> Add all reference from bootstrap to jquery
+
+bundles.Add(new ScriptBundle("~/bundles/lib").Include(
+                        
+	"~/Scripts/jquery-{version}.js",
+                        
+	"~/Scripts/bootstrap.js",
+                        
+	"~/Scripts/bootbox.js",
+                        
+	"~/Scripts/respond.js",
+                        
+	"~/Scripts/datatables/jquery.datatables.js",
+                        
+	"~/Scripts/datatables/datatables.bootstrap.js"));
+
+
+bundles.Add(new StyleBundle("~/Content/css").Include(
+                      
+	"~/Content/bootstrap-lumen.css",
+                      
+	"~/Scripts/datatables/css/datatables.bootstrap.css",
+                      
+	"~/Content/site.css"));
+
+------------------------------------------------------------
+
+--> The Layout which is referencing such jquery and bootstrap files is _Layout.cshtml under shared folder in view
+--> changing reference in that file:
+    @Scripts.Render("~/bundles/lib")	--> only one reference instead of two
+
+------------------------------------------------------------
+
+--> Plug DataTable in jquery code:
+<script>
+        $(document).ready(function () {
+            $("#customers").DataTable();
+            $("#customers").on("click", ".js-delete", function () {
+
+------------------------------------------------------------
+
+--> DataTable will autogenerate code for list and give features like pagination, sorting, searching, filtering
+--> There is one cost to that
+--> DataTable has to remove the html markup which is coming from server after rendering cshtml pages to html
+--> Then it gets the data and bind in its own table format and gives features
+--> Instead of this, we provide data in json format from server using api and DataTable will autoformat that data
+--> This saves so much time, no. of requests, server load and autoformat table which will reduce html coding in server
+
+-----------------------------------------------------------------------------
+
+5. DataTables with Ajax
+
+--> Now DataTable will import data from api instead of server view file
+
+@model IEnumerable<Vidly.Models.Customer>
+
+
+
+@{
+    
+	ViewBag.Title = "Customers";
+    
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+
+
+<h2>Customers</h2>
+
+
+<table id = "customers" class="table table-bordered table-hover">
+    
+	<thead>
+        
+		<tr>
+            
+			<th>Customer</th>
+            
+			<th>Membership Type</th>
+            
+			<th>Delete</th>
+        
+		</tr>
+    
+	</thead>
+    
+	<tbody>
+    
+	</tbody>
+
+</table>
+
+
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            $("#customers").DataTable({
+                ajax: {
+                    url: "/api/customers",
+                    dataSrc: ""
+                },
+                columns: [
+                    {
+                        data: "name",
+                        render: function (data, type, customer) {
+                            return "<a href='/customers/edit/" + customer.id + "'>" + customer.name + "</a>";
+                        }
+                    },
+                    {
+                        data: "name"
+                    },
+                    {
+                        data: "id",
+                        render: function (data) {
+                            return "<button class='btn-link js-delete' data-customer-id=" + data + ">Delete</button>";
+                        }
+                    }
+                ]
+            });
+
+--> first ajax sends request to api
+--> dataSrc is object but there are objects in array so we have used columns property of DataTables to decide what would render in each column
+--> data is a property from api list
+--> render is option how you want to render that data in html templates
+--> data is again property
+--> type is type of data
+--> customer is whole collection of properties in single object (just name given for reference)
+--> Now delete tbody inbetween all tags which were rendering data in view
+--> In CustomersController of mvc, delete customer model which is passing in view and only return View()
+--> public ViewResult Index() {
+
+  return View();
+  }
+--> All is same as below
+--> For second column, we can not specify membership type, bec. there is no property in /api/customers, we have membershipTypeId, not membershipType.
+--> This is next topic in video
+
+            $("#customers").on("click", ".js-delete", function () {
+                var button = $(this);
+                bootbox.confirm("Are you sure you want to delete this customer", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "/api/customers/" + button.attr("data-customer-id"),
+                            method: "DELETE",
+                            success: function () {
+                                button.parents("tr").remove();
+                            }
+                        })
+                    }
+                })
+            })
+        })
+    </script>
+}
+
+-----------------------------------------------------------------------------
+
+6. Returning Heirarchical Data
+
+--> We are getting MembershipTypeId in Api, changing to heirarchical of MembershipType and including its Id and Name
+--> In CustomersDto.cs -->
+--> Add this property: public MembershipTypeDto MembershipType { get; set; }
+
+----------------------------------------------------------------
+
+--> So it is referencing MembershipTypeDto class
+--> Make one class MembershipTypeDto in Dto folder:
+public class MembershipTypeDto
+    {
+        public byte Id { get; set; }
+        public string Name { get; set; }
+    }
+
+----------------------------------------------------------------
+
+
+--> In GetCustomers method of ApiController, add Include method to get data from _context object (database) of MembershipType
+--> Then MembershipTypeDto class will only take those properties which are mentioned in its class that is Id and Name
+--> import System.Data.Entity;
+--> public IEnumerable<CustomerDto> GetCustomers()
+        {
+            return _context.Customers.Include(c => c.MembershipType).ToList().Select(Mapper.Map<Customer, CustomerDto>);
+        }
+
+----------------------------------------------------------------
+
+--> Add data attribute of DataTable column property in Index.cshtml
+--> data: "membershipType.name"
+-----------------------------------------------------------------------------
+
+7. DataTables Removing Records
+
+--> When we click on Delete button, tr tag gets deleted from dom
+--> But when search in Customers list, it is there record
+--> Means record is deleted from dom, but not from datatable list
+--> So instead of deleting from dom, we delete from datatable list
+--> Get reference of DataTable plugin in jquery code to variable table
+var table = $("#customers").DataTable({...})
+
+--> In Success delete method of ajax call inside datatable, replace:
+$.ajax({
+    url: "/api/customers/" + button.attr("data-customer-id"),
+    method: "DELETE",
+    success: function () {
+         button.parents("tr").remove();
+    }
+})
+
+--> with:
+
+success: function () {
+      table.row(button.parents("tr")).remove().draw();
+}
+
+-----------------------------------------------------------------------------
+
+8. DataTables Discussion Points
+
+--> DataTables provide features of pagination, sorting
+--> But they will be helpful if apis has less number of points and less data
+--> It will better if pagination, sorting features comes from server instead of DataTables for more number of records
+--> Mosh is only here to give directions and there are many new ways that you can try by reading yourself.
+
+-----------------------------------------------------------------------------
+
+9. Single Page Applications
+
+--> Single Page Applications are those only single url endpoint is there which user loads and we change data using server api
+--> Example of it: Google Gmail
+--> Frameworks used for that: Angular2, React, Backbonejs
+--> Server is only responsible for giving data in api and the whole page view is generated by angular which will be faster bec. it is on client side
+--> Instead of generating whole view from server razor view, ajax call to the server to get the required data and fill the blanks and replace the view in single url
+--> User Experience will be faster and smoother.
+
+--> Server: Api data   
+--> Angular: Managing View using ajax calls
+
+-----------------------------------------------------------------------------
+
+10. Exercise --> Use DataTable to render data
+
+--> MoviesController.cs --> mvc
+public ViewResult Index()
+        
+{
+            
+	return View();    
+        
+}
+
+-----------------------------------------------------
+
+--> Index.cshtml
+@model IEnumerable<Vidly.Models.Movie>
+
+@{
+    ViewBag.Title = "Movies";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Movies</h2>
+<p>
+    @Html.ActionLink("New Movie", "New", "Movies", null, new { @class = "btn btn-primary" })
+</p>
+<table id="movies" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Movie</th>
+            <th>Genre</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        @*@foreach (var movie in Model)
+        {
+            <tr>
+                <td>@Html.ActionLink(movie.Name, "Edit", "Movies", new { id = movie.Id }, null)</td>
+                <td>@movie.GenreId</td>
+                <td><button data-customer-id="@movie.Id" class="btn-link js-delete">Delete</button></td>
+            </tr>
+        }*@
+    </tbody>
+</table>
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            var table = $("#movies").DataTable({
+                ajax: {
+                    url: "/api/movies",
+                    dataSrc: ""
+                },
+                columns: [
+                    {
+                        data: "name",
+                        render: function (data, type, movie) {
+                            return "<a href='/movies/edit/" + movie.id + "'>" + movie.name + "</a>";
+                        }
+                    },
+                    {
+                        data: "name"
+                    },
+                    {
+                        data: "id",
+                        render: function (data) {
+                            return "<button class='btn-link js-delete' data-movie-id=" + data + ">Delete</button>";
+                        }
+                    }
+                ]
+
+
+            });
+            $("#movies").on("click", ".js-delete", function () {
+
+
+                var button = $(this);
+                bootbox.confirm("Are you sure you want to delete this movie", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "/api/movies/" + button.attr("data-movie-id"),
+                            method: "DELETE",
+                            success: function () {
+                                table.row(button.parents("tr")).remove().draw();
+                            }
+                        })
+                    }
+                })
+            })
+        })
+    </script>
+}
+
+-----------------------------------------------------
+
+--> For hierarchy of Genre in Movie api-->
+--> GenreDto.cs
+    public class GenreDto
+    {
+        public byte Id { get; set; }
+        public string Name { get; set; }
+    }
+
+--> MovieDto.cs
+--> Add this property: public GenreDto Genre { get; set; }
+
+
+--> Link this GenreDto to Genre domain model
+--> Mapper.CreateMap<Genre, GenreDto>();  	--> in mappingprofile under App_Start folder
+
+
+--> Include this GenreDto in GetMovies methods of Api controller
+--> using System.Data.Entity;
+--> public IEnumerable<MovieDto> GetMovies()
+        {
+            return _context.Movies.Include(m => m.Genre).ToList().Select(Mapper.Map<Movie, MovieDto>);
+        }
+
+-----------------------------------------------------
+
+11. This is Client-Side Development
+
+--> What is Client-Side Development
+--> Server only sends Data in Api format
+--> Angular make use of that data and generate required html template
+--> Although, Server was generating html templates before.

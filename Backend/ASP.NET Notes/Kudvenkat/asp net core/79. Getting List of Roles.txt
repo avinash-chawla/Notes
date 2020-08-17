@@ -1,0 +1,128 @@
+1. Get list of roles
+
+--> We want to display 
+
+Role ID
+Role Name and 
+A pair of buttons to Edit and Delete a role
+
+--------------------------------------------------------------------------------
+
+2. Roles property of RoleManager class
+
+--> RoleManager class has a property Roles which return IQueriable object of all roles in IdentityRole Table.
+
+--> In AdministrationController.cs
+
+[HttpGet]
+public IActionResult ListRoles()
+{
+    var roles = roleManager.Roles;
+    return View(roles);
+}
+
+--> After retrieving all roles, we pass to view.
+
+--------------------------------------------------------------------------------
+
+3. List Roles View
+
+--> ID property of the IdentityRole object returns the role ID
+--> Name property of the IdentityRole object returns the role Name
+
+@model IEnumerable<IdentityRole>
+
+@{
+    ViewBag.Title = "All Roles";
+}
+
+<h1>All Roles</h1>
+
+@if (Model.Any())
+{
+    <a class="btn btn-primary mb-3" style="width:auto" asp-action="CreateRole"
+       asp-controller="administration">Add new role</a>
+
+    foreach (var role in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                Role Id : @role.Id
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">@role.Name</h5>
+            </div>
+            <div class="card-footer">
+                <a href="#" class="btn btn-primary">Edit</a>
+                <a href="#" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="card">
+        <div class="card-header">
+            No roles created yet
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">
+                Use the button below to create a role
+            </h5>
+            <a class="btn btn-primary" style="width:auto"
+               asp-controller="administration" asp-action="CreateRole">
+                Create Role
+            </a>
+        </div>
+    </div>
+}
+
+--------------------------------------------------------------------------------
+
+4. After Creating Role, user is redirected to ListRoles showing list of roles
+
+--> In CreateRole actionMethod,
+
+if (result.Succeeded)
+                {
+                    return RedirectToAction("ListRoles", "Administration");
+                }
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

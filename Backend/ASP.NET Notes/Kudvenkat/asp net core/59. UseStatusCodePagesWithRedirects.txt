@@ -1,0 +1,116 @@
+--> UseStatusCodePagesWithRedirects vs UseStatusCodePagesWithReExecute
+
+0. Short Difference
+
+--> Redirect will redirect user to different url and return 200 status code
+--> ReExecute will give view to same wrong url for user to redirect and return 404 status code
+
+--> We should return 404 status code to user for right implication.
+--> Mostly developers use ReExecute middleware
+
+--------------------------------------------------------------------------------
+
+1. Request processing with UseStatusCodePagesWithRedirects
+
+--> When a request is issued to http://localhost/foo/bar
+--> 404 status code is raised 
+--> StatusCodePagesWithRedirects middleware intercepts this and changes it to 302, pointing it to the error path (/Error/404)
+--> 302 status code means the URI of the requested resource has been changed temporarily, in our case it changed to /Error/404
+--> So another GET request is issued to serve the redirected request
+--> Because a redirect is issued, notice the URL in the address bar also changes from /foo/bar to /Error/404
+--> The request flows through the pipeline and handled by the MVC middleware which ultimately returns NotFound view HTML with status code 200(which means the request completed successfully)
+--> As far as the browser is concerned in this entire request flow there was no 404 error.
+--> If you closely observe this request and response flow, we are returning a success status code (200) when actually an error occurred which isn't semantically correct.
+
+--------------------------------------------------------------------------------
+
+2. Request processing with UseStatusCodePagesWithReExecute
+
+--> app.UseStatusCodePagesWithReExecute("/Error/{0}")
+--> When a request is issued to http://localhost/foo/bar
+--> 404 status code is raised 
+--> UseStatusCodePagesWithReExecute middleware intercepts the 404 status code and re-executes the pipeline pointing it to the URL  (/Error/404)
+--> The request flows through the pipeline and handled by the MVC middleware which returns NotFound view HTML along with status code 200
+
+ 
+--> As the response flows out to the client, it passes through UseStatusCodePagesWithReExecute middleware which uses the HTML response but replaces the 200 status code with the original 404 status code.
+--> This is a clever piece of middleware. As the name implies it re-executes the pipeline keeping the correct (404) status code. It just returns the custom view (NotFound) HTML
+--> As it is just re-executing the pipeline and not issuing a redirect request, we also preserve the original URL (/foo/bar) in the address bar. It does not change from /foo/bar to /Error/404
+
+--------------------------------------------------------------------------------
+
+3. Retrieve wrong url and query string from user
+
+--> Only for demostration, no practical use.
+--> Using IStatusCodeReExecuteFeature interface
+
+public class ErrorController : Controller
+{
+    [Route("Error/{statusCode}")]
+    public IActionResult HttpStatusCodeHandler(int statusCode)
+    {
+        var statusCodeResult =
+                HttpContext.Features.Get<IStatusCodeReExecuteFeature>();
+
+        switch (statusCode)
+        {
+            case 404:
+                ViewBag.ErrorMessage =
+                        "Sorry, the resource you requested could not be found";
+                ViewBag.Path = statusCodeResult.OriginalPath;
+                ViewBag.QS = statusCodeResult.OriginalQueryString;
+                break;
+        }
+
+        return View("NotFound");
+    }
+}
+
+--------------------------------------------------------------------------------
+
+--> In View File,
+
+@{
+    ViewBag.Title = "Not Found";
+}
+
+<h1>@ViewBag.ErrorMessage</h1>
+
+<h1>@ViewBag.Path</h1>
+
+<h1>@ViewBag.QS</h1>
+
+<a asp-action="index" asp-controller="home">
+    Click here to navigate to the home page
+</a>
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

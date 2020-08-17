@@ -1,0 +1,780 @@
+1. Calling an api Using jQuery
+
+--> First we make delete button on Index page showing list of customers
+--> When we click this button, jquery ajax will use this api endpoint to delete this record.
+--> We will go step by step
+
+----------------------------------------------------------------------------------
+
+--> In Index.cshtml
+--> First we make delete button
+--> Giving bootstrap class btn-link
+--> Giving another class for jquery reference "js-delete"
+--> It is good to prefix jquery classes with js
+
+<table id="customers">
+
+<th>Delete</th>
+
+<td>
+    <button class="btn-link js-delete">Delete</button>
+</td>
+
+----------------------------------------------------------------------------------
+
+--> Then in script tag, we reference this button via table id
+--> On click event, we raise confirm dialog box
+
+
+@section scripts{
+    <script>
+        $(document).ready(function(){
+            $("#customers .js-delete").click(function () {
+                confirm("Are you sure you want to delete this customer?");
+	    }))
+	})
+    </script>
+}
+
+----------------------------------------------------------------------------------
+
+--> Now we will do ajax request if confirm is true
+--> For ajax request, we also need customer id in delete request
+--> So attaching attribute to button and assign customer.Id to it.
+--> We can get this data from attri using jquery
+
+<td>
+    <button data-customer-id="@customer.Id" class="btn-link
+js-delete">Delete</button>
+</td>
+
+
+section scripts{
+    <script>
+        $(document).ready(function(){
+            $("#customers .js-delete").click(function () {
+                if (confirm("Are you sure you want to delete this customer?")) {
+                    $.ajax({
+                        url: "/api/customers/" + $(this).attr("data-customer-id"),
+                        method: "DELETE",
+                        success: function () {
+                            console.log("successfully deleted");
+                        }
+                    })
+                }
+            })
+        })
+    </script>    
+}
+
+----------------------------------------------------------------------------------
+
+--> Above success key of ajax object is callback function
+--> we can remove whole tr tag from list using button parents("tr")
+--> But we do not have access to $(this) in callback function
+--> Reference of this in callback function changes from function to function
+--> So, we use variable approach
+
+
+@section scripts{
+    <script>
+        $(document).ready(function(){
+            $("#customers .js-delete").click(function () {
+                var button = $(this);
+                if (confirm("Are you sure you want to delete this customer?")) {
+                    $.ajax({
+                        url: "/api/customers/" + $(this).attr("data-customer-id"),
+                        method: "DELETE",
+                        success: function () {
+                            button.parents("tr").remove();
+                        }
+                    })
+                }
+            })
+        })
+    </script>    
+}
+
+----------------------------------------------------------------------------------
+
+2. Bootbox plugin
+
+--> We will replace native js confirm dialog box with bootbox
+--> Bootbox is a library which is abrastaction of bootstrap framework
+--> It contains really helpful functions
+
+--> install-package bootbox -version:4.1.0
+--> In scripts folder, it is located
+--> provide reference in bundle.config.cs
+
+            bundles.Add(new ScriptBundle("~/bundles/bootstrap").Include(
+                      "~/Scripts/bootstrap.js",
+                      "~/Scripts/bootbox.min.js"));
+
+or
+
+--> Right click Scripts folder
+--> Add client side library
+--> Add bootbox
+--> Provide its reference in bundles.config.cs
+
+--> Now in Index.cshtml
+
+@section scripts{
+    <script>
+        $(document).ready(function(){
+            $("#customers .js-delete").click(function () {
+                var button = $(this);
+                bootbox.confirm("Are you sure you want to delete this customer?", (result) => {
+                    if (result) {
+                        $.ajax({
+                            url: "/api/customers/" + $(this).attr("data-customer-id"),
+                            method: "DELETE",
+                            success: function () {
+                                button.parents("tr").remove();
+                            }
+                        })
+                    }
+                })
+            })
+        })
+    </script>    
+}
+
+----------------------------------------------------------------------------------
+
+3. Optimizing jQuery Code
+
+--> In above code, in click event, we have many click event handlers
+$("#customers .js-delete").click(function () {
+
+
+--> For every record, we have click handler
+
+--> Solution:
+$("#customers").on("click", ".js-delete", function () {
+
+--> We provide one click handler and then filtering in 'on' method
+
+----------------------------------------------------------------------------------
+
+4. DataTables plugin
+
+--> It is jquery plugin
+--> DataTables is used for building tables along with pagination, sorting and searching.
+--> install-package jquery.datatables -version:1.10.11
+--> It will be paste in Scripts and content folder
+
+----------------------------------------------------------------------------------
+
+--> In _Layout.cshtml
+
+--> Replace bootstrap and jquery with one lib
+@Scripts.Render("~/bundles/lib")
+
+----------------------------------------------------------------------------------
+
+--> In BundleConfig.cs
+
+bundles.Add(new ScriptBundle("~/bundles/lib").Include(
+                        "~/Scripts/jquery-{version}.js",
+                        "~/Scripts/DataTables/jquery.DataTables.js",
+                        "~/Scripts/DataTables/DataTables.bootstrap.js",
+                        "~/Scripts/bootstrap.js",
+                        "~/Scripts/bootbox.min.js"
+                        ));
+
+            bundles.Add(new StyleBundle("~/Content/css").Include(
+                      "~/Content/bootstrap.css",
+                      "~/Content/Site.css",
+                      "~/Content/DataTables/css/DataTables.bootstrap.css"));
+
+----------------------------------------------------------------------------------
+
+--> In Index.cshtml
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            $("#customers").DataTable();
+
+            $("#customers").on("click", ".js-delete", function () {
+	    ...
+}
+
+----------------------------------------------------------------------------------
+
+--> Now check url in browser
+--> It also applies pagination, sorting and searching
+--> But there is one problem with above approach
+--> We are sending Html markup to client, datatables will extract data from dom elements, converts it to json object and make its own data
+
+--> To improve performance, we provide json data to dataTables using ajax
+
+----------------------------------------------------------------------------------
+
+5. DataTables with Ajax Source
+
+--> We will not provide data from _context or viewModel to View() in actionMethod
+--> DataTable will do ajax request to api endpoint
+--> We have attached javascript code behind this page, when this loads this will call api endpoint.
+--> To set ajax request in DataTables, we use object inside its parameter.
+
+--> First property is ajax --> needs url and dataSrc
+--> url: "/api/customers"
+--> dataSrc: ""		--> means json data is an array indeed, it does not contain property under which customers array reside
+
+--> Second property is columns which is an array of individual columns object
+--> Under each object --> needs data and render
+--> data means which property to take from customers array
+--> render function is display string to reformat plain data
+--> It can accepts 3 arguments - data (property value), type and customer(which is whole individual object inside array of customers)
+--> We can not access customer.Membership.Name bec. such property does not reside in json data, it resides in domain class.
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            $("#customers").DataTable({
+                ajax: {
+                    url: "/api/customers",
+                    dataSrc: ""
+                },
+                columns: [
+                    {
+                        data: "name",
+                        render: function (data, type, customer) {
+                            return "<a href='/api/customers" + customer.Id + "'>" + customer.name + "</a>";
+                        }
+                    },
+                    {
+                        data: "name"
+                    },
+                    {
+                        data: "id",
+                        render: function (data) {
+                            return "<button class='btn-link js-delete' data-customer-id=" + data + ">Delete</button>"
+                        }
+
+                    }
+                ]
+            });
+
+            $("#customers").on("click", ".js-delete", function () {
+                var button = $(this);
+                bootbox.confirm("Are you sure you want to delete this customer?", (result) => {
+                    if (result) {
+                        $.ajax({
+                            url: "/api/customers/" + $(this).attr("data-customer-id"),
+                            method: "DELETE",
+                            success: function () {
+                                button.parents("tr").remove();
+                            }
+                        })
+                    }
+                })
+            })
+        })
+    </script>    
+}
+
+----------------------------------------------------------------------------------
+
+--> Now we have to change actionMethod which is before giving data.
+
+-->     public ActionResult Index()
+        {
+            //IEnumerable<Customer> customers = _context.Customers.Include(c => c.MembershipType).ToList();
+            //return View(customers);
+
+            return View();
+        }
+
+
+--> We have to delete foreach loop from table in view file.
+
+<table id="customers" class="table table-hover table-bordered">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Membership Type</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    @*<tbody>
+        @foreach (var customer in Model)
+        {
+            <tr>
+                <td>@Html.ActionLink(customer.Name, "Edit", "Customers", new { id = customer.Id }, null)</td>
+                <td>@customer.MembershipType.Name</td>
+                <td><button data-customer-id="@customer.Id" class="btn-link js-delete">Delete</button></td>
+            </tr>
+        }
+
+    </tbody>*@
+</table>
+
+----------------------------------------------------------------------------------
+
+6. Returing Hierchical Data from json
+
+--> Above in ajax call, for second column, we have to display membershipType
+--> For this, we need hierchical data in customers json object.
+
+----------------------------------------------------------------------------------
+
+--> In ApiControllers class,
+--> We are sending List of CustomerDto properties in json
+--> We have to include another property MembershipTypeDto in CustomerDto
+--> We have to make this class MembershipTypeDto and link it to that
+
+----------------------------------------------------------------------------------
+
+--> In Dtos folder,
+--> Make new class --> MembershipTypeDto.cs
+
+    public class MembershipTypeDto
+    {
+        public byte Id { get; set; }
+        public string Name { get; set; }
+    }
+
+--> In CustomerDto class,
+
+----------------------------------------------------------------------------------
+
+public class CustomerDto
+    {
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+
+        public bool IsSubscribedToNewsletter { get; set; }
+
+        public MembershipTypeDto MembershipType { get; set; }
+
+
+        public byte MembershipTypeId { get; set; }
+
+        public DateTime? Birthdate { get; set; }
+    }
+
+----------------------------------------------------------------------------------
+
+--> As first data comes from _context object to Customer Object 
+--> AutoMapper will map and convert Customer to CustomerDto
+--> CustomerDto has property MembershipType of type MembershipTypeDto
+
+--> AutoMapper will map and convert MembershipType to MembershipTypeDto
+--> So, in MappingProfile.cs in App_start folder
+
+        public MappingProfile()
+        {
+            Mapper.CreateMap<Customer, CustomerDto>();
+            Mapper.CreateMap<CustomerDto, Customer>();
+
+            Mapper.CreateMap<MembershipType, MembershipTypeDto>();
+
+            Mapper.CreateMap<Movie, MovieDto>();
+            Mapper.CreateMap<MovieDto, Movie>();
+        }
+
+----------------------------------------------------------------------------------
+
+--> Now, we have include MembershipType in querying Customer in Linq query.
+--> In CustomersController.cs
+
+public IEnumerable<CustomerDto> GetCustomers()
+        {
+            return _context.Customers.Include(m => m.MembershipType).ToList().Select(Mapper.Map<Customer, CustomerDto>);
+        }
+
+----------------------------------------------------------------------------------
+
+--> Now check get request api
+--> You will get hierchical data from api
+--> Now, in dataTable in jquery in 2nd column, place data: "membershipType.name"
+
+----------------------------------------------------------------------------------
+
+7. DataTables removing records
+
+--> We were using jquery to remove parent tr of button from dom
+$('js-delete').parents('tr').remove()
+--> But we are not deleting from database using api
+--> After you delete it, it will stay in datatable internal list
+
+--> We will remove in internal list of datatable
+--> First we take reference of datatable in variable
+--> Then in success callback of delete click event in ajax, we delete from internal list of dom
+
+(document).ready(function () {
+	var table = $("#customers").DataTable({......});
+
+	$("#customers").on("click", ".js-delete", function () {
+                var button = $(this);
+                bootbox.confirm("Are you sure you want to delete this customer?", (result) => {
+                    if (result) {
+                        $.ajax({
+                            url: "/api/customers/" + $(this).attr("data-customer-id"),
+                            method: "DELETE",
+                            success: function () {
+                                table.row(button.parents("tr")).remove().draw();		
+                            }
+                        })
+                    }
+                })
+            })
+
+--> We are removing row from datatables list and redraw it using draw().
+
+----------------------------------------------------------------------------------
+
+8. DataTables Discussion Points
+
+--> Two things
+1. Performance maintained till limited data from api. After that, performance drops.
+2. No Seperation of concerns
+--> In this, we are combining view with backend(ajax) logic
+
+----------------------------------------------------------------------------------
+
+9. SPA
+
+--> Whole application can be built with client side using server api
+--> Such technologies are: Angular, React, Vue, Backbonejs and ember
+
+----------------------------------------------------------------------------------
+
+10. Exercise
+
+--> Enable DataTable in Movies Table
+
+----------------------------------------------------------------------------------
+
+--> First implementing Delete button
+
+<th>Delete</th>
+
+<td><button data-movie-id=@movie.Id  class="btn-link js-delete">Delete</button></td>
+
+@section scripts{
+   <script>
+       $(document).ready(function () {
+           $("#movies").on("click", ".js-delete", function () {
+               confirm("Are you sure You want to delete this movie?");
+           })
+       })
+    </script> 
+}
+
+----------------------------------------------------------------------------------
+
+--> Implementing Delete action with ajax
+
+@section scripts{
+   <script>
+       $(document).ready(function () {
+           $("#movies").on("click", ".js-delete", function () {
+               var button = $(this);
+               if (confirm("Are you sure You want to delete this movie?")) {
+                   $.ajax({
+                       url: "/api/movies/" + $(this).attr("data-movie-id"),
+                       method: 'DELETE',
+                       success: function () {
+                           button.parents('tr').remove();
+                       }
+                   })
+               }
+           })
+       })
+    </script> 
+}
+
+----------------------------------------------------------------------------------
+
+--> Giving Bootbox confirm dialog box
+
+@section scripts{
+   <script>
+       $(document).ready(function () {
+           $("#movies").on("click", ".js-delete", function () {
+               var button = $(this);
+               bootbox.confirm("Are you sure You want to delete this movie?", result => {
+                   if (result) {
+                       $.ajax({
+                           url: "/api/movies/" + $(this).attr("data-movie-id"),
+                           method: 'DELETE',
+                           success: function () {
+                               button.parents('tr').remove();
+                           }
+                       })
+                   }
+               })
+           })
+       })
+    </script> 
+}
+
+----------------------------------------------------------------------------------
+
+--> Implementing DataTable
+
+$("#movies").DataTable();
+
+----------------------------------------------------------------------------------
+
+--> Getting data in DataTable using ajax
+
+----------------------------------------------------------------------------------
+
+--> Index.cshtml
+
+@model IEnumerable<Vidly3.Models.Movie>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Movies</h2>
+
+@Html.ActionLink("NEW MOVIE", "New", "Movies", new { @class = "btn btn-primary m-3" })
+
+<table id="movies" class="table table-hover table-bordered">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Genre</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        @*<tbody>
+            @foreach (var movie in Model)
+            {
+                <tr>
+                    <td>@Html.ActionLink(movie.Name, "Edit", "Movies", new { id = movie.Id }, null)</td>
+                    <td>@movie.Genre.Name</td>
+                    <td><button data-movie-id=@movie.Id  class="btn-link js-delete">Delete</button></td>
+                </tr>
+            }
+
+        </tbody>*@
+</table>
+
+
+@section scripts{
+   <script>
+       $(document).ready(function () {
+           $("#movies").DataTable({
+               ajax: {
+                   url: "/api/movies",
+                   dataSrc: ""
+               },
+               columns: [
+                {
+                       data: "name",
+                       render: function (data, type, movie) {
+                           return "<a href='/movies/edit/" + movie.id + "'>" + data + "</a>";
+                       }
+                   },
+                   {
+                       data: "name"
+                   },
+                   {
+                       data: "id",
+                       render: function (data) {
+                           return "<button class='btn-link js-delete' data-movie-id=" + data + ">Delete</button>";
+                       }
+                   }
+               ]
+           });
+
+           $("#movies").on("click", ".js-delete", function () {
+               var button = $(this);
+               bootbox.confirm("Are you sure You want to delete this movie?", result => {
+                   if (result) {
+                       $.ajax({
+                           url: "/api/movies/" + $(this).attr("data-movie-id"),
+                           method: 'DELETE',
+                           success: function () {
+                               button.parents('tr').remove();
+                           }
+                       })
+                   }
+               })
+           })
+       })
+    </script> 
+}
+
+----------------------------------------------------------------------------------
+
+--> Stopping data from _context object from actionMethod
+
+        public ActionResult Index()
+        {
+            //IEnumerable<Movie> movies = _context.Movies.Include(m => m.Genre).ToList();
+            //return View(movies);
+            return View();
+        }
+
+----------------------------------------------------------------------------------
+
+--> Removing movie from datatable internal list
+
+var table = $("#movies").DataTable({
+
+bootbox.confirm("Are you sure You want to delete this movie?", result => {
+                   if (result) {
+                       $.ajax({
+                           url: "/api/movies/" + $(this).attr("data-movie-id"),
+                           method: 'DELETE',
+                           success: function () {
+                               table.row(button.parents("tr")).remove().draw()
+                           }
+                       })
+                   }
+               })
+
+----------------------------------------------------------------------------------
+
+--> Creating hierchical json data in api get request
+
+--> We are sending MovieDto to client
+--> So modifying MovieDto class
+
+public class MovieDto
+    {
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+
+
+        public GenreDto Genre { get; set; }
+
+        [Required]
+        public byte GenreId { get; set; }
+
+
+        public DateTime ReleaseDate { get; set; }
+
+        [Range(1, 20)]
+        public byte NumberInStock { get; set; }
+    }
+
+----------------------------------------------------------------------------------
+
+--> Now Creating GenreDto for MovieDto
+--> Make new class in Dtos folder --> GenreDto.cs
+
+    public class GenreDto
+    {
+        public byte Id { get; set; }
+
+        public string Name { get; set; }
+    }
+
+----------------------------------------------------------------------------------
+
+--> In MappingProfile.cs
+
+Mapper.CreateMap<Genre, GenreDto>();
+
+----------------------------------------------------------------------------------
+
+--> Including Genre as Property in Movie Object
+--> In Api controllers , CustomersController,
+
+        public IHttpActionResult GetMovies()
+        {
+            return Ok(_context.Movies.Include(m => m.Genre).ToList().Select(Mapper.Map<Movie, MovieDto>));
+        }
+
+--> Test the api
+
+----------------------------------------------------------------------------------
+
+--> Now modifying DataTable second column,
+
+data: "genre.name"
+
+----------------------------------------------------------------------------------
+
+--> Now check all
+
+----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

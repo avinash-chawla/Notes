@@ -1,0 +1,479 @@
+1. Accounts App and URLs
+
+--> There is an already table for users --> auth_users
+--> Created during migration
+
+--> python manage.py startapp accounts
+
+--------------------------------------------------------------------------------
+
+--> In templates folder, make new folder --> accounts
+--> Make 3 files inside it
+1. login.html
+2. register.html
+3. dashboard.html
+
+--------------------------------------------------------------------------------
+
+--> Make new file 'urls.py' in accounts app,
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('login', views.login, name='login'),
+    path('register', views.register, name='register'),
+    path('logout', views.logout, name='logout'),
+    path('dashboard', views.dashboard, name='dashboard')
+]
+
+--------------------------------------------------------------------------------
+
+--> In views.py of accounts app,
+
+from django.shortcuts import render, redirect
+
+def login(request):
+    return render(request, 'accounts/login.html')
+
+def register(request):
+    return render(request, 'accounts/register.html')
+
+def logout(request):
+    return redirect('index')
+
+def dashboard(request):
+    return render(request, 'accounts/dashboard.html')   
+
+--------------------------------------------------------------------------------
+
+--> In main urls.py,
+    
+path('accounts/', include("accounts.urls")),
+
+--> In settings.py, under installed apps,
+
+INSTALLED_APPS = [
+    'pages.apps.PagesConfig',
+    'listings.apps.ListingsConfig',
+    'realtors.apps.RealtorsConfig',
+    'accounts.apps.AccountsConfig',
+    ...
+]
+
+--------------------------------------------------------------------------------
+
+--> In _navbar.html,
+
+<ul class="navbar-nav ml-auto">
+                <li
+                {% if 'register' in request.path %} 
+                    class="nav-item active mr-3" 
+                {% else %} 
+                    class="nav-item mr-3"
+                {% endif %}>
+                    <a class="nav-link" href="{% url 'register' %}">
+                        <i class="fas fa-user-plus"></i> Register</a>
+                </li>
+                <li
+                    {% if 'login' in request.path %} 
+                        class="nav-item active mr-3" 
+                    {% else %} 
+                        class="nav-item mr-3"
+                    {% endif %}>
+                    <a class="nav-link" href="{% url 'login' %}">
+                        <i class="fas fa-sign-in-alt"></i>
+
+                        Login</a>
+                </li>
+            </ul>
+
+--------------------------------------------------------------------------------
+
+2. Register and Login Templates
+
+--> From themes resources, copy register and login theme and paste in django project templates folder in accounts 
+--> Extend required base.html
+--> Change form action and method
+
+--> In login.html,
+
+<form action="{% url 'login' %}" method="POST">
+{% csrf_token %}
+
+--> In register.html,
+
+<form action="{% url 'register' %}" method="POST">
+{% csrf_token %}
+
+--------------------------------------------------------------------------------
+
+--> In views.py of accounts app,
+
+def register(request):
+    if(request.method == 'POST'):
+        print("Submitted")
+        return redirect('index')
+    else:
+        return render(request, 'accounts/register.html')
+
+def login(request):
+    if(request.method == 'POST'):
+        print("Submitted")
+        return redirect('index')
+    else:
+        return render(request, 'accounts/login.html')
+
+--> We are checking if method is post and printing for testing purpose only.
+--> redirect is under django.shortcuts package.
+
+--------------------------------------------------------------------------------
+
+3. Message Alerts
+
+--> This functionality is already defined in django of displaying messages
+--> In settings.py,
+
+# Messages
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger'
+}
+
+--> This will enable messages functionality in django
+
+--------------------------------------------------------------------------------
+
+--> In partials folder, make new partial template --> _alerts.html
+
+{% if messages %}
+  {% for message in messages %}
+    <div id="message" class="container">
+      <div class="alert alert-{{ message.tags }} alert-dismissible text-center" role="alert">
+        <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>
+        <strong>
+          {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            Error: 
+          {% else %}
+            {{ message.tags|title }}
+          {% endif %}
+        </strong>
+        {{ message }}
+      </div>
+    </div>
+  {% endfor %}
+{% endif %}
+
+--------------------------------------------------------------------------------
+
+--> In views.py of accounts app,
+
+from django.contrib import messages, auth
+
+def register(request):
+    if(request.method == 'POST'):
+        messages.error(request, 'That email is being used')
+        return redirect('register')
+    else:
+        return render(request, 'accounts/register.html')
+
+--------------------------------------------------------------------------------
+
+--> In register.html,
+
+<div class="card-body">
+              <!-- Alerts -->
+              {% include 'partial/_alerts.html' %}
+                <form action="{% url 'register' %}" method="POST">
+
+--> Run the project
+--> After submitting register form, you will see toast notification with cross button indicating something
+--> We can set different levels of messages like validation error or submitted successfully.
+--> To automatically remove that after some time, we will use script jquery dom manipulation.
+
+--------------------------------------------------------------------------------
+
+--> In static folder of main app(btre), in main.js
+
+setTimeout(function() {
+  $('#message').fadeOut('slow');
+}, 3000);
+
+--------------------------------------------------------------------------------
+
+--> In terminal,
+
+python manage.py collectstatic
+python manage.py runserver
+
+--> Clear the cache in browser and reload.
+--> Message will disapper in 3 seconds.
+
+--------------------------------------------------------------------------------
+
+4. User Registration:
+
+--> In views.py of accounts app,
+
+from django.contrib import messages, auth
+from django.contrib.auth.models import User
+from contacts.models import Contact
+
+def register(request):
+  if request.method == 'POST':
+    # Get form values
+    first_name = request.POST['first_name']
+    last_name = request.POST['last_name']
+    username = request.POST['username']
+    email = request.POST['email']
+    password = request.POST['password']
+    password2 = request.POST['password2']
+
+    # Check if passwords match
+    if password == password2:
+      # Check username
+      if User.objects.filter(username=username).exists():
+        messages.error(request, 'That username is taken')
+        return redirect('register')
+      else:
+        if User.objects.filter(email=email).exists():
+          messages.error(request, 'That email is being used')
+          return redirect('register')
+        else:
+          # Looks good
+          user = User.objects.create_user(username=username, password=password,email=email, first_name=first_name, last_name=last_name)
+          # Login after register
+          # auth.login(request, user)
+          # messages.success(request, 'You are now logged in')
+          # return redirect('index')
+          user.save()
+          messages.success(request, 'You are now registered and can log in')
+          return redirect('login')
+    else:
+      messages.error(request, 'Passwords do not match')
+      return redirect('register')
+  else:
+    return render(request, 'accounts/register.html')
+
+--------------------------------------------------------------------------------
+
+--> In index.html of pages app,
+
+<!-- Alerts -->
+  {% include 'partials/_alerts.html' %}
+
+  <!-- Listings -->
+  <section id="listings" class="py-5">
+
+--> This is frontend user
+--> Admin is backend user.
+
+--------------------------------------------------------------------------------
+
+5. User Login
+
+--> In views.py of accounts app,
+
+def login(request):
+  if request.method == 'POST':
+    username = request.POST['username']
+    password = request.POST['password']
+
+    user = auth.authenticate(username=username, password=password)
+
+    if user is not None:
+      auth.login(request, user)
+      messages.success(request, 'You are now logged in')
+      return redirect('dashboard')
+    else:
+      messages.error(request, 'Invalid credentials')
+      return redirect('login')
+  else:
+    return render(request, 'accounts/login.html')
+
+--------------------------------------------------------------------------------
+
+6. Logout and Navbar links
+
+--> In views.py of accounts app,
+
+def logout(request):
+  if request.method == 'POST':
+    auth.logout(request)
+    messages.success(request, 'You are now logged out')
+    return redirect('index')
+
+--------------------------------------------------------------------------------
+
+--> In _navbar.html,
+
+<ul class="navbar-nav ml-auto">
+                {% if user.is_authenticated %}
+                    <li
+                    {% if 'dashboard' in request.path %}
+                    class="nav-item active mr-3"
+                    {% else %}
+                    class="nav-item mr-3"
+                    {% endif %}
+                    >
+                    <a class="nav-link" href="{% url 'dashboard' %}">
+                    Welcome {{ user.username }} (Dashboard)</a>
+                    </li>
+                    <li class="nav-item mr-3">
+                    <a href="javascript:{document.getElementById('logout').submit()}" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                    <form action="{% url 'logout' %}" method="POST" id="logout">
+                        {% csrf_token %}
+                        <input type="hidden">
+                    </form>
+                    </li>
+                {% else %}
+                    <li
+                    {% if 'register' in request.path %}
+                    class="nav-item active mr-3"
+                    {% else %}
+                    class="nav-item mr-3"
+                    {% endif %}
+                    >
+                    <a class="nav-link" href="{% url 'register' %}">
+                        <i class="fas fa-user-plus"></i> Register</a>
+                    </li>
+                    <li
+                    {% if 'login' in request.path %}
+                    class="nav-item active mr-3"
+                    {% else %}
+                    class="nav-item mr-3"
+                    {% endif %}
+                    >
+                    <a class="nav-link" href="{% url 'login' %}">
+                        <i class="fas fa-sign-in-alt"></i>
+
+                        Login</a>
+                    </li>
+                {% endif %}
+            </ul>
+
+--------------------------------------------------------------------------------
+
+--> In dashboard.html,
+
+--> In breadcrump, <a href="{% url 'index' %}">
+
+--> Include partial view for message 
+
+<!-- Alerts -->
+  {% include 'partials/_alerts.html' %}
+
+  <section id="dashboard" class="py-4">
+
+--------------------------------------------------------------------------------
+
+7. Dynamic Page Titles
+
+--> In base.html,
+
+<title>BT Real Estate {% block title %}{% endblock %}</title>
+
+--> In index.html of pages app,
+
+{% block title %} | Welcome {% endblock %}
+
+--> In about.html
+
+{% block title %} | About us {% endblock %}
+
+--> In listings.html
+
+{% block title %} | Browse Property Listings {% endblock %}
+
+--> In search.html
+
+{% block title %} | Search Results {% endblock %}
+
+--> In listing.html
+
+{% block title %} | {{ listing.title}} {% endblock %}
+
+--> In register.html
+
+{% block title %} | Register Account {% endblock %}
+
+--> In login.html
+
+{% block title %} | Account Login {% endblock %}
+
+--> In dashboard.html
+
+{% block title %} | User Dashboard {% endblock %}
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,169 @@
+1. ADO.NET SqlConnection Class
+
+--> It is used to establish an open connection to the SQL Server database. 
+--> It is a sealed class so that cannot be inherited. 
+--> SqlConnection class uses SqlDataAdapter and SqlCommand classes together to increase performance when connecting to a Microsoft SQL Server database.
+
+--> Connection does not close explicitly even it goes out of scope. Therefore, you must explicitly close the connection by calling Close() method.
+
+---------------------------------------------------------------------------------
+
+2. SqlConnection Signature
+
+public sealed class SqlConnection : System.Data.Common.DbConnection, ICloneable, IDisposable
+
+---------------------------------------------------------------------------------
+
+3. SqlConnection Methods
+
+
+BeginTransaction()		It is used to start a database transaction.
+ChangeDatabase(String)		It is used to change the current database for an open SqlConnection.
+ChangePassword(String, String)	It changes the SQL Server password for the user indicated in the connection string.
+Close()				It is used to close the connection to the database.
+CreateCommand()			It enlists in the specified transaction as a distributed transaction.
+GetSchema()			It returns schema information for the data source of this SqlConnection.
+Open()				It is used to open a database connection.
+ResetStatistics()		It resets all values if statistics gathering is enabled.
+
+---------------------------------------------------------------------------------
+
+4. SqlConnection Example
+
+using (SqlConnection connection = new SqlConnection(connectionString))    
+{    
+  connection.Open();         
+}  
+
+--> Using block is used to close the connection automatically. We don't need to call close () method explicitly, using block do this for ours implicitly when the code exits the block.
+
+---------------------------------------------------------------------------------
+
+static void Main(string[] args)  
+        {  
+            new Program().Connecting();  
+        }  
+        
+public void Connecting()  
+{  
+            using (  
+                     // Creating Connection  
+                     SqlConnection con = new SqlConnection("data source=.; database=student; integrated security=SSPI")  
+                 )  
+            {  
+                con.Open();  
+                Console.WriteLine("Connection Established Successfully");  
+            }  
+}  
+
+---------------------------------------------------------------------------------
+
+5. What, if we don't use using block.
+
+--> If we don't use using block to create connection, we have to close connection explicitly. In the following example, we are using try-block instead of using block.
+
+// Program.cs
+
+using System;  
+using System.Data.SqlClient;  
+namespace AdoNetConsoleApplication  
+{  
+    class Program  
+    {  
+        static void Main(string[] args)  
+        {  
+            new Program().Connecting();  
+        }  
+        public void Connecting()  
+        {  
+            SqlConnection con = null;  
+            try  
+            {  
+                // Creating Connection  
+                con = new SqlConnection("data source=.; database=student; integrated security=SSPI");  
+                con.Open();  
+                Console.WriteLine("Connection Established Successfully");  
+            }  
+            catch (Exception e)  
+            {  
+                Console.WriteLine("OOPs, something went wrong.\n"+e);  
+            }  
+            finally  
+            {   // Closing the connection  
+                con.Close();  
+            }  
+        }  
+    }  
+}  
+
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

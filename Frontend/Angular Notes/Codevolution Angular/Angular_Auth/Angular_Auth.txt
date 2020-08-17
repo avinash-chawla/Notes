@@ -1,0 +1,23 @@
+1. MEAN Stack
+
+--> MongoDB  - Storing data
+--> Express  - REST APIs
+--> Angular  - Client-side development
+--> Node     - Execution environment
+
+---------------------------------------------------------------------------
+
+2. Error: Access-Control-Allow-Origin means backend and frontend are running on different ports
+--> solution: npm i cors
+
+https://www.youtube.com/redirect?q=https%3A%2F%2Fgithub.com%2Fbartosz-io%2Fjwt-auth-angular&redir_token=d2jHZCYTpXZ--znrEGNOm5EUM9d8MTU5MTQyNzkzMkAxNTkxMzQxNTMy&stzid=UgzCT2eAP6ITUjNXa8p4AaABAg&event=comments
+
+https://www.youtube.com/redirect?q=https%3A%2F%2Fgithub.com%2Fbartosz-io%2Fjwt-auth-node&redir_token=d2jHZCYTpXZ--znrEGNOm5EUM9d8MTU5MTQyNzkzMkAxNTkxMzQxNTMy&stzid=UgzCT2eAP6ITUjNXa8p4AaABAg&event=comments
+
+---------------------------------------------------------------------------
+
+3. Angular Interceptor Class
+
+--> This service class will bind token present in client local storage with request object and sent it to server for verification.
+
+

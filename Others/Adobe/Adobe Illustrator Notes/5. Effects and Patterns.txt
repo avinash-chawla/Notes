@@ -1,0 +1,182 @@
+1. Liquify and Distort-->
+
+--> Make any shapes like ice cream
+--> Under width tool, liquify options are available
+
+1. Warp
+2. Twirl
+3. Pucker
+4. Bloat
+5. Scalop
+6. Crystallize
+7. Wrinkle
+
+-----------------------------------------------
+
+--> Making Ice cream shape--> 
+
+--> Draw rectangle for ice cream bar
+--> Draw rectangle stick below previous rectangle
+
+--> Align center stick by selecting both
+
+--> Take Line tool, draw through middle for shaddow effect
+
+--> Select Shape Builder Tool and subtract line which is extra icecream
+
+--> Give one side darker chocolate color(dark brown) and other side(some light brown)
+--> similarly for stick, off-yellow  and darker than that
+
+--> Give border radius
+
+-----------------------------------------------
+
+1. Warp Tool-->
+--> Drag the mouse outwards through icecream
+
+2. Twirle tool-->
+--> Make like jalebi and drag it too
+
+3. pucker and bloat (contract and expand)
+4. Try other tool also
+
+--------------------------------------------------
+
+--> Double click tools to change settings like height and width of brush 
+and its intensity
+
+--> First try with little high intensity for better view
+----------------------------------------------------------------------------------------------------------
+
+2. Bend and Warp-->
+
+--> The Shape that we gonna here is
+--> Make Indian flag with different colours but more width
+--> Give colors some gradient
+--> It looks like 3 strips one below each other.
+
+--------------------------------------------------
+
+--> Select All, Object Menu --> Group (ctrl + G)
+--> Now this is single element, not composite/combination
+
+--> Effect Menu --> Wrap -->  Arc
+
+--> Try different option
+--> One is 
+Style = Flag,
+Bend  = -57%
+Horizontal = 75%
+Vertical   = 9%
+
+-------------------------------------------------
+
+--> Now if you want to rotate it, it will distort
+--> Object menu --> Expand Appearance
+
+----------------------------------------------------------------
+
+3. Drawing Repeating Shapes-->
+
+--> Draw Star
+--> Give Radial Gradient color to Star
+--> Select it with Black Arrow tool
+--> Object menu --> Transform --> Transform each
+
+--> Scale h and v = 100%
+--> Give Rotation = 0
+--> Ok
+
+--> Again Select it
+--> Scale h and v = 90%
+--> Give Rotation = 25
+--> Copy
+
+--> It will make new one and old one keeps behind
+
+--> Object menu --> Transform --> Transform again 
+
+--> This will remember previous one and apply it without asking for settings--> Do ctrl + D --> shortcut of Transform again
+--> Do it many times
+
+
+--> You can use that as Abastract Background by doing clipping mask
+
+----------------------------------------------------------------
+
+4. Repeating Patterns-->
+
+--> Draw Ice Cream Bar Shape
+--> Make bitted one ice cream bar
+--> Give some angle
+
+--> Group it
+
+------------------------------------------------------
+
+--> Select it
+--> Object menu --> Transform --> Reflect --> Flip Vertical --> Select Preview
+
+--> Copy
+--> Keep side by side
+
+---------------------------------------------
+
+--> Select both
+--> Window menu --> Pattern Options
+--> Side arrow --> Make pattern
+
+--> There are two ways-->
+
+1. Box --> whichever shape you put gets multiplied
+2. Specify Vertical and Horizontal gap between objects
+
+--> Both have different tickmark
+
+--> Uncheck Dim Copies --> It will lighten that pattern
+
+--> Other than rectangle, there are styles
+
+--> Click on Done --> written beside Layer1 under all tabs
+
+-------------------------------------------------------
+
+--> Now Select Rectangle
+--> Draw over all document
+--> Fill: use that pattern which we have given name, which was saved after clicking done.
+
+--> Means it is saved as Fill
+
+---------------------------------------------------------
+
+--> Now by default, when you resize rectangle shape, pattern also get scaled, but we don't want them
+--> Select all, Window menu --> Transform --> Check Transform Object Only instead of Transform Both
+
+---------------------------------------------------------
+
+--> Now this Wallpaper Fill is available only in current document
+--> You have to save this document, then do copy and them to new document
+
+--------------------------------------------------------
+----------------------------------------------------------------
+
+5. Vectorizing an Image-->  
+
+--> Place an Image
+--> Select Image Trace 
+--> It will convert image to vector
+--> Set preset: 3 colors
+--> If you want more options --> click on Button beside Preset
+--> Click Expand  --> To done
+
+--> Select any parts in image and drag with White arrow tool
+--> Select any one part
+--> Select menu 
+--> Same
+--> Fill color
+
+--> This will find section color which is selected, in all image and will color that all
+
+--> You can make anglyph effect 3D with different colors
+
+-----------------------------------------------------------------

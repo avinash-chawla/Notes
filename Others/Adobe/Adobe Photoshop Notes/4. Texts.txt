@@ -1,0 +1,47 @@
+1. Bend Text-->
+
+--> Type any Text
+--> Click on Text wrapped 
+--> Choose any style
+
+2. How to get text to follow a line or circle-->
+
+--> First thing is path
+--> Select pen tool from toolbar
+--> Select freeforn pen
+
+--> In Settings of pen
+--> Set curve fit: 5px to get smoother curve. Limit is 10px.
+
+--> Draw curved path
+--> path can be seen beside Layer
+
+--> Select Text tool from toolbar
+--> Mouse pointer changes while hovering on path
+--> Click anywhere on path and start typing
+
+------------------------------------------------------
+
+--> To Change the starting position of Text
+--> Select Path Selection tool from toolbox
+--> Mouse pointer changes while hovering on path
+--> click just before text, drag to required starting position.
+
+------------------------------------------------------
+
+--> Writing text in Logo Circle
+
+--> Select Ellipse from toolbox
+--> Select Path instead of shape in upper properties which are displaying.
+
+--> Draw Circle
+--> Move Circle using Pen Selection Tool
+--> Write Text on this circle path
+
+--> Use Transform Rotate To Rotate Text
+--> Scott Shoes and EST 2019 in Logo Circle
+
+------------------------------------------------------
+
+
+

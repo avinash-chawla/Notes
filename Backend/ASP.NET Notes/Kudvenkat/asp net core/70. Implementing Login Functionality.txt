@@ -1,0 +1,238 @@
+1. Implementing login functionality
+
+--> We need to implement the following 
+
+Login View Model
+Login View
+A pair of Login action methods in the AccountController
+
+--> Basically we will create mvc for login form
+
+-------------------------------------------------------------------------------
+
+2. LoginViewModel
+
+--> Make new class in ViewModels folder --> LoginViewModel
+
+public class LoginViewModel
+{
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; }
+
+    [Required]
+    [DataType(DataType.Password)]
+    public string Password { get; set; }
+
+    [Display(Name = "Remember me")]
+    public bool RememberMe { get; set; }
+}
+
+-------------------------------------------------------------------------------
+
+3. Login View
+
+--> Create View for Login actionMethod
+
+@model LoginViewModel
+
+@{
+    ViewBag.Title = "User Login";
+}
+
+<h1>User Login</h1>
+
+<div class="row">
+    <div class="col-md-12">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label asp-for="RememberMe">
+                        <input asp-for="RememberMe" />
+                        @Html.DisplayNameFor(m => m.RememberMe)
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+    </div>
+</div>
+
+--> We are using Remember me checkbox for persistant cookie.
+
+-------------------------------------------------------------------------------
+
+4. Session Cookie vs Persistent Cookie
+
+--> Upon a successful login, a cookie is issued and this cookie is sent with each request to the server. 
+--> The server uses this cookie to know that the user is already authenticated and logged-in. 
+--> This cookie can either be a session cookie or a persistent cookie.
+
+--> Session Cookie:
+--> A session cookie is created and stored within the session instance of the browser. 
+--> A session cookie does not contain an expiration date and is permanently deleted when the browser window is closed.
+
+--> Persistetn Cookie:
+--> A persistent cookie on the other hand is not deleted when the browser window is closed. 
+--> It usually has an expiry date and deleted on the date of expiry.
+
+-------------------------------------------------------------------------------
+
+5. Login Action in AccountController
+
+--> Creating Login actionMethod in AccountController
+
+	[HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await signInManager.PasswordSignInAsync(
+                    model.Email, model.Password, model.RememberMe, false);
+
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("index", "home");
+                }
+
+                ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
+            }
+
+            return View(model);
+        }
+
+
+--> HttpGet will provide the login form to user
+--> HttpPost will receive the form and redirect the user
+--> In HttpPost, first we do validation using ModelState
+--> We have method PasswordSignInAsync to authentication user and check credentials
+--> It returns result
+--> If Succeded, we redirect the user
+--> If Error, we pass error to ModelState.
+
+
+--> PasswordSignInAsyn parameters
+1. Username
+2. Password
+3. Persistent Cookie needed or not
+4. LockOutOnFailure (in upcoming tutorial)
+
+-------------------------------------------------------------------------------
+
+6. Note
+
+--> You can see cookie in Application tab, under Cookies
+--> Try both options, persistent cookie and session cookie
+--> By closing browser, and reopening same url.
+--> Cookie has key of AspNetCore.Identity.Application
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

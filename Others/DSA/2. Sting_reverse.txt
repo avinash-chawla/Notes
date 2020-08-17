@@ -1,0 +1,45 @@
+1. reverse string-->
+	jest reversestring/test.js --watch
+
+	function reverse(str){
+	   //solution
+	}
+
+	function reverse(str){
+	   let arr = [];
+	   for(let i=0; i<str.length; i++){
+	   	let arr += str.charAt(i);
+	   }
+	   arr = arr.reverse();
+	   let str = '';
+	   for(let i=0; i< arr.length; i++){
+		str += arr[i];
+	   }
+
+	   return str
+
+ 	}
+
+2. function reverse(str){
+	const arr = str.split('');  --> convert string into array
+	arr.reverse();
+	return arr.join('');  --> convert array into string
+   }
+
+3. function reverse(str){
+	return str.split('').reverse().join();
+   }
+
+4. function reverse(str){
+	let reverse = '';
+	
+	for(let character of str){
+	   reversed = character + reversed;
+	}
+
+	return reversed;
+   }
+
+5. function reverse(str) {
+        str.split('').reduce((rev, char) => char + rev, ''); 
+   }	 

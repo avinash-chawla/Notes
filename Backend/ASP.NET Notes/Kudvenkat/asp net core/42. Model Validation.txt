@@ -1,0 +1,155 @@
+1. 3 Steps for implementing server-side Validation
+
+--> Step1: Apply Validation Attributes on Properties
+--> Step2: Use ModelState.IsValid property to check if validation has failed or succeeded.
+--> Step3: Use asp-validation-for and asp-validation-summary tag helpers to display validation errors
+
+---------------------------------------------------------------------------------
+
+2. Step1: Apply Validation Attributes on Properties
+
+--> In Model class, Employee.cs
+
+public int Id { get; set; }
+
+[Required]
+public string Name { get; set; }
+
+[Required]
+public string Email { get; set; }
+
+[Required]
+public Dept Department { get; set; }
+
+---------------------------------------------------------------------------------
+
+3. Step2: Use ModelState.IsValid property to check if validation has failed or succeeded.
+
+--> In Controller class, in action Method,
+
+[HttpPost]
+public IActionResult Create(Employee employee)
+{
+    if (ModelState.IsValid)
+    {
+        Employee newEmployee = _employeeRepository.Add(employee);
+        return RedirectToAction("details", new { id = newEmployee.Id });
+    }
+
+    return View();
+}
+
+--> Return type is IActionResult instead of ViewResult or RedirectToActionResult return type
+--> Both these return types implements this IActionResult interface.
+
+
+---------------------------------------------------------------------------------
+
+--> When the form is submitted, model binding maps the posted form values to the respective properties of the Employee class
+
+--> With the Required attribute on the Name property of the Employee class, if a value for the Name property is not present, the validation fails
+
+--> Use ModelState.IsValid property to check if validation has failed or succeeded
+
+--> If validation has failed we return the same view so the user can provide the required data and resubmit the form
+
+---------------------------------------------------------------------------------
+
+4. Step3: Use asp-validation-for and asp-validation-summary tag helpers to display validation errors
+
+--> To display validation errors use asp-validation-for and asp-validation-summary tag helpers. 
+--> asp-validation-for tag helper displays a validation message for a single property of our model class. 
+--> asp-validation-summary tag helper displays a summary of validation errors.
+
+---------------------------------------------------------------------------------
+
+<div class="form-group row">
+    <label asp-for="Name" class="col-sm-2 col-form-label"></label>
+    <div class="col-sm-10">
+        <input asp-for="Name" class="form-control" placeholder="Name">
+        <span asp-validation-for="Name"></span>
+    </div>
+</div>
+
+and 
+
+<div asp-validation-summary="All"></div>
+
+--> The value for asp-validation-summary tag helper can be any of the following 
+1. All
+2. ModelOnly
+3. None
+
+---------------------------------------------------------------------------------
+
+5. Customising Model Validation Error Message
+
+public class Employee
+{
+    public int Id { get; set; }
+    [Required(ErrorMessage = "Please provide a value for Name field")]
+    public string Name { get; set; }
+    public string Email { get; set; }
+    public Dept Department { get; set; }
+}
+
+---------------------------------------------------------------------------------
+
+6. ASP.NET Core Built-in Model Validation Attributes
+
+Required		Specifies the field is required
+Range			Specifies the minimum and maximum value allowed
+MinLength		Specifies the minimum length of a string
+MaxLength		Specifies the maximum length of a string
+Compare			Compares 2 properties of a model. 
+RegularExpression	Validates for given regular expression
+
+---------------------------------------------------------------------------------
+
+7. Display Attribute
+
+--> This is not a validation attribute. 
+--> It is commonly used for display purpose in the UI.
+
+public class Employee
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    [Display(Name = "Office Email")]
+    public string Email { get; set; }
+    public Dept Department { get; set; }
+}
+
+---------------------------------------------------------------------------------
+
+8. Using Multiple Model Validation Attributes
+
+public class Employee
+{
+    public int Id { get; set; }
+    [Required, MaxLength(50, ErrorMessage = "Name cannot exceed 50 characters")]
+    public string Name { get; set; }
+    [Display(Name = "Office Email")]
+    [RegularExpression(@"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$",
+        ErrorMessage = "Invalid email format")]
+    [Required]
+    public string Email { get; set; }
+    public Dept Department { get; set; }
+}
+
+
+---------------------------------------------------------------------------------
+
+8. Model Validation Errors Colour
+
+<div asp-validation-summary="All" class="text-danger"></div>
+<span asp-validation-for="Name" class="text-danger"></span>
+
+--> The value for asp-validation-summary tag helper can be any of the following 
+1. All
+2. ModelOnly
+3. None
+
+--> In ModelOnly option, summary will not show errors of fields in which asp-validation-for is applied already.
+
+---------------------------------------------------------------------------------

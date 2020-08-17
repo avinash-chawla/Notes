@@ -1,0 +1,362 @@
+1. Programming paradigms
+
+1. Functional
+2. Object-oriented
+3. Procedural
+4. Event-driven
+
+--> These are different paradigms in which code can be written to solve a given problem.
+--> Functional approach is one of them  
+--> In this, whole program is divided into reusable functions and pass the result to other functions
+--> These functions takes input and returns output
+--> Redux uses functional programming concept.
+
+--> Pros:
+1. Reusable
+2. More Concise
+3. Easier to Debug
+4. Easier to Test
+5. More Scalable
+
+---------------------------------------------------------------------------
+
+2. Functions as First-class Citizens
+
+--> Means there is no difference between variables and functions.
+
+--> Features
+1. Assign to a variable
+2. Pass as an argument
+3. Return from other functions
+
+---------------------------------------------------------------------------
+
+1. Assign to a varible
+
+function sayHello() {
+	return "Hello World";
+}
+
+let fn = sayHello;
+fn();
+
+---------------------------------------------------------------------------
+
+2. Pass as an argument
+
+function sayHello() {
+	return "Hello World";
+}
+
+function greet(fnMessage) {
+	console.log(fnMessage());
+}
+
+greet(sayHello);
+
+---------------------------------------------------------------------------
+
+3. Return from other functions
+
+function sayHello() {
+	return function() {
+		return "Hello World";
+	}
+}
+
+let fn = sayHello();
+let message = fn();
+
+---------------------------------------------------------------------------
+
+3. Higher Order Functions
+
+--> These are functions which take function as a parameter or return a function.
+--> We have already used such function in javascript
+1. let numbers = [1,2,3];
+   numbers.map(num => num * 2 );
+
+2. setTimeout(() => console.log("Hello"), 2000);
+
+---------------------------------------------------------------------------
+
+4. Functional Composition
+
+1. Procedural Programming
+
+let input = "   Javascript   ";
+let output = "<div>" + input.trim() + "</div>";
+
+2. Functional Programming
+
+const trim = str => str.trim();
+const wrapInDiv = str => `<div>${str}</div>`;
+const toLowerCase = str => str.toLowerCase();
+
+const result = wrapInDiv(toLowerCase(trim(input))));
+
+--> cons of this:
+1. We have to read function from right to left
+2. As the code increases, these parenthesis also increases.
+
+---------------------------------------------------------------------------
+
+5. Composing and Piping
+
+--> npm i lodash
+--> import { compose, pipe } from 'lodash/fp'
+
+--> const transform = compose(wrapInDiv, toLowerCase, trim)
+--> transform(input)
+
+or
+--> const transform = pipe(trim, wrapInDiv, toLowerCase)
+--> transform(input)
+
+--> This is we are reading from left to right
+
+---------------------------------------------------------------------------
+
+6. Currying
+
+const wrap = (type, str) => `<type>${str}</type>`;
+
+const transform = pipe(trim, toLowerCase, wrap)
+
+--> This will not give output
+--> In pipeline, every argument should be function
+--> trim return string to toLowerCase
+--> toLowerCase returns string to wrap
+
+--> But wrap needs two argument
+
+--> If we give other parameter, it will call function, then in pipeline, with bunch of functions, there will be one string, which is not possible
+
+--> Currying solves this problem
+--> It takes n number of arguments and convert it to 1 argument.
+
+--> function add(a, b){	
+	return function(b) {
+		return a + b;
+	}
+    }
+
+--> function add(a){
+	return function(b){
+		return a + b;
+	}
+    }
+
+--> So one function is returning another function and also pass its argument to another function.
+
+const add1 = add(3);
+add1(5);
+
+or directly,
+
+add(3)(5)
+--> means add function is taking argument and returning another function which takes another argument
+--> add(3)(5) is similar to add(3,5) --> It is just converting to one parameter function 
+--> Another way of writing above function using arrow syntax
+
+const add2 = a => b => a + b;
+
+--> It is similar to const add2 = (a, b) => (a + b);
+
+---------------------------------------------------------------------------
+
+const wrap = type => str => `<type>${str}</type>`;
+
+const transform = pipe(trim, toLowerCase, wrap("div"));
+
+--> It means that by calling wrap(), it will return another function which takes string argument
+
+---------------------------------------------------------------------------
+
+7. Pure Functions
+
+--> These are functions on getting same args always return same result
+
+--> function myFunction(number) {
+	return number + Math.random()
+    }
+--> This is not pure function
+
+
+--> function Add(a, b){
+	return a + b;
+    }
+--> This is pure function
+
+---------------------------------------------------------
+
+--> In pure functions, 
+1. No random values
+2. No current date/time
+3. No global state(DOM, files, db, etc)
+
+--> Benefits 
+1. Self-documenting
+2. Easity testable
+3. Concurrency
+4. Cacheable
+
+--> reducer function in redux are always pure functions
+--> Same actions result to same results always.
+--> This lead to predictable changes in dom
+
+--> If not done, every time state will change with actions
+--> Makes unpredictable dom 
+
+---------------------------------------------------------
+
+8. Immutability
+
+--> Pros
+1. Predictablity 	-->be comaring previous state by some action
+2. Faster Change Detection	--> No need to loop to detect change
+3. Concurrency		--> any component does not messes with state data
+
+--> Cons
+1. Performance
+2. Memory overhead
+
+---------------------------------------------------------
+
+9. Updating objects
+
+--> const person = { name : "John" };
+--> const updated = Object.assign({}, person, {name: "Bob"});
+
+--> const updated = { ...person, name: "Bob" };
+
+-------------------------------------------------------------------------
+
+--> But spread operator has one drawback
+
+const person = {
+	name : "Bob",
+	address: {
+		country: "USA",
+ 		city: "San Francisco"
+	}
+}
+
+const updated = {
+	...person,
+	address: {
+		...person.address,
+		city: "New York"
+	},
+	name : "Bob"
+}
+
+--> This is called deep copy of an object
+--> As our application gets bigger, it creates verbose (difficult)
+--> For this, libraries are used.
+
+-------------------------------------------------------------------------
+
+10. Updating Arrays 
+
+const numbers = [1,2,3,4]
+
+--> Adding
+const added = [4, ...numbers]
+
+--> Adding at specific index
+const index = numbers.indexOf(2);
+const added = [...numbers.slice(0, index), 4, ...numbers.slice(index];
+
+
+--> Removing
+const removed = numbers.filter(n => n!== 2);
+
+--> Updating
+const updated = numbers.map(n => n===2 ? 20 : n);
+
+-------------------------------------------------------------------------
+
+11. Enforcing Immutability
+
+--> Libraries
+
+1. Immutable		
+--> developed by facebook
+--> contains new data structures
+
+2. Immer
+--> developed by mobX (like redux library)
+3. Mori
+
+-------------------------------------------------------------------------
+
+12. Immutable js
+
+--> npm i immutable
+
+import { Map } from 'immutable';
+
+let book = Map({ title: "Harry Potter" });
+
+function publish(book) {
+	book.isPublished = true;
+}
+
+publish(book);
+console.log(book.toJS());
+
+--> Map function will make javascript object immutable and when we modify that object, it will new object everytime.
+
+-------------------------------------------------------------------------
+
+13. Immer Library
+
+--> It is similar to immutable class
+--> It also creates new javascript object with changes
+
+import { produce } from 'immer';
+let book = { title: "harry Potter" };
+
+function publish(book) {
+   return produce( book, (draftBook) => {
+	draftBook.isPublished = true;
+   });
+}
+
+let updated = publish(book);
+
+console.log(book);		--> original
+console.log(updated);		--> updated
+
+
+-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

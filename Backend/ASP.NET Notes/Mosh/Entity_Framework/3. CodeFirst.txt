@@ -1,0 +1,417 @@
+1. Intro-->
+
+--> Create custom keyboard shortcut key 
+--> Windows --> options --> keyboard under Environment --> show commands containing
+--> Select shortcut
+
+--> Package console:
+install-package EntityFramework -Version:6.1.3
+
+-------------------------------------------------------------------------------
+
+2. Creating New Database-->
+
+in program.cs-->
+
+using System.Data.Entity;
+
+public class Course
+{
+	public int Id { get; set; }
+	public string Title { get; set; }
+	public string Description { get; set; }
+	public CourseLevel Level { get; set; }
+	public float FullPrice { get; set; }
+	public Author Author { get; set; }		---> Navigation property to Author entity
+	public IList<Tag> Tags { get; set; }
+}
+
+public class Author
+{
+	public int Id { get; set; }
+	public string Name { get; set; }
+	public IList<Course> Courses { get; set; }	--> there is one to many relationships between author and courses
+}
+
+public class Tag
+{
+	public int Id { get; set; }
+	public string Name { get; set; }
+	public IList<Course> Courses { get; set; }	--> This is many to many relationships between tag and course
+}
+
+public enum CourseLevel
+{
+	Beginner = 1,
+	Intermediate= 2, 
+	Advanced= 3
+}
+
+public class PlutoContext : DbContext
+{
+	public DbSet<Course> Courses { get; set; }
+	public DbSet<Author> Authors{ get; set; }
+	public DbSet<Tag> Tags{ get; set; }
+}
+
+--> DbContext is an abstraction towards Database that handles connection.
+
+--> Now add connection string in App.config-->
+
+<connectionStrings>
+	<add name="DefaultConnection"
+	     connectionString = "data source= LENOVOLAPTOP; 
+				 database = PlutoCodeFirst;
+				 integrated security = SSPI"
+	     providerName = "System.Data.SqlClient" />
+</connectionStrings>
+
+
+--> Here name of connectionString is same as DbContext name by convention, but we are showing example how to set different name also.
+
+----------------------------------------------------------------------------
+
+--> Now extra step need to do because we use different name-->
+
+public class PlutoContext : DbContext
+{
+	public DbSet<Course> Courses { get; set; }
+	public DbSet<Author> Authors{ get; set; }
+	public DbSet<Tag> Tags{ get; set; }
+	
+	public PlutoContext()
+		: base("name = DefaultConnection")
+	{
+	}
+}
+
+------------------------------------------------------------------------------------
+
+--> We change class domains so need to do migrations-->
+--> in console-->
+
+enable-migrations		--> only first time
+add-migration InitalModel	--> whenever changes domain class
+cls				--> to clear screen
+
+
+--> Now Migrations folder is created -->
+
+--> CreateTable method creates table in database
+--> dbo.Authors is table name
+--> you can see foreign key in dbo.courses 
+--> dbo.TagCourses is intermediate table, no such class in domain name, this table is created bec. there is manytomany relationship between courses and tags
+--> There is cascadeDelete: true in this table, means any data deleted in course and tag will be deleted here also
+
+--> in console-->
+
+update-database		--> to affect database really
+
+-----------------------------------------------------------------
+
+3. Code First with an Existing Database-->
+
+--> It is myth that CodeFirst approach only works for greenfield projects and it is not true.
+
+--> Process:
+--> Create model based on existing Database
+--> Make modified changes in domain class model 
+--> Create migration
+--> Run the migration
+
+--------------------------------------------------------
+
+--> New Project
+--> right click project, add ado.net entity model
+--> give it name PlutoDataModel
+--> choose CodeFirst from existing database
+--> EntityName: PlutoContext
+--> Select all tables except Migration_history
+--> Finish
+
+--------------------------------------------------------
+
+--> console-->
+
+enable-migrations
+add-migration InitialModel	--> throws error bec. tables are already created
+add-migration InitialModel -IgnoreChanges -Force
+
+--> We add flags to tell entity framework that allow this migration and do not complain.
+--> Run it. Migration file is created.
+
+Update-Database		--> entity keeps database upto Date with current model
+
+--> So we use Reverse Engineering-->
+1. Create model from database			--> using data model entity
+2. Create database from model (reverse)		--> using migration
+
+----------------------------------------------------------------
+
+--> Golden rule of thumb--> 
+
+Always work on small changes and small migrations
+
+-------------------------------------------------------------------------------
+
+4. Migrations Adding a New Class-->
+
+--> right click projectName --> Add new item --> Category.cs
+
+public class Category
+{
+	public int Id { get; set; }	-->entity automatic detects, it is primary key
+	public string Name { get; set; }
+}
+
+--> Add this class in PlutoContext.cs
+--> Below all other tables-->
+
+public virtual DbSet<Category> Categories { get; set; }
+
+--------------------------------------------------------------------------------------------------
+
+--> Now in console-->
+
+add-migration AddCategoriesTable
+
+--> A new migration file is generated containing methods of createTable, primary key, column names
+
+
+add-migration AddCategoriesTable -Force		
+
+--> if already containing this migration fileName, so to overwrite it 
+
+--------------------------------------------------------------------------------------------------
+
+--> Inserting data into categories table-->
+
+--> In createTable method in migration file - AddCategoriesTable, paste following code in bottom after primary key mentioned.
+
+Sql("Insert into Categories values ('Web Development')");
+Sql("Insert into Categories values ('Software Development')");
+
+--> in console-->
+
+update-database		--> only for inserting data into database
+
+-----------------------------------------------------------------------
+
+--> Now adding category as a property in courses table-->
+
+--> in autogenerated course table, inbetween properties of course.cs, write below code-->
+
+public Category Category { get; set; }
+
+--> in console
+
+add-migration AddCategoryColumnToCoursesTable			---> done because we make changes in domain class
+
+--> This will add migration file under migrations folder named as migrationNam
+
+AddColumn(...)		---> Add column in Course table
+CreateIndex(...)	---> Created index for finding courses under given category
+AddForeignKey(..)	---> FK between Category and Course Table
+
+Sql("Update Courses set Category_Id = 1");	--> inputting data
+
+console --> update-database
+
+----------------------------------------------------------------------------------------------------------------------
+
+5. Migrations Modifying an Existing Class-->
+
+--> Modifications:
+1. Adding a new property
+2. Modifying an existing property
+3. Deleting an existing property
+
+
+1. Adding a new property-->
+
+--> In Course.cs--> Add new property -->
+
+public DateTime? DatePublished { get; set; }
+
+console ---> add-migration AddDatePublishedColumnToCoursesTable
+console --> update-database   --> to see changes in database
+	 
+2. Modifying an existing property-->
+
+--> Rename "title" property to "Name" in Course.cs  --> use refactor in right click
+--> console --> add-migration RenameTitleToNameInCoursesTable
+
+--> check in migration file-->
+
+AddColumn(...)		---> Adding entire new column Name
+DropColumn(...)		--> Removing entire column Title
+
+--> So instead renaming, it creates new column and deletes all record of old column,
+--> So dangerours migration
+--> Always check migration file before typing update-database in console
+
+--> We make necessary changes in migraion-file and then update-database
+
+------------------------------------------------------
+
+--> solution1:
+
+AddColumn("dbo.Courses", "Name", c => c.String(nullable: false));	--> adding features to column
+DropColumn(...)
+RenameColumn("dbo.Courses", "Title", "Name");		---> using only this method to rename
+
+
+--> Solution2:
+
+
+AddColumn("dbo.Courses", "Name", c => c.String(nullable: false));
+Sql("Updating Courses set Name = Title");	
+DropColumn(...)
+
+--> Populating new Name column from Title column then dropping Title Column
+
+-------------------------------------------------------------------------------
+
+--> Use of Down method in migration file-->
+
+--> Suppose you update database but wrongly, so you can reverse the process.
+
+AddColumn("dbo.Courses", "Title", c => c.String(nullable: false));
+Sql("Updating Courses set Title = Name");	
+DropColumn(...)
+
+--> Always check that also
+
+--> console --> update-database
+
+--------------------------------------------------------------------
+
+3. Deleting an existing property-->
+
+--> Delete DatePublished property from course.cs
+--> console --> add-migration DeleteDatePublishedColumnFromCoursesTable
+--> console --> update-database 		--> after checking migration file
+
+-------------------------------------------------------------------------
+
+6. Migrations Deleting an Existing Class-->
+
+--> Removing Category table from database
+--> This is done in two steps:
+
+1. Remove Category Property from Course.cs-->
+
+--> Delete that propery
+--> console --> add-migration DeleteCategorisColumnFromCoursesTable --> check migration file
+--> console --> update-database
+
+--> Application is throwing error --> find a reference of Category in PlutoContext.cs
+--> so delete that line too
+ 
+2. Removing Categoty Table-->
+
+--> delete a reference of Category in PlutoContext.cs
+--> console --> add-migration DeleteCategoriesTable
+--> console --> update-database
+
+-----------------------------------------------------------------
+
+--> Sometimes, we want to preserve model data in database, to prevent losing of important data-->
+
+2. Removing Categoty Table-->
+
+--> delete a reference of Category in PlutoContext.cs
+--> console --> add-migration DeleteCategoriesTable
+
+--> in migration file-->
+
+public override void Up()
+{
+	CreateTable(
+		"dbo._Categories",
+		c => new
+		{
+			Id = c.Int(nullable: false, identity: true),
+			Name = c.String(),
+		)}
+		.PrimaryKey(t => t.Id);
+	
+	Sql("Insert Into _Categories (Name) select Name from Categories");
+	DropTable("dbo.Categories");
+}
+
+public override void Down()
+{
+	CreateTable(...)
+	Sql("Insert Into _Categories (Name) select Name from _Categories");
+	DropTable("dbo._Categories");
+}
+
+--> console --> update-database
+
+----------------------------------------------------------------------------------------------------------------------------------
+		
+7. Recovering From Mistakes-->
+
+--> Never Delete Migrations files
+
+------------------------------------------------------------
+
+8. Migrations Downgrading a Database-->
+
+--> Consider Migration as Commits of git software
+--> Go back in time
+
+--> This is done in two steps
+1. Go to target migration state and make some changes
+2. Come back to latest migration state
+
+1. update-database -TargetMigration:DeleteDatePublishedColumnFromCoursesTable
+--> See database in ssms --> in migration history --> further migrations won't be visible now bec. we are back in time
+--> Make some changes in migration file and then step2
+
+2. Update-database
+
+------------------------------------------------------------------------------
+
+8. Seeding Database-->
+
+--> Populating database with some dummy data
+--> When migrations folder is created, configuration.cs file is also generated in it.
+--> it contains method Seed
+
+1. One way to populate table-->
+
+--> console --> PopulateCategoriesTable
+--> In migration file, in Up method-->
+
+Sql("Insert into Categories...")
+...
+...
+
+2. Second way-->
+--> In seed method of configuration
+
+context.Authors.AddOrUpdate(a => a.Name, 
+	new Author
+	{
+		Name = "Author 1",
+		Courses = new Collection<Course>()
+		{
+			new Course() { Name = "Course for Author1" ,	
+				       Description = "Description" }
+		}
+	});
+}
+
+--> context is argument just passed in seed method by application
+--> context contains entites
+--> AddOrUpdate  --> is default method to populate
+--> first parameter is where Name property is there in Authors table checking
+--> second parameter is data to populate with
+
+
+--> Executing seed method-->
+--> console --> update-database
+
+---------------------------------------------------------------------------

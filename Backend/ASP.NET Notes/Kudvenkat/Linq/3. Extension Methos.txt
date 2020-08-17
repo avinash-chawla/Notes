@@ -1,0 +1,138 @@
+--> Extension Methods
+
+1. Definition
+
+--> What are Extension Methods
+--> According to MSDN, Extension methods enable you to "add" methods to existing types like string without creating a new derived type, recompiling, or otherwise modifying the original type.
+
+--> Extension methods are a special kind of static method, but they are called as if they were instance methods on the extended type. 
+
+--> eg. strName.ChangeFirstLetterCase();
+
+----------------------------------------------------------------------------------
+
+2. Let us understand what this definition actually means.
+
+--> LINQ's standard query operators (select, where etc ) are implemented in Enumerable class as extension methods on the IEnumerable<T> interface.
+
+--> Now look at the following query
+
+List<int> Numbers = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+
+IEnumerable<int> EvenNumbers = Numbers.Where(n => n % 2 == 0);
+ 
+----------------------------------------------------------------------------------
+
+--> List has not such method Where
+--> Where method is defined in IEnumerable<T> interface
+--> As List class is inheriting this IEnumerable, this where method becomes available
+
+----------------------------------------------------------------------------------
+
+3. Extension methods
+
+--> We want to use like strName.ChangeFirstLetterCase();
+
+--> 1st alternative: Modify in string class, but we do not own string class, it is owned by .net framework.
+
+--> 2nd alternative: Inherit string class, again same reason, we do not own string class
+
+--> 3rd alternative: Wrapper class
+
+--> Make new method to have logic to modify string
+--> Make new class: StringHelper.cs
+--> In this, static method takes string and converts firstLetter to uppercase.
+
+public class StringHelper
+{
+    public static string ChangeFirstLetterCase(string inputString)
+    {
+        if (inputString.Length > 0)
+        {
+            char[] charArray = inputString.ToCharArray();
+            charArray[0] = char.IsUpper(charArray[0]) ?
+                char.ToLower(charArray[0]) : char.ToUpper(charArray[0]);
+            return new string(charArray);
+        }
+
+        return inputString;
+    }
+
+}
+
+----------------------------------------------------------------------------------
+
+--> Now using this static method or extension method in main method
+
+class Program{
+   static void Main()
+   {
+	string strName = "pragim";
+	string result = StringHelper.ChangeFirstLetterCase(strName);
+
+	Console.WriteLine(result);
+   }
+}
+
+----------------------------------------------------------------------------------
+
+--> There is one problem, we are not using like strName.ChangeFirstLetterCase();
+--> 4th alternative: Extension methods
+
+--> To use any method as extension methods, there are some rules need to follow.
+1. Make StringHelper static class
+2. The type the method extends should be passed as a first parameter with this keyword preceeding it.
+
+public static class StringHelper
+{
+    public static string ChangeFirstLetterCase(this string inputString)
+    {
+        ...
+        return inputString;
+    }
+
+}
+
+--> Now it becomes extension method to use it like str.methodName()
+
+----------------------------------------------------------------------------------
+
+class Program{
+   static void Main()
+   {
+	string strName = "pragim";
+	string result = strName.ChangeFirstLetterCase();
+
+	Console.WriteLine(result);
+   }
+}
+
+----------------------------------------------------------------------------------
+
+4. where extension method
+
+class Program
+{
+   static void Main()
+   {
+
+	List<int> Numbers = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+	IEnumerable<int> EvenNumbers = Numbers.Where(n => n % 2 == 0);
+
+	foreach(int evenNumber in EvenNumbers)
+	{
+	   Console.WriteLine(evenNumber);
+	}
+   }
+}
+
+--> Now you know 'where' is an extension method defined in Enumerable class
+--> As this extension method behine the scene use wrapper class.
+--> Lets look at same example using wrapper class
+
+List<int> Numbers = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+IEnumerable<int> EvenNumbers = Enumerable.Where(Numbers, n => n % 2 == 0);
+
+--> Extension method are nothing but special static method but used as like it is instance of derived type class.
+
+----------------------------------------------------------------------------------

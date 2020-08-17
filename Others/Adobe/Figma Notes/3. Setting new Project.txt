@@ -1,0 +1,45 @@
+1. Create New Project-->
+
+--> Click on Team			--> Chef Team
+--> Click on New Project		--> Chef Recipe Project
+--> Right click Project, New File	--> Chef_Recipe_app
+
+2. Importing Sketch Files-->
+
+--> Click on Import Icon --> Import it
+--> sketchappsources.com/free-source/ has very good collection of templates
+--> May need to download Fonts
+
+3. Working with Team-->
+--> Click Team
+--> CLiick on Invite Members
+--> Type email address and its priviledges- admin, edit, view
+--> If any member is editing something, we can see its live monitor window of Figma
+--> Also helpful to show live design changes with client
+
+4. Working with Templates-->
+
+--> Links
+
+iOS11 Design Templates
+
+https://developer.apple.com/design/resources/#ios-apps
+
+
+
+Material Design Templates
+https://material.io/guidelines/resources/sticker-sheets-icons.html#
+
+
+
+Sketch App Sources Templates
+https://www.sketchappsources.com/
+
+
+
+Figma Resources Templates
+
+https://www.figmaresources.com/
+
+4. 
+

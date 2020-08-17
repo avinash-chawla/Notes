@@ -1,0 +1,301 @@
+1. Topics
+
+--> CRUD
+--> Forms
+--> Filtering, sorting and pagination
+--> Handling and logging errors
+--> Toast notification
+--> Authentication and authorization
+--> Preventing CSRF attacks
+--> Uploading photos
+--> Displaying charts
+--> Dialog boxes
+
+----------------------------------------------------------------------------
+
+2. Individual topics needed for course
+
+1. Angular
+--> Components, services, modules, dependency injection, property binding, forms, event binding, routing
+
+2. .net 
+--> controllers, actions, model binding, http methods
+
+3. entity
+--> code-first migrations, linq, dbContext
+
+--------------------------------------------------------------------------------
+
+3. Project Intro
+
+--> Vega
+
+--> It is an application for selling car online
+--> There will be sellers and buyers using this application
+--> Sellers will upload car information
+--> Buyers will browser through the list
+
+--> Recording a Vehicle
+--> Make, Model, Features, Registerd or not?, Owner(name, phone, email), photos
+
+
+--> Buyer can also do crud operations on his post
+--> Vehicles and its features will have many-to-many relationships
+--> A car can have many features
+--> A same feature can be available at many cars
+
+--> For Authorization, we define roles
+1. Admin		--> Can also view Report of maximum car selling
+2. Moderate
+
+--------------------------------------------------------------------------------
+
+4. Setting Up the Development Environment
+
+--> We will use Visual Studio code
+--> It is faster and light weight code editor
+
+--> Extensions needed
+1. Angular v2 TypeScript Snippets
+2. ASP.NET Helper
+3. Auto Import
+4. Beautify
+5. C#
+6. C# Extensions
+7. mssql
+8. REST Client 
+
+--> Node packages
+1. Yeoman	--> for autogenerating templates in asp
+npm i -g yo generator-aspnetcore-spa
+
+--> We are generating template for our project using this yo engine and providing name of template
+
+--------------------------------------------------------------------------------
+
+5. Installing SQL server
+
+--> Install Sql server on windows as normal
+
+--------------------------------------------------------------------------------
+
+
+
+6. Creating a New Project
+
+--> mkdir vega
+--> cd vega
+--> yo aspnetcore-spa
+
+--> Select options:
+--> Framework to work with 	--> Angular
+--> type of project 		--> project.json or .csproj --> choose .csproj
+--> need unit testing 		--> say no
+--> name of project 		--> .   --> same as folderName
+
+---------------------------------------------------------------------------------
+
+--> To run this application,
+
+1. dotnet run
+
+---------------------------------------------------------------------------------
+
+7.  Project Structure
+
+1. wwwroot
+--> It contains our compiled code and all sharable files to client
+--> This is face of our application
+--> Except this, nothing is sharable, all other is private
+
+2. ClientApp
+--> This is our Angular Application
+3. Controllers
+4. Pages
+5. appsettings.json
+6. Program.cs
+7. Startup.cs
+
+
+--> Webpack
+--> It compiles Angular app, minifies it, bundles it and store it inside dist folder inside wwwroot
+--> It contains webpack.config.js	--> contains all configuration
+--> main.client	--> compiled Angular code
+--> vendor	--> compiled third party libraries.
+
+
+---------------------------------------------------------------------------------
+
+8. Application Startup
+
+--> In in-process http servers, there are two server, internal and external
+--> internal is kestral and external is apache, linux, IIS
+
+--> In out-process http servers, there is one server
+
+--> .net core asp application starts with console application
+--> It runs and builds the application
+
+--> It internally calls startup file, which contains all configuration for our project, like all dependencies injections, all route handlers and all middlewares
+
+--> Route handlers will call controllers
+--> Controllers will call model and views
+--> Model will contain data type and generating object will save data.
+
+
+---------------------------------------------------------------------------------
+
+9. Environments 
+
+--> You can set environment through two ways:
+1. launchSettings.json
+2. Set at machine	--> SET ASPNETCORE_ENVIRONMENT=Development
+
+---------------------------------------------------------------------------------
+
+10. .net watch
+
+--> dotnet watch run
+--> It is similar to nodemon
+
+--> dotnet restore	
+--> It is similar to npm install
+--> It will look up at project file and install all dependencies mentioned in that from nuget package manager
+
+---------------------------------------------------------------------------------
+
+11. Debugger
+
+--> There is an inbuilt debugger tool in vscode.
+--> You have to learn it by yourself.
+
+--> First insert breakpoint
+--> F5			--> start debugging
+--> F10			--> To move line by line
+--> F11			--> To enter inside method
+--> shift + F11		--> To exit from method
+--> shift + ctrl + F5	--> stop debugging
+
+---------------------------------------------------------------------------------
+
+12. Use Cases
+
+--> I have created the application but from where to start
+
+--> Ever project starts with clients requirements
+--> That can be 1-2 pages or 100 pages or verbal communication with client
+--> First understand use cases of project
+--> eg. For Vega,
+
+Create Vehicles, Update Vehicles, View vehicles, Sort vehicles, Filter vehicles, Upload photos
+
+--> Now from where to start:
+--> List Dependency Graph
+
+--> Suppost start from filter vehicles
+--> you need to list of vehicles to filter
+--> you need to register it first
+--> To register, you need api first
+--> For api, you need database
+--> For database, you need ef or orm.
+
+--> So start by first creating API.
+
+---------------------------------------------------------------------------------
+
+5. Installing SQL Server on macOS or Linux
+
+--> We are all doing this because Sql Server is of microsoft.
+--> So we need to use docker image file.
+
+--> For installing Sql server on mac or linux, we need a tool Docker
+--> Docker Automate the deployement of applications 
+--> It is used for deploying application
+
+--> Many times, it happens when you deploy your application to another machine, it wont works
+--> Here docker comes to solve this problem
+
+--> It packages all our application + Dependencies + Config in one package --> called an image
+--> We deploy this image to another machine using single command
+--> You can also call image as container.
+
+--> Now Sql Server comes as an docker image which contains sql server with all its dependencies and configuration.	
+
+
+--------------------------------------------------------------------------------
+
+--> Head over to docker website
+--> Install docker depending upon os
+--> in cmd: docker
+
+--> In its application, change its memory allocation to 4 GB from 2 GB.
+
+--> To use SqlServer image from docker domain, use following command in cmd
+sudo docker pull microsoft/mssql-server-linux
+
+--> Now image is downloaded in our machine
+
+--> running image
+sudo docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyComplexPassword!234' -p 1433:1433 -v /user/my/db:/var/opt/mssql -d microsoft/mssql-server-linux
+
+
+-e = environment variable
+EULA = End User Licence Agreement
+-p = port
+-d = to run in background
+-v = volumn in linux	--> used to store something.
+
+--------------------------------------------------------------------------------
+
+--> We do not have ssms for gui of sql server
+--> For linux,
+
+bit.ly/sqlservertools
+
+--> For mac,
+
+macsqlclient.com
+
+--> After installing this application, you need to put password- MyComplexPassword!234
+
+--------------------------------------------------------------------------------
+
+--> Troubleshooting docker problems
+
+--> In cmd,
+docker ps
+--> It will show all docker images which are currently running
+--> e8cf70b555ed microsoft/mssql-server-linux
+--> e8cf is container
+--> microsoft.. is image-Name
+
+--> To stop specifi image
+docker stop e8cf
+
+--> To see all the previous containers
+docker ps -a
+
+--> To list all current running containers
+docker ps
+
+--> To run again sql server image in background
+sudo docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyComplexPassword!234' -p 1433:1433 -d microsoft/mssql-server-linux
+
+--> To see if it is running
+docker ps
+
+--> It started and terminated 
+--> To log this error in file, do following steps
+
+cd Desktop
+mkdir Log
+cd Log
+ls
+docker ps -a	--> see latest image container name --> here: b3..
+docker cp b35f:/var/opt/mssql/log/errorlog .
+
+--> When you open this file in text editor
+--> You can see error
+--> In this case, The password does not meet SQL Server password.
+
+--------------------------------------------------------------------------------

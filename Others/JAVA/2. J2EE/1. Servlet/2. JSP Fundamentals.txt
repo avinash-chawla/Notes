@@ -1,0 +1,323 @@
+1. What is a JSP file?
+
+--> An HTML page with some Java code sprinkled in...
+--> Include dynamic content from Java code
+
+----------------------------------------------------------------------------------
+
+2. Where is the JSP processed?
+
+--> JSP is processed on the server (tomcat)
+--> Results of Java code includeed in HTML returned to browser.
+
+----------------------------------------------------------------------------------
+
+3. Where to place JSP file?
+
+--> The JSP file goes in your WebContent folder
+--> Must have .jsp extension
+--> It is similar to HTML page only containing some java code.
+
+eg. helloworld.jsp
+
+<html>
+<body>
+
+<h3>hello world of java!</h3>
+
+The time on the server is <%= new java.util.Date() %>
+
+</body>
+</html>
+
+
+--> It is called JSP expression.
+
+----------------------------------------------------------------------------------
+
+4. Create new project
+
+--> File --> new --> project --> under web tab --> Dynamic web project
+--> Name it : jspDemo
+
+----------------------------------------------------------------------------------
+
+5. helloworld.jsp
+
+--> In project, there is a folder --> WebContent
+--> Right click it --> new --> JSP page
+--> Name it: helloworld.jsp
+
+<body>
+	<h1>Hello World</h1>
+	<p>The time on server is <%= new java.util.Date() %></p>
+</body>
+
+--> Right click this page --> Run as --> Run on server
+--> URl of above will be --> http://localhost:8000/jspdemo/helloworld.jsp
+
+----------------------------------------------------------------------------------
+
+6. Error
+
+--> The server cannot started because one or more of the ports are invalid [TomCat in Eclipse]
+
+--> Solution:
+
+--> Double click tomcat server in servers tab
+--> It will open configuration settings
+
+Only Modify the server ports "Tomcat Admin Port" default value from hyphen (-) to zero(0) it's working fine.
+
+----------------------------------------------------------------------------------
+
+7. JSP Scripting Elements
+
+--> Elements
+
+1. JSP Expression
+--> <%= some java expression %>
+
+2. JSP Scriptlet
+--> <% 1 to many lines %>
+
+3. JSP Declaration
+--> <%! variable or method declaration %>
+
+----------------------------------------------------------------------------------
+
+8. JSP Expression Examples
+
+--> <%= new java.util.Date() %>
+--> <%= 25*4 %>				    --> 100
+--> <%= 25>12 %>			    --> true
+--> <%= new String("hello").toUpperCase()   --> HELLO
+
+--> It computes an expression
+
+----------------------------------------------------------------------------------
+
+9. JSP Scriplet Example
+
+<%
+   for (int i = 1; i<=5; i++){
+	out.println("<br/>I really luv coding", i);
+   }
+%>
+
+--> The out in jsp is a JspWriter object which is created by Jsp automatically, it is used to write something to webpage 
+--> While System.out.print() is used to output/write something to the console.
+
+--> Best Practices
+1. Minimize the amount of scriplet code in JSP
+2. Refactor this into a seperate java class .. make use of MVC
+3. Avoid dumping thousands of lines of code in jsp
+
+----------------------------------------------------------------------------------
+
+10. JSP Declarations
+
+--> Declare a method in the JSP page
+--> Call the method in the same JSP page
+
+<%! 
+    String makeItLower(String data) {
+ 	return data.toLowerCase();
+    }
+%>
+
+<%= makeItLower("Hello World") %>
+
+----------------------------------------------------------------------------------
+
+11. Calling a class from jsp
+
+--> In Java Resouces, all java files will be included
+--> Right click it ---> Add new package --> com.luv2code.jsp
+--> Create new class in this package --> FunUtils.java
+
+public class FunUtils {
+	public static String makeItLower(String data)
+	{
+		return data.toLowerCase();
+	}
+}
+
+----------------------------------------------------------------------------------
+
+--> In jsp file,
+
+<%@ page import="com.luv2code.jsp.*" %>
+<p><%= FunUtils.makeItLower("Hello World") %></p>
+
+or
+
+<%= com.luv2code.jsp.FunUtils.makeItLower("Hello World") %>
+
+--> You can include multiple files in import attribute
+<%@ page import="com.luv2code.jsp.*, java.util.ArrayList" %>
+
+----------------------------------------------------------------------------------
+
+12. Built IN server objects
+
+--> List of commonly used JSP objects:
+
+1. request
+--> Contains http request header and form data
+
+2. response 
+--> provides http support for sending response
+
+3. out
+--> JspWrite for including content in html page
+
+4. session
+--> Unique session for each user of the web application
+
+5. application
+--> shared data for all users 
+
+----------------------------------------------------------------------------------
+
+--> Demo
+--> We will get information of user browser and os and language of browser using
+
+<body>
+	<p><%= request.getHeader("User-Agent") %></p>
+	<p><%= request.getLocale() %></p>
+</body>
+
+--> Output:
+
+Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36
+
+en_GB
+
+----------------------------------------------------------------------------------
+
+13. Including Files in JSP
+
+--> You can have common header and footer for all files
+--> <jsp:include page="my-header.html" />
+--> <jsp:include page="my-header.jsp" />
+
+----------------------------------------------------------------------------------
+
+--> my-header.html
+
+<h1 align="center">JSP Tutorial</h1>
+
+----------------------------------------------------------------------------------
+
+--> my-footer.jsp
+
+<p align="center">
+  Last updated: <%= new java.util.Date() %>
+</p>
+
+----------------------------------------------------------------------------------
+
+--> home.jsp
+
+<body>
+
+<jsp:include page="my-header.html" />
+
+Blah Blah Blah ... <br/><br/>
+Blah Blah Blah ... <br/><br/>
+Blah Blah Blah ... <br/><br/>
+
+<jsp:include page="my-footer.jsp" />
+
+</body>
+
+----------------------------------------------------------------------------------
+
+14. To know the version of JSP and servlet in eclipse
+
+--> You can easily check the JSP,SERVER and SERVLET version. Add the following code in your jsp page after that run using any IDE Tools.
+
+Server Version: <%= application.getServerInfo() %><br>
+Servlet Version: <%= application.getMajorVersion() %>.<%= application.getMinorVersion() %>
+JSP Version: <%= JspFactory.getDefaultFactory().getEngineInfo().getSpecificationVersion() %> <br>
+
+----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

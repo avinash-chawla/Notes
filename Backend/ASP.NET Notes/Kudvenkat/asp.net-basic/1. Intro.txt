@@ -1,0 +1,198 @@
+1. .Net Framework-->
+
+--> it is collections of classes used to build web appications, windows applications, console applications, database applications, etc. developed by microsoft.
+--> ASP.Net is a subset of .Net Framework use to build web applications
+--> ADO.Net is also a subset of .Net Framework use to work with database with any kind of applications
+--> web applications examples are google.com, internet banking, etc. accessed by browser.
+
+2. Advantages of Web Applications-->
+
+--> just to be installed on web server
+--> maintainance and support are easy to provide
+--> only a browser is required
+--> accessible from anywhere
+--> cross platform
+
+---------------------------------------------------------------------------------------
+
+3. @Page Directive-->
+
+--> Every aspx file contains Page directive
+
+<%@ Page Language="C#" AutoEventWireup="true" CodeFile="calender_practice.aspx.cs" Inherits="calender_practice" %>
+
+--> CodeFile attribute links aspx design file with cs code file
+--> these attribute are only available bec. of Page directive
+
+------------------------------------------------------------------------------------
+
+4. ViewState-->
+
+--> Every toolbox item is a class by definition with css properties in it.
+--> we use object ot it
+--> the code behind web form is also class.
+--> when we send "get" request from browser to server, an instance of web application is created by dll file which is in bin folder of project
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+--> when user gets response in html format, all objects that were created before are destroyed
+--> This happens because of stateless property of http protocol.
+--> So, the code will start from root level again.
+--> eg. counter app, count variable increases only first time, bec. it does not remember state of form, web form is just submitting same request, initializing to 0, then increment, again and again
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+--> Web Applications work on HTTP protocol
+--> HTTP protocol is a stateless protocol, meaning it does not retain state between user requests.
+
+--> Web forms live for barely a moment. When a request is received.
+1. An instance of the request webform is created.
+2. Events Processed.
+3. Generated the HTML & pasted to the client
+4. The webform is immediately destroyed.
+
+--> hiddenviewStateField
+--> viewStateVariable
+--> PageInitialization event
+--> ViewStateRestoration
+
+--> To retain/preserve the state/data of varible between http requests, we use viewStateProperty.
+--> This viewState data travels with every request and response between the client and web server. using hidden property which is nothing but 64bitcodebase, seen by viewing page source
+
+--> TextBox1 is an asp.net server control, that uses viewstate internally, to preserve data across postbacks
+--> Bec. of this, we are able to take value from TextBox1.Text after submitting
+
+
+-----------------------------------------------------------------------------------------
+--> the basic difference between server controls and html content controls is viewState property.
+--> To convert html content to server control, just add runat="server" attribute.
+
+<input type="text" id="Text1" runat="server" />
+
+-------------------------------------------------------------------------------------
+
+--> ViewState data is serialized into base64-encoded strings, and is stored in Hidden input field.
+<input type="hidden" name="_VIEWSTATE" id="_VIEWSTATE" value="/sdfhashdfjdasklfjkasdjfjasdkjfjsfdjasjdfkjasdfjassdjfajfdb" />
+
+-------------------------------------------------------------------------------------
+
+5. Events in the life cycle of a web application-->
+
+--> events can occur at 3 levels in an application
+	1. Application level (eg. Session_Start)
+	2. Page level	     (eg. Page_load event)
+	3. Control level     (eg. Dropdownlist level)
+
+--> Page life cycle events-->
+
+1. PreInit 	--> event happens just before page initialization starts, isPostBack, IsCallback, IsCrossPagePostBack events are set at this stage. This event allows us to set the master page and theme of a web application dynamically.
+
+2. Init		--> event related to all individual controls, use this event to read or initialize control properties, server controls are loaded and initialized from the Web form's view state.
+
+3. InitComplete
+4. PreLoad
+5. Load
+6. ControlEvents   --> raised events from like button click, dropdown selected
+7. Load Complete
+8. PreRender
+9. PreRenderComplete
+10. Unload	--> At this stage, page is unloaded from server memory completely
+11. Error	--> only displays when unhandled exception
+
+
+protected void Page_Init(object sender, EventArgs e){}
+protected void Page_InitComplete(object sender, EventArgs e){}
+protected void Page_PreLoad(object sender, EventArgs e){}
+protected void Page_LoadComplete(object sender, EventArgs e){}
+protected void Page_PreRender(object sender, EventArgs e){}
+protected void Page_PreRenderComplete(object sender, EventArgs e){}
+protected void Page_Unload(object sender, EventArgs e){}
+protected void Page_Init(object sender, EventArgs e){}
+
+Response.Write("Page_Init" + "<br />");		--> in all lines above with their name
+
+-------------------------------------------------------------------------------------
+
+6. Server Control Events-->
+
+--> The events that these controls expose, can be divided into 3 categories->
+
+1. Postback events--> click event of button control, immediately send to server for processing.
+
+2. Cached events --> TextChanged event of TextBox control, saved in page's viewstate
+--> cached events can be converted to postback events by autopostback property to true.
+
+3. Validation events--> These events occur on the client, before the page is posted back to the server. All validation controls use these type of events
+
+-------------------------------------------------------------------------------------
+
+7. IsPostBack-->
+
+--> It is a Page level property, that can be used to determine whether the page is being loaded in response to a client postback, or if it is being loaded and accessed for the first time.
+
+protected void Page_Load(object sender, EventArgs e)
+{
+	Response.Write("Page Loaded for the first time");
+}
+
+--> it sends reponse everytime when page loads
+
+protected void Page_Load(object sender, EventArgs e)
+{
+	if(!IsPostBack)
+		Response.Write("Page Loaded for the first time");
+}
+
+--> only sends response first time bec. isPostBack means wheneven user clicks button, server responds back to the user, so !isPostBack means opposite --> same as get request for first time only
+
+--> Populating data in page_load-->
+
+protected void Page_Load(object sender, EventArgs e)
+{
+	LoadCityDropDownList();		--> populates ddl
+}
+
+--> this will duplicate ddl bec. page load event takes places after every submit button click
+--> solution
+
+1. use IsPostBack property of page_load
+2. disable EnabledViewState of ddl
+
+1. protected void Page_Load(object sender, EventArgs e)
+{
+	if(!IsPostBack)
+		LoadCityDropDownList();
+}
+
+2. second has disadvantages, first after page reloads ddl get back to normal bec no viewState, no data preserved, second change event text displayed on it like TextChanged for Textbox
+
+--> code to populate ddl-->
+
+public void LoadCityDropDownList(){
+	ListItem li1 = new ListItem("London");
+	ddlCity.Items.Add(li1);
+
+	ListItem li1 = new ListItem("Sydney");
+	ddlCity.Items.Add(li2);
+
+	ListItem li1 = new ListItem("Mumbai");
+	ddlCity.Items.Add(li2);
+}
+
+-------------------------------------------------------------------------------------
+
+8. IIS (Internet Information Services)-->
+
+--> Web server is a software that is used to deliver web pages to clients using the HTTP. For example, IIS is a web server that can be used to run asp.net applications
+--> Visual studio ships with a built-in web server for build and testing application on localhost.
+
+--> IIS can be enabled in windows pc --> programs and features --> turn windows features on/off --> tick IIS
+--> run window --> INETMGR	--> Internet Manager
+--> create virtual directory--> it is just like domain name
+--> give physical path to project directory.
+
+
+-------------------------------------------------------------------------------------
+
+
+

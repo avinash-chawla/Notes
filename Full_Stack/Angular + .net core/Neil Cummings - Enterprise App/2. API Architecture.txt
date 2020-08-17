@@ -1,0 +1,455 @@
+1. Creating Repository 
+
+Task<Product> GetProductByIdAsync(int id);
+Task<IReadOnlyList<Product>> GetProductsAsync();
+
+services.AddScoped<IProductRepository, ProductRepository>();
+
+------------------------------------------------------------------------------------------
+
+2. Adding Repository methods
+
+--> _context = context
+--> _repo = repo
+
+------------------------------------------------------------------------------------------
+
+3. Creating new Entities
+
+public class Product : BaseEntity
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public decimal Price { get; set; }
+        public string PictureUrl { get; set; }
+
+        public ProductType ProductType { get; set; }
+        public int ProductTypeId { get; set; }
+
+        public ProductBrand ProductBrand { get; set; }
+        public int ProductBrandId { get; set; }
+    }
+
+--> Id property is extracted to BaseEntity class
+--> ProductType and ProductBrand does Name property in them.
+
+--> Register in StoreContext class as DbSet<> property.
+
+------------------------------------------------------------------------------------------
+
+4. Creating a new migration
+
+--> cd skinet
+--> dotnet ef database drop -p Infrastructure -s API
+--> dotnet ef migrations remove -p Infrastructure -s API
+--> dotnet ef migrations add InitialCreate -p Infrastructure -s API -o Data/Migrations
+
+-p   	project
+-s 	start with
+-o	output directory
+
+------------------------------------------------------------------------------------------
+
+5. Configuring the Migrations
+
+--> Overwriting default convention of Entity Framework
+--> In Insfrastructure, under Data folder, create new folder 'Config'
+--> Make new class --> ProductConfiguration
+
+using Core.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Infrastructure.Data.Config
+{
+    public class ProductConfiguration : IEntityTypeConfiguration<Product>
+    {
+        public void Configure(EntityTypeBuilder<Product> builder)
+        {
+            builder.Property(p => p.Id).IsRequired();
+            builder.Property(p => p.Name).IsRequired().HasMaxLength(100);
+            builder.Property(p => p.Description).IsRequired().HasMaxLength(180);
+            builder.Property(p => p.Price).HasColumnType("decimal(18,2)");
+            builder.Property(p => p.PictureUrl).IsRequired();
+            builder.HasOne(b => b.ProductBrand).WithMany().HasForeignKey(p => p.ProductBrandId);
+            builder.HasOne(b => b.ProductType).WithMany().HasForeignKey(p => p.ProductTypeId);
+        }
+    }
+}
+
+--> In StoreContext.cs,
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        }
+
+--> You can also overwrite using modelBuilder object
+
+------------------------------------------------------------------------------------------
+
+6. Creating the Migration
+
+--> Updating database using main method.
+--> One benefit is that when you deploy your application to another machine, database is automatically created
+
+using System;
+using System.Threading.Tasks;
+using API.Data;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+namespace API
+{
+    public class Program
+    {
+        public static async Task Main(string[] args)
+        {	        
+            var host = CreateHostBuilder(args).Build();
+            using (var scope = host.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+                try 
+                {
+                    var context = services.GetRequiredService<StoreContext>();
+                    await context.Database.MigrateAsync();
+                }
+                catch (Exception ex)
+                {
+                    var logger = loggerFactory.CreateLogger<Program>();
+                    logger.LogError(ex, "An error occured during migration");
+                }
+            }
+
+            host.Run();
+        }	        
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+    }
+}
+
+--> Program.cs does not support Global exception page and services object lifetime period so doing manually using 'using' statement and try-catch block.
+
+------------------------------------------------------------------------------------------
+
+7. Adding Seeding Data
+
+--> We will not seed data manually, we use C# inbuilt methods
+--> Normally data is saved in xlsx, csx, json data
+--> Create new folder inside Data folder of Infrastructure, paste these files --> brands.json, products.json, types.json from Studentassets folder. 
+--> We will use json file (we can easily convert any data file to another)
+--> In Data folder of Infrastructure, create new class file --> StoreContextSeed.cs
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+using API.Data;
+using Core.Entities;
+using Microsoft.Extensions.Logging;
+
+namespace Infrastructure.Data
+{
+    public class StoreContextSeed
+    {
+        public static async Task SeedAsync(StoreContext context, ILoggerFactory loggerFactory)
+        {
+            try
+            {
+                if (!context.ProductBrands.Any())
+                {
+                    var brandsData =
+                        File.ReadAllText("../Infrastructure/Data/SeedData/brands.json");
+
+                    var brands = JsonSerializer.Deserialize<List<ProductBrand>>(brandsData);
+
+                    foreach (var item in brands)
+                    {
+                        context.ProductBrands.Add(item);
+                    }
+
+                    await context.SaveChangesAsync();
+                }
+
+                if (!context.ProductTypes.Any())
+                {
+                    var typesData =
+                        File.ReadAllText("../Infrastructure/Data/SeedData/types.json");
+
+                    var types = JsonSerializer.Deserialize<List<ProductType>>(typesData);
+
+                    foreach (var item in types)
+                    {
+                        context.ProductTypes.Add(item);
+                    }
+
+                    await context.SaveChangesAsync();
+                }
+
+                if (!context.Products.Any())
+                {
+                    var productsData =
+                        File.ReadAllText("../Infrastructure/Data/SeedData/products.json");
+
+                    var products = JsonSerializer.Deserialize<List<Product>>(productsData);
+
+                    foreach (var item in products)
+                    {
+                        context.Products.Add(item);
+                    }
+
+                    await context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                var logger = loggerFactory.CreateLogger<StoreContextSeed>();
+                logger.LogError(ex.Message);
+            }
+        }
+    }
+} 
+
+
+--> In Main method, in try block,
+
+await StoreContextSeed.SeedAsync(context, loggerFactory);
+
+--> So With Starting of Application, We are Creating Migrations and also seeding database without manually.
+
+------------------------------------------------------------------------------------------
+
+8. Adding Products Brands and Types to API
+
+--> In IProductRepository.cs,
+
+        Task<IReadOnlyList<ProductBrand>> GetProductBrandsAsync();
+        Task<IReadOnlyList<ProductType>> GetProductTypesAsync();
+
+--> Implement this method in ProductRepository.cs and add actionMethod for it also to access it via api.
+
+------------------------------------------------------------------------------------------
+
+9. Eager Loading
+
+--> Does not add additional properties until said
+--> In ProductRepository.cs,
+
+.Include(p => p.ProductBrand)
+.Include(p => p.ProductType)
+.FirstOrDefaultAsync(p => p.Id == id);
+
+--> FindAsync wont work with Include chaining method.
+--> Another one is SingleOrDefaultAsync
+--> Difference, First will look in list and brought first item and does not check further
+--> Single will ensure that there is one single item in that list by looping all and bring it that.
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,119 @@
+--> Getting data from List object
+
+1. Linq Operators
+
+--> To write LINQ queries we use the LINQ Standard Query Operators. 
+--> The following are a few Examples of Standard Query Operators
+select
+from
+where 
+orderby 
+join
+groupby
+
+---------------------------------------------------------------------------------
+
+2. Ways of writing LINQ queries
+
+--> There are 2 ways to write LINQ queries using these Standard Query Operators
+1. Using Lambda Expressions. We discussed Lambda Expressions in detail in Part 99 of C# Tutorial
+
+2. Using SQL like query expressions
+
+
+--> The Standard Query Operators are implemented as extension methods on IEnumerable<T> interface.
+--> Those class that inherits this IEnumerable can become a type T in this IEnumerable<T>
+
+
+-->  From a performance perspective there is no difference between the two. 
+--> Which one to use depends on your personal preference. 
+--> But keep in mind, behind the scene, LINQ queries written using SQL like query expressions are translated into their lambda expressions before they are compiled. 
+
+--> Linq operators can only be used on class which inherits IEnumarable<T> class.
+
+--> Since List<T> implements IEnumerable<T>, the LINQ Standard Query Operators will be available and can be applied on List<Student>
+
+---------------------------------------------------------------------------------
+
+3. Student class containing List of Students in method
+
+--> In this one static is giving List of Students 
+
+public class Student
+{
+    public int ID { get; set; }
+    public string Name { get; set; }
+    public string Gender { get; set; }
+
+    public static List<Student> GetAllStudents()
+    {
+        List<Student> listStudents = new List<Student>();
+
+        Student student1 = new Student
+        {
+            ID = 101,
+            Name = "Mark",
+            Gender = "Male"
+        };
+        listStudents.Add(student1);
+
+        Student student2 = new Student
+        {
+            ID = 102,
+            Name = "Mary",
+            Gender = "Female"
+        };
+        listStudents.Add(student2);
+
+        Student student3 = new Student
+        {
+            ID = 103,
+            Name = "John",
+            Gender = "Male"
+        };
+        listStudents.Add(student3);
+
+        Student student4 = new Student
+        {
+            ID = 104,
+            Name = "Steve",
+            Gender = "Male"
+        };
+        listStudents.Add(student4);
+
+        Student student5 = new Student
+        {
+            ID = 105,
+            Name = "Pam",
+            Gender = "Female"
+        };
+        listStudents.Add(student5);
+
+        return listStudents;
+    }
+}
+
+---------------------------------------------------------------------------------
+
+4. Now in webForm cs file
+
+1. LINQ query using Lambda Expressions.
+
+IEnumerable<Student> students = Student.GetAllStudents()
+    .Where(student => student.Gender == "Male");
+
+
+2. LINQ query using using SQL like query expressions
+
+IEnumerable<Student> students = from student in Student.GetAllStudents()
+                                where student.Gender == "Male"
+                                                           select student;
+
+---------------------------------------------------------------------------------
+
+--> To bind the results of this LINQ query to a GridView
+
+GridView1.DataSource = students;
+GridView1.DataBind();
+
+---------------------------------------------------------------------------------

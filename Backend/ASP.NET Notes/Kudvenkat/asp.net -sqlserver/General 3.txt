@@ -1,0 +1,96 @@
+--> Joins are used to combine records of two tables
+
+1. Combining Columns
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id
+
+--> Only matched records
+-------------------------------------------------------------------------------------
+
+2. Intersection with full records of left table
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Left Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id 
+
+--> left join means null values in right table
+
+-------------------------------------------------------------------------------------
+
+3. Intersection with full records of right table
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Right Left Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id
+
+--> right join means null values in left table
+
+-------------------------------------------------------------------------------------
+
+4. Full records of both
+
+--> Full Outer Join
+--> left null and right value & left value and right null ---> additional records
+
+-------------------------------------------------------------------------------------
+
+5. Advanced or intelligent joins-->
+
+--> retrieve only the non matching rows from the left table.
+--> retrieve only the non matching rows from the right table.
+--> retrieve only the non matching rows from both the left and right table.
+
+--> A - A(intersection)B 
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Left Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id
+WHERE tblDepartment.DepartmentId IS NULL
+
+--> only shows that records  left value and right null 
+
+-----------------------------------------------------------------------------------
+
+--> B - A(intersection)B 
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Right Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id
+WHERE tblEmployee.DepartmentName IS NULL
+
+--> only shows that records  left null and right value 
+
+----------------------------------------------------------------------------------- 
+
+--> A(UNION)B - A(intersection) 
+
+Select Name, Gender, Salary, DepartmentName
+from tblEmployee
+Full Join tblDepartment
+ON tblEmployee.DepartmentId = tblDepartment.Id
+WHERE DepartmentName IS NULL OR tblDepartment.DepartmentId IS NULL
+
+--> only shows that records left null and right value & left value and right null
+
+-----------------------------------------------------------------------------------
+
+6. Combining rows of two tables
+
+--> they are used to combine rows of different tables
+--> for union to work, the number, data type and order of columns in the select statement should be same
+
+--> Union --> combine rows and also remove duplicate rows
+--> Union All--> combine rows but also contains duplicate rows
+
+Select Id, Name, Email from tblIndiaCustomers
+UNION 
+Select Id, Name, Email from tblUKCustomers
+
+-----------------------------------------------------------------------------------

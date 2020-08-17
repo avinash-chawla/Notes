@@ -1,0 +1,771 @@
+1. Adding Login Form in Angular
+
+--> ng g c auth/login
+--> ng g c auth/signup
+
+------------------------------------------------------------------------------------
+
+--> In login.html
+
+<mat-card>
+    <mat-spinner *ngIf="isLoading"></mat-spinner>
+    <form *ngIf="!isLoading">
+        <mat-form-field>
+            <input matInput type="text" placeholder="Email">
+            <mat-error *ngIf="">Please enter a email.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field>
+            <input matInput type="text" placeholder="Password">
+            <mat-error *ngIf="">Please enter a password.</mat-error>
+        </mat-form-field>
+        <button mat-raised-button color="accent" type="submit">Login</button>
+    </form>
+</mat-card>
+
+------------------------------------------------------------------------------------
+
+--> In login.ts
+
+isLoading = false;
+
+------------------------------------------------------------------------------------
+
+--> In login.css
+
+mat-card{
+    width: 100%;
+    margin: auto
+ }
+ 
+mat-form-field{
+    width: 100%
+ }
+
+mat-spinner { 
+   margin: auto
+}
+
+------------------------------------------------------------------------------------
+
+--> In app-module.routing.ts
+
+{ path: "login", component: LoginComponent }
+
+------------------------------------------------------------------------------------
+
+--> In header.html
+
+<li>
+    <a mat-button routerLink="/login" routerLinkActive="mat-accent">Login</a>
+</li>
+
+------------------------------------------------------------------------------------
+
+--> In header.css
+
+ul{
+    display: flex;
+}
+
+------------------------------------------------------------------------------------
+
+2. Handling User input
+
+--> In login.html
+
+<mat-card>
+    <mat-spinner *ngIf="isLoading"></mat-spinner>
+    <form *ngIf="!isLoading" #loginForm="ngForm" (ngSubmit)="onLogin(loginForm)">
+        <mat-form-field>
+            <input matInput type="email" placeholder="Email" name="email" ngModel #emailInput="ngModel" required email>
+            <mat-error *ngIf="emailInput.invalid">Please enter a valid email.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field>
+            <input matInput type="text" placeholder="Password" name="password" ngModel #passwordInput="ngModel"
+                required>
+            <mat-error *ngIf="passwordInput.invalid">Please enter a valid password.</mat-error>
+        </mat-form-field>
+        <button mat-raised-button color="accent" type="submit">Login</button>
+    </form>
+</mat-card>
+
+--> In login.ts
+
+isLoading = false;
+
+onLogin(form: NgForm) {
+    console.log(form.value);
+}
+
+------------------------------------------------------------------------------------
+
+3. Making SignupForm
+
+--> Repeat step 1
+--> Everything is same
+--> It has also two fields -- email and password
+
+------------------------------------------------------------------------------------
+
+4. Building Backend
+
+--> In routes folder, make new file --> user.js
+
+const express = require('express');
+const router = express.Router();
+
+router.post("/signup", (req, res) => {
+    
+});
+
+module.exports = router;
+
+------------------------------------------------------------------------------------
+
+--> In models folder , make new file --> User.js
+
+--> To validate for unique email in mongoose schema, we use package
+--> npm i mongoose-unique-validator
+--> This package will generate error by processing schema for unique email
+
+const mongoose = require('mongoose');
+const uniqueValidator = require('mongoose-unique-validator');
+
+const userSchema = new mongoose.Schema({
+    email: {
+        type: String,
+        required: String,
+        unique: true
+    },
+    password: {
+        type: String,
+        required: true
+    }
+})
+
+userSchema.plugin(uniqueValidator);
+
+module.exports = mongoose.model("User", userSchema);
+
+------------------------------------------------------------------------------------
+
+--> In app.js
+
+app.use("/api/user", userRoutes);
+
+------------------------------------------------------------------------------------
+
+5. Creating new User
+
+--> In user.js,
+
+--> npm i bcrypt
+
+const bcrypt = require('bcrypt');
+
+router.post("/signup", (req, res) => {
+    bcrypt.hash(req.body.password, 10)
+        .then(hash => {
+            const user = new User({
+                email: req.body.email,
+                password: hash
+            });
+            user.save().then(result => {
+                res.status(201).send({
+                    message: "Successfully posted!",
+                    result: result
+                })
+            }).catch(err => {
+                res.status(500).send({
+                    error: err
+                })
+            });
+        });
+});
+
+module.exports = router;
+
+------------------------------------------------------------------------------------
+
+6. Connecting Angular with Backend
+
+--> ng g s auth/auth
+--> ng g class auth/auth-data --type=model
+
+------------------------------------------------------------------------------------
+
+--> auth-data.model.ts,
+
+export interface AuthData {
+    email: String,
+    password: String
+}
+
+------------------------------------------------------------------------------------
+
+--> auth.service.ts
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { AuthData } from './auth-data.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+
+  constructor(private http: HttpClient) { }
+
+  createUser(email: string, password: string) {
+    const authData: AuthData = { email: email, password: password };
+    this.http.post("http://localhost:3000/api/user/signup", authData)
+      .subscribe(res => {
+        console.log(res);
+      })
+  }
+}
+
+
+------------------------------------------------------------------------------------
+
+--> In signup.ts
+
+constructor(private authService: AuthService) { }
+
+onSignup(form: NgForm) {
+    if (form.invalid) {
+        return;
+    }
+    this.authService.createUser(form.value.email, form.value.password);
+}
+
+------------------------------------------------------------------------------------
+
+7. Implementing SPA Authentication
+
+--> We are just using jwt tokens to verify user to loginIn.
+--> While loggin, user will get jwt tokens
+--> And accessing routes, this token is verified in each route.
+
+--> npm i jsonwebtoken
+
+--> In user route of Backend,
+
+router.post('/login', (req, res) => {
+    let fetchedUser;
+    User.findOne({ email: req.body.email})
+        .then(user => {
+            this.fetchedUser = user;
+            if(!user){
+                return res.status(401).json({
+                    message: 'Auth failed'
+                })
+            }
+            return bcrypt.compare(req.body.password, user.password)
+        }).then(result => {
+            if(!result){
+                return res.status(401).json({
+                    message: 'Auth failed'
+                })
+            }
+            const token = jwt.sign({ email: this.fetchedUser.email, userId: this.fetchedUser._id}, "secret_this_should_longer", { expiresIn: "1h"});
+            res.status(200).send({
+                token: token
+            })
+
+        }).catch(err => {
+            return res.status(401).json({
+                message: 'Auth failed'
+            })
+        })
+})
+
+------------------------------------------------------------------------------------
+
+8. Sending the token to Frontend
+
+--> In service class,
+
+login(email: string, password: string) {
+    const authData: AuthData = { email: email, password: password };
+    this.http.post("http://localhost:3000/api/user/login", authData)
+        .subscribe(res => {
+        console.log(res);
+        })
+};
+
+--> In login component class,
+
+constructor(private authService: AuthService) { }
+
+onLogin(form: NgForm) {
+    if (form.invalid) {
+        return;
+    }
+    this.authService.login(form.value.email, form.value.password);
+}
+
+------------------------------------------------------------------------------------
+
+9. Adding middleware to protect routes
+
+--> While logging, a jwt will given to user
+--> Angular will save this jwt in localStorage
+--> While clicking on protected routes, angular will access this token from localStorage and attach in header as "Bearer token"
+--> Server will split this into token by removing "bearer " from header and verify it.
+--> After validating, server will respond authenticated or not by status code.
+
+--> To verify token on server, we use middleware
+--> This middleware will be attached to routes to protect.
+
+--> Make new folder --> middlewares
+--> Make new file --> check-auth.js
+
+const jwt = require('jsonwebtoken');
+
+------------------------------------------------------------------------------------
+
+module.exports = (req, res, next) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1];
+        jwt.verify(token, 'secret');
+        next();
+    } catch (err) {
+        res.status(401).json({ message: "secret_this_should_longer" });
+    }
+}
+
+------------------------------------------------------------------------------------
+
+--> In posts routes, attach this middleware 
+
+router.post('/', checkAuth, multer({ storage: storage }).single("image"), (req, res) => {
+router.put('/:id', checkAuth, multer({ storage: storage }).single("image"), (req, res) => {
+router.delete("/:id", checkAuth, (req, res) => {
+    
+------------------------------------------------------------------------------------
+
+10. Adding tokens to authenticate request
+
+--> We are getting token in Auth Service class after subscribing to http request
+--> We pass this token to post Service class and attach to all header
+--> Instead of attaching individual http request, we make an interceptor.
+
+--> This is a special method of HttpClient class --> interceptors
+
+--> Interceptors provide a mechanism to intercept and/or mutate outgoing requests or incoming responses. 
+--> They are very similar to the concept of middleware with a framework like Express, except for the frontend
+
+------------------------------------------------------------------------------------
+
+--> Make new file in auth folder --> auth-interceptor.ts
+
+import { HttpInterceptor, HttpRequest, HttpHandler } from '@angular/common/http';
+import { AuthService } from './auth.service';
+import { Injectable } from '@angular/core';
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+
+    constructor(private authService: AuthService) { }
+
+    intercept(req: HttpRequest<any>, next: HttpHandler) {
+        const authToken = this.authService.getToken();
+        const authRequest = req.clone({
+            headers: req.headers.set("Authorization", "Bearer " + authToken)
+        });
+
+        return next.handle(authRequest);
+    }
+}
+
+--> It takes incoming req from server and modify it and pass it to service class which is handling.
+--> After implementing HttpInterceptor class, this class need to use intercept method
+--> It takes two arguments -> req and next
+--> To modify req object, we first make clone of it
+--> In clone method argument, we modify headers
+--> After modifying, we pass it to next handler.
+
+--> Remember: This is outgoing request
+
+--> Note: We are getting token from service class to inceptor class
+--> For this, we need to use @Injectable decorator to allow passing of data.
+
+------------------------------------------------------------------------------------
+
+--> This middleware or interceptor is registered in app.module.ts
+
+--> In providers array,
+
+providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+],
+
+--> multi means will append this interceptor to original interceptor that it HTTP_INTERCEPTORS
+
+------------------------------------------------------------------------------------
+
+11. Improving the UI header to reflect the Authentication Status
+
+--> Showing or Hiding things
+
+--> Subject:
+
+--> We will use subject
+--> Subjects are similar to observables
+--> Subjects are like global static variables
+--> observables are used for http request
+--> Subjects are used to share data between components like boolean flag, token
+--> Subject values can be changes using next method.
+
+------------------------------------------------------------------------------------
+
+--> We will use subject
+--> When there token is available, it will set to true
+--> Any components subscribe to this variable will get notification and data of variable through subject of rxjs.
+
+--> Consider subject as observable variable in service class, which updates on certain events and any components subscribe to this variable will also get updated value.
+
+------------------------------------------------------------------------------------
+
+--> In service class,
+
+import { Subject } from "rxjs";
+
+private authStatusListener = new Subject<boolean>();
+
+getAuthStatusListener() {
+    return this.authStatusListener.asObservable();
+}
+
+--> In login method of service class, during subscribe,
+
+this.token = req.token;
+if(token){
+    this.authStatusListener.next(true);
+}
+
+------------------------------------------------------------------------------------
+
+--> We are updating navlink in header component
+--> when user is authenticated, we want to show create post and logout options
+--> When user is not authenticated, we want to show login and signup options.
+--> The above subject variable will tell through boolean.
+
+--> In header.ts
+
+--> This component is subscribing to subject or observable variable
+
+export class HeaderComponent implements OnInit, OnDestroy {
+
+  private authListenerSubs: Subscription;
+  public userIsAuthenticated: boolean = false;
+
+  constructor(private authService: AuthService) { }
+
+  ngOnInit(): void {
+    this.authListenerSubs = this.authService.getAuthStatusListener()
+      .subscribe(isAuthenticated => {
+        this.userIsAuthenticated = isAuthenticated;
+      })
+  }
+
+  ngOnDestroy(): void {
+    this.authListenerSubs.unsubscribe();
+  }
+}
+ 
+------------------------------------------------------------------------------------
+
+--> In header.html
+
+<li *ngIf="userIsAuthenticated">
+    <a mat-button routerLink="/create" routerLinkActive="mat-accent">New Post</a>
+</li>
+<li *ngIf="!userIsAuthenticated">
+    <a mat-button routerLink="/login" routerLinkActive="mat-accent">Login</a>
+</li>
+<li *ngIf="!userIsAuthenticated">
+    <a mat-button routerLink="/signup" routerLinkActive="mat-accent">Signup</a>
+</li>
+<li *ngIf="userIsAuthenticated">
+    <button mat-button type="button">Logout</button>
+</li>
+
+------------------------------------------------------------------------------------
+
+12. Improving the UI header to reflect the Authentication Status - Part 2
+
+--> In post-list component, we want to show edit and delete button if user is authenticated.
+
+--> In post-list component,
+
+  private authStatusSub: Subscription;			--> Listener
+
+  constructor(
+    public postsService: PostsService,
+    private authService: AuthService			--> AuthService dependency
+  ) { }
+
+  ngOnInit() {
+    this.isLoading = true;
+    this.postsService.getPosts(this.postsPerPage, this.currentPage);
+    this.postsSub = this.postsService
+      .getPostUpdateListener()
+      .subscribe((postData: { posts: Post[]; postCount: number }) => {
+        this.isLoading = false;
+        this.totalPosts = postData.postCount;
+        this.posts = postData.posts;
+      });
+    //this.userIsAuthenticated = this.authService.getIsAuth();
+    this.authStatusSub = this.authService
+      .getAuthStatusListener()
+      .subscribe(isAuthenticated => {
+        this.userIsAuthenticated = isAuthenticated;
+      });
+  }
+
+  ngOnDestroy() {
+    this.postsSub.unsubscribe();
+    this.authStatusSub.unsubscribe();
+  }
+
+--> Above code will not solve the problem
+--> Because there are listeners in ngOnInit() method
+--> We are getting here to this url using routing, either through edit button or login form.
+--> So ngOnInit doesn't load second subscribe listener
+
+--> This is typical problem, when there are two listeners in ngOnInit method.
+
+------------------------------------------------------------------------------------
+
+--> Solution: Do not use subject, instead just use flag from service class
+
+--> In service class,
+
+  private isAuthenticated = false;
+
+  getIsAuth() {
+    return this.isAuthenticated;
+  }
+
+  login(..){
+	this.token = req.token;
+	if (token) {
+          this.isAuthenticated = true;
+  }
+
+--> In post-list.ts,
+
+ngOnInit() {
+    this.isLoading = true;
+    this.postsService.getPosts(this.postsPerPage, this.currentPage);
+    this.postsSub = this.postsService
+      .getPostUpdateListener()
+      .subscribe((postData: { posts: Post[]; postCount: number }) => {
+        this.isLoading = false;
+        this.totalPosts = postData.postCount;
+        this.posts = postData.posts;
+      });
+    this.userIsAuthenticated = this.authService.getIsAuth();
+
+    //this.authStatusSub = this.authService
+    //.getAuthStatusListener()
+    //.subscribe(isAuthenticated => {
+    //  this.userIsAuthenticated = isAuthenticated;
+    //});
+
+  }
+
+  ngOnDestroy() {
+    this.postsSub.unsubscribe();
+    this.authStatusSub.unsubscribe();
+  }
+
+
+------------------------------------------------------------------------------------
+
+13. Connecting the logout button to the Authentication status
+
+--> While implementing logout event, we want to update all componentns by updating subject authStatusListener and remove token from local storage.
+
+--> In headers.html,
+
+<button mat-button (click)="onLogout()">Logout</button>
+
+--> In headers.ts,
+
+  onLogout() {
+    this.authService.logout();
+  }
+
+--> In service class,
+
+logout() {
+    this.token = null;
+    this.isAuthenticated = false;
+    this.authStatusListener.next(false);
+    this.router.navigate(['/']);
+  }
+
+------------------------------------------------------------------------------------
+
+14. Redirecting Users
+
+--> In service class,
+
+import { Router } from "@angular/router";
+
+constructor(private http: HttpClient, private router: Router) {}
+
+login(..){
+  if (token) {
+          this.isAuthenticated = true;
+          this.authStatusListener.next(true);
+          this.router.navigate(['/']);
+        }
+}
+
+logout() {
+    this.token = null;
+    this.isAuthenticated = false;
+    this.authStatusListener.next(false);
+    this.router.navigate(['/']);
+  }
+
+------------------------------------------------------------------------------------
+
+15. Adding Auth Guard
+
+--> We can still access routes from url
+--> We want to redirect user to login page, if he is not logged IN.
+--> AuthGuard is a service which is used to protect routes.
+--> This class implements CanActivate interface
+--> This class needs to implement canActivate method which returns true or false
+--> If true, access to routes is allowed
+--> If false, access to routes is disallowed
+--> In app-routing, we define 3 properties to route object --> canActivate: [AuthGuard]
+
+------------------------------------------------------------------------------------
+
+--> ng g guard auth/auth
+
+import {
+  CanActivate,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+  Router
+} from "@angular/router";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
+
+import { AuthService } from "./auth.service";
+
+@Injectable()
+export class AuthGuard implements CanActivate {
+  constructor(private authService: AuthService, private router: Router) {}
+
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): boolean | Observable<boolean> | Promise<boolean> {
+    const isAuth = this.authService.getIsAuth();
+    if (!isAuth) {
+      this.router.navigate(['/login']);
+    }
+    return isAuth;
+  }
+}
+
+------------------------------------------------------------------------------------
+
+--> In app-routing.module.ts
+
+const routes: Routes = [
+  { path: "", component: PostListComponent },
+  { path: "create", component: PostCreateComponent, canActivate: [AuthGuard] },
+  { path: "edit/:postId", component: PostCreateComponent, canActivate: [AuthGuard] },
+  { path: "login", component: LoginComponent },
+  { path: "signup", component: SignupComponent },
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
+  providers: [AuthGuard]
+})
+
+------------------------------------------------------------------------------------
+
+16. Reflecting the token expiration in UI
+
+--> In user.js in Backend,
+--> In login route,
+--> We are also setting timer for token while jwt.sign (while creating token)
+--> We will also pass in response to handle in Angular UI.
+
+const token = jwt.sign({ email: this.fetchedUser.email, userId: this.fetchedUser._id }, "secret_this_should_longer", { expiresIn: "1h" });
+res.status(200).send({
+     token: token,
+     expiresIn: 3600
+})
+
+--> In auth.service.ts
+--> We are using setTimeout method for timeout, and in code block passing logout method
+
+  login(email: string, password: string) {
+    const authData: AuthData = { email: email, password: password };
+    this.http
+      .post<{ token: string; expiresIn: number }>(
+        "http://localhost:3000/api/user/login",
+        authData
+      )
+      .subscribe(response => {
+        const token = response.token;
+        this.token = token;
+        if (token) {
+          const expiresInDuration = response.expiresIn;
+          setTimeout(() => {
+		this.logout();
+	  }, expiredInDuration * 1000);
+          this.isAuthenticated = true;
+          this.authStatusListener.next(true);
+          this.router.navigate(["/"]);
+        }
+      });
+  }
+
+------------------------------------------------------------------------------------
+
+--> Above is one problem
+--> We can clear timeout after logout action is done
+--> If done, user will always be logout because timer is already done.
+--> To reset time, we use NodeJS.Timer
+
+--> In service class,
+
+private tokenTimer : NodeJS.Timer;
+
+login(..){
+   let tokenTimer = setTimeout(..)
+}
+
+logout(){
+   clearTimeout(this.tokenTimer);
+   ..
+}
+
+------------------------------------------------------------------------------------
+ 
+--> Above will logout automatically after 1 hr
+
+------------------------------------------------------------------------------------
+ 
+17. 
+
+
+
+
+

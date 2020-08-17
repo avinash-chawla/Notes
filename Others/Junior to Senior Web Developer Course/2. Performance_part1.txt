@@ -1,0 +1,318 @@
+1. Bruno
+
+--> Hey you! Can you make our website faster please?
+
+--------------------------------------------------------------------------
+
+1.1 Summary
+
+
+--> Html
+1. Load style tag in the <head>
+2. Load script right before </body>
+
+--> CSS
+1. Load only what is needed (exclude libraries)
+2. Above the fold loading (internal style)
+3. Media attributes (for images)
+4. Less specificity (use classes)
+
+--> Javascript
+1. Load Scripts asynchronously
+2. Defer Loading of scripts
+3. Minimize DOM manipulation
+4. Avoid long running Javascript
+
+--> Images
+1. Compress the file size
+
+--> Network Performance
+1. Reduce number of req-res cycle (make bundles and check in network tab of chrome developer tools)
+2. Use Uglify js tool for minification
+
+--------------------------------------------------------------------------
+
+2. Introduction
+
+--> Performance is measured by how much time does our application take to load?
+--> It drastically improves user experience
+
+--> There are 2 things to increase performance
+1. Reduce size of response
+2. Minimize number or request
+
+--------------------------------------------------------------------------
+
+3. 3 Keys To Performance
+
+1. On Frontend
+2. On Transfer
+3. On Backend
+
+1. On Frontend
+--> Critical Render Path
+--> Optimized code
+--> Progressive Web App
+
+2. On Transfer
+--> Minimize file size
+--> Minimize Delivery
+
+3. On Backend
+--> CDNs
+--> Caching
+--> Load Balancing
+--> DB Scaling
+--> GZIP
+
+------------------------------------------------------------------
+
+4. Network Performance
+
+--> Minimize file size
+--> Minimize Delivery
+
+--> To Minimize File size, remove all white spaces and reduce variable names
+--> For this, various tools are used like uglifyjs
+--> In today's softwares, there is tool webpack which does this function while building application for production.
+
+--> For image --> Use png or svg
+
+--> To minimise js or css file --> use minifier js package online tool
+--> www.minifier.org
+
+------------------------------------------------------------------
+
+5. Image Optimization
+
+--> If you want transparency: use a PNG
+--> If you want animations:   use a GIF
+--> If you want colourfull images: use a JPG
+--> If you want simple icons, logos, illustrations: use a SVG
+
+--> Reduce PNG with TinyPNG
+--> Reduce JPG with JPEG image quality (30 - 60%)
+--> Resize image based on size it will be displayed
+
+--> Display different sized images for different sizes screens. 
+--> use @media query for different images sizes for different screens
+
+
+--> Use CDNs like imigx
+--> It takes custom photos and in return send url to that image and also make that image compressed without reducing quality.
+--> CDN = Content Delivery Network
+
+
+--> Remove image metadata
+--> visit to: www.verexif.com/en/ver.php
+--> To removes extra meta data from photo
+
+------------------------------------------------------------------
+
+6. Delivery Optimization
+
+--> Bundle html, css and javascript files in one unit
+--> Use less libraries like jquery, bootstrap
+--> Instead of two css files, use one
+--> Now webpack tool is used to do all this work.
+
+------------------------------------------------------------------
+
+7. Critical Render Path
+
+--> It comes under frontend section
+--> How webpage is rendered in browser
+1. First html file is loaded line by line
+2. In synchronous with html, dom elements tree is also created line by line
+3. It sees css file link, so it loads css styles to html line by line after html is built-up
+4. Then it sees js file link, so it with modification in dom elements it again renders html file based on changes in dom
+5. It agains loads CSS file to colorup this newly created dom
+6. Images are loaded at last when they are fully downloaded.
+
+--> We have to optimize such steps of critical Render Path
+--> Html --> CSS --> js --> DOM --> CSSOM -> Render Tree --> Layout --> Paint
+
+------------------------------------------------------------------
+
+8. Critical Render Part 1:
+
+--> Optimizing loading of css and js file
+
+--> First html file is loaded in browser, as soon as browser sees link to css and js, it downloads them 
+--> We want to give priority to css file first than js file 
+--> because this makes browser loads faster 
+--> If not then browser also needs to download script file along with html, this really reduces performance.
+
+--> That is why we place link of css in header tag and script link at last of body tag.
+
+------------------------------------------------------------------
+
+9. Critical Render Part 2:
+
+--> Optimizing CSS file
+1. Load only what is needed
+2. Above the fold loading
+3. Media attributes
+4. Less specificity
+
+
+--> CSSDOM can be breaker for loading whole css at one go
+--> Suppose, one webpage is large in size
+--> When user loads webpage, it sees above the fold screen, not whole page at once.
+--> So first css related to above fold is loaded first, and as soon as page fully loads up, it downloads below fold css too.
+
+<script type="text/javascript">
+	const loadStyleSheet = src => {
+		if(document.createStylesheet){
+			document.createStylesheet(src)
+		}else {
+			const  stylesheet = document.createElement('link');
+			stylesheet.href = src;
+			stylesheet.type = 'text/css';
+			stylesheet.rel = 'stylesheet';
+			document.getElementsByTagName('head')[0].appendChild(stylesheet)
+		}
+	}
+
+	window.onload = function() {
+		console.lo('window done!');
+		loadStyleSheet('./style2.css');
+	}
+</script>
+
+--> This is code for loading second css 
+--> fold down means after you scroll down your webpage.
+
+
+--> Less Specificity means:
+1. Bad
+.header .nav .item .link a.important{
+	color: pink;
+}
+
+2. Good
+a.important {
+	color: pink;
+}
+
+--> Other options: use internal or inline styles that really reduces req-res cycle.
+
+------------------------------------------------------------------
+
+10. Critical Render Part3
+
+--> Optimizing Javascript file
+1. Load Scripts asynchronously
+2. Defer Loading of scripts
+3. Minimize DOM manipulation
+4. Avoid long running Javascript
+
+
+--> Whenever html file is rendered and browser sees js file, it stops rendering, and start downloading js file
+--> To alter this behaviour, we use 
+1. <script async>
+2. <script defer>
+
+1. script async
+
+--> js file is download asynchronous without blocking dom rendering
+--> But when js file is downloaded, it starts executing and blocking dom rendering
+
+2. script defer
+--> It enhances script async and it do executing of js file after dom fully rendered page.
+
+--> Use script async when that js file doesn't affect the dom bec. if it is executing and cannot find some dom elements, it will show errors.
+
+------------------------------------------------------------------
+
+11. Summary of Optimizing Critical Render Path
+
+--> Html
+1. Load style tag in the <head>
+2. Load script right before </body>
+
+--> CSS
+1. Load only what is needed (exclude libraries)
+2. Above the fold loading (internal style)
+3. Media attributes (for images)
+4. Less specificity (use classes)
+
+--> Javascript
+1. Load Scripts asynchronously
+2. Defer Loading of scripts
+3. Minimize DOM manipulation
+4. Avoid long running Javascript
+
+--> Images
+1. Compress the file size
+
+--> Network Performance
+1. Reduce number of req-res cycle (check in network tab of chrome developer tools)
+
+
+------------------------------------------------------------------
+
+12. Exercise: Keiko Corp Website
+
+--> github.com/aneagoie/keiko-corp
+--> We will do performance test on this webpage
+--> To test any webpage, you should have url to that webpage
+--> githubpages.io is best
+
+1. PageSpeed Tools (by Google Developer)
+--> Visit here
+--> Paste the url
+
+2. WebPagetest
+--> Visit here
+--> Paste the url
+--> You can also add type of device and location
+
+--> These Tools:
+--> It gives ranking point out of 100
+--> It also gives some tips like blocking javascript, high resolution images used, use caching
+
+------------------------------------------------------------------
+
+13. To check same code from jquery to javascript
+
+--> visit: "youmightnotneedjquery.com"
+
+------------------------------------------------------------------
+
+14. Performance
+
+--> Performance has no limit
+--> Always do performance when it only needed
+--> Never do all performance techniques.
+--> Premature Optimization is the root of all evils
+
+------------------------------------------------------------------
+
+15. http2
+
+--> It is advanced version of http protocol
+--> It is protocol only
+--> Its main goal is to improve network legancy
+--> It has a feature of multiplexity so features like web bundles might not work here
+--> It has faster speed than http
+--> It is binary instead of textual
+--> It has a feature called parallellism, means in one connection, there can be many files
+--> While http only supports 3-6 files in one req-res cycle
+
+
+--> How to use http2 in node server-->
+
+const http2 = require('http2');
+const fs = require('fs');
+
+const options = {
+	key: fs.readFileSync('./selfsigned.key'),
+	cert: fs.readFileSync('./selfsigned.crt'),
+	allowHTTP1: true
+}
+
+const server = http2.createSecureServer(options, (req, res) => {
+	res.setHeader('Content-Type', 'text/html');
+	res.send('ok');
+});

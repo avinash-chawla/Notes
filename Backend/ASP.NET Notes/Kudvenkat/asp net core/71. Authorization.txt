@@ -1,0 +1,174 @@
+1. What is Authorization
+
+--> Authentication is the process of identifying who the user is. 
+--> Authorization is the process of identifying what the user can and cannot do.
+
+---------------------------------------------------------------------------------
+
+2. Authorize Attribute
+
+--> As the Authorize attribute is applied on the Controller, it is applicable to all the action methods in the controller. 
+--> The Authorize attribute can be applied to each actionMethod also.
+--> The user must be logged in, to access any of the controller action methods.
+
+---------------------------------------------------------------------------------
+
+[Authorize]
+public class HomeController : Controller
+
+or
+
+[Authorize]
+public ViewResult Details(int? id) { }
+
+---------------------------------------------------------------------------------
+
+3. AllowAnonymous Attribute
+
+--> AllowAnonymous attribute allows anonymous access. 
+--> We generally use this attribute in combination with the Authorize attribute.
+
+[Authorize]
+public class HomeController : Controller
+{
+    [AllowAnonymous]
+    public ViewResult Details(int? id)
+    {
+    }
+
+    public ViewResult Create()
+    {
+    }
+
+    public ViewResult Edit(int id)
+    {
+    }
+}
+
+---------------------------------------------------------------------------------
+
+4. Reverse is not true
+
+--> When you apply AllowAnonymous attribute on controller class, then [Authorize] will not work on individual action Methods.
+
+--> Please note: If you apply [AllowAnonymous] attribute at the controller level, any [Authorize] attribute attribute on the same controller actions is ignored.
+
+---------------------------------------------------------------------------------
+
+5. Apply Authorize attribute globally
+
+--> Instead of applying to individual controllers, we can set globally to all controllers.
+
+--> In ConfigureServices method of startup class,
+--> We previosly defined service.UseMvc(), now giving parameter too.
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddMvc(config => {
+        var policy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
+        config.Filters.Add(new AuthorizeFilter(policy));
+    });
+}
+
+
+--> We add new filter Authorize filter
+--> AuthorizationPolicyBuilder is in Microsoft.AspNetCore.Authorization namespace 
+--> AuthorizeFilter is in Microsoft.AspNetCore.Mvc.Authorization namespace
+
+---------------------------------------------------------------------------------
+
+6. AllowAnonymous to Login and Register and In EmployeeController, to List and Details actionMethod
+
+[HttpGet]
+[AllowAnonymous]
+public IActionResult Register()
+
+[HttpPost]
+[AllowAnonymous]
+public async Task<IActionResult> Register(RegisterViewModel model)
+
+--> Similarly to Login actionMethod
+--> Also apply AllowAnonymous to List and Details actionMethod in EmployeeController
+
+---------------------------------------------------------------------------------
+
+7. Note:
+
+--> In addition to this simple authorization, asp.net core supports role based, claims based and policy based authorization. 
+--> We will discuss these authorization techniques in our upcoming videos.
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

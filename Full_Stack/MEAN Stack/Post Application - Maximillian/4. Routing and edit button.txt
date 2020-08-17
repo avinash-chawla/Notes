@@ -1,0 +1,401 @@
+1. Adding Routing
+
+--> In app-routing.module.ts
+
+const routes: Routes = [
+  { path: "", component: PostListComponent },
+  { path: "/create", component: PostCreateComponent },
+]
+
+--> In header.html
+<mat-toolbar color="primary">
+    <span routerLink="/">My Messages</span>
+    <ul>
+        <li routerLink="/create">Create Post</li>
+    </ul>
+</mat-toolbar>
+
+
+--> In app.html
+
+<app-header></app-header>
+<main>
+  <router-outlet></router-outlet>
+</main>
+
+------------------------------------------------------------------------------
+
+2. Styling Links
+
+--> In header.html
+
+<mat-toolbar color="primary">
+    <span>
+        <a routerLink="/">My Messages</a>
+    </span>
+    <span class="spacer"></span>
+    <ul>
+        <li>
+            <a mat-button routerLink="/create" routerLinkActive="mat-accent">New Post</a>
+        </li>
+    </ul>
+</mat-toolbar>
+
+--> In header.css
+ul{
+    list-style: none;
+    margin: 0;
+    padding:0
+}
+
+a{
+    text-decoration: none;
+    color: white;
+}
+
+.spacer{
+    flex: 1 1 auto
+}
+
+
+
+------------------------------------------------------------------------------
+
+3. Client Side vs Server Side Routing
+
+--> Both are different
+--> Client side routing have a single index html page
+--> It parses url from urlbar and change the required dom
+
+--> Make sure to have different routes for client and server side
+--> Bec. if matched, then browser will confuse which url to configure
+
+------------------------------------------------------------------------------
+
+4. Creating the edit Form
+
+--> When someone clicks on edit button in list component, we want to redirect user to different url
+--> We will use same form for creating and editing
+--> Means same component used in multiple places.
+
+------------------------------------------------------------------------------
+
+--> We have different urls for creating and editing
+--> In app-routing.module.ts
+
+const routes: Routes = [
+  { path: "create", component: PostCreateComponent },
+  { path: "edit/:postId", component: PostCreateComponent },
+  { path: "", component: PostListComponent }
+]
+
+
+--> When user clicks on edit button, we want to redirect user to edit/:postId url
+--> When 'form' component sees this url, we want to fetch data from url and fill the form for editing.
+
+------------------------------------------------------------------------------
+
+--> In post-create.ts
+--> We have used ActivatedRoute module to retrieve id from url
+--> We have applied subscribe method, whenever url changes, it observes that url.
+--> We have set mode of form - create or edit
+--> if edit --> retrieve id of post, retrieve its data from service class and save in post object
+--> We will this object to fill out form
+
+--> if create --> we just create the empty form
+
+
+private mode = "create";
+private postId = "string";
+private post: Post;
+
+constructor(public postsService: PostsService, private route: ActivatedRoute) { }
+
+ngOnInit(): void {
+  this.route.paramMap.subscribe((paramMap: ParamMap) => {
+    if (paramMap.has("postId")) {
+      this.mode = "edit";
+      this.postId = paramMap.get('postId');
+      this.post = this.postsService.getPost(this.postId);
+    } else {
+      this.mode = "create";
+      this.postId = null;
+    }
+  })
+}
+
+
+--> We are getting values of title and content for given id from url
+--> We can fill up form using these values using property binding
+
+--> In post-create.html
+
+<input matInput type="text" name="title" [ngModel]="post.title" ..>
+<input matInput type="text" name="content" [ngModel]="post.content" ..>
+
+
+--> post is null if form mode is created, which automatically makes empty form fields
+--> post data is filled with data if mode is edit.
+
+------------------------------------------------------------------------------
+
+--> In post-list.html
+
+<a mat-button color="primary" [routerLink]="['edit', post.Id ]">EDIT</a>
+
+
+--> To send dynamic data in url, we use [routerLink] directive --> it will set url as: /edit/1
+
+------------------------------------------------------------------------------
+
+5. Finishing the Edit feature
+
+--> In app.js in Server,
+
+app.put('/api/posts/:id', (req, res) => {
+    const post = {
+	_id: req.body.id,
+        title: req.body.title,
+        content: req.body.content
+    };
+    Post.updateOne({ _id: req.params.id }, { $set: post }).then(result => {
+        console.log(result);
+        res.status(200).json({ message: "Successfull" });
+    })
+})
+
+--> In service class,
+
+updatePost(postId: string, title: string, content: string) {
+  const post = { id: postId, title: title, content: content };
+  this.http.put("http://localhost:3000/api/posts/" + postId, post)
+    .subscribe((response) => {
+      console.log(response);
+    })
+}
+
+
+--> In post-create.ts
+
+onSavePost(form: NgForm) {
+  if (form.invalid) {
+    return;
+  }
+  if (this.mode === "create") {
+    this.postsService.addPost(form.value.title, form.value.content);
+  } else {
+    this.postsService.updatePost(this.postId, form.value.title, form.value.content);
+  }
+  form.resetForm();
+}
+
+------------------------------------------------------------------------------
+
+6. Updating Posts on Server
+
+--> We are updating on server, but on angular we need to update UI.
+--> In service class,
+
+updatePost(postId: string, title: string, content: string) {
+  const post = { id: postId, title: title, content: content };
+  this.http.put("http://localhost:3000/api/posts/" + postId, post)
+    .subscribe(() => {
+      const updatedPost = [...this.posts];
+      const oldPostIndex = updatedPost.findIndex(post => post.id === postId);
+      updatedPost[oldPostIndex] = post;
+      this.posts = updatedPost;
+      this.postsUpdated.next([...this.posts]);
+    })
+}
+
+
+--> When you update edit form in browser, all details of form lost
+--> Because, this form component is not subscribed, this form was getting data from local array.
+
+--> In app.js of server,
+ 
+app.get("/api/posts/:id", (req, res) => {
+    const post = Post.findById(req.params.id).then(post => {
+        if(post)
+            return res.status(200).json(post);  
+        else
+            return res.status(404).json({ message: "Post not found"});
+    })
+})
+
+--> In service class,
+
+getPost(postId: string) {
+    return this.http.get<{ _id: string, title: string, content: string }>("http://localhost:3000/api/posts/" + postId);
+}
+
+--> In post-create.ts
+
+ngOnInit(): void {
+  this.route.paramMap.subscribe((paramMap: ParamMap) => {
+    if (paramMap.has("postId")) {
+      this.mode = "edit";
+      this.postId = paramMap.get('postId');
+      this.postsService.getPost(this.postId).subscribe(postData => {					-----> Subscribing
+        this.post = { id: postData._id, title: postData.title, content: postData.content }
+      })
+    } else {
+      this.mode = "create";
+      this.postId = null;
+    }
+  })
+}
+
+
+--> We will get an error
+--> form is retrieving value from post.title and post.content with property binding, and data is coming asynchornously from server which takes time, 
+so we need to make property binding to first check for data availability.
+
+--> In post-create.html
+
+<input matInput type="text" name="title" [ngModel]="post?.title" ..>
+<input matInput type="text" name="content" [ngModel]="post?.content" ..>
+
+------------------------------------------------------------------------------
+
+7. Re-organizing BackEnd
+
+--> Make new folder --> routes
+--> Place all here and use middleware in app.js
+
+------------------------------------------------------------------------------
+
+8. Navigate to different page while saving post
+
+--> In service class,
+
+import { Router } from '@angular/router';
+
+constructor(private http: HttpClient, private router: Router) { }
+
+addPost(title: string, content: string) {
+    const post: Post = { id: null, title: title, content: content };
+    this.http
+      .post<{ message: string, postId: string }>("http://localhost:3000/api/posts", post)
+      .subscribe(responseData => {
+        const id = responseData.postId;
+        post.id = id;
+        this.posts.push(post);
+        this.postsUpdated.next([...this.posts]);
+        this.router.navigate(["/"]);					----------------> Here it is
+      });
+  }
+
+  updatePost(postId: string, title: string, content: string) {
+    const post = { id: postId, title: title, content: content };
+    this.http.put("http://localhost:3000/api/posts/" + postId, post)
+      .subscribe(() => {
+        const updatedPost = [...this.posts];
+        const oldPostIndex = updatedPost.findIndex(post => post.id === postId);
+        updatedPost[oldPostIndex] = post;
+        this.posts = updatedPost;
+        this.postsUpdated.next([...this.posts]);
+        this.router.navigate(["/"]);					----------------> Here it is
+      })
+  }
+
+------------------------------------------------------------------------------
+
+9. Adding Loading Spinners
+
+--> In app.module.ts
+
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+imports: [
+        MatProgressSpinnerModule
+]
+
+
+--> In post-create.ts
+
+public isLoading = false;
+
+ngOnInit(): void {
+    this.route.paramMap.subscribe((paramMap: ParamMap) => {
+      if (paramMap.has("postId")) {
+        this.mode = "edit";
+        this.postId = paramMap.get('postId');
+        this.isLoading = true									-----------------> Here it is (before subscribe)
+        this.postsService.getPost(this.postId).subscribe(postData => {
+          this.isLoading = false								-----------------> Here it is (after subscribe)
+          this.post = { id: postData._id, title: postData.title, content: postData.content }
+        })
+      } else {
+        this.mode = "create";
+        this.postId = null;
+      }
+    })
+  }
+
+onSavePost(form: NgForm) {
+    if (form.invalid) {
+      return;
+    }
+    this.isLoading = true;									------------------> Here it is (after button click)
+    if (this.mode === "create") {
+      this.postsService.addPost(form.value.title, form.value.content);
+    } else {
+      this.postsService.updatePost(this.postId, form.value.title, form.value.content);
+    }
+    form.resetForm();
+  }
+
+
+--> In post-create.html
+
+<mat-spinner *ngIf="isLoading"></mat-spinner>
+<form (submit)="onSavePost(postForm)" #postForm="ngForm" *ngIf="!isLoading">
+
+--> In post-create.css
+
+mat-spinner { 
+ 	margin: auto
+}
+
+
+--> In post-list.html
+
+<mat-spinner *ngIf="isLoading"></mat-spinner>
+<mat-accordion multi="true" *ngIf="posts.length > 0 && !isLoading">
+...
+<p class="info-text mat-body-1" *ngIf="posts.length <= 0 && !isLoading"">No posts added yet!</p>
+
+
+--> In post-list.css
+
+mat-spinner { 
+ 	margin: auto
+}
+
+--> In post-list.ts
+
+  public isLoading = false;
+  constructor(public postsService: PostsService) { }
+
+  ngOnInit() {
+    this.isLoading = true;
+    this.postsService.getPosts();
+    this.postsSub = this.postsService.getPostUpdateListener()
+      .subscribe((posts: Post[]) => {
+        this.posts = posts;
+        this.isLoading = false;
+      });
+  }
+
+------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+

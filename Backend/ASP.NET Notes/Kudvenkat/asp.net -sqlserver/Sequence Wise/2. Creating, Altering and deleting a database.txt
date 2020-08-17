@@ -1,0 +1,50 @@
+1. Operations
+
+--> Any operation in ssms can be done in two ways: 
+1. Graphically
+2. Query
+
+--------------------------------------------------------------------------------
+
+2. Create database Graphically
+
+1. Right Click on Databases folder in the Object explorer
+2. Select New Database
+3. In the New Database dialog box, enter the Database name and click OK
+
+--------------------------------------------------------------------------------
+
+3. Create database using Query
+
+Create database DatabaseName
+
+--------------------------------------------------------------------------------
+
+4. Files generated while creating database
+
+1. mdf file 	--> Actual Data File
+2. ldf file 	--> Transaction Log file
+
+--------------------------------------------------------------------------------
+
+5. Alter Database 
+
+Alter database DatabaseName Modify Name = NewDatabaseName
+
+--------------------------------------------------------------------------------
+
+6. Delete Database
+
+Drop Database DatabaseName
+
+--------------------------------------------------------------------------------
+
+7. To delete database when someone is already logged in.
+
+Alter Database DatabaseName Set SINGLE_USER With Rollback Immediate
+
+--> With Rollback Immediate option, will rollback all incomplete transactions and closes the connection to the database.
+
+--------------------------------------------------------------------------------
+
+

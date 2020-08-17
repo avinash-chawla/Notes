@@ -1,0 +1,65 @@
+1. How to crop an image-->
+
+--> Select Image
+--> Choose Crop tool
+--> hold down shift key to crop in proportion
+--> Click Enter to exit
+
+--------------------------------------------------------------
+
+--> Unchecking Delete Cropped Pixels
+--> It means after cropping, if we move image, we can still adjust image in cropped box.
+
+--------------------------------------------------------------
+
+2. How to crop an image for a frame-->
+
+--> First Way-->
+
+--> Create new --> Set Size in starting window --> Move/Drag that image to this canvas --> Transform it
+
+-------------------------------------------------------------
+
+--> Second Way-->
+
+--> Select Image
+--> Select Crop Tool
+--> Set Required Ratio
+--> If needed, click Swaps height and width
+
+
+Ratio-->
+
+1. Either Select Default
+2. Type it in empty boxes --> default is in inches
+
+3. Or specify unit 
+--> Choose Width Height Resolution
+--> 210 mm and 297 mm  (A4 size)
+
+--> PhotoShop remembers option like 5x7 in ratio option
+--> So next time, when you crop, it crops for 5x7
+--> So make sure, it is ratio selected, if not cropped as expected.
+
+--------------------------------------------------------------
+
+--> Extend Background to more length in image
+
+--> In Cropping, we select particular portion
+--> In this, extend crop section, tick mark "Content-Aware"
+--> Click Enter
+
+--> Magic will happen
+
+---------------------------------------------------------------
+
+3. How to straighten the horizon line using Photoshop
+
+--> Select Image
+--> Select Crop Tool
+--> Draw horizon by clicking Straighten button in property
+--> Enter
+
+--> This will image horizontal to that horizon line.
+
+--------------------------------------------------------------------

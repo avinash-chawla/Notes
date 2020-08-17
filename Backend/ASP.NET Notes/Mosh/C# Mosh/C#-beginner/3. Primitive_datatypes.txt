@@ -1,0 +1,91 @@
+1. Variables-->
+
+--> int number;
+--> int Number = 1;
+--> const float Pi = 3.14f;
+--> we can't use variable without assigning first
+
+--> float number = 1.2f;	--> without it, assumes double
+
+--> non-primitive types --> string, array, enum, class
+
+-----------------------------------------------------------------------------------------------
+
+2. Data type Overflowing-->
+
+byte number= 255;
+number = number + 1;  --> 0 --> default behovior
+
+checked{...} --> inside it --> throws exception instead of zero
+
+-----------------------------------------------------------------------------------------------
+
+3. shortcuts-->
+compiling --> ctrl + shift + B
+running --> ctrl + F5
+
+-----------------------------------------------------------------------------------------------
+4. Demo of varibles assigning-->
+
+byte number = 2;
+int count = 10;
+float totalPrice = 20.95f;
+char character = 'A';
+string firstName = "Mosh";
+bool isWorking = false;
+
+-----------------------------------------------------------------------------------------------
+
+5. var keyword-->
+
+--> C# automatically guess datatype based on value
+
+   var number = 2;
+   var count = 10;  --> detected by C#  --> by default int
+
+ctrl + click --> show class in .net framework
+ctrl + x --> deletes line
+
+-----------------------------------------------------------------------------------------------
+
+7. format String-->
+
+Console.WriteLine("{0} {1}", byte.MinValue, byte.MaxValue);
+
+-----------------------------------------------------------------------------------------------
+
+8. type conversion-->
+implicit --> small to big
+explicit --> big to small
+non-compatibe --> use class Convert or method Parse
+
+implicit-->
+int i = 1;
+float j = i;
+
+explicit and dangerous casting-->
+int i = 1000;
+byte b = (byte) i; --> problem is byte can only save upto 255 --> so wrong result
+
+float f =1.0f;
+int i = (int)f;
+
+non-compatible types casting-->
+
+--> two methods
+string s = "1";
+int i = Convert.ToInt32(s);	--> Convert is a class defined in System namespace
+int j = int.Parse(s);
+
+
+
+10. Operators--> 
+
+1. Arithmetic 	--> +,-,*,/,%
+2. Comparison 	--> <, >, ==, !=
+3. Logical	--> &&, ||, !
+4. Assignment	--> =, +=, *=, /=
+
+
+ 
+

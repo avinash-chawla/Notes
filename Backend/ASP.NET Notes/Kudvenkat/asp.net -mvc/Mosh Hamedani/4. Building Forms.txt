@@ -1,0 +1,403 @@
+1. Forms
+--> We will use forms to fill data into database using Http Methods (CRUD) 
+
+-------------------------------------------------------------------------
+
+2. Create Form
+
+--> Create new Action method in CustomersController.cs
+
+public ActionResult New()
+        {
+            return View();
+        }
+
+-------------------------------------------------------------------------
+
+--> Add view to this Action Method
+
+@model Vidly.Models.Customer
+@{
+    ViewBag.Title = "New";
+}
+
+<h2>Create Customer</h2>
+@using(Html.BeginForm("Create", "Customers"))
+{
+    <div class="form-group">
+        @Html.LabelFor(m => m.Name)
+        @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Birthdate)
+        @Html.TextBoxFor(m => m.Birthdate, new { @class = "form-control" })
+    </div>
+    <div class="checkbox">
+        <label>
+        @Html.CheckBoxFor(m => m.IsSubscribedToNewsletter) Subcribe to Newsletter
+            </label>
+    </div>
+}
+
+
+--> @Html helper methods helps to build form
+--> Main objective of html helper is that it provides server side validation which are mentioned at Model level like Required, StringLength in Annotations
+--> BeginForm needs closing tag so placed under using tag
+--> LabelFor and TextBoxFor will Link the data with Customer model
+--> To add html attributes like className, we use new object template
+
+-------------------------------------------------------------------------
+
+3. LabelFor Tag
+
+--> Html helper is taking Text For LabelFor tag from property of Customer Model
+--> But if we want to display "Date of Birth" instead of "Birthdate"
+--> We use Data Annotations in Model class
+
+--> [Display(Name = "Date of Birth")]
+--> public DateTime? BirthDate {get; set; }
+
+or
+
+--> <label for="BirthDate">Date of Birth</label>  in place of html helper
+
+-------------------------------------------------------------------------
+
+4. Adding DropDownList
+
+--> We will add dropdownlist in creating Customer form
+--> This list will be of Membership types
+--> To display this list, we need Membership database record
+--> So we use _context object
+--> But in future, we also want to pass Customer model to View in addition to Membership types
+--> We will use ViewModel
+
+-------------------------------------------------------------------------
+
+--> To use _context object for MembershipTypes, first register in IdentityModel class
+--> public DbSet<MembershipType> MembershipTypes { get; set; }
+
+
+-------------------------------------------------------------------------
+
+--> Make new class NewCustomerViewModel in ViewModels folder
+
+using Vidly.Models;
+
+namespace Vidly.ViewModels
+{
+    public class NewCustomerViewModel
+    {
+        public IEnumerable<MembershipType> MembershipTypes { get; set; }
+        public Customer Customer { get; set; }
+    }
+}
+
+-------------------------------------------------------------------------
+
+--> Now we will pass viewModel object to view function in customersController
+public ActionResult New()
+        {
+            var membershipTypes = _context.MembershipTypes.ToList();
+            var viewModel = new NewCustomerViewModel()
+            {
+                MembershipTypes = membershipTypes
+            };
+            return View(viewModel);
+        }
+
+-------------------------------------------------------------------------
+
+--> Edit View file
+@model Vidly.ViewModels.NewCustomerViewModel
+@{
+    ViewBag.Title = "New";
+}
+
+<h2>Create Customer</h2>
+@using(Html.BeginForm("Create", "Customers"))
+{
+    <div class="form-group">
+        @Html.LabelFor(m => m.Customer.Name)
+        @Html.TextBoxFor(m => m.Customer.Name, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Customer.Birthdate)
+        @Html.TextBoxFor(m => m.Customer.Birthdate, new { @class = "form-control" })
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Customer.MembershipTypeId)
+        @Html.DropDownListFor(m => m.Customer.MembershipTypeId, new SelectList(Model.MembershipTypes, "Id", "Name"), "Select Membership Type", new { @class = "form-control" })
+    </div>
+    </div>
+    <div class="checkbox">
+        <label>
+        @Html.CheckBoxFor(m => m.Customer.IsSubscribedToNewsletter) Subcribe to Newsletter
+            </label>
+    </div>
+}
+
+-------------------------------------------------------------------------
+
+--> Change default display in Customer Model class
+        [Display(Name = "MembershipType Types")]
+        
+	public MembershipType MembershipType { get; set; }
+        
+	public byte MembershipTypeId { get; set; }
+
+--------------------------------------------------------------------------
+
+5. Model Binding
+
+--> We have created form to submit data of Customer
+--> To receive at server side, we use Model Binding
+--> Html.BeginForm("Create", "Customers")
+--> this will pass form data to Create ActionMethod in CustomersController
+--> [HttpPost]
+--> public ActionResult Create(NewCustomerViewModel viewModel)
+        {
+            return View();
+        }
+
+--> This actionMethod will only call when there is Post method
+--> This way of getting data from form using Model is called Model Binding
+--> This is data of Customer, so we can replace viewModel with Customer
+--> public ActionResult Create(Customer customer)
+--> In parameter, we will receive form_data that is coming through http header
+
+-------------------------------------------------------------------------
+
+6. Saving FormDate to database
+
+--> Saving to Database is very easy
+        [HttpPost]
+        public ActionResult Create(Customer customer)
+        {
+            _context.Customers.Add(customer);
+            _context.SaveChanges();
+            return RedirectToAction("Index", "Customers");
+        }
+    
+
+-------------------------------------------------------------------------
+
+7. Edit Form
+
+--> Edit Customer Data using Edit Form
+--> We will use "New.cshtml" Form only for view
+--> Refactor Name of view: "New" to "CustomerForm"
+--> Replace "New" ActionMethod in viewfile Index.cshtml to "Edit" actionMethod
+<td>@Html.ActionLink(customer.Name, "Edit", "Customers", new {id = customer.Id}, null)</td>
+--> So while clicking Customer in Customer List, direct edit form is viewed.
+
+-------------------------------------------------------------------------
+
+--> Make new actionMethod in CustomerControllers "Edit"
+public ActionResult Edit(int id)
+        {
+            var customer = _context.Customers.SingleOrDefault(c => c.Id == id);
+
+            if (customer == null)
+                return HttpNotFound();
+
+            var viewModel = new CustomerFormViewModel
+            {
+                Customer = customer,
+                MembershipTypes = _context.MembershipTypes.ToList()
+            };
+            return View("CustomerForm", viewModel);				--> Changing default setting, now we give viewFileName
+        }
+
+--> Here, we have also refactor name of viewModel from NewCustomerViewModel to CustomerFormViewModel
+--> Changing viewModel reference in "New" ActionMethod also.
+--> another place for changing reference is in CustomerForm Viewfile which is displaying form
+
+-------------------------------------------------------------------------
+
+8. Updating Data
+
+--> To use same form as creating Customer and editing Customer
+--> We will make Create ActionMethod as Save ActionMethod
+--> If form sends CustomerId, we understand it, it edit Customer Form
+--> If form does not sends CustomerId, we understand it, it makes new Customer Form
+
+--> We will send CustomerId as HiddenField from form to Save actionMethod
+--> CustomerForm.cshtml
+
+--> @using(Html.BeginForm("Save", "Customers"))   	--> replacing Create to Save
+--> @Html.HiddenFor(m => m.Customer.Id)			--> sending CustomerId to actionMethod in hidden field
+
+--> Save actionMethod
+        [HttpPost]
+        public ActionResult Save(Customer customer)
+        {
+            if(customer.Id == 0)
+            {
+                _context.Customers.Add(customer);
+            }
+            else
+            {
+                var customerInDb = _context.Customers.Single(c => c.Id == customer.Id);
+		See below options
+            }
+
+	    _context.SaveChanges();
+            return RedirectToAction("Index", "Customers");
+
+--> Now there are different ways to update database
+1. TryUpdateModel(customerInDb)
+
+--> It will set customer models property with form details and pair them and then automatically saves data into database
+--> To make some fields only editable, not all fields
+--> TryUpdateModel(customerInDb, "", new string[] { "Name", "Email" });
+
+2. AutoMapper
+--> It will also automatically update data
+--> Mapper.Map(Customer, customerInDb);
+--> To edit only few fields, we reference some class or interface in parameter instead only Customer
+--> This is advanced topic
+
+3. Update individual fields
+
+--> customerInDb.Name = customer.Name;
+--> customerInDb.Birthdate = customer.Birthdate;
+--> customerInDb.MembershipTypeId = customer.MembershipTypeId;
+--> customerInDb.IsSubscribedToNewsletter = customer.IsSubscribedToNewsletter
+           
+-------------------------------------------------------------------------
+
+9. Exercie
+--> Create Same type of Form for Adding and Editing Movie
+
+--> Creating Link for "New Movie" in Index.cshtml of MoviesController
+@Html.ActionLink("New Movie", "New", "Movies", new { @class = "btn btn-primary" })
+
+--------------------------------------------------------------------------------------------------
+
+--> Making Form for Adding Movie
+--> MovieForm.cshtml
+@model Vidly.ViewModels.MovieFormViewModel
+@{
+    ViewBag.Title = "New";
+}
+
+<h2>@Model.Title</h2>							--> dynamically displaying heading for add and edit Movie form
+@using (Html.BeginForm("Save", "Movies"))
+{
+    <div class="form-group">
+        @Html.LabelFor(m => m.Movie.Name)
+        @Html.TextBoxFor(m => m.Movie.Name, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Movie.ReleaseDate)
+        @Html.TextBoxFor(m => m.Movie.ReleaseDate, "{0:1 MMM yyyy}", new { @class = "form-control" })
+    </div>
+    <div class="checkbox">
+        <label>
+            @Html.DropDownListFor(m => m.Movie.GenreId, new SelectList(Model.Genres, "Id", "Name"), "Select Genre", new { @class = "form-control" })
+        </label>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Movie.NumberInStock)
+        @Html.TextBoxFor(m => m.Movie.NumberInStock, new { @class = "form-control" })
+    </div>
+    @Html.HiddenFor(m => m.Movie.Id)
+    <button class="btn btn-primary">Save</button>
+
+}
+
+--------------------------------------------------------------------------------------------------
+
+--> Above form is controlled by "New" actionMethod
+
+public ActionResult New()
+        {
+            var viewModel = new MovieFormViewModel
+            {
+                Genres = _context.Genres.ToList(),
+            };
+            return View("MovieForm", viewModel);
+        }
+
+--------------------------------------------------------------------------------------------------
+
+--> Above Form will submit Data to "Save" actionMethod
+
+	[HttpPost]
+        public ActionResult Save(Movie movie)
+        {
+            if(movie.Id == 0)
+            {
+                movie.DateAdded = DateTime.Now;
+                _context.Movies.Add(movie);
+            }
+            else
+            {
+                var movieInDb = _context.Movies.Single(m => m.Id == movie.Id);
+
+                movieInDb.Name = movie.Name;
+                movieInDb.ReleaseDate = movie.ReleaseDate;
+                movieInDb.Genre = movie.Genre;
+                movieInDb.NumberInStock = movie.NumberInStock;
+
+            }
+            _context.SaveChanges();
+            return RedirectToAction("Index", "Movies");
+        }
+
+--------------------------------------------------------------------------------------------------
+
+--> If user clicks on Movie in Index.cshtml, Form will open with fill-up details, instead of showing details of Movie
+--> We will use "Edit" actionMethod
+--> Index.cshtml
+<td>@Html.ActionLink(customer.Name, "Edit", "Customers", new {id = customer.Id}, null)</td>
+
+------------------------------------------------------------
+--> Edit actionMethod
+
+public ActionResult Edit(int Id)
+        {
+            var movie = _context.Movies.Single(m => m.Id == Id);
+
+            if (movie == null)
+                return HttpNotFound();
+
+            var viewModel = new MovieFormViewModel{
+                Movie = movie,
+                Genres = _context.Genres.ToList()
+            };
+            return View("MovieForm", viewModel);
+        }
+
+--------------------------------------------------------------------------------------------------
+--> To pass information of whole Form in Edit actionMethod, we use ViewModel that combines data of Movie and Genres
+--> First Register Genre in IdentityModels.cs
+--> public DbSet<Genre> Genres { get; set; }
+
+--> MovieFormViewModel.cs
+public class MovieFormViewModel
+    {
+        public IEnumerable<Genre> Genres { get; set; }
+        public Movie Movie { get; set; }
+	 public string Title
+         {
+            get
+            {
+                if (Movie != null && Movie.Id != 0)
+                    return "Edit Movie";
+
+                return "New Movie";
+            }
+        }
+    }
+
+--> To change heading of form dynamically for adding and editing Movie
+--> We added new property Title in viewModel class
+------------------------------------------------------------------------
+
+--> Now we have not provided detail of DateAdded property of Movie in Form
+--> That should be the time when Save button is clicked
+--> This option is provided in "Save" actionMethod
+
+------------------------------------------------------------------------

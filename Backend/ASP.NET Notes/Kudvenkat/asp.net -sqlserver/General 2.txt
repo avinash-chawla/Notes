@@ -1,0 +1,105 @@
+1. Select all records
+
+--> Select Distinct City from tblPerson
+
+------------------------------------------------------------------------------
+
+2. Filtering records based on condition
+
+--> Select * from tblPerson Where City='London'
+--> Select * from tblPerson Where City <> 'London' --> not equal to 
+--> Select * from tblPerson Where City != 'London'
+
+------------------------------------------------------------------------------
+
+3. Fitering records based on multiple conditions
+
+--> select * from tblPerson where age in (20, 23,36)
+--> Select * from tblPerson where age between 10 and 20
+--> Select * from tblPerson where City = 'Mumabi' AND Age > 25
+
+------------------------------------------------------------------------------
+
+4. Filtering Names
+
+--> Select * from tblPerson where city LIKE 'L%'
+--> Select * from tblPerson where email NOT LIKE '%@%'
+--> Select * from tblPerson where Name LIKE '[MST]%'		--> any name starts with m,s,t
+--> Select * from tblPerson where Name LIKE '[^MST]%'		--> not starts with m,s,t
+--> Select * from tblCity where City like '[a-d]%'
+
+%	--> specifies 0 or more
+_	--> specifies exactly one character
+[]	--> any character within brackets
+[^] 	--> not any character with in the brackets
+
+------------------------------------------------------------------------------
+
+5. Sorting records
+
+--> Select * from tblPerson ORDER BY Name 
+
+------------------------------------------------------------------------------
+
+6. Showing top records
+
+--> Select TOP 10 * from tblPerson
+
+------------------------------------------------------------------------------
+
+7. SUM, Max, Min, Count
+
+--> Select SUM(Salary) from tblEmployee		--> return single row
+--> Select MAX(Salary) from tblEmployee
+--> Select MIN(Salary) from tblEmployee
+--> Select COUNT(ID) from tblEmployee
+
+------------------------------------------------------------------------------
+
+8. Combining records
+
+--> Select City, SUM(Salary) as TotalSalary from tblEmployee GROUP BY City
+--> Select City, MAX(Salary) from tblEmployee GROUP BY City
+
+------------------------------------------------------------------------------
+
+9. Combining records based on multiple columns
+
+--> Select City, Gender, SUM(Salary) from tblEmployee group by city,gender
+
+------------------------------------------------------------------------------
+
+10. Filtering GroupBy
+
+Select gender, city, sum(salary) 
+from tblEmployee
+group by gender, city 
+having gender='Male'
+
+------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

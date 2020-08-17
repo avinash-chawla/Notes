@@ -1,0 +1,2668 @@
+1. Install Extensions on VScode to use python
+
+--> Python 		 --> debugger, tester, autocompletion
+--> Enable pylint 	 --> ctrl+shift+P (command pallete) --> type pylint --> Enable it
+--> AutoFormat code 	 --> command pallete --> Format Document 
+--> AutoFormat on saving --> go to settings --> type in search "formatOnSave" --> tick mark it
+--> Code Runner 	 --> install this extension --> alt + ctrl + n to run program
+
+------------------------------------------------------------------------------------------------
+
+2. Change default settings of extension 
+
+--> go to settings 
+--> extensions
+--> Click on Edit in settings.json
+--> Change there
+
+------------------------------------------------------------------------------------------------
+
+3. Python Implementation
+
+--> Python is a program which defines set of rules.
+--> CPython is a compiler which implements that set of rules bec. we have installed that
+--> Jython (Java), IronPython (C#), PyPy(subset of python)
+--> Java code can be implemented in Jython
+
+------------------------------------------------------------------------------------------------
+
+4. How Python code is executed
+
+--> There are two converters -- 1. Compiler and 2. PVM (Python virtual machine)
+--> CPython is compiler which converts python code to Python Bytecode
+--> PVM converts Bytecode to machine code
+--> Cpython is same for all machines
+--> PVM varies with OS
+--> If compiler is JPython then it will converted to java bytecode which can be executed by JVM.
+
+------------------------------------------------------------------------------------------------
+
+5. Primitive Data types
+
+--> Data type stored in variable
+--> numbers, boolean
+x = 1
+y = 2.5
+name = 'Avinash'
+is_cool = True
+
+------------------------------------------------------------------------------------------------
+
+5.1 Multiple Assignment
+
+x, y, name, is_cool = (1, 2.5, 'Avinash', True)
+
+------------------------------------------------------------------------------------------------
+
+5.2. type keyword
+
+--> It checks data type assigned to variable
+--> print(type(x))		--> <class 'int'>
+--> print(type(y))		--> <class 'float'>
+--> print(type(name))		--> <class 'str'>
+--> print(type(is_cool))	--> <class 'bool'>
+
+------------------------------------------------------------------------------------------------
+
+6. String
+
+--> It is iterable data type
+--> print(course[:])		--> will make copy of string
+--> print(len(course))		--> calculates length of string
+--> print is a function to write something on console.
+
+------------------------------------------------------------------------------------------------
+
+7. String Formatter
+
+--> '' or "" or """ """ (for multiline)
+
+--> print('Hello I am ' + name + ' and I am ' + str(age))
+--> print(f"My name is {name} {len(name)})
+--> print('My name is {name} and I am {age}'.format(name='Brad', age='37'))
+
+--> Backslash to skip character
+
+------------------------------------------------------------------------------------------------
+
+8. String Methods
+
+--> course.capitilize()
+--> course.upper()
+--> course.lower()
+--> course.title()
+--> course.replace("p", "j")
+--> course.find("Pro")
+--> print("pro" in course)
+--> course.split('')		--> turn into a string
+--> course.endswith('d')
+
+--> len(course)
+
+------------------------------------------------------------------------------------------------
+
+9. Working with Numbers
+
+--> print(5 * 6.5)
+--> print(math.ceil(2.2)) 	or
+--> import math
+    print(ceil(2.2))
+
+------------------------------------------------------------------------------------------------
+
+10. Type Conversion
+
+--> bool(), int(), float(), str() are the functions for type conversion
+
+--> code:
+x = input("x: ")
+y = x + 1		--> error bec. input will give string
+y = (int)x + 1
+
+------------------------------------------------------------------------------------------------
+
+11. Falsy and Trusy Values
+
+--> 0, "", None are Falsy values
+--> They are used for comparison
+--> bool(0) --> False
+--> bool("") --> False
+--> bool(None) --> False 	--> None is any object here studied later
+  
+------------------------------------------------------------------------------------------------
+
+12. Comparison Operators
+
+--> >, <, >=, <=, ==, !=
+--> To display byte value, ord("b") --> 98
+
+------------------------------------------------------------------------------------------------
+
+13. Conditional Statements
+
+--> if, elif, else
+
+------------------------------------------------------------------------------------------------
+
+14. Ternary Operator
+
+--> message = "Eligible" if age >= 18 else "Not eligible"
+
+------------------------------------------------------------------------------------------------
+
+15. Logical Operator
+
+--> and, or, not
+
+--> if x in numbers:
+--> if x not in numbers:
+
+------------------------------------------------------------------------------------------------
+
+16. Chaining Comparison Operator
+
+--> if age>= 18 and age<65:
+--> 18 <= age < 65
+
+------------------------------------------------------------------------------------------------
+
+17. For Loops
+
+--> for number in range(1,4):
+--> for item in shopping_cart:
+--> for number in [1,2,3,4]:
+--> for char in "Python":
+
+--> Only possible on iterable object
+--> Range() is iterable
+--> Range is special method which produces array provided range in arguments
+
+--> for(int i = 0; i < 10; i++){}   in other programming languages
+--> for i in range[0:11]:	    in python
+
+or
+
+--> for i in range(len(number):
+	print(number[i])
+
+------------------------------------------------------------------------------------------------
+
+18. While Loop
+
+--> Mainly used when any comparison is done
+--> Iterating till comparison is made 
+--> When condition becomes false, break out of loop
+--> code:
+command = ""
+while(command.lower() != "quit"):
+	command = input("> ")
+	print("Echo " + command)
+
+------------------------------------------------------------------------------------------------
+
+19. Infinite Loop
+
+--> code:
+while True:
+   command = input(">")
+   print("Echo" + command)
+   if command.lower() == 'quit':
+	break
+
+------------------------------------------------------------------------------------------------
+
+20. Functions
+
+--> They are reusable code of blocks with input and output
+--> def greet():
+--> def greet(first_name, last_name):
+	return f"Hii, {first_name} {last_name}"
+
+--> It processes input variables and generate output
+--> Note: There is no need to mention return type of function.
+
+------------------------------------------------------------------------------------------------
+
+21. keyword argument
+
+--> Arguments can be given specifying name also.
+--> It increases readability of function arguments
+--> print(increment(number = 2, by = 4))
+
+------------------------------------------------------------------------------------------------
+
+22. Default argument
+
+--> If argument is not provided then default value is taken.
+--> def increment(number, by=1)
+--> default parameter should come after required parameter
+--> print(increment(2))		--> 3
+--> print(increment(2,5))	--> 7
+
+------------------------------------------------------------------------------------------------
+
+23. xargs
+
+--> Accepting n number of arguments
+--> def multiply(*numbers):
+	print(numbers)		--> Prints tuple
+    
+--> multiply(2,3,4,5)
+--> By default, all arguments saves in tuple
+--> tuples are only iterative in nature
+
+--> def multiply(*numbers):
+	total = 1
+	for number in numbers:
+	    total *= number
+	return total
+--> multiply(2,3,4,5)
+
+------------------------------------------------------------------------------------------------
+
+24. xxargs
+
+--> Accepting keyword arguments instead of only indexed arguments
+--> def save_user(**user):
+	print(user)
+	print(user["name"])
+--> save_user(id = 1, name= "John", age = 22)
+--> By default, arguments saves in dictionary
+
+------------------------------------------------------------------------------------------------
+
+25. Scope
+
+--> message = "a"
+--> def greet(name):
+	global message
+	message = "b"
+--> print(message)
+--> Changing global variable value inside function 
+
+------------------------------------------------------------------------------------------------
+
+26. Dubugging-->
+
+--> Place cursor from where to start debugging line by line
+--> press F9 for making break point and removing
+--> press F5 for starting debugging tool and stopping
+--> press F10 for going line by line
+--> press F11 for going line by line inside function and getting out from inside of function
+
+
+------------------------------------------------------------------------------------------------
+
+27. Lists
+
+--> letters = ["a", "b", "c"]
+--> zeros = [0] * 5		--> [0, 0, 0, 0, 0]
+--> numbers = list[range(20)]	--> [1,2,3,...,19]
+--> combined = letters + zeros 	--> ["a", "b", "c", 0, 0, 0, 0, 0]
+--> print(list["hello world")	--> ["h", "e", ...]
+--> list(iterable)
+
+------------------------------------------------------------------------------------------------
+
+--> print(type(letters))        --> <class 'list'>
+--> numbers = [1,2,3,4]
+--> print(numbers)		--> [1,2,3,4]
+--> numbers = list((1,2,3,4,5)) --> passing in constructor of list class to initialize list
+
+------------------------------------------------------------------------------------------------
+
+28. Accessing items in list
+
+--> letters = ["a", "b", "c"]
+--> letters[0] = "A"
+--> print(letters[1])
+--> print(letters[0:3])
+--> print(letters[:3])
+--> print(letters[::2])		--> step of 2
+--> print(letters[:])		--> copy list
+--> print(letters[::-1])	--> reverses the list
+
+------------------------------------------------------------------------------------------------
+
+29. Unpacking List
+
+--> numbers = [1,2]
+--> first , second = numbers
+
+--> numbers = [1,2,3,4,5]
+--> first, second, *other = numbers
+--> other is also list with remaining elements
+
+--> first, *other, last = numbers
+
+
+------------------------------------------------------------------------------------------------
+
+
+30. Looping over List
+
+--> letters = ["a", "b", "c"]
+--> for letter in letters:
+	print(letter)
+
+--> We also want index number
+--> for letter in enumerate(letters):
+	print(letter)
+--> Return: (0, a), (1,b), (2,c)	--> tuple
+
+--> If we want only index or only value from enumerate
+--> for index, letter in enumerate(letters):
+	print(index, letter)
+
+------------------------------------------------------------------------------------------------
+
+31. Adding or Removing Items
+
+--> letters.append("d")		--> add new item to list
+--> letters.insert(0, "-")	--> insert new item at specified index
+--> letters.pop()		--> remove last one
+--> letters.pop(0)		--> remove at given index number
+--> letters.remove("d")		--> remove by value
+--> del letters[0:3]		--> remove range of items, not possible in pop
+--> letters.clear()		--> remove all objects
+--> for letter in letters:	--> to remove all occurances of "d"
+	if letter == "d":		
+		letters.remove("d")
+
+--> letters.reverse()
+--> letters.sort()
+--> letters.sort(reverse = True)
+
+------------------------------------------------------------------------------------------------
+
+32. Finding Items
+
+--> letters.index("d")		--> return index
+--> If not found in list	--> return exception 
+--> if "d" in letters:
+	print(letters.index("d"))
+--> print(letters.count("d"))	--> find total occurances of "d" in list
+
+------------------------------------------------------------------------------------------------
+
+33. Sorting List
+
+--> numbers = [3, 52, 2, 5, 3]
+--> numbers.sort()
+--> numbers.sorted(reverse=True)
+--> sorted(numbers, reverse=True)
+
+--> To sort complex objects like tuple, we need key (base)
+--> items = [
+	("Product1", 10),
+	("Product2", 9),
+	("Product3", 12)
+]
+--> def sort_item(item):
+	return item[1]
+--> items.sort(key=sort_item)
+--> Means individual item first goes to sort_item function, then sort is done according to return value
+
+------------------------------------------------------------------------------------------------
+
+34. Lambda Function
+
+--> It is anonymous function
+--> Syntax: lambda parameters:expression
+--> items.sort(key= lambda item:item[1])
+
+--> addOnetoNum = lambda num : num + 1
+--> print(addOnetoNum(2))	--> 3
+
+--> getSum = lambda num1, num2 : num1 + num2
+--> print(getSum(1,2))		--> 3
+
+------------------------------------------------------------------------------------------------
+
+35. Map Function
+
+--> Suppose from given tuple list, we need only prices
+--> items = [
+	("Product1", 10),
+	("Product2", 9),
+	("Product3", 12)
+]
+--> prices = []
+--> for item in items:
+	prices.append(item[1])
+
+--> Map function makes it in less steps
+--> map(func, *iterables)
+--> means map iterate through each element and pass it to that func
+--> x = map(lambda item:item[1], items)
+--> print(x)
+
+--> it returns map object which is iterable
+--> for item in x:
+	print(item)
+--> To convert map object to list
+--> x = list(map(lambda item:item[1], items))
+--> print(x)
+
+------------------------------------------------------------------------------------------------
+
+36. Filter Function
+
+--> It filters list based on comparison(condition)
+--> filtered = list(filter(lambda item: item[1] >= 10, items)
+--> print(filtered)
+
+------------------------------------------------------------------------------------------------
+
+37. List Comprehension
+
+--> It also manipulates each list item similar to map and filter
+--> Syntax: expression for item in items
+--> x = [1, 2, 3, 4, 5]
+--> numbers = [x for number in numbers]
+
+--> Replacing map function
+--> prices = list(map(lambda item:item[1], items))
+--> prices = [item[1] for item in items]
+
+--> Replacing filter function
+--> filtered = list(filter(lambda item:item[1] >= 10, items)
+--> filtered = [item for item in items if item[1] >= 10]
+
+------------------------------------------------------------------------------------------------
+
+38. Zip Function
+
+--> It combines each element of two list together in tuple
+--> list1 = [1,2,3]
+--> list2 = [10, 20, 30]
+--> print(list(zip(list1, list2))) --> [(1,10), (2,20), (3,30)]
+
+------------------------------------------------------------------------------------------------
+
+39. Stack
+
+--> It is datastructure following principle of LIFO
+--> Operations it can perform are: append and pop only
+--> browsing_session = []
+--> browsing_session.append()
+--> browsing_session.pop()
+--> if browsing_session:		
+	browsing_session[-1]
+or
+--> if browsing_session is not []:
+	browsing_session[-1]
+--> bool([])  --> false
+--> not bool([]]
+
+------------------------------------------------------------------------------------------------
+
+40. Queues
+
+--> It is data structure which follows FIFO principle
+--> methods like pop[0] everytime will affect performance, bec. each list item has to move up to fill array
+--> There are special method from deque class in collections module
+--> from collections import deque
+--> quene = deque([])
+--> quene.append(1)
+--> quene.append(2)
+--> quene.append(3)
+--> quene.popleft()	--> removes first element
+--> if not quene:
+	print("empty")
+
+------------------------------------------------------------------------------------------------
+
+41. Tuples
+
+--> It is list only with some rules
+--> It is readonly list
+--> Items cannot be modified, added, remove from tuple
+--> Single element can be added with traiting comma
+
+--> Concatenation of two tuples is possible
+--> point = (1,2) + (3,4)	--> (1,2,3,4)
+--> point = ()			--> empty tuple
+--> point = 1,2			--> is tuple (without paranthesis)
+--> print(type(point))		--> <class 'tuple'>
+--> point = 1,			--> also tuple
+--> point = (1,2) * 3		--> (1,2,1,2,1,2)
+
+--> To convert list to tuple
+--> tuple(iterable)
+--> tuple([1,2])		--> (1,2)
+--> tuple("hello world")	--> ('h', 'e', ...)
+
+--> Accessing items of tuple
+--> point = (1,2,3)
+--> print(point[1])		--> 2
+--> print(point[1:])		--> (2,3)
+--> if 10 in point:
+	print('exists')
+--> x, y = (1,2)		--> Unpacking tuple
+
+--> Deleting tuple
+--> del tupleName
+
+------------------------------------------------------------------------------------------------
+
+42. Swapping Variables
+--> x, y = y, x
+
+------------------------------------------------------------------------------------------------
+
+43. Arrays
+
+--> Only efficient when it is large list of numbers
+--> The only difference between array and list that, array is typed
+--> from array import array
+--> numbers = array("i", [1,2,3])		
+--> "i" is typecode, i = int, f= float, d= double
+--> numbers.append()
+--> numbers.insert(1, 3)
+--> numbers.pop()
+--> All methods are similar
+
+------------------------------------------------------------------------------------------------
+
+44. Sets
+
+--> It is also list with some rules.
+--> It is unordered and unindexed collection of unique items
+--> Unordered means no indexed 
+--> Unique means no duplicate values
+
+--> numbers = [1,2,1,3,2]
+--> uniques = set(numbers)	--> {1,2,3}
+--> second = {1,4}
+--> second.add(3)
+--> second.remove(4)
+--> second.clear()		--> Clear the set
+--> del second			--> Delete the set
+--> len(second)
+--> print(uniques)
+--> print(3 in uniques)		--> True
+
+--> first = {1, 1, 2, 3, 4}
+--> second = {1,5}
+--> print(first | second)		--> union
+--> print(first & second)		--> intersection
+--> print(first - second)		--> difference (A' = A - A(int)B)
+--> print(first ^ second)		--> opp. of intersection
+--> if 1 in first:
+	print("yes")
+
+--> List  	= normal
+--> tuples 	= read-only (once initialized, no addition, no removal, no modify)
+--> sets	= unique and unordered
+
+------------------------------------------------------------------------------------------------
+
+45. Dictionary
+
+--> It is collection of key-value pairs
+--> point = {"x": 1, "y": 2}
+--> Keys should be immutable type thats why string is used
+--> Value can be any datatype
+--> It is like json object.
+
+--> Anther way of defining dictionary is using dict keyword and it accepts keyword arguments
+--> point = dict(x=1, y=2)	#using constructor
+--> It is more appropriate
+
+--> Accessing through keys only
+--> print(point["x"])
+--> print(point.get("x")) 
+
+--> point["x"] = 10		--> modifying
+--> point["z"] = 20		--> adding
+--> print(point)
+
+--> If not existed,
+--> if "a" in point:
+	print(point["a"])
+--> print(point.get("a"))	--> return None if not existed
+--> print(point.get("a", 0))	--> changing default None to 0 int
+
+--> Get all keys and values of dictionary
+--> print(point.keys())	
+--> print(point.items())	--> return list of tuples in key-value pairs
+--> eg. [('x', 10), ('y', 20)]
+
+--> Removing Item from dictionary
+--> del point["x"]  or del(point['x'])
+--> point.pop('x')
+--> point.clear()
+
+--> Looping through dictionary
+--> for key in point:
+	print(key, point[key])
+--> for x in point.items():
+	print(x)		--> return tuple of key-value pairs
+--> for key, value in point.items():
+	print(key, value)
+
+--> Make copy of list
+--> point2 = point.copy()
+--> point2['z' ] = 30
+
+
+------------------------------------------------------------------------------------------------
+
+46. Dictionary Comprehension
+--> List Comprehension
+--> values = []
+--> for x in range(5):
+	values.append(x*2)
+--> values = [x*2 for x in range(5)]
+
+--> Set Comprehension
+--> values = {x*2 for x in range(5)}
+
+--> Dictionary Comprehension
+--> values = {x: x*2 for x in range(5)}
+
+--> Tuple Comrehension
+--> values = (x*2 for x in range(5))
+--> Returns Generator object
+--> for value in values:
+	print(value)
+
+------------------------------------------------------------------------------------------------
+
+47. Generator Expressions
+--> They are like lists only, but they use very less memory
+--> They are iterable
+--> from sys import getsizeof
+--> values = (x*2 for x in range(100000))
+--> print("gen:", getsizeof(values))		--> only 120
+
+--> values = [x*2 for x in range(100000))
+--> print("list:", getsizeof(values))		--> 824464
+
+--> print(len(values))		--> error, gen has no such method
+--> We can only get values using forloop
+
+------------------------------------------------------------------------------------------------
+
+48. Unpacking Operator
+--> It takes individual item from iterable
+--> It is similar to spread operator in javascript
+
+--> Unpack each item from list and pass it to print()
+--> numbers = [1,2,3]
+--> print(numbers)		--> [1,2,3]
+--> print(*numbers)		--> 1 2 3
+
+--> Unpack each item from Range and pass it to list
+--> values = list(range(5))
+--> values = [*range(5), *"Hello"]
+
+--> Also used in combining different lists with other individual items too
+--> first = [1,2]
+--> second = [3]
+--> values = [*first, "a",*second, , *"hello"]
+
+--> Unpacking Operator in dictionary
+--> first = {"x": 1}
+--> second = {"x": 10, "y": 2}
+--> combined = {**first, **second, "z": 3} 	--> "x": 10 in here
+
+------------------------------------------------------------------------------------------------
+
+49. Find highest frequency character in given sentence
+
+--> sentence = "This is a common interview question"
+--> char_frequency = {}
+--> for char in sentence:
+	if char in char_frequency:
+		char_frequency[char] += 1
+	else:
+		char_frequency[char] = 1
+--> print(char_frequency)
+
+--> To make print more formattable in output
+--> from pprint import pprint
+--> last line: pprint(char_frequency, width=1)
+
+--> Now need to find out more frequent character
+--> So we need to sort out
+--> But sets and dictionary are not sortable
+--> So convert each key-value pair to tuple and then convert it to list
+
+--> Sorted function can be used to convert dict to list of tuple 
+--> print(sorted(char_frequency, key = lambda kv:kv[1], reverse=True)
+
+------------------------------------------------------------------------------------------------
+
+50. Handling Exceptions
+
+--> It prevents termination of code and show user-friendly message
+--> try:
+	age = int(input("Age: "))
+    except ValueError:
+	print("You didn't enter a valid age.")
+    else:
+	print("No exceptions were thrown")
+    print("Execution continues")
+
+--> else part will only run when no exceptions are raised
+
+--> Showing python error message instead of custom
+--> except ValueError as ex:
+	print(ex)
+	print(type(ex))
+
+--> try, except, else keywords
+------------------------------------------------------------------------------------------------
+
+51. Handling different exceptions
+
+--> Single message for more exceptions
+--> try:
+	age = int(input("Age: "))
+	xfactor = 10 / age
+    except (ValueError, ZeroDivisionError):
+	print("You didn't enter a valid age.")
+
+------------------------------------------------------------------------------------------------
+
+52. Cleaning up
+
+--> File need to be closed after open
+--> try:
+	file = open("app.py")
+    finally:
+	file.close()
+
+------------------------------------------------------------------------------------------------
+
+53. The With Statement
+
+--> with keyword automatically closes file
+--> try:
+	with open("app.py") as file:
+		print("File opened")
+		
+
+--> Underhood
+--> file object supports context management protocol 
+--> Means file has magic methods like __enter and __exit which helps in closing of file
+--> Python uses this magic method to close external resources
+
+--> open more than one file
+--> with open("app.py") as file, open("another.txt") as target:
+
+------------------------------------------------------------------------------------------------
+
+54. Raising Exceptions
+
+--> def calculate_xfactor(age):
+	if age <= 0:
+		raise ValueError("Age cannot be 0 or less")
+	return 10/age
+
+------------------------------------------------------------------------------------------------
+
+55. Cost of Raising Exceptions
+
+--> from timeit import timeit
+--> code1 = """
+	program code
+    """
+--> print(timeit(code1, number=10000)
+--> It returns total execution time when running program 10000 times
+
+--> It is seen that program which throws custom exception takes more time time then without it
+--> Instead of raise, use return None and compare it 
+--> xfactor = calculate_xfactor(-1)
+--> if xfactor == None:
+	pass
+--> This program will take 1/4th time then exceptions
+
+------------------------------------------------------------------------------------------------
+
+56. Creating Classes
+
+--> class Point:
+	def draw(self):
+		print("draw")
+
+--> point = Point()			--> Instantiate class as object
+
+--> print(type(point))			--> class __main__.Point
+--> print(isinstance(point, Point)	--> True
+--> Every method of class should contain self parameter
+
+--> Class is blueprint for object and object is instance of class
+--> Eg. Human is class and John, Mosh are objects of class
+--> Human has attribute like name, age, height, color and has methods like walk(), eat(), run(), talk()
+
+------------------------------------------------------------------------------------------------
+
+57. Constructor
+
+--> self is a reference to the current object in memory
+--> def __init(self, x, y):
+	self.x = x
+	self.y = y
+--> def draw(self):
+	print(f"Point: ({x}, {y})")
+--> point = Point(1,2)
+--> point.draw()
+
+------------------------------------------------------------------------------------------------
+
+58. Class vs Instance Attributes
+--> instance attribute reference to object and class attribute reference to class
+--> class Point:
+	default_color = "red"		--> class attribute
+	
+	def __init_(self, x, y):	--> instance attributes
+		self.x = x
+		self.y = y
+--> point = Point(2,3)
+--> print(Point.default_color)		--> here class reference is done
+
+------------------------------------------------------------------------------------------------
+
+59. Class vs Instance Methods
+--> Class Methods remain same for all objects
+--> While Instance methods will vary with each object
+
+--> class Point:
+	@classmethod		--> decorator to make class method
+	def zero(cls):
+		cls(0, 0)
+--> point = Point.zero()	--> will initialiazes point object 
+--> cls is variable referencing to Point class
+--> Any variable name can be used
+--> decorator is used to make method --> class method
+
+------------------------------------------------------------------------------------------------
+
+60. Magic Methods
+--> These magic methods are called by python interpreter automatically according to usage, eg. __init__ method is called by python interpreter to initialize object in memory
+--> Other useful method is __str__
+--> by default, while printing object, it displays object like this, __main__.Point memory location
+--> We change its default settings,
+--> class Point:
+	def __str__(self):
+		return f"({self.x}, {self.y})"
+--> point = Point(1,2)		--> (1,2)
+--> print(str(point))		--> (1,2)
+
+------------------------------------------------------------------------------------------------
+
+61. Comparing Objects
+--> By default, two objects are compared based on memory locations
+--> We can change this default settings by using magic methods
+--> class Point:
+	def __eq__(self, other):
+		return self.x === other.x
+
+	def __gt__(self, other):
+		return self.x > other.x
+--> point = Point(1,2)
+--> other = Point(10, 20)
+--> print(point > other)	--> False
+--> print(point == other)	--> True
+
+------------------------------------------------------------------------------------------------
+
+62. Performing Arithmetic Operation on Objects
+--> Means Addition of attribute of two objects is done
+--> class Point:
+	def __add__(self, other):
+		return Point(self.x + other.x)
+--> point = Point(1,2)
+--> other = Point(10, 20)
+--> combined = point + other
+--> print(combined)		--> to print object, __str__ method is required
+
+
+------------------------------------------------------------------------------------------------
+
+63. Getter and Setters
+--> Attributes of class should be protected before use
+--> Like price cannot be negative, and all calculations belong to that will be failed
+--> class Product:
+	def __init__(self, price):
+		self.set_price(price)
+	
+	def get_price():
+		return self.__price
+
+	def set_price(self, value):
+		if value < 0:
+			raise ValueError("price cannot be negative")
+		self.__price = value
+--> product = Product(-50)
+
+--> Instead of two methods get_price, set_price, we can provide normal attribute to object for getting and setting data
+--> We use inbuilt property function
+--> class Product:
+	def __init__(self, price):
+		self.set_price(price)
+	
+	def get_price():
+		return self.__price
+
+	def set_price(self, value):
+		if value < 0:
+			raise ValueError("price cannot be negative")
+		self.__price = value
+
+	price = property(get_price, set_price)
+--> product = Product(-50)
+--> print(product.price)	--> getter
+--> product.price = -10		--> setter
+
+--> To make get_price and set_price private, prefix them by __
+--> __get_price and __set_price
+
+--> Second way to make them private is property decorator
+--> class Product:
+	def __init__(self, price):
+		self.price(price)
+	
+	@property
+	def price():
+		return self.__price
+
+	@price.setter
+	def price(self, value):
+		if value < 0:
+			raise ValueError("price cannot be negative")
+		self.__price = value
+
+	price = property(get_price, set_price)
+
+------------------------------------------------------------------------------------------------
+
+64. Inheritance
+--> One class inherites attributes and methods from parent class
+--> class Animal:
+	def __init__(self):
+		self.age = 1
+	def eat(self):
+		print("eat")
+
+--> class Mammal(Animal):
+	def walk(self):
+		print("walk")
+--> m = Mammal()
+--> m.eat()
+--> print(m.age)
+
+------------------------------------------------------------------------------------------------
+
+65. Object class
+--> All classes indirectly inherits from this object class
+--> print(isinstance(m, object))
+--> print(isinstance(m, Animal))
+--> print(isinstance(m, Mammal))	--> compare object with classes
+--> print(issubclass(Mammal, object))	--> compare two classes
+
+------------------------------------------------------------------------------------------------
+
+66. Method Overriding
+--> When child class modifies method of Animal class including constructor function
+--> Method overriding means replacing or modifying the method in parent class.
+--> class Animal:
+	def __init__(self):
+		self.age = 1
+		print("Animal Constructor called")
+--> class Mammal(Animal):
+	def __init__(self):
+		super().__init__()
+		print("Mammal Constructor called")
+		self.weight = 2
+
+--> super() reference parent class
+--> If super() is not used, method will be overrided and age attribute of parent class can not be used
+--> super() will keep both data, parent and child
+
+------------------------------------------------------------------------------------------------
+
+67. Abstract Base Class
+--> This is class with special features
+--> This class can not be instantiated
+--> Only its class can be instantiated
+--> This class contains abstract method which should be implemented by its child class
+--> It increases maintainabililty of program by providing same function names which does similar function instead of different function names with same functions
+--> from abc import ABC, abstractmethod			--> abc = abstract base class module
+--> class Stream(ABC):
+	@abstractmethod
+	def read(self):
+	    pass
+--> class MemoryStream(Stream):
+	def read(self):
+		print("Reading data from a memory")
+
+------------------------------------------------------------------------------------------------
+
+68. Polymorphism
+--> Same Function doing multiple jobs.
+--> def draw(control):
+	control.draw()
+--> draw(ddl)
+--> draw(textbox)
+--> It can accept any object which has draw method and perform task based on object
+
+--> def draw(controls):
+	for control in controls:
+		control.draw()
+--> draw([ddl, textbox])
+
+------------------------------------------------------------------------------------------------
+
+69. Extending built-in Types
+--> The child class also inherits all features of it and can also modify it
+--> class Text(str):
+	def duplicate(self):
+		return self+self
+--> text = Text("Python")
+--> print(text.lower())			--> python
+--> print(text.duplicate())		--> PythonPython
+
+--> It extends its features by inhering str class
+
+
+--> class TrackableList(list):
+	def append(self, object):
+		print("Append called")
+		super().append(object)
+--> list = TrackableList()
+--> list.append("1")
+
+------------------------------------------------------------------------------------------------
+
+70. A class is a container to bundle data and functionality into one unit
+
+------------------------------------------------------------------------------------------------
+
+71. Data Classes
+--> It is special class which contains only data(attributes)
+--> from collections import namedtuple
+--> Point = namedtuple("Point", ["x", "y"])
+--> p1 = Point(x=1, y=2)
+--> These attributes are accessible but cannot be modified
+
+------------------------------------------------------------------------------------------------
+
+72. Importing Modules
+
+--> A module is basically a file containing a set of functions to include in your application
+--> There are core python modules, you can also install other modules from pip library.
+
+--> Modules refers to files
+--> Importing class or function from module
+--> from sales(module(file) name .py) import (class or function)
+--> from sales import calc_shipping
+
+--> Importing whole module
+--> import sales
+--> sales.cal_shipping()
+
+------------------------------------------------------------------------------------------------
+
+73. _pycache_
+--> It is compiled version of module which is imported in app.py module
+--> It decreases loading of module in another py file and using already compiled version instead of recompiling
+
+------------------------------------------------------------------------------------------------
+
+74. Module Search Path
+--> There is module sys which has attribute Path which is list
+--> It displays where python look up for module while importing module
+--> import sys
+--> print(sys.path)
+
+------------------------------------------------------------------------------------------------
+
+75. Packages
+--> Importing those modules which are inside folders/directory
+--> Packages refers to folders/directory and module refers to file
+--> To make regular folder --> Package --> just add __init__.py file in that --> Python will recognize it as package and able to import module from it
+--> from directoryName import moduleName     or
+--> from directoryName.moduleName import functionName
+
+--> from ecommerce import sales
+--> sales.calculate_tax()
+
+--> from ecommerce.sales import calculate_tax()
+--> calculate_tax()
+
+------------------------------------------------------------------------------------------------
+
+76. Importing module from sub-packages
+--> from ecommerce.shopping import sales
+--> make sure to add __init__.py file in sub-package to make it package
+
+------------------------------------------------------------------------------------------------
+
+77. Importing module from Intra-Package
+--> from ecommerce.customer import contact 	--> absolute path
+--> from ..customer import contact		--> relative path
+--> ecommerce and customer are packages 	
+
+------------------------------------------------------------------------------------------------
+
+78. The dir Function
+--> It shows all attributes and methods inside module
+--> While importing module, it also shows methods like an object
+--> This is another method
+--> from ecommerce.shopping import sales
+--> print(dir(sales))		--> list of attributes and method in string format
+--> print(sales.__name__)	--> whole name of module from parent directory
+--> print(sales.__package__)	--> name of package of module
+--> print(sales.__file__)	--> path of currect module from project folder
+
+--> sales.py
+--> print(__name__)		--> ecommerce.shopping.sales
+
+------------------------------------------------------------------------------------------------
+
+79. Python Standard Library
+--> It provides bunch of useful tool for working with files, email, database, Date/Time, Random Values
+
+------------------------------------------------------------------------------------------------
+
+80. Working with Path
+--> We will import Path class from pathlib module
+--> It provides bunch of useful methods to work with path object
+
+--> from pathlib import Path
+
+--> Creating objects of Path
+--> Path(r"C:\Program Files\Microsoft")		--> Absolute path
+--> Path()					--> current directory
+--> Path("ecommerce/__init__.py")
+--> Path() / "ecommerce" / "__init__.py"	--> combining two paths using /
+--> Path() / Path("ecommerce")
+--> Path.home()					--> home directory
+
+--> Bunch of useful methods
+--> path = Path("ecommerce/__init__.py")
+--> path.exists()		--> boolean
+--> path.is_file()		--> boolean
+--> path.is_dir()		--> boolean
+
+--> print(path.name)		--> file name --> __init__.py
+--> print(path.stem)		--> file name w/o extension --> __init__
+--> print(path.suffix)		--> file extension .py
+--> print(path.parent)		--> parent directory
+
+--> path = path.with_name("file.txt")	--> it provides path of file which is not created yet
+--> print(path)
+--> print(path.absolute())		--> C:/Users/...
+
+--> path = path.with_suffix(".txt")	--> changes extension only in path object, not really
+--> print(path)
+
+------------------------------------------------------------------------------------------------
+
+81. Working with Directories
+--> Path object also contains methods to create and remove directories in given path
+--> path = Path("ecommerce")
+--> path.exists()
+--> path.mkdir()
+--> path.rmdir()
+--> path.rename("ecommerce2")
+
+--> path.iterdir()		--> displays all files inside provided path directory  --> it is generator object
+--> for p in path.iterdir():
+	print(p)
+
+--> paths = [p for p in path.iterdir()]
+--> print(paths)
+
+--> paths = [p for p in path.iterdir() if path.is_dir()]
+--> print(paths)
+
+--> To search files or directories using pattern
+--> py_files = [p for p in path.glob("*.py")]
+--> print(py_files)
+
+--> Above will search first file which searched
+--> To search all files inside given directory --> rglob
+--> py_files = [p for p in path.rglob("*.py")]
+
+or
+
+--> py_files = [p for p in path.rglob("**.*.py")]
+--> print(py_files)
+
+------------------------------------------------------------------------------------------------
+
+82. Working with Files
+--> from pathlib import Path
+--> path = Path("ecommerce/__init__.py")
+--> path.exists()
+--> path.rename()
+--> path.unlink()		--> remove file
+--> path.stat()			--> info about file like size, time of creation
+
+--> To display time in human readable in path.stat(), add below code
+--> from time import ctime
+--> print(ctime(path.stat().st_ctime)
+
+--> To read and write to file
+--> print(path.read_text())
+--> path.write_text("...")
+--> path.write_bytes()
+--> This also closes file automatically
+
+--> To copy file
+--> source = Path("ecomerce/__init__.py")
+--> target = Path() / "__init__.py"
+--> target.write_text(source.read_text())
+
+--> Another way of copying file
+--> import shutil	(sh-util)
+--> shutil.copy(source, target)
+
+------------------------------------------------------------------------------------------------
+
+# Open a file 
+--> myFile = open('myfile.txt', 'w')
+
+# Get some info
+--> print('Name: ', myFile.name)
+--> print('Is Closed: ', myFile.closed)
+--> print('Opening Mode: ', myFile.mode)
+
+# Write to file
+--> myFile.write('I love Python')
+--> myFile.close()
+
+# Append to file
+--> myFile = open('myfile.txt', 'a')	--> append mode
+--> myFile.write('I also love Django framework')
+--> myFile.close()
+
+# This does not overwrite it, it appends it.
+
+# Read from file
+--> myFile = open('myfile.txt', 'r+')
+--> text  = myFile.read(10)
+
+
+------------------------------------------------------------------------------------------------
+
+83. Working with Zip files
+
+--> from pathlib import Path
+--> from zipfile import Zipfile
+--> with ZipFile("files.zip", "w") as zip:
+	for path in Path("ecommerce").rglob("*.*"):
+	     zip.write(path)
+--> Execute it
+--> Comment it
+
+--> Reading Zip file content
+--> with ZipFile("files.zip") as zip:
+	print(zip.namelist())
+
+--> To get info of file inside zip
+--> with ZipFile("files.zip") as zip:
+	print(zip.namelist())
+	info = zip.getfile("ecommerce/__init__.py")
+	print(info.file_size)
+	print(info.compress_size)
+	zip.extractall("extract")	--> create new directory extract and place there, if not mentioned, paste there only
+
+------------------------------------------------------------------------------------------------
+
+84. Working with CSV Files
+--> import csv		(this is module)
+--> with open("data.csv", "w") as file:
+	writer = csv.writer(file)
+	writer.writerow(["transaction_id", "product_id", "price"])
+	writer.writerow([1000, 1, 5])
+	writer.writerow([1001, 2, 15])
+
+
+--> To read data from csv file
+--> import csv		
+--> with open("data.csv") as file:
+	reader = csv.reader(file)
+	print(list(reader))
+	for row in reader:
+	   print(row)
+
+------------------------------------------------------------------------------------------------
+
+85. Working with JSON
+
+--> import json
+--> movies = [
+	{ "id": 1, "title": "Terminator"},
+	{ "id": 2, "title": "Matrix"}
+]
+--> data = json.dumps(movies)
+--> print(data)
+
+
+# To Write json data in file
+--> from pathlib import Path
+--> data = json.dumps(movies)
+--> Path("movies.json").write_text(data)
+
+# To read json data, first need to convert it to array of dictionary
+
+--> data = Path("movies.json").read_text()
+--> movies = json.loads(data)
+--> print(movies)
+--> print(movies[0]["title"])
+
+--> data = json.dumps(movies)	--> parse dict to json
+--> movies = json.loads(data)	--> parse json to dict
+
+------------------------------------------------------------------------------------------------
+
+86. Working with SQLite Database
+--> import sqlite3
+--> import json
+--> from pathlib import Path
+--> movies = json.loads(Path("movies.json").read_text())
+--> print(movies)
+
+--> with sqlite3.connect("db.sqlite3") as conn:
+	command = "INSERT INTO Movies VALUES(?, ?, ?)"			---> ? are placeholders
+	for movie in movies:
+		conn.execute(command, tuple(movie.values()))		---> providing data at placeholder
+	conn.commit()
+
+--> This gives error bec. there is no such Movies table with fields like Id, Title, year
+--> Download DB Browser for Sqlite from chrome
+--> Install it
+--> Open Database, upper running program created database file
+--> Create Table - Movies
+--> Add 3 fields - Id (pk=true)(int), Title(text), Year(int)
+--> Click on Write database 
+--> Run the program again
+
+
+--> Reading data from database
+--> with sqlite3.connect("db.sqlite3") as conn:
+	command = "SELECT * FROM Movies"
+	cursor = conn.execute(command)
+	for row in cursor:
+		print(row)
+	
+--> cursor is actual data reading from database
+--> another way of print each row of cursor
+--> movies = cursor.fetchall()		--> instead of for loop in cursor
+--> print(movies)
+
+------------------------------------------------------------------------------------------------
+
+87. Working with TimeStamps
+--> It represents time in total seconds
+--> import time
+--> print(time.time())		--> return current time
+
+--> def send_emails():
+	for i in range(1000):
+		pass
+--> start = time.time()
+--> send_email()
+--> end = time.time()
+--> duration = end - start
+--> print(duration)
+
+------------------------------------------------------------------------------------------------
+
+88. Working with DateTimes
+
+--> from datetime import datetime
+--> import time
+
+--> dt = datetime(2018, 1, 1)					--> datetime object with that period
+--> dt = datetime.now()						--> displays current datetime
+--> dt = datetime.strptime("2018/01/01", "%Y/%m/%d")		--> converts string to datetime object
+--> dt = datetime.fromtimestamp(time.time())			--> convert timestamp to datetime object
+
+--> print(f"{dt.year}/{dt.month}")				--> To display in string
+--> print(dt.strftime("%Y/%m"))					--> To display in string
+
+--> print(dt2 > dt1)						--> we can compare also
+
+------------------------------------------------------------------------------------------------
+
+89. Time deltas
+
+--> It represents duration of time or difference of two datetime objects
+--> from datetime import datetime, timedelta
+--> dt1 = datetime(2018, 1,1)
+--> dt2 = datetime.now()
+--> duration = dt2 - dt1		--> we get time delta object
+--> print(duration)
+--> print("days", duration.days)
+--> print("days", duration.seconds)
+--> print("total_seconds", duration.total_seconds())
+
+--> To add time to Datetime
+--> dt1 = datetime(2018, 1, 1) + timedelta(days=1, seconds=1000)
+--> print(dt1)
+
+------------------------------------------------------------------------------------------------
+
+90. Generating Random Values
+--> import random
+--> print(random.random())
+--> print(random.randint(1, 10))
+--> print(random.choice([1, 2, 3, 4])
+--> print(random.choices([1, 2, 3, 4], k=2))
+--> print(random.choices("abcdefghi", k=4))
+--> print("".join(random.choices("abcdefghi", k=4)))
+--> print(",".join(random.choices("abcdefghi", k=4)))
+
+--> import string
+--> print(string.ascii_letters)
+--> print(string.ascii_lowercase)
+--> print(string.ascii_uppercase)
+--> print(string.digits)
+
+--> Generating Password
+--> print("".join(random.choices(string.ascii_letters + string.digits, k=4)))
+
+--> Shuffling numbers
+--> numbers = [1, 2, 3, 4]
+--> random.shuffle(numbers)
+--> print(numbers)
+
+------------------------------------------------------------------------------------------------
+
+91. Opening the Browser
+--> import webbrowser
+--> print("Opening Browser")
+--> webbrowser.open("https://google.com")
+
+------------------------------------------------------------------------------------------------
+
+92. Sending Emails
+--> from email.mime.multipart import MIMEMultipart
+--> email, mime and multipart are directories
+--> mime stands for multipurpose Internet mail extension
+
+--> from email.mime.multipart import MIMEMultipart
+--> from email.mime.text import MIMEText
+--> import smtplib
+
+--> message = MIMEMultipart()
+--> message["from"] = "avinashchawla1996@gmail.com"
+--> message["to"] = "avinashchawla96@gmail.com"
+--> message["subject"] = "This is a test"
+--> message.attach(MIMEText("Body", "plain")
+or
+--> message.attach(MIMEText("Body", "html"))
+
+--> with smtplib.SMTP(host="smtp.gmail.com", port=587) as smtp
+	smtp.ehlo()		--> helo
+	smtp.starttls()		--> transport layer security
+	smtp.login("avinashchawla1996@gmail.com", "Password")
+	smtp.send_message(message)
+	print("Successfully send email")
+
+--> To send image as body
+--> from email.mime.image import MIMEImage
+--> from pathlib import Path
+--> message.attach(MIMEImage(Path("image.png").read_bytes)) 
+
+------------------------------------------------------------------------------------------------
+
+93. Templates
+--> Normally templates are used to user like for resetting password, changing password, or any predefined template
+
+--> template.html
+--> under body tag, Hello $name, this is test email
+--> $name is placeholder to fill
+
+--> from string import Template
+--> template = Template(Path("template.html").read_text())
+--> body = template.substitute({ "name": "John" })     --> return string
+or
+--> body = template.substitute(name="John")
+--> message.attach(MIMEText(body, "html"))
+
+------------------------------------------------------------------------------------------------
+
+94. Command Line Arguments
+--> Python is itself command line interface program
+--> It takes arguments and performs actions based on that
+--> import sys
+--> print(sys.argv)		--> argv stands for argument variables
+--> Run as: python app.py -a -b -c
+--> We get a list of these arguments
+
+--> if len(sys.argv) == 1:
+	print("Usage: python app.py <password>")
+    else:
+	password = sys.argv[1]
+	print("Password", password)
+
+------------------------------------------------------------------------------------------------
+
+95. Running External Programs
+--> Process is an instance of running program
+--> This is useful for automation by running automation script made using python
+
+--> import subprocess
+--> subprocess.call
+--> subprocess.check_call
+--> subprocess.check_output
+--> subprocess.Popen
+
+--> one method replaces all above in newer edition of python
+--> subprocess.run
+
+--> completedProcess = subprocess.run(["ls", "-l"])
+--> print("args", completedProcess.args)
+--> print("returncode", completedProcess.returncode)
+--> print("stderr", completedProcess.stderr)
+--> print("stdout", completedProcess.stdout)
+
+--> Result:
+--> args ['ls', '-l']
+--> returncode 0
+--> stderr None
+--> stdout None
+
+------------------------------
+
+--> Can capture output of program and use it in another program
+--> completedProcess = subprocess.run(["ls", "-l"], capture_output=True, text=True)
+
+--> Running other python files
+--> completedProcess = subprocess.run(["python", "other.py"], capture_output=True, text=True)
+
+--> To raise exception during returncode other than 0
+--> completedProcess = subprocess.run(["python", "other.py"], capture_output=True, text=True, check=True)
+
+------------------------------------------------------------------------------------------------
+
+96. Pypi
+--> It is collection of useful external libraries other than standard library
+--> just type pdf, you will get collection libraries to work with pdf in different ways
+
+------------------------------------------------------------------------------------------------
+
+97. Pip
+--> It is command line tool to download external libraries from pypi
+--> You can see the documentation of any library in pypi
+--> pip install requests==2.20.1
+--> pip install requests==2.20.*
+--> pip uninstall requests
+--> pip install --upgrade pip
+--> pip list
+--> pip freeze		--> list all global dependencies
+
+
+--> import requests
+--> response = requests.get("http://google.com")
+--> print(response)		--> Response 200
+
+------------------------------------------------------------------------------------------------
+
+98. Virtual Environment
+--> It is an isolated environment where it has specific python interpreter and specific external libraries with specific version
+--> python -m venv directoryName
+--> python -m venv env
+
+--> To activate virtual environment
+--> run activate file inside bin/Scripts directory under env directory
+--> env\Scripts\activate
+
+--> deactivate
+
+------------------------------------------------------------------------------------------------
+
+99. Pipenv
+--> There is no need to use python command tools to create venv
+--> There is library package pipenv which when used to install external libraries, it creates venv automatically
+--> pip install pipenv
+--> pipenv install requests
+--> It creates pip file where packages version are mentioned
+--> The same concept is used by npm
+--> To activate venv--> pipenv shell
+--> To deactivate it --> exit
+--> To see the location of env directory, $pipenv --venv
+--> It saves env directory in hidden location (not easily foundable)
+--> It delete that, first location using pipenv --venv 
+--> Then, rm -rf location
+--> To check other venv directories in hiddle location, in command pallete, check for python interpreter, each env directory uses its own python interpreter
+
+------------------------------------------------------------------------------------------------
+
+100. Pipfile
+--> It shows all dependencies of project
+--> Created when pipenv is used
+--> To install all packages from pipfile
+--> pip install			or
+--> pipenv install --ignore-pipfile	
+--> This will ignore pipfile and use pipfile.lock bec. more accurate versions of extensions are written here
+
+------------------------------------------------------------------------------------------------
+
+101. Managing Dependencies
+--> pipenv graph		--> list all installed dependencies
+--> pipenv update --outdated	--> show required and latest versions
+--> pipenv update requests	--> will update requests library
+
+------------------------------------------------------------------------------------------------
+
+102. Publishing Packages
+--> Making docstring for intellisense
+--> Using pydoc for getting details of any module --> pydoc3 math
+--> See Video
+
+------------------------------------------------------------------------------------------------
+
+103. APIs
+--> Many Websites make their data available via APIs
+--> They are endpoints that publicly accessible on internet
+--> Http methods like get, post, put and delete talks with such APIs
+
+------------------------------------------------------------------------------------------------
+
+104. Yelp API
+--> REST API means it is set of rules for building and sending data from apis
+--> yelp.com --> yelp fusion --> create api 
+--> You will get unique key to access api called api_key
+--> pip install requests
+--> import requests
+--> response = requests.get("https://api.yelp.com/v3/businesses/search")
+--> print(response)		--> 400 (bec. api_key not mentioned)
+
+-------------------------------------------------------------
+
+--> import requests
+--> url = "https://api.yelp.com/v3/businesses/search"
+--> api_key = "...."	(provided by yelp api)
+--> headers = {							--> header is like meta information
+	"Authorization": "Bearer " + api_key
+}
+--> response = requests.get(url, headers=headers)
+--> print(response)		--> 400
+--> print(response.text)	--> To get details what is that bad request, if any
+--> we need to send location also in parameters
+
+-------------------------------------------------------------
+
+--> import requests
+--> url = "https://api.yelp.com/v3/businesses/search"
+--> api_key = "...."	(provided by yelp api)
+--> headers = {							--> header is like meta information
+	"Authorization": "Bearer " + api_key
+}
+--> params = { 
+	"location": "NYC"
+}
+--> response = requests.get(url, headers=headers, params=params)
+--> print(response.text)
+
+-------------------------------------------------------------
+
+--> Filtering the list
+--> params = { 
+	"term": "Barber",
+	"location": "NYC"
+} 
+
+-------------------------------------------------------------
+
+Convert json data into dictionary object and access data using index positions
+--> result = response.json()
+--> print(result)
+
+-------------------------------------------------------------
+
+--> Getting first List only Businesses
+--> businesses = response.json()["Businesses"]
+--> for business in businesses:
+	print(business["name"])
+
+-------------------------------------------------------------
+
+--> Filtering List whose rating is more than 4.5
+--> names = [business["name"] for business in businesses if business["rating"] > 4.5]
+--> print(names)
+
+------------------------------------------------------------------------------------------------
+
+105. Hiding API keys
+--> When uploading source code on github, api_key should be hided
+--> make new file --> config.py 
+--> make attribute as: api_key = "..."
+--> in app.py
+--> import config.py
+--> use config.api_key where api_key is mentioned in header
+--> Make new file --> .gitignore --> write config.py
+
+------------------------------------------------------------------------------------------------
+
+106. Sending Text Messages
+--> We will use Twilio api
+--> Twilio has its own bunch of methods to talk with its api, so no need of requests modele library
+--> Make an account in twilio
+--> Go to phone numbers
+--> Get started
+--> Get phone number +19374003141
+
+--> pipenv install twilio
+--> from twilio.rest import Client
+--> account_sid = "..."
+--> auth_token = "..."
+--> client = Client(account_sid, auth_token)
+
+--> client.messages
+--> client.fax
+--> client.calls
+--> client.video
+--> client.chat
+
+--> call = client.messages.create(
+	to="...",
+	from_="twilio number",
+	body="This is our first message"
+)
+
+--> Run the program
+
+------------------------------------------------------------------------------------------------
+
+107. Web Scrapping
+--> It extracts data from website by removing all html tags and extracting only data between them
+--> pipenv install beautifulsoup4
+--> from bs4 import BeautifulSoup
+
+--> response = requests.get("https://stackoverflow.com/questions")
+--> soup = BeautifulSoup(response.text, "html.parser")
+
+--> questions = soup.select(".question-summary")
+--> for question in questions:
+	print(question.select_one(".question-hyperlink").getText())
+	print(question.select_one(".vote-count-post").getText())
+
+--> Steps-->
+1. First we store whole html text inside soup object
+2. We find tag under which all question reside -- name is questions
+3. question.select will return lists of tag
+4. question.select_one will return only tag
+5. getText() will return content of that html
+
+------------------------------------------------------------------------------------------------
+
+108. Browser Automation
+--> Automatic Testing using Selenium with Python
+--> pipenv install selenium
+--> Need to download driver for chrome browser, because we are automatically stuff using python
+--> Now python will test application in browser according to code automatically.
+--> Its speed of checking application is more than manual speed.
+--> Go to pypi website --> search for selenium, link will be there to download chrome driver
+
+
+--> Automating stuff
+1. Opening browser
+2. Directing to given url
+3. Clicking on Sign IN button
+4. Filling Username and Password
+5. Submitting Form
+6. Finding username in opened document, checking if it is displayed
+--> assert is keyword in python, it compares value
+--> if get false in comparing, it will raise exception
+
+-------------------------------------------------------------------------------------
+
+--> from selenium import webdriver
+
+--> browser = webdriver.Chrome()					--> getting chrome object
+--> browser.get("https://github.com")
+
+--> signin_link = browser.find_element_by_link_text("Sign in")
+--> signin_link.click()
+
+--> username_box = browser.find_element_by_id("login_field")
+--> username_box.send_keys("ninjacoder22")
+
+--> password_box = browser.find_element_by_id("password")
+--> password_box.send_keys("todayismonday1")
+--> password_box.submit()
+
+--> assert "ninjacoder22" in browser.page_source
+or
+--> profile_link = browser.find_element_by_class_name("user-profile-link")
+--> link_label = profile_link.get_attribute("innerHTML")
+--> assert "ninjacoder22" in link_label
+
+------------------------------------------------------------------------------------------------
+
+109. Working with PDfs
+--> Most packages in pypi are either having bugs or not well documented
+--> So choose only well packages
+--> pipenv install pypdf2
+
+--> import pypdf2
+--> with pen("first.pdf", "rb") as file:   		--> Opening pdf and rb = read in binary		
+	reader = pyPDF2.PdfFileReader(file)		--> reader object
+	print(reader.numPages)				--> count pages
+	page = reader.getPage(0)			--> page object
+	page.rotateClockwise(90)
+	writer = PyPDF2.PdfFileWrite()			--> writer object
+	write.addPage(page)				--> add pages
+	with open("rotated.pdf", "wb") as output:	--> making pdf
+		write.write(output)			--> writing in that pdf
+
+--> Merging two pdfs
+--> import PyPDF2
+--> merger = PyPDF2.PdfFileMerger()
+--> file_names = ["first.pdf", "second.pdf"]
+--> for file_name in file_names:
+	merger.append(file_name)
+--> merger.write("combined")
+
+------------------------------------------------------------------------------------------------
+
+110. Working with Excel SpreadSheets
+--> The library package used for this is openpyxl
+--> pipenv install openpyxl
+--> It has bunch of methods to work excel spreadsheets
+
+------------------------------------------------------------------------------------------------
+
+111. Numpy
+--> It is maths library
+--> It gives bunch of methods to work with matrix
+--> pipenv install numpy
+--> import numpy as np
+--> array = np.array([1,2,3])
+--> print(array)		--> [1,2,3]
+--> print(type(array))		--> ndArray 	--> Array object
+
+--> array = np.array([[1,2,3], [4,5,6]])
+--> print(array)
+--> print(array,shape)		--> (2,3) --> means 2 rows and 3 columns --> gives shape of an array --> it is tuple
+
+--> Creating different arrays
+--> array = np.zeros((3,4), dtype=int)		--> all zeros, first arg is shape, second is type of number(by default it is float)
+--> array = np.ones(3,4, dtype=int)
+--> array = np.full((3,4), 5, dtype=int)
+--> array = np.random.random((3,4))
+
+--> Accessing element of array
+--> array[0, 0]			--> if normal python list, then accessing using array[0][0]
+--> print(array > 0.2)		--> make whole matrix of boolean values, make true of numbers > 0.2
+
+--> boolean expression array    --> make new array matrix of that numbers which success comparison
+--> print(array[array > 0.2])
+
+--> Operations on array (useful methods)
+--> print(np.sum(array))		--> give sum of all numbers
+--> print(np.float(array))		--> ceil, round
+
+--> Arithmetic Operations
+--> first = np.array([1,2,3])
+--> second = np.array([2,1,0])
+--> print(first + second)		--> [3,3,3]
+--> print(first + 2 )			--> [3,4,5]
+
+
+
+
+------------------------------------------------------------------------------------------------
+
+112. Django
+
+--> It is framework for building web applications
+--> It created boiler plate and gives bunch of utility functions
+--> pipenv install django==2.2
+--> pipenv shell				--> to activate shell(venv)
+--> django-admin startproject vidly .		--> will create structure(boilerplate) of project
+
+--> vidly folder 	--> all project core store here
+--> manage.py		--> All administration work here like running development server, migrating data, populating data into database
+--> pipfile		--> info of dependencies
+--> wsgi		--> interface between application and webserver
+
+--> python manage.py runserver		--> by default, port 8000
+or
+--> python manage.py runserver 8080
+
+------------------------------------------------------------------------------------------------
+
+113. Your First App
+--> Django Application uses apps/component concept
+--> It divides entire project into useful components and merge them all
+--> components like navbar, movies, pagination, formsubmission
+--> Advantage is that it divides big project into smaller sections and these smaller sections can be used at another place.
+
+--> python manage.py startapp movies
+--> migration folder		--> link to database
+--> admin.py			--> connects admin control with component
+--> models.py			--> It is domain class which manages movies app like storing list of movies, manipulating and filering movies list
+--> tests.py			--> testing
+--> views.py			--> Django takes request from url and pass it to this view function, this view function will decide which template will be choosen based on url
+
+
+--> Django follows Model, Template, View principle
+--> Here View is actually controller which gets data from model and pass it to template
+--> View function accepts request and return response
+
+------------------------------------------------------------------------------------------------
+
+114. Views
+--> It is controller
+--> It takes http request object and return HttpResponse object
+--> django based on configuration automatically pass url request object to View function
+--> Every component has its own view function to handle various endpoints under movies
+--> Eg. movies/, movies/1, movies/1/info	--> all such urls will be handled by view function
+
+--> views.py
+--> from django.http import HttpResponse
+--> def index(request):
+    	return HttpResponse("Hello World")
+
+--> Make new file in movies folder, urls.py
+--> Main admin urls.py will pass all urls related to movies to this movies url
+--> This movie url will pass http request object to view function
+
+--> Main admin urls.py					--> This will pass all url related to movies to movies component urls
+--> from django.urls import path, include
+--> urlpatterns = [
+	path('admin/', admin.site.urls),
+    	path('movies/', include('movies.urls'))		--> 'movies.urls' is path which is in string remember
+]
+
+--> Movies urls.py
+--> from django.urls import path			--> path function is used to link url with specific view function
+--> from . import views
+--> urlpatterns = [
+    	path('', views.index, name='index')		--> view function is not called here remember, 
+]
+
+--> name is given to url for more maintainability and for good practice
+--> go to http://127.0.0.1:8000/movies/
+
+------------------------------------------------------------------------------------------------
+
+115. Models
+--> They are application data
+--> Like for genre, we need only name of genre
+--> Like for movies, we need to show list of movies which include title, release_year, daily_rental_rate, number_in_stock, genre
+--> from django.db import models
+--> db is package under which there is models module
+--> It has bunch of classes which provides functionality to save data in database automatically by just using its instance 
+
+--> from django.db import models
+--> class Genre(models.Model):				--> inheriting models.Model to use its feature of directly creating and saving data 
+	name = models.CharField(max_length=255)		--> create field with 'name' having type of char field
+
+--> class Movie(models.Model):
+   	title = models.CharField(max_length=255)	--> create field 'title'
+    	release_year = models.IntegerField()
+    	number_in_stock = models.IntegerField()
+    	daily_rate = models.FloatField()
+    	genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+
+--> There is a field in Movie class 'genre' which is linked to Genre class through foreign key, so used models module from db package to create foreign key
+--> on_delete is an cascading option if one genre object is deleted, then movie class linked to that genre will also be deleted
+
+------------------------------------------------------------------------------------------------
+
+116. Migrations
+--> Django automatically creates empty sqlite3 database during starting of project
+--> Django automatically compare database and model data objects and create migration which is a python file
+--> Migration is a python file which includes code which synchronises data model with database
+--> python manage.py makemigrations		--> it compares database and datamodel and create python file
+--> To make migrations, app/component should be registered in main app
+--> To register component in main app, there is a settings.py, in list of Installed apps, provide the path of class MoviesConfig which is inside apps module inside movies package
+--> 'movies.apps.MoviesConfig'
+
+--> python manage.py makemigrations
+--> This will create python file under migrations folder
+--> You can see that, it automatically create code for creating table and added all fields
+--> It also created extra field ID for each class
+--> class in model represents table and its fields as table fields
+
+--> python manage.py migrate
+--> It creates table as nameOfComponent_nameOfModelClass --> Movies_Movie and Movies_Genre
+--> There are also other inbuilt apps that comes with django, that also created table for that
+--> There is special table, django_migrations which keeps track of synchronization
+
+--> To view all tables, use DB browser for sqlite software
+
+------------------------------------------------------------------------------------------------
+
+117. Changing the Models
+--> Adding new field in model class and making migrations
+
+--> from django.utils import timezone
+--> date_created = models.DateTimeField(default=timezone.now)
+
+--> The python DateTime function is not used bec. it is not aware of timezone
+--> timezone.now is not called here, bec. we do not want to hardcore its value now
+--> Its value should be created at runtime
+
+--> Never Ever delete your migration files, even it is not what you supposed to, but these migration files are very dependent on each other in synchronization
+--> Deleting one migration will affect whole application
+
+------------------------------------------------------------------------------------------------
+
+118. Admin
+--> There is inbuilt app in django called admin and auth app
+--> They can be used to insert data for models
+--> http://localhost:8000/admin
+--> We need to create super-user first for authorization
+
+--> python manage.py createsuperuser
+--> Enter username, email and password
+--> Login using this credentials
+
+--> We need to insert data into models
+--> To bring data models in admin page, go to admin.py under movies app folder
+--> This admin.py links main admin interface with app/component
+
+--> from .models import Genre, Movie
+--> admin.site.register(Movie)
+--> admin.site.register(Genre)
+
+--> We have registered our model in admin page
+
+------------------------------------------------------------------------------------------------
+
+119. Customizing the Admin
+--> See at the Genre list in Admin, it is showing Genre Object(1)
+--> It is because, Object of Genre is not named manually
+--> we use magic method to name object
+
+--> models.py
+--> class Genre(models.Model):
+	name = models.CharField(max_length=255)
+	
+	def __str__(self):
+		return self.name
+
+-----------------------------------------------------
+
+--> Earlier we register Genre model with admin
+--> By default, in admin page, genre is only displaying only name, not id
+--> To change this interface of admin which is linked with Genre model, we use class which will inherit admin.ModelAdmin
+--> admin.py in movies app
+--> class GenreAdmin(admin.ModelAdmin):
+	list_display = ('id', 'name')
+--> admin.register.site(Genre, GenreAdmin)
+
+-----------------------------------------------------
+--> Similarly for movie
+
+--> class MovieAdmin(admin.ModelAdmin):
+    	exclude = ('date_created', )						---> bec. it is tuple and it is excluded field to edit
+    	list_display = ('title', 'number_in_stock', 'daily_rate')
+--> admin.site.register(Movie, MovieAdmin)
+or
+--> instead of exclude, fields = ('title', 'number_in_stock',...)
+--> Now do not include __str__ in Movie model bec. it is already mentioned here in exclude method
+
+------------------------------------------------------------------------------------------------
+
+120. Database Abstraction
+--> Displaying List of all movies on browser
+--> There are bunch of methods in models class to save, retrieve, delete and update date
+--> This is called Hiding all the complexities of dealing with database and model simpliflies that --> Database Abstraction
+--> All work is done by models class
+
+--> views.py in movies
+--> from .models import Movie
+--> def index(request):
+    	movies = Movie.objects.all()				---> getting all movie objects
+    	output = ", ".join([m.title for m in movies])		---> using list comprehension to loop through each movie object and displaying as string
+    	return HttpResponse(output)
+
+
+--> Movie.objects.all()				--> Select * from movies_movie
+--> Movie.objects.filter(release_year=1985)	--> Select * from movies_movie where
+--> Movie.objects.get(id=1)
+
+--> Every record in Movie table/model is called object
+
+------------------------------------------------------------------------------------------------
+
+121. Templates
+--> It uses html tags to render data
+--> It also includes template tags to put data through logics like for, if
+
+--> views.py
+--> from django.shortcuts import render
+--> def index(request):
+    	movies = Movie.objects.all()
+    	return render(request, 'movies/index.html', {'movies': movies})
+
+--> render function is used to call templates
+--> first argument is request object
+--> second argument is path to template
+--> third argument is data passed to template
+
+--> Make new folder in movies folder --> templates
+--> Inside make new folder --> movies
+--> Make new file --> index.html
+--> Here index.html file is placed under movies folder bec. index.html can be many files with same name in all apps
+
+--> index.html
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Genre</th>
+            <th>Stock</th>
+            <th>Daily_Rate</th>
+        </tr>
+    </thead>
+    {% for movie in movies %}
+    <tbody>
+        <tr>
+            <td>{{ movie.title }} </td>
+            <td>{{ movie.genre }}</td>
+            <td>{{ movie.number_in_stock }}</td>
+            <td>{{ movie.daily_rate }}</td>
+        </tr>
+    </tbody>
+    {% endfor %}
+</table>
+
+--> {%  %} template tag is used to put logic
+--> {{ }} template tag is used to put value of variable
+
+--> There is package like pylint for finding possible errors in django
+--> pipenv install pylint-django
+--> To load this module to work in out project, below
+--> Make new file in project folder --> .pylintrc
+--> type inside: load-plugins = pylint-django
+--> Earlier was checking pylint, that why showing errors
+
+
+------------------------------------------------------------------------------------------------
+
+122. Adding Bootstrap
+--> Make new file under templates under movies beside index.html --> base.html
+--> This is main/master template and every other template extends this template
+--> Paste the starter template of bootstrap here
+--> in body tag
+
+--> base.html
+--> {% block content}		---> this template block is given name content
+--> {% endblock %}
+
+--> Any template which extends this master template and uses content name will be placed here
+
+--> index.html
+--> {% extends 'movies/base.html' %}
+--> {% block content %}
+	<table class="table">
+   	 <thead>
+     	   <tr>
+            <th>Title</th>
+            <th>Genre</th>
+            <th>Stock</th>
+            <th>Daily_Rate</th>
+      	  </tr>
+   	 </thead>
+    	{% for movie in movies %}
+    	<tbody>
+     	   <tr>
+     	       <td>{{ movie.title }} </td>
+      	      <td>{{ movie.genre }}</td>
+      	      <td>{{ movie.number_in_stock }}</td>
+            <td>{{ movie.daily_rate }}</td>
+       	 </tr>
+   	 </tbody>
+    	{% endfor %}
+	</table>
+{% endblock %}
+
+------------------------------------------------------------------------------------------------
+
+123. Customizing the Layout
+--> add class to table --> "table table-bordered table-hover"
+--> add navbar in base.html
+--> <nav class="navbar navbar-light bg-light">
+        <a class="navbar-brand" href="#">Vidly</a>
+    </nav>
+--> Wrap content block of base.html under <main class=container> </main>
+
+------------------------------------------------------------------------------------------------
+
+124. Sharing a Template Across Multiple Apps
+--> We have defined base/master template in movie app folder
+--> Cut from that and make new folder in project --> templates --> paste it here --> base.html
+--> Change location of master template in index.html under extends ,write 'base.html' instead of 'movies/base.html'
+--> Now django by default does not look in project folder
+--> Go to settings.py in vidly folder
+--> Find Templates = []
+--> 'BACKEND'	--> It is django engine which parses django template html files to normal html files, converting {% %} and {{ }}
+--> 'DIRS'	--> manual path given here to search
+--> 'APP_DIRS'	--> by default it is True, means search in apps folder
+--> 'OPTION'	--> These are context_processors
+--> In dirs, paste following, 
+
+'DIRS' = [ os.path.join(BASE_DIR, 'templates')]
+--> Now, it will look in project folder also
+
+------------------------------------------------------------------------------------------------
+
+125. Url Parameters
+--> It is parameter passed to url for specific movie object detail
+--> movies/1
+
+--> urls.py
+--> urlpatterns = [
+    	path('', views.index, name='movies_index'),
+    	path('<int:movie_id>', views.detail, name="movies_detail")
+]
+
+--> path is like '<movie_id>'
+
+--> views.py
+--> def detail(request, movie_id):		--> parameter pass it here in view function
+    	return HttpResponse(movie_id)
+
+--> Now by typing url like movies/1		--> 1
+--> But by typing url like movies/a		--> a
+--> We want id parameter to be only int		--> '<int:movie_id>'
+
+------------------------------------------------------------------------------------------------
+
+126. Getting a Single Object
+--> We want to render single movie object based on url parameter --> movies/1
+--> views.py
+--> def detail(request, movie_id):
+    	movie = Movie.objects.get(pk=movie_id)
+    	return render(request, 'movies/detail.html', {'movie': movie})
+
+--> here pk or id both can be used in getting single object
+--> This movie object is passed to template
+--> detail.html
+{% extends 'base.html' %}
+{% block content %}
+<dl>
+    <dt>Title</dt>
+    <dd>{{ movie.title }}</dd>
+    <dt>Genre</dt>
+    <dd>{{ movie.genre }}</dd>
+    <dt>Stock</dt>
+    <dd>{{ movie.number_in_stock }}</dd>
+</dl>
+{% endblock %}
+
+
+--> dl = description list
+--> dt = term (bold) and dd = description (normal)
+
+------------------------------------------------------------------------------------------------
+
+127. Raising 404 Errors
+--> On entry of invalid url parameter, we can raise Page not Found Error
+--> Django raise DoesNotExist exception on not finding required page acc. to url
+
+--> views.py
+--> from django.http import HttpResponse, Http404
+--> def detail(request, movie_id):
+    	try:
+       		movie = Movie.objects.get(pk=movie_id)
+        	return render(request, 'movies/detail.html', {'movie': movie})
+    	except Movie.DoesNotExist:
+        	raise Http404
+
+----------------------------------------
+--> Another method of displaying Not Found Page using a function get_object_or_404
+
+--> views.py
+--> from django.shortcuts import render, get_object_or_404
+--> def detail(request, movie_id):
+	movie = get_object_or_404(Movie, pk=movie_id)
+    	return render(request, 'movies/detail.html', {'movie': movie})
+
+--> This new function replaces use of Movie.Objects.get(pk=movie_id)
+--> This function takes two arguments - Model, url paramater
+--> No need of try-catch block
+
+------------------------------------------------------------------------------------------------
+
+128. Refencing the URL
+--> User does not want to type in url : movies/1
+--> User will click on Movie name in index page and it will be redirected to details page
+
+--> index.html
+--> <td>
+       <a href="movies/movie.id">	--> redirected to detail page
+           {{ movie.title }}
+       </a>
+    </td>
+
+--> second way
+--> We have given name to each url like movies_index, movies_detail
+--> We can use that for redirecting
+
+----------------------------------------
+
+--> <td>
+       <a href={% url 'movies_detail' movie.id %}>
+          {{ movie.title }}
+       </a>
+    </td>
+
+--> {% url ... %} --> url template tag
+--> it includes name of redirecting url name with parameter
+
+----------------------------------------
+--> third way
+
+--> we have names to url like movies_index, movies_detail
+--> we will use known(global) variable of django --> app_name = 'movies'
+--> Now no need to use name like movies_index to url
+
+--> urls.py
+--> app_name = 'movies'
+--> urlpatterns = [
+    	path('', views.index, name='index'),
+    	path('<int:movie_id>', views.detail, name="detail")
+]
+
+--> django will only find such urls like index, detail only in this app, not any other app
+
+
+--> index.html
+--> <td>
+       <a href={% url 'movies:detail' movie.id %}>
+           {{ movie.title }}
+       </a>
+    </td>
+
+------------------------------------------------------------------------------------------------
+
+129. Creating APIs
+--> Api are url endpoints where pure data is available in json formats
+--> There are two famous packages for creating apis
+1. django-tastypie
+2. djangorestframework
+--> pipenv install django-tastypie
+
+--> Make new app: api
+--> python manage.py startapp api
+--> Register in installed apps
+
+--> For displaying data, we add class in models in api app
+--> from django.db import models
+--> from tastypie.resources import ModelResource
+--> from movies.models import Movie
+--> class MovieResources(ModelResource):
+    	class Meta:
+        	queryset = Movie.objects.all()
+	        resource_name = 'movies'
+        	excludes = ['date_created']
+
+--> This class is named MovieResource
+--> It inherit ModelResource class from tastypie
+--> This class required Meta class for information
+--> Movie.objects.all()	does not return whole data, but it is queryset which is run when required which is called LazyLoading
+--> resource_name will be used in url, it will return url as domainName/api/movies
+--> exclude: We do not want to show this field in api url endpoint
+
+--> main urls.py
+--> from api.models import MovieResources
+--> movie_resources = MovieResources()
+
+--> urlpatterns = [
+    	path('admin/', admin.site.urls),
+    	path('movies/', include('movies.urls')),
+    	path('api/', include(movie_resources.urls))
+]
+
+--> We have created instance of MovieResources()
+--> This object has attribute urls which display url as api/movies, and it is linked to resource_name in Meta class
+
+------------------------------------------------------------------------------------------------
+
+130. Adding the Homepage
+--> View file
+--> Make new file --> views.py in project folder
+--> from django.shortcuts import render
+--> def home(request):
+    	return render(request, 'home.html')
+
+---------------------------------------------------------
+--> Template file
+--> make new file under templates folder --> home.html
+{% extends 'base.html' %}
+{% block content %}
+<a href={% url 'movies:index' %}>Movies</a>
+
+{% endblock %}
+
+---------------------------------------------------------
+--> Main urls.py
+--> from . import views
+--> urlpatterns = [
+    	path('', views.home),
+]
+
+------------------------------------------------------------------------------------------------
+
+131. Getting Ready to Deploy
+--> Create account in Heroku
+--> Download Heroku cli
+--> Download Github
+--> download webserver for python --> pipenv install gunicorn (it is production server)(not development server)
+--> heroku -v
+--> github -v
+
+--> heroku needs a file 'Procfile' to serve the application
+--> Procfile		--> Proc stands for Process
+--> web: gunicorn vidly:wsgi
+
+--> heroku also need static folder containing all static files outside project folder
+--> Make new folder 'static' inside project
+--> In settings.py --> make new variable 
+--> STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+--> In terminal, type: 'python manage.py collectstatic'
+--> It will copy all static files from project and paste it in static folder
+
+--> To serve this static files, we need another package
+--> pipenv install whitenoise
+--> It provides middleware function which handles static files request
+--> In settings.py --> in middleware --> type below:
+	MIDDLEWARE = [
+    		'django.middleware.security.SecurityMiddleware',
+    		'whitenoise.middleware.WhiteNoiseMiddleware',
+--> whitenoise should come after security middleware only
+
+------------------------------------------------------------------------------------------------
+
+132. Deployment
+--> git init
+--> git add .
+--> git commit -m "Initial Commit"		--> commiting to local repository of git
+--> heroku login		--> need to enter credentials
+--> heroku create or heroku create yourUniqueAppName
+--> git push heroku master
+--> heroku ps:scale web=1			--> allocating one webserver to our project
+--> heroku open
+
+--> Now error will come --> DisallowedHost to prevent from hacker attacks
+--> So go to settings.py --> In variable Allowed Hosts, Paste your application url --> obtained earlier in using heroku open 
+	ALLOWED_HOSTS = [
+    		'evening-escarpment-41421.herokuapp.com'
+	]
+
+--> git add .
+--> git commit -m "Allowing heroku app to allowed host"
+--> git push heroku master
+--> heroku open
+
+------------------------------------------------------------------------------------------------
+
+133. Machine Learning
+--> It creates model based on data provided
+--> It helps in prediction
+--> Basically it creates graph and apply results on that graph
+--> Working areas is Self-driving cars, robotics, language processing, vision processing, forecasting stock market trends
+
+------------------------------------------------------------------------------------------------
+
+134. Steps
+1. Import the Data
+2. Clean the Data
+--> Converting string values to numerical (to plot in graph and compare)
+--> Removing Dupliated values (means for one x, there are 2 points on y in graph)
+3. Split the Data into Training/Test Sets
+4. Create a model 
+--> Assigning Algorithm
+--> neural-networks, decision-tress 
+--> schkit-learn is a library which contains all such algorithms
+5. Train the model
+6. Make Predictions
+7. Evaluate and Improve   --> Try out each algorithm and measure accuracy of each algorithm in solving that problem
+
+------------------------------------------------------------------------------------------------
+
+135. Libraries and Tools
+--> Libraries
+1. Numpy		--> work with 2 dimentional array
+2. Pandas		--> work with dataframes and analyse them
+3. Matplotlib		--> create charts and graphs
+4. Scikit-Learn		--> Includes algorithm
+
+--> Tools
+1. Jupitor notebook editor
+2. anaconda python distribution	--> it contains all libraries like numpy, pandas, scikit-learn and jupyter editor all in one
+--> Downlaod and install anaconda python distribution
+--> In cmd, jupyter notebook
+--> It is accessible through browser
+--> Create new file in required folder
+
+------------------------------------------------------------------------------------------------
+
+136. Importing a DataSet
+--> www.kaggle.com is best website to download dataset
+--> download video game sales dataset with red icon
+--> place next to jupyter file notebook
+
+--> import pandas as pd
+--> df = pd.read_csv('vgsales.csv')	(df stands for dataframe)(returns dataframe object)
+--> print(df)
+--> df.shape				(defines shape of matrix)(row x column)		
+--> df.describe		--> calculates count, mean, std, min for numerical columns (mainly statistics data)
+--> df.values		--> display as a main array with each record as inner array
+
+------------------------------------------------------------------------------------------------
+
+137. Jupyter Shortcuts
+--> Green cell --> edit mode
+--> Blue cell  --> command mode
+
+1. H		--> list all shortcuts
+2. Esc		--> to move cell to command mode from edit mode
+
+--> When cell is in command mode
+1. A or B	--> to go above or below cell
+2. DD		--> To delete a cell
+3. Cell --> Run all 	--> To run all cells at one time
+4. ctrl+space	--> to get all attributes and method of an object
+5. shift+tab	--> to get tooltip of what function does
+
+------------------------------------------------------------------------------------------------
+
+138. Predicting Songs based on user age and gender
+--> http://bit.ly/music-csv
+--> It is simple list in which different age groups like different set of music like classical, jazz, pop, dance
+--> import pandas as pd
+--> music_data = pd.read_csv('music.csv')
+
+------------------------------------------------------------------------------------------------
+
+139. Preparing the Data
+--> There is no cleaning bec. there are not duplicate data
+--> Preparing means which will be input fields and which will be output fields
+--> age, gender will be input and genre of music will be output 
+--> X = music_data.drop(['genre'])	--> input 
+--> y = music_data['genre']		--> output
+
+------------------------------------------------------------------------------------------------
+
+140. Learning and Predicting
+--> Which will predict the data is called model
+
+--> from sklearn.tree import DecisionTreeClassifier
+--> sklearn is a package, tree is module, DTC is class
+--> model = DecisionTreeClassifier()
+--> model.fit(X, y)					--> training model
+--> predictions = model.predict([ [21, 1], [22,0] ])	--> (age, gender) (1 for male, 0 for female) --> provided two inputs at a time
+--> predictions						--> ( ['HipHop', 'Dance'] )
+
+------------------------------------------------------------------------------------------------
+
+141. Calculating the Accuracy
+--> from sklearn.tree import DecisionTreeClassifier		--> algorithm
+--> from sklearn.model_selection import train_test_split	--> spliting train and test data
+--> from sklearn.metrics import accuracy_score			--> match prediction and test data
+
+--> music_data = pd.read_csv('music.csv')
+--> X = music_data.drop(columns = ['genre'])
+--> y = music_data['genre']
+--> X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2) 	--> splits
+
+--> model = DecisionTreeClassifier()  			-->creating obj
+--> model.fit(X_train, y_train) 			--> training model	
+--> predictions = model.predict(X_test) 		--> making predictions	
+	
+--> score = accuracy_score(y_test, predictions)		--> match prediction and test data
+--> score
+
+--> Alt+Enter	--> to run same cell repeatedly  --> by default, it goes to next cell
+--> Accuracy drops if test data percentage is increased from 20% to 80%
+--> Means more data more accuracy
+
+------------------------------------------------------------------------------------------------
+
+142. Persisting Models
+--> We do not want model to train every time
+--> We want to save the trained model in a file and use that file to make predictions
+--> Also, training model is time-consuminig process
+
+--> from sklearn.externals import joblib
+--> model = DecisionTreeClassifier()
+--> model.fit(X, y) -->training model
+--> joblib.dump(model, 'music-recommender.joblib')		--> saving trained model to file 'music-recommender.joblib'
+--> Run that
+
+--> Using trained model
+--> from sklearn.externals import joblib	
+--> model = joblib.load('music-recommender.joblib')
+--> predictions = model.predict([[21, 1]])
+
+------------------------------------------------------------------------------------------------
+
+143. Visualizing a Decision Tree
+--> from sklearn import tree
+--> model.fit(X, y)
+--> tree.export_graphviz(model, out_file='music-recommender.dot', feature_names=['age', 'gender'], class_names = sorted(y.unique()),label='all',rounded=True, filled=True)
+
+--> Just add above codes
+--> feature_names is input data columns
+--> label='all'	--> means graph is labelled
+--> rounded 	--> means boxes in graph are rounded
+--> fill	--> means boxes are colored
+--> class_names is output data column
+--> Run the program
+--> To open this file, install extension --> graphviz dot by stephanvs in vscode editor
+
+--> Decision tree makes pattern automatically based on number of input data and number of features
+--> It sorts the result using both age and gender
+--> Decision-Tree is simplest algorithm 
+--> Decision-Tree can be more complex if number of features are more
+
+--------------------------------------------------------------- DHANYAWAAD -----------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------

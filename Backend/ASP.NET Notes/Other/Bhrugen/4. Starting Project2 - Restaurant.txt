@@ -1,0 +1,327 @@
+
+--------------------------------------------------------------------------------
+
+1. Create new Project
+
+--> application : asp.net core web application
+--> version : .net core 3.1
+--> template: MVC
+--> Authentication: Individual Authentication
+--> Name: Spice
+
+--------------------------------------------------------------------------------
+
+2. Dependencies
+
+--> You can view all dependencies of our project inside dependencies folder under packages folder.
+
+--------------------------------------------------------------------------------
+
+3. MVC architecture
+
+--> Model:
+--> It represents the application data.
+--> It is independent of controller and view
+
+--> View:
+--> They display the application user interface
+--> It is created from model data
+
+--> Controller:
+--> They handle user interactive
+--> They works with the model and select view for that.
+
+--------------------------------------------------------------------------------
+
+4. Routing in mvc
+
+--> In startup file, app.UseRouting is used to enable routing in mvc
+--> For .net core3, endpoints are introduced for routing in which you can mention multi routings
+--> eg. for razor pages, for api, for mvc
+--> You have to include them
+
+	    app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapRazorPages();
+            });
+
+--------------------------------------------------------------------------------
+
+--> URl pattern
+
+1. localhost:1234/{controller}/{action}/{id}		--> mvc
+2. localhost:1234/Book/Index/2				--> razor pages
+3. localhost:1234/{area}/{controller}/{action}/{id}	--> if area is used
+4. localhost:1234/Admin/Book/Index/2			--> with area
+
+--------------------------------------------------------------------------------
+
+5. Routing with Areas
+
+--> Creating different sections
+--> We are dividing related controllers in seperate sections
+--> Sections like Admin, Identity, Customer
+--> Each will have its own controllers, views and models
+--> Only helpful in large projects
+--> It is more level in url routing
+
+--------------------------------------------------------------------------------
+
+--> Url pattern:
+
+localhost:1234/Admin/Category/Edit/10
+localhost:1234/Admin/Home/Index
+localhost:1234/Customer/Home/Index
+localhost:1234/Identity/Account/Register
+
+--------------------------------------------------------------------------------
+
+--> For implementing areas,
+--> We have to change conventional routing in startup file
+
+--> There is folder in project --> Areas
+--> It contains differnet sections
+
+--> It is additional layer in url.
+
+--------------------------------------------------------------------------------
+
+6. Routing difference 2.2 vs 3.0
+
+--> 3.0
+
+app.UseEndpoints(endpoints => 
+{
+	endpoints.MapControllerRoute(
+		name: "default"
+		pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapRazorPages();
+            });
+
+--> 2.2
+
+app.UseMvc(routes => {
+	routes.MapRoute(
+		name: "areas",
+		template: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
+	});
+
+--------------------------------------------------------------------------------
+
+7. RunTime Compilation
+
+--> All dependencies listed in Dependencies folder or project file
+--> One dependency you can add --> Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation
+
+--> services.AddRazorPages().AddRazorRuntimeCompilation();
+--> By default, this dependency refresh and compile changes to Kestral server on refreshing html pages.
+
+--------------------------------------------------------------------------------
+
+8. Adding Areas to our Project
+
+--> Right click Areas folder --> Add Area
+--> Name it : Customer
+--> It contains 4 folders --> controller, data, view, model
+
+--> To implement 'area' in our application
+--> In startup file, redefine url pattern
+
+app.UseEndpoints(endpoints =>
+{
+      endpoints.MapControllerRoute(
+          name: "default",
+          pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
+      endpoints.MapRazorPages();
+});
+
+--------------------------------------------------------------------------------
+
+--> Add one more area --> Admin
+--> We do not need Model and Data folder so delete them from both folders (Admin and Customer)
+--> We will keep Model and Data for all controllers in common place.
+
+--------------------------------------------------------------------------------
+
+9. Moving files to make Area Work
+
+--> Move HomeController from main project to Customer Controllers folder
+--> Move Home View from main project to Customer Views folder
+--> Copy ViewStart and ViewImport files from project to Views folder in Customer area.
+
+--------------------------------------------------------------------------------
+
+--> In ViewStart file,
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+--------------------------------------------------------------------------------
+
+--> In Customer area, HomeController, mention DataAnnotation
+
+[Area("Customer")]
+public class HomeController : Controller
+
+--> If you don't define this DataAnnotation, this Customer Controller won't work.
+
+--------------------------------------------------------------------------------
+
+10. Add Database
+
+--> In appsettings.json file,
+
+  "ConnectionStrings": {
+    "DefaultConnection": "Server = LENOVOLAPTOP; database= Spice;Trusted_Connection=True;MultipleActiveResultSets=true"
+  }
+
+--------------------------------------------------------------------------------
+
+--> update-database
+
+--> When you enable authentication, two migrations of identityframework already applied.
+--> Tables of identity framework are created.
+--> See under Data folder --> migrations
+
+--------------------------------------------------------------------------------
+
+11. Updating _NavBar and Scaffolding Identity
+
+--------------------------------------------------------------------------------
+
+--> In _Layout.cshtml
+
+<nav class="navbar-dark bg-dark ..">..
+
+<a class="nav-link"..>		--> In all (remove text-dark)
+
+<footer class="border-top pl-3 footer text-white-50" style="background-color: #343a40;">
+
+--------------------------------------------------------------------------------
+
+--> In _LoginPartial.cshtml
+
+<a class="nav-link"..>		--> In all (remove text-dark)
+
+--------------------------------------------------------------------------------
+
+--> Identity Framework is a razor class library in .net core
+--> All its pages are implemented in razor pages
+--> So this application will be a combination of mvc and razor pages.
+
+--> To add pages related to Register, Login and other, we use scaffolding.
+
+--> Right click on Identity area
+--> Add 
+--> Add New Scaffolded Item
+--> Select identity from sidemenu
+--> Add
+--> Tick on Override all files
+--> Select layout as _Layout.cshtml
+--> Choose Datacontext class as: ApplicationDbContext which was created with individual authentication.
+
+--------------------------------------------------------------------------------
+
+12. Adding Dropdown to Navbar
+
+--> In _Layout.cshtml
+--> Add this additional link to navbar
+
+<li class="nav-item dropdown text-white-50">
+   <a class="nav-link dropdown-toggle" href="#" id="navbarDropDownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" 
+aria-expanded="false">
+      Content Management
+   </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropDownMenuLink">
+                                    <a class="dropdown-item" asp-action="Index" asp-controller="Category" asp-area="Admin">Category</a>
+                                    <a class="dropdown-item" asp-action="Index" asp-controller="SubCategory" asp-area="Admin">Sub Category</a>
+                                    <a class="dropdown-item" asp-action="Index" asp-controller="MenuItem" asp-area="Admin">MenuItem</a>
+                                    <a class="dropdown-item" asp-action="Index" asp-controller="Coupon" asp-area="Admin">Coupons</a>
+                                    <a class="dropdown-item" asp-action="Index" asp-controller="User" asp-area="Admin">Users</a>
+
+                                </div>
+
+                            </li>
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

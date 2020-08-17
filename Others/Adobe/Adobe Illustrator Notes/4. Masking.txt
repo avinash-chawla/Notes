@@ -1,0 +1,135 @@
+1. Masking-->
+
+--> Create new document
+--> Always Place Image
+--> If image is bigger, after selecting Place option, just drag box on document
+--> It will still maintain image ratio
+
+------------------------------------------------------------
+
+--> Clipping Mask
+
+--> Send Image to Send to Back, in arrange, to document
+--> Draw 1/3rd box (rectangle) inside document,
+
+--> Select Box and Image
+--> Right click
+--> Select Clipping Mask
+
+---------------------------------------
+
+--> Draw Circle
+--> Send Image to Back
+--> Select Both and clipping mask in right menu
+
+---------------------------------------
+
+--> To move inside shape now
+--> Select white arrow and move the image
+--> Make sure to select anywhere (to deselect box before) and select Image
+
+--> To resize Image, after clicking image with white arrow tool, select with black move tool and resize it.
+
+--> To undo clipping mask, select clipping mask, right click, release mask--> And that shaped element, becomes with no fill, no stroke
+
+
+
+--------------------------------------------------------------
+
+--> Masking on bunch of circles in row and column-->
+
+--> Draw circle
+--> Give some Fill
+--> Select Move tool
+--> Holding Alt key, drag to bottom (it will copied and paste in line)
+
+--> Select All Four in column
+--> Select move tool and holding alt key, drag sideway
+
+--> Select all 16 circle 
+--> Object menu --> Make Compound
+--> It gives option of selecting all with move tool at once.
+
+--> Now Place Image behind them (Send to back option)
+--> Select Both
+--> Right click Clipping Mask
+
+-------------------------------------------------------------
+
+--> Masking on Text-->
+
+--> Type Text
+--> Place image behing Text
+--> Select both and Clipping Make
+
+--> Such Text is editable
+--> Double click Text to edit or use Text tool to edit
+
+---------------------------------------------------------------
+
+2. Cut Holes in Shapes-->
+
+--> Make Rectangle
+--> Make circle inside it
+--> Place image in back of all
+--> Select circle and Rectangle with Move tool
+--> Select Object menu --> Click on Create Object
+
+--> Now circle portion is cut, whole through
+
+-----------------------------------------------------------------
+
+--> Give Shadows to elements-->
+
+--> Select whole element
+--> Make it them to Object before shadowing
+--> Effect menu --> Stylise --> Drop Shadow
+
+----------------------------------------------------------------
+
+--> If pc is slow in illustrator
+--> Effects menu --> Raster Settings --> make Resolution: Low
+
+----------------------------------------------------------------
+
+--> Many svgs or ai files from internet are made using Compound paths and groups
+--> So to work with them-->
+
+--> To ungroup --> Object menu --> Ungroup
+--> To release Compount path --> Object menu --> Compound Path --> Release
+
+----------------------------------------------------------------
+
+--> Making Different Compound Paths and making paper craft style-->
+
+--> Make Same Rectangle Box 4 times
+--> Draw Four different size frames using Pencil tool, smallest to biggest
+--> And place them on 4 rectangles differently
+
+--> Tip: Make such frame designs on one rectangle, then drag to them to other.
+
+--> Make all 4 rectangles different color
+--> For each, cut each inside rectangle using Compound path
+--> Merge all, smallest at the back.
+
+--> In placing all in one first full rectangle, smallest first, them proceding to the biggest last
+--> In placing each, make layer bring to first
+
+--> Now, Paper Craft frame is created.
+
+--> Now give shadow and blurr effect for smooth shadow
+--> Pc becomes slow, make raster resolution to low
+
+--> Draw small Rectangle over Paper Craft frame
+--> Select All
+--> Clipping Mask in right click won't work
+
+--> Object menu --> Clipping mask --> Make
+
+
+---------------------------------------------------------------------------------------------
+difference-->
+
+--> Clipping Mask --> Make background image in an element
+--> Compound Path --> Removes element inside an element (cut holes)
+ 

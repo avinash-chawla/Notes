@@ -1,0 +1,100 @@
+1. Bruno
+
+--> Hey CodeSage! We need some performance boost. Also can we do a PWA?
+
+------------------------------------------------------------------------------
+
+2. Section Overview
+
+--> 3 Keys To Performance
+
+1. On Frontend
+2. On Transfer
+3. On Backend
+
+1. On Frontend
+--> Critical Render Path
+--> Optimized code
+--> Progressive Web App
+
+2. On Transfer
+--> Minimize file size
+--> Minimize Delivery
+
+3. On Backend
+--> CDNs
+--> Caching
+--> Load Balancing
+--> DB Scaling
+--> GZIP
+
+--> In this section, we will focus on Front End
+1. Optimized code
+2. PWA
+
+------------------------------------------------------------------------------
+
+3. Optimizing Code
+
+--> To measure performance of any webapp like twitter, go to performance tab in developer tools
+--> Click on record button
+--> Reload the webpage
+--> Stop recording
+--> This will generate chart
+
+--> There are different lines on graph
+--> Green line represents paint (css) of webpage
+--> blue line represents DOM Content loaded
+--> Red Line which is load event
+
+--> You can find whole description in Summary tab below
+--> You can see maximum time is taking by Scripts means javascript compiling and parsing.
+
+------------------------------------------------------------------------------
+
+--> Steps followed by browser
+1. Request JS 	
+2. JS Arrived and compiles
+3. fetch appi
+4. Content Arrives 
+5. Again JS compiles
+
+------------------------------------------------------------------------------
+
+--> Another websites for checking your website performance.
+--> ZerotoMastery
+--> webpagetest.org
+
+--> They also show performance chart like in extension tool
+--> They also tell maximum time is consuming by Scripts (parsing and then compiling)
+--> Do not include animations like page scroll animations bec. they take maximum time in compiling
+--> Scripts are run in main thread of v8 compiler engine, so they really can impact performance.
+--> It is called Render blocking Operation.
+
+------------------------------------------------------------------------------
+
+--> Angular is somewhat using AOT (Ahead of time) compiling which reduces compiling for v8 engine, directly given compiled version
+--> So reduces much time for rendering.
+--> It has also pros and cons
+
+------------------------------------------------------------------------------
+
+--> Make sure to first show meaningful paint to user and then interaction.
+
+------------------------------------------------------------------------------
+
+4. Code Splitting Introduction
+
+--> The bigger the size of javascript file, the more it takes times to load and compile
+--> Idea is splitting this big javascript file into smaller chunks and first sending  main small javascript file which is for index.html and then doing lazy loading of other javascripts file in asynchronous fashion.
+
+------------------------------------------------------------------------------
+
+--> React has a inbuilt tool for minimizing size of javascript file
+--> npm start build 	--> it do's all operation like minification, uglification and making bundles like vendor.js (contains all script files) and reduces file size.
+
+------------------------------------------------------------------------------
+
+5. Code Splitting 1
+
+--> 

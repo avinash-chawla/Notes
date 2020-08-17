@@ -1,0 +1,27 @@
+1. Variable is changeable
+2. if(variable comparison condition){  }
+3. switch(variable){	case variable_value: ..
+4. array is list of variables
+5. variable can be any datatype- string, number, boolean, null, undefined
+6. function takes variables as input and do operations on it and return output.
+7. constructor is special function which takes variables as input, do operations on it and store it in dictionary and return more than one outputs.
+8. object is usage of constructor dictionary
+9. Non-quote string are always variable
+
+
+--> Topics
+//1. Variables
+//2. Datatypes
+//3. String Methods - subString, join, split
+//4. Array and array Methods - push, unshift, pop
+//5. Objects and Array of Objects 
+//6. for loops, while loops, forOf loop
+//7. Higher order Array methods - forEach, map, filter
+//8. If else statement
+//9. Functions
+//10. Constructor Function
+//11. Objects
+//12. Classes
+
+
+----------------------------------------------------------------------

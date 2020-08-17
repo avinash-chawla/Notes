@@ -1,0 +1,15 @@
+1. Technologies
+
+--> Angular6
+--> .net core2.1
+
+----------------------------------------------------
+
+2. Tools
+
+--> nodejs
+--> visual studio code
+--> .net core sdk
+--> db browser for sqlite
+
+----------------------------------------------------

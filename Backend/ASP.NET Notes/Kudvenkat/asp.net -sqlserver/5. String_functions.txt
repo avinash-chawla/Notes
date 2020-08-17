@@ -1,0 +1,162 @@
+1. Intro-->
+
+--> there are two types in string functions --> userdefined and system
+--> expand database --> programmability --> Functions --> System functions
+
+---------------------------------------------------------------------------------
+
+1. ASCII-->
+--> converts character to ascii code
+
+Select ASCII('A')	--> 65
+Select ASCII('ABC')	--> 65	
+
+---------------------------------------------------------------------------------
+
+2. CHAR-->
+--> Converts ascii code to character
+
+Select CHAR(65)		--> A
+
+--> while loop for printing all alphabets
+Declare @Start int
+Set @Start = 65			--> 977 (A) --> 48 (0)
+While(@Start <= 90)		--> 122 (Z) --> 57 (9)
+Begin
+	Select CHAR(@Start)
+	Set @Start = @Start + 1
+End 
+
+---------------------------------------------------------------------------------
+
+3. LTRIM() / RTRIM()-->
+
+--> Select '	Hello'
+--> Select LTRIM(' 	Hello')		--> RTRIM('Hello	')
+
+Select LTRIM(FirstName) as FirstName, MiddleName from tblEmployee
+
+---------------------------------------------------------------------------------------
+
+4. Both-->
+
+RTRIM(LTRIM(FirstName)		--> to remove spaces from both sides
+
+---------------------------------------------------------------------------------------
+
+5. UPPER / LOWER-->
+
+Select UPPER(FirstName) from tblEmployee
+Select LOWER(FirstName) from tblEmployee
+--------------------------------------------------------------------------------------
+
+6. REVERSE()-->
+
+Select Reverse(FirstName) from tblEmployee
+
+---------------------------------------------------------------------------------------
+
+7. LEN()-->
+
+Select FirstName, LEN(FirstName) as [Total Characters] from tblEmployee
+
+---------------------------------------------------------------------------------------
+
+8. LEFT() --> 
+
+--> it returns the specified number of characters from the left hand side of given character expression
+--> LEFT(Character_Expression, Integer_Expression)
+
+SELECT LEFT('ABCDEF', 3)	--> ABC
+
+-----------------------------------------------------------------------------------------
+
+9. RIGHT() -->
+
+SELECT RIGHT('ABCDEF', 3)	--> DEF
+
+-----------------------------------------------------------------------------------------
+
+10. CHARINDEX()-->
+
+SELECT CHARINDEX('@', 'sara@aaa.com' , 0)      --> 0 is starting position --> return 5
+
+-----------------------------------------------------------------------------------------
+
+11. SUBSTRING() -->
+
+SELECT SUBSTRING('sara@aaa.com', 6, 7)	 --> 6 is starting position, 7 is length
+
+SELECT SUBSTRING('pam@bbb.com', CHARINDEX('@', 'pam@bbb.com') + 1, 
+LEN('pam@bbb.com') - CHARINDEX('@', 'pam@bbb.com')) 
+
+----------------------------------------------------------------------------------------
+
+12. Exercise-->
+
+--> count the total number of gmail.com accounts, yahoo.com accounts, ccc.com accounts from a list of email address in email column
+
+SELECT SUBSTRING(Email, CHARINDEX('@', Email) +1, (LEN(Email) - CHARINDEX('@', Email))) as EmailDomain, Count(*) as Total
+from tblEmployee
+group by UBSTRING(Email, CHARINDEX('@', Email) +1, (LEN(Email) - CHARINDEX('@', Email)))
+
+--> aaa.com 4
+--> bbb.com 3
+--> ccc.com 2
+
+----------------------------------------------------------------------------------------
+
+13. REPLICATE() --> 
+
+Select REPLICATE('*' , 5 ) 	--> *****
+
+Select FirstName, LastName, 
+	SUBSTRING(Email, 1, 2) + REPLICATE('*', 5) +
+	SUBSTRING(Email, CHARINDEX('@', Email), LEN(Email) - CHARINDEX('@', Email) + 1) as Email from tblEmployee
+
+
+--> Sa*****@aaa.com
+--> Ra*****@aaa.com
+--> Ba*****@aaa.com
+
+----------------------------------------------------------------------------------------
+
+15. Space() -->
+
+--> return spaces
+Select Space(5) 
+Select (FirstName + SPACE(5) + LastName) as FullName
+
+----------------------------------------------------------------------------------------
+
+16. PATINDEX Function-->
+
+--> it returns the starting position of the first occurance of a pattern in a specified expression
+--> it takes two arguments, the pattern to be searched and the expression
+--> it is similar to CHARINDEX(), but with this, wild cards can be used
+--> if pattern is not found, return 0
+
+--> eg. PATINDEX('%@aaa.com', 'Sam@aaa.com') 	--> 4
+
+--> select email, patindex('%@aaa.com', Email) as FirstOccurance from tblEmployee
+where patindex('%@aaa.com', Email) > 0
+
+----------------------------------------------------------------------------------------
+
+17. REPLACE() --> 
+
+--> replace('sam@aaa.com', '.com', '.net') 	--> sam@aaa.net
+
+Select Email, Replace(Email, '.com', '.net') as Email from tblEmployee
+
+----------------------------------------------------------------------------------------
+
+18. STUFF() -->
+
+--> he is brother of replace() method
+--> stuff(replacement_expression, start_position(first char is 1 here), len of characters to be replaced with, newExpression which is replacint
+
+--> email = Sam@aaa.com
+--> stuff(email, 2, 3, '*****')
+--> S*****aaa.com
+ 

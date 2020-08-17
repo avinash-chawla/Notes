@@ -1,0 +1,240 @@
+1. Intro-->
+
+--> Validation controls are used to ensure if, the data, entered by the user is valid.
+--> Asp.net framework, provides 6 built-in validation controls
+--> These controls can be used to perform both client side and server side validation
+
+--> These controls automatically generate js code for us.
+--> It is good practice to have server side validation because client may disable javascript validation on their broweser
+
+--------------------------------------------------------------------------------
+
+2. RequiredField Validator-->
+
+--> Drag and Drop control
+--> Properties-->
+
+1. ID
+2. runat
+3. ErrorMessage
+4. ControlToValidate
+5. ForeColor="Red"
+6. InitialValue="-1"
+7. Text
+8. Display
+
+--------------------------------------------------------------------------
+
+--> InitialValue is only for ddl bec. 
+<asp:ListItem Text="Select Gender" Value="-1"></asp:ListItem>
+--> errorMessage also displays when value of ddl is -1
+
+--------------------------------------------------------------------------
+
+--> if Text is provided, ErrorMessage won't be displayed then
+
+-------------------------------------------------------------------
+
+--> Button is only can clicked to server if user has passed all validations
+--> This is server side validation.
+--> This will apply even if javascript is disabled on browser.
+
+button_click event-->
+
+if(Page.IsValid)
+{
+	Label1.Text = "Data Saved Successfully";
+}
+else
+{
+	Label1.ForeColor = System.Drawing.Color.Red;
+	Label1.Text = "Validation failed! Data not saved";
+}
+
+
+--> This Page.IsValid will only return true if all control elements are not displaying error.
+-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+3. RangeValidator Control-->
+
+--> Drag and drop
+--> ErrorMessage
+--> ControlToValidate
+--> MinimumValue="1" 		 --> "01/01/2012"
+--> MaximumValue="100"		 --> "31/12/2012"
+--> Type="Integer"
+--> Display
+
+--> Available types are currency, date, double, integer, string
+--> Display can none, static, dynamic
+
+1. None--> Error message not rendered and displayed next to the control. Only used in validationSummary control
+
+2. Static --> Error message is displayed next to the control if validation fails. Space is reserved on the page for message even if validation succeeds. Make visibility=none
+
+3. Dynamic--> Space is not reserved, generated dynamically. Make display=none
+
+--------------------------------------------------------------------------------
+-------------------------------------------------------------------
+
+4. Compare Validator Control-->
+
+--> To compare the value with another control or constant value
+
+--> Mostly used for-->
+
+1. DataTypeCheck
+2. Password Checking
+
+--> Properties-->
+1. ControlToCompare
+2. ControlToValidate
+3. Operator="Equal"
+4. Type="String"
+5. ForeColor
+6. SetFocusOnError 	
+7. ValueToCompare		--> compares with value instead of other control	
+
+--> Focus of cursor automatically goes to control whose validation failed after clicking submit button
+
+--> For Data Type Check-->
+
+Operator="DataTypeCheck"
+Type="Integer"
+
+------------------------------------------------------------------------------------------------------
+
+5. RegularExpression Validator-->
+
+--> Drag and drop
+Properties-->
+
+1. ValidationExpression				--> can use in-built expression
+2. ControlToValidate
+3. ErrorMessage
+4. ForeColor
+
+--> Extra Properties-->
+
+1. EnableClientScript 	-
+
+--> by default, true
+--> if false, disable all client-side validation on browser
+--> It is similar to close/disable javascript on browser manually.
+
+2. Enabled
+
+--> Every validation control has this property
+--> if set to false, that validation is disabled both on server and client side.
+
+----------------------------------------------------------------------------
+
+6. Custom Validator-->
+
+--> Our own Logic eg. enter a Even Number
+--> drag and drop
+
+--> Properties-->
+
+1. OnServerValidate
+2. ClientValidationFunction
+3. ValidateEmptyText
+
+---------------------------------------------------------------------------
+___________________________________________________________________________
+
+--> go to events of customvalidator--> double click serverValidate
+
+2 Properties are used in this function--> args.Value  and  args.IsValid
+
+if(Convert.ToInt32(args.Value) % 2 == 0)
+	args.IsValid = true;
+else 
+	args.IsValid = false;
+
+--> Above won't validate if textbox is empty and if ValidateEmptyText is false, so make it true
+--> Above code still Throw exception bec. args.value = null or if input is string rather than integer
+
+-->  	if(args.Value == "")
+		args.IsValid = false; 
+	else
+	{
+		int Number;
+		bool isNumber = int.TryParse(args.Value, out Number);		--> Number is variable, this function needs it
+		if(isNumber && Number % 2 == 0 )
+		{
+			args.IsValid = true
+		}
+		else
+		{
+			args.IsValid = false;
+		}
+	}
+}
+
+-> int.TryParse()   will return true if integer and return false if not integer 
+------------------------------------------------------------------------------------
+
+--> ClientSide validation-->
+--> include in aspx page in head tag-->
+
+<script type="text/javascript" language="javascript">
+	function IsEven(source, args) 
+	{
+		if(args.Value == ""){
+			args.IsValid = false;
+		}
+		else
+		{
+			if(args.Value % 2 == 0) {
+				args.IsValid = true;
+			} else
+				args.IsValid = false;
+		}
+	}
+</script>
+
+--> include attribute in CustomValidator --> ClientValidationFunction="isEven"
+
+----------------------------------------------------------------------------------
+
+7. SummaryValidator Control-->
+
+--> It is used to display a summary of all validation errors occured in a Web page, at one place
+
+--> Properties-->
+
+1. HeaderText
+2. ShowSummary
+3. ShowMessageBox	--> if true, show messageBox  (but not used nowadays)
+4. DisplayMode -->  List, bulletList, SingleParagraph
+
+--> It shows which is written in text in different validators
+---------------------------------------------------------------------------------
+
+8. ValidationGroups-->
+
+1. Clear Button-->
+
+--> whenever user clicks clear button to clear fields, validations messages displayed due to default property of button that causes validation
+--> turn off CausesValidation
+
+--> btnClear_click event-->
+
+TextBox1.Text = "";
+TextBox2.Text = "";
+TextBox3.Text = "";
+
+2. Validation Groups-->
+
+--> Suppose, there are two forms in single page one for login and second for registration.
+--> When clicking login, only validation of login page should happen not of both forms
+
+--> solution: validators belonging to login, make same validation group name
+--> select respective button, validators, press F4 (display properties) and give same validation groups name
+
+
+------------------------------------------------------------------------------
+
+2. 

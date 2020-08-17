@@ -1,0 +1,172 @@
+1. Tools to install client-side packages
+
+--> There are many tools that we can use with Visual Studio to install client-side packages like Bootstrap and jQuery. 
+--> For example we could use tools like Bower, NPM, WebPack etc
+
+-------------------------------------------------------------------------------
+
+2. Library Manager (LibMan)
+
+--> Library Manager is a light-weight, client-side library acquisition tool. 
+--> It downloads client-side libraries and frameworks from the file system or from a CDN (Content Delivery Network).
+
+--> To be able to use LibMan you should have Visual Studio 2017 version 15.8 or later
+
+-------------------------------------------------------------------------------
+
+3. Install Bootstrap Using LibMan Graphic tool
+
+--> Right click on the "Project Name" 
+--> Select Add > Client-Side Library. 
+--> In the "Add Client-Side Library" window that opens
+--> Leave the default provider which is cdnjs
+--> In the "Library" text box, type "twitter-bootstrap". 
+--> Upon selecting the matching entry, it tries to install the latest version. --> However, you can manually type the version you want. 
+--> You also have intellisense support. 
+--> Choose 4.3.1 version
+
+--> You can either include "All the library file" or "Just the files you need"
+
+ 
+--> In the "Target Location" text box specify the folder where you want the library files to be copied. 
+--> Recollect, by default static files are only served from WWWRoot folder.
+--> Click the "Install" Button.
+
+-------------------------------------------------------------------------------
+
+4. libman.json file
+
+--> libman.json is the Library Manager manifest file. 
+--> Notice in the manifest file we have an entry for the Bootstrap client-side library that we just installed. 
+--> We can also directly edit the manifest file to install client-side packages, instead of using the user interface provided by LibMan.
+
+-------------------------------------------------------------------------------
+
+5. Clean and Restore Client-Side Libraries
+
+--> To clean library files, right click on libman.json file and select "Clean Client-Side Libraries" from the context menu. The clean operation deletes the library files from the destination folder. However, the entries in libman.json will not be deleted.
+
+--> To restore the deleted files, right click on libman.json file and select "Restore Client-Side Libraries" from the context menu. The restore operation will download and copy the library files into the specified destination folder.
+
+--> To restore, just the save the libman.json file, all dependencies mentioned in that will be installed.
+
+-------------------------------------------------------------------------------
+
+6. Uninstall or Update a Client-Side Library
+
+--> Open libman.json file 
+--> Click on the client-side library you want to uninstall 
+--> A light bulb icon appears
+--> Click on the light bulb icon and you will have options to either update or uninstall that specific client-side library
+
+-------------------------------------------------------------------------------
+
+7. Site Specific CSS
+
+--> Make new folder in wwwroot  --> css
+--> Add new item --> stylesheet --> site.css
+
+.btn{
+   width: 75px;
+}
+
+-------------------------------------------------------------------------------
+
+8. Using Bootstrap
+
+--> To start using Bootstrap in your asp.net core application, include a reference to the Boostrap.css file in the layout file _Layout.cshtml. 
+--> Also include a reference to our custom stylesheet site.css.
+--> To add a reference, simply just drag and drop the file to view file.
+
+--> _Layout.cshtml
+
+<html>
+<head>
+    <link href="~/lib/bootstrap/css/bootstrap.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+    <title>@ViewBag.Title</title>
+</head>
+<body>
+
+    <div class="container">
+        @RenderBody()
+    </div>
+    ...
+</html>
+
+
+--> We are using container class.
+
+-------------------------------------------------------------------------------
+
+--> Details.cshtml
+
+@model HomeDetailsViewModel
+
+@{
+    ViewBag.Title = "Employee Details";
+}
+
+<div class="row justify-content-center m-3">
+    <div class="col-sm-8">
+        <div class="card">
+            <div class="card-header">
+                <h1>@Model.Employee.Name</h1>
+            </div>
+
+            <div class="card-body text-center">
+                <img class="card-img-top" src="~/images/noimage.jpg" />
+
+                <h4>Employee ID : @Model.Employee.Id</h4>
+                <h4>Email : @Model.Employee.Email</h4>
+                <h4>Department : @Model.Employee.Department</h4>
+
+            </div>
+            <div class="card-footer text-center">
+                <a href="#" class="btn btn-primary">Back</a>
+                <a href="#" class="btn btn-primary">Edit</a>
+                <a href="#" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/CustomScript.js"></script>
+}
+
+-------------------------------------------------------------------------------
+
+--> Index.cshtml
+
+@model IEnumerable<Employee>
+
+@{
+    ViewBag.Title = "Employee List";
+}
+
+<div class="card-deck">
+    @foreach (var employee in Model)
+    {
+        <div class="card m-3">
+            <div class="card-header">
+                <h3>@employee.Name</h3>
+            </div>
+            <img class="card-img-top" src="~/images/noimage.jpg" />
+            <div class="card-footer text-center">
+                <a href="#" class="btn btn-primary">View</a>
+                <a href="#" class="btn btn-primary">Edit</a>
+                <a href="#" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    }
+</div>
+
+-------------------------------------------------------------------------------
+
+9. Note
+
+--> Make sure to have this middleware --> app.UseStaticFiles()
+--> I have spend 1hr to solve this :)
+
+-------------------------------------------------------------------------------

@@ -1,0 +1,47 @@
+1. RGB Vs CMVK-->
+
+--> RGB --> display on monitors (Luminance)
+--> CMYK --> Printer, on paper  (Without Luminance)
+
+--> Printer automatically converts CMYK, so don't use that by yourself, Printer software is much better to convert
+
+----------------------------------------------------------
+
+2. Stealing Colors-->
+
+--> Select Element
+--> Select Eye Dropper tool
+--> Choose color anywhere from page
+
+----------------------------------------------------------
+
+3. Gradient Colors-->
+
+--> Select Element
+--> Select Gradient styles from Fill color only
+--> For changing colors of colors, open Gradient from Window menu
+--> To Change colors, double click color box below Color showing.
+
+--> To add more transitional color, just click between two color boxes.
+--> double click that And select color for that
+
+--------------------------------------
+
+--> Another way-->
+
+--> Select Gradient Tool
+--> Drag line on Page
+
+--> And color for that, is available in Window menu, Gradient.
+or
+--> When clicking Gradient tool, There is box on start and end of line
+--> grabient.com
+
+
+
+--> To fill gradient on Text, use Gradient tool from toolbox and Gradient from Fill wont work here.
+
+--> Before using Gradients, make sure that document colormode is RGB
+--> File menu --> Document colormode
+
+----------------------------------------------------------

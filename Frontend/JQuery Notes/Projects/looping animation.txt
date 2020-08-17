@@ -1,0 +1,15 @@
+$(document).ready(function(){
+  $("button").click(function(){
+      function loop(){
+          var div = $("div");  
+          div.animate({left: '300px'}, "slow");
+          div.animate({fontSize: '3em'}, "slow");
+          div.animate({left: '0px'}, "slow");
+          div.animate({fontSize: '1em'}, "slow");
+          loop();
+	  }
+      loop();
+  });
+});
+
+2. https://www.w3resource.com/jquery-exercises/

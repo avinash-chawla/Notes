@@ -1,0 +1,61 @@
+1. Intro
+
+--> Create new project
+--> Choose .Net framework 4.5.2
+--> Choose template as Web Api
+--> Compile and run --> ctrl + F5
+--> visit to : http://localhost:5000/api/values
+--> visit to : http://localhost:5000/api/values/1
+
+----------------------------------------------------------------------
+
+2. Creating Web Api 
+
+--> Go to Controllers --> ValuesController.cs
+--> Instead of sending key-value pair object, sending simple list of strings
+
+public class ValuesController : ApiController
+{
+    static List<string> strings = new List<string>()		--> List
+    {
+        "value0", "value1", "value2"
+    };
+
+    // GET api/values
+    public IEnumerable<string> Get()				--> Get Request - No return type 
+    {
+        return strings;
+    }
+
+    // GET api/values/5
+    public string Get(int id)
+    {
+        return strings[id];
+    }
+
+    // POST api/values
+    public void Post([FromBody]string value)
+    {
+        strings.Add(value);
+    }
+
+    // PUT api/values/5
+    public void Put(int id, [FromBody]string value)
+    {
+        strings[id] = value;
+    }
+
+    // DELETE api/values/5
+    public void Delete(int id)
+    {
+        strings.RemoveAt(id);
+    }
+}
+
+
+--> Use Postman or fiddler to post/put/delete api object
+--> For sending data to server as request body, use type as: application/json and in that only single string --> "Samu"
+
+----------------------------------------------------------------------
+
+3. 

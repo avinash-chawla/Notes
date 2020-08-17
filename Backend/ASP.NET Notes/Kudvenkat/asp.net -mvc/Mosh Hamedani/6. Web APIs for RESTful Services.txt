@@ -1,0 +1,518 @@
+1. What is a Web API
+
+--> They are url endpoints
+--> They provide data without HTML markup
+--> Normally send data with json format
+--> Such data servies are not only for getting data, but can be used to modify, create or remove date using api endpoints
+--> Http Services or API are same
+
+2. RESTful Convention
+
+--> Conventions used for using Web API Services are called REST API
+--> Conventions are:
+Get	/api/customers
+Get	/api/customers/1
+POST	/api/customers
+PUT 	/api/customers/1
+DELETE	/api/customers/1
+
+----------------------------------------------------------------------------
+
+3. Building an API
+
+--> Create new folder inside Controllers --> Name it "Api"
+--> Add new item in Api folder --> Controller --> Web Api --> Name it: "CustomersController"
+--> This will contain actionMethods related to api
+--> If first time using Api in project:
+--> Add these supports in global.asax file
+
+using System.Web.Http;
+using System.Web.Routing;
+
+protected void Application_Start()
+        {
+            GlobalConfiguration.Configure(WebApiConfig.Register);
+
+--> If these libraries are not found, find in package manager, search online -> web api --> one will provide all related libraries.
+
+----------------------------------------------------------------------------
+
+--> In CustomersController class
+--> It is inheriting ApiController
+
+using Vidly.Models;
+
+namespace Vidly.Controllers.Api
+{
+    public class CustomersController : ApiController
+    {
+        private ApplicationDbContext _context;
+        public CustomersController()
+        {
+            _context = new ApplicationDbContext();
+        }
+
+        // Get  /api/customers
+        public IEnumerable<Customer> GetCustomers()
+        {
+            return _context.Customers.ToList();
+        }
+
+        // Get  /api/customers/1
+        public Customer GetCustomer(int Id)
+        {
+            var customer = _context.Customers.SingleOrDefault(c => c.Id == Id);
+
+            if (customer == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            return customer;
+        }
+
+        // Post  /api/customers
+        [HttpPost]
+        public Customer CreateCustomer(Customer customer)			--> If named as 'PostCustomer', then no need of [HttpPost]
+        {
+            if(!ModelState.IsValid)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+            _context.Customers.Add(customer);
+            _context.SaveChanges();
+            return customer;
+        }
+
+        // Put  /api/customers/1
+        [HttpPut]
+        public void UpdateCustomer(int Id, Customer customer)
+        {
+            if (!ModelState.IsValid)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+            var customerInDb = _context.Customers.SingleOrDefault(c => c.Id == Id);
+
+            if (customerInDb == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            customerInDb.Name = customer.Name;
+            customerInDb.Birthdate = customer.Birthdate;
+            customerInDb.IsSubscribedToNewsletter = customer.IsSubscribedToNewsletter;
+            customerInDb.MembershipTypeId = customer.MembershipTypeId;
+
+            _context.SaveChanges();
+        }
+
+        // Post   /api/customers/1
+        [HttpDelete]
+        public Customer DeleteCustomer(int Id)
+        {
+            var customerInDb = _context.Customers.SingleOrDefault(c => c.Id == Id);
+
+            if (customerInDb == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            _context.Customers.Remove(customerInDb);
+            _context.SaveChanges();
+            return customerInDb;
+        }
+    }
+}
+
+----------------------------------------------------------------------------
+
+4. Testing an APIs
+
+--> Build the project and go /api/customers
+--> Use postman for this
+
+----------------------------------------------------------------------------
+
+5. Data-transfer Objects (DTO)
+
+--> Api is linked to model domain class
+--> Any change in model properties or methods will affect Api connected users which uses application api
+--> Data-Transfer Objects comes to the rescue
+
+--> DTO's are plain DataStructure
+--> Such DTO's object are same as domain class models
+--> They are only transferrable objects
+--> This way hacker cannot access original data models and even after changing data models properties, wouldn't affect dbo and hence dependent apis
+
+--> Make new folder in project --> Dtos
+--> Add new class --> CustomerDto.cs
+--> Copy all properties from Customer.cs to CustomerDto.cs
+
+using System.ComponentModel.DataAnnotations;
+using Vidly.Models;
+
+namespace Vidly.Dtos
+{
+    public class CustomerDto
+    {
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+
+        public bool IsSubscribedToNewsletter { get; set; }
+
+
+        public byte MembershipTypeId { get; set; }
+
+        [Min18YearsIfAMember]
+        public DateTime? Birthdate { get; set; }
+    }
+}
+
+--> We have deleted property which is of type MembershipType domain class, to add reference for that, we can add another dto class which will be similar to MembershipType domain class
+
+----------------------------------------------------------------------------
+
+6. AutoMapper
+
+--> install-package automapper -version:4.1
+--> Consider AutoMapper as a Link between original domain class and Dto class
+
+--> When the application starts, Automapper comes in the picture
+--> Make a file in AppStart folder --> Name it: MappingProfile.cs
+using AutoMapper;
+using Vidly.Models;
+using Vidly.Dtos;
+
+namespace Vidly.App_Start
+{
+  public class MappingProfile : Profile
+    {
+        public MappingProfile()					--> constructor
+        {
+            Mapper.CreateMap<Customer, CustomerDto>();
+            Mapper.CreateMap<CustomerDto, Customer>();
+        }
+
+    }
+}
+
+--> AutoMapper is a library which gives Mapper object
+--> Mapper creates link between CustomerDto and Customer by using CreateMap method
+--> Mapper is a generic type method which accepts two parameters: Dto object and domain class object
+
+------------------------------------------------------------------------
+
+--> To activate this File in App_Start, we have to define in global.asax file
+
+using AutoMapper;
+
+using Vidly.App_Start;
+
+protected void Application_Start()
+{
+	Mapper.Initialize(c => c.AddProfile<MappingProfile>());
+
+
+--> Mapper object has a method Initialize, which accepts Action Parameter which is nothing but lambda expression.
+
+------------------------------------------------------------------------
+
+--> We have to replace Customer with CustomerDto object in CustomersController of Api
+
+using AutoMapper;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure.MappingViews;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web;
+using System.Web.Http;
+using Vidly.Dtos;
+using Vidly.Models;
+
+namespace Vidly.Controllers.Api
+{
+    public class CustomersController : ApiController
+    {
+        private ApplicationDbContext _context;
+        public CustomersController()
+        {
+            _context = new ApplicationDbContext();
+        }
+
+        // Get  /api/customers
+        public IEnumerable<CustomerDto> GetCustomers()
+        {
+            return _context.Customers.ToList().Select(Mapper.Map<Customer, CustomerDto>);		--> here delicate is pass in Map method --> delicate is not calling of function, only for reference
+        }
+
+        // Get  /api/customers/1
+        public CustomerDto GetCustomer(int Id)
+        {
+            var customer = _context.Customers.SingleOrDefault(c => c.Id == Id);
+
+            if (customer == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            return Mapper.Map<Customer, CustomerDto>(customer);			--> taking customer object and converting to customerDto object
+        }
+
+        // Post  /api/customers
+        [HttpPost]
+        public CustomerDto CreateCustomer(CustomerDto customerDto)
+        {
+            if(!ModelState.IsValid)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+            var customer = Mapper.Map<CustomerDto, Customer>(customerDto);	--> taking customerDto object and converting to customer object
+            _context.Customers.Add(customer);
+            _context.SaveChanges();
+
+            customerDto.Id = customer.Id;
+            return customerDto;
+        }
+
+        // Put  /api/customers/1
+        [HttpPut]
+        public void UpdateCustomer(int Id, CustomerDto customerDto)
+        {
+            if (!ModelState.IsValid)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+            var customerInDb = _context.Customers.SingleOrDefault(c => c.Id == Id);
+
+            if (customerInDb == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            Mapper.Map(customerDto, customerInDb);			--> For updating customer object, we just use source --> customerDto, and target --> customerInDb
+
+            _context.SaveChanges();
+        }
+
+        // Post   /api/customers/1
+        [HttpDelete]
+        public void DeleteCustomer(int Id)
+        {
+            var customerInDb = _context.Customers.SingleOrDefault(c => c.Id == Id);
+
+            if (customerInDb == null)
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+
+            _context.Customers.Remove(customerInDb);
+            _context.SaveChanges();
+        }
+    }
+}
+
+--> AutoMapper is an advanced concept
+--> Mapper.Map<Source, Target>(sourceObject, targetObject)
+
+----------------------------------------------------------------------------
+
+7. Camel Case Notation
+
+--> On Sending Get request to web api, objects which we are getting are in first letter capitalised
+--> So for converting json to javascript directly will show error in converting bec. javascript first letter should be lowercase
+--> Change in WebApiConfig.cs settings
+
+using Newtonsoft.Json.Serialization;
+using System.Web.Http;
+using Newtonsoft.Json;
+
+namespace Vidly
+{
+    public static class WebApiConfig
+    {
+        public static void Register(HttpConfiguration config)
+        {
+            var settings = config.Formatters.JsonFormatter.SerializerSettings;
+            settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            settings.Formatting = Formatting.Indented;
+	    ...
+}
+
+--> No need to remember, just copy and paste above settings
+--> Try get request on api
+
+----------------------------------------------------------------------------
+
+8. IHttpActionMethod
+
+--> On Sending Post Request, we get 200 status code
+--> But according to Restful convention, we should get 201 on post request
+--> IHttpActionMethod is return type object which is similar to ActionMethod in MVC controllers
+--> It has also bunch of useful methods to throw specific status code like Ok(for Get request) , NotFound(), BadRequest, Created (for Post)
+
+public IHttpActionResult GetCustomer(int Id)
+        {
+            var customer = _context.Customers.SingleOrDefault(c => c.Id == Id);
+
+            if (customer == null)
+                return NotFound();
+            return Ok(Mapper.Map<Customer, CustomerDto>(customer));
+        }
+
+
+[HttpPost]
+public IHttpActionResult CreateCustomer(CustomerDto customerDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var customer = Mapper.Map<CustomerDto, Customer>(customerDto);
+            _context.Customers.Add(customer);
+            _context.SaveChanges();
+
+            customerDto.Id = customer.Id;
+            return Created(new Uri(Request.RequestUri + "/" + customer.Id), customerDto);		--> You can see this information in header under location|
+        }
+
+--> It also comes in Advanced concept
+
+----------------------------------------------------------------------------
+
+9. Exercise: Make API for Movie
+
+--> Api --> MoviesController
+
+using AutoMapper;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Http;
+using Vidly.Dtos;
+using Vidly.Models;
+
+namespace Vidly.Controllers.Api
+{
+    public class MoviesController : ApiController
+    {
+        private ApplicationDbContext _context;
+
+        public MoviesController()
+        {
+            _context = new ApplicationDbContext();
+        }
+
+        public IEnumerable<MovieDto> GetMovies()
+        {
+            return _context.Movies.ToList().Select(Mapper.Map<Movie, MovieDto>);
+        }
+
+        public IHttpActionResult GetMovie(int id)
+        {
+            var movie = _context.Movies.SingleOrDefault(c => c.Id == id);
+
+            if (movie == null)
+                return NotFound();
+
+            return Ok(Mapper.Map<Movie, MovieDto>(movie));
+        }
+
+        [HttpPost]
+        public IHttpActionResult CreateMovie(MovieDto movieDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var movie = Mapper.Map<MovieDto, Movie>(movieDto);
+            _context.Movies.Add(movie);
+            _context.SaveChanges();
+
+            movieDto.Id = movie.Id;
+            return Created(new Uri(Request.RequestUri + "/" + movie.Id), movieDto);
+        }
+
+        [HttpPut]
+        public IHttpActionResult UpdateMovie(int id, MovieDto movieDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var movieInDb = _context.Movies.SingleOrDefault(c => c.Id == id);
+
+            if (movieInDb == null)
+                return NotFound();
+
+            Mapper.Map(movieDto, movieInDb);
+
+            movieInDb.Id = id;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete]
+        public IHttpActionResult DeleteMovie(int id)
+        {
+            var movieInDb = _context.Movies.SingleOrDefault(c => c.Id == id);
+
+            if (movieInDb == null)
+                return NotFound();
+
+            _context.Movies.Remove(movieInDb);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+--> Dtos --> MovieDto.cs
+
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace Vidly.Dtos
+{
+    public class MovieDto
+    {
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+
+        [Required]
+        public byte GenreId { get; set; }
+
+        public DateTime DateAdded { get; set; }
+
+        public DateTime ReleaseDate { get; set; }
+
+        [Range(1, 20)]
+        public byte NumberInStock { get; set; }
+    }
+} 
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+--> MappingProfile.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using Vidly.Models;
+using Vidly.Dtos;
+using AutoMapper;
+
+namespace Vidly.App_Start
+{
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            Mapper.CreateMap<Customer, CustomerDto>();
+
+            Mapper.CreateMap<CustomerDto, Customer>()
+                .ForMember(c => c.Id, opt => opt.Ignore());			--> Dto will ignore Id property of domain model
+
+            Mapper.CreateMap<Movie, MovieDto>();
+
+            Mapper.CreateMap<MovieDto, Movie>()
+                .ForMember(c => c.Id, opt => opt.Ignore());
+        }
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------

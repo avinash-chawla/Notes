@@ -1,0 +1,139 @@
+1. MVC-->
+
+--> it is model, view, controller
+--> it is one of architectural patterns which is used for building web applications.
+
+--> model: application data and behaviour in terms of its problem domain, and independent of UI. basically classes
+--> view: the html markup that we display to the user
+--> controller: responsible for handling http requests
+--> router: selects the right controller to handle a request. --> {controller}/{action}/{:id}
+--> Better Seperation of Concerns
+
+2. Extensions-->
+
+--> Productivity Power Tools	
+--> Web essentials
+
+3. First ASP.NET project-->
+
+--> select new project as C# --> ASP.NET WEB APPLICATION --> asp.net version 4.5
+--> select template as MVC
+--> Name project name as Vidly
+
+4. Folders in Solution Explorer-->
+
+--> App_Data  	--> for databasse
+--> App_Start	--> files run while starting application eg. route.cs
+--> Content	--> folder for images, stylesheets, assets
+--> Controllers --> controllers for different routes {controller}/{Action}/{id}		--> movies/edit/1
+--> fonts	--> font-family
+--> Models	--> different classes like Customers, Products, Orders
+--> Scripts	--> javascript files
+--> Views	--> views for different classes						--> views for actions
+--> favicon	--> icon for application
+--> Global	--> global setting like common exception handler
+--> packages	--> manage 3rd party libraries
+--> Startup.cs	--> new thing building by microsoft for starting application
+--> web.config	--> xml config settings	
+	--> two are important
+	1. connectionStrings 	-> for database connection
+	2. appSettings		-> for application settings
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+5. Creating Model-->
+
+--> right click model
+--> add items
+--> class --> name it Movie
+--> prop[tab] --> snippets to auto generate field
+
+public class Movie
+{
+	public int Id { get; set; }
+	public string Name { get; set; }
+}
+
+--> This class is Plain Old CLR Object(POCO) which represents state and behaviour of problem domain class 
+
+------------------------------------------------------------------------------------------
+
+6. Generating Controller-->
+
+--> right click model, add controller --> MoviesController
+--> options which you are seeing is scaffolding for autogenerate codes for controller
+--> choose empty template --> name it MoviesController
+
+--> controller/action	==> movies/randomMovie
+
+using Vidly.Models;	
+public class MoviesController : Controller	--> Controller
+{
+	public ActionResult Random()		--> Action
+	{	
+		var movie = new Movie() { Name = "Shrek!" };
+		return View(movie);
+	}
+}
+
+--> Normally model class talks with database and then provide data to view
+--> using Vidly.Models;		--> place in top --> import model in controller
+--> controller is medium between model and view.
+------------------------------------------------------------------------------------------
+
+7. Generating View-->
+
+--> while creating controller Movies --> Movies folder is created in view automatically
+--> right click it --> add view 
+--> name : Random; 
+--> template: autogenerate view; 
+--> layout: browser -> views -> sharedViews -> firstLayout --> this is default layout  (inbuilt layout used) ( more used in creating master page layout)
+--> Add
+
+--> Random.cshtml-->
+
+viewBag.Title = "Random" 	--> <title></title>
+Layout = ...			--> default layout
+
+<h2>@Model.Name</h2>			--> rendering movie from model class 
+
+--> here Model is property inbuilt in view, giving access to model data which we pass to it in controller --> see below
+--> MoviesController.cs-->
+
+var movie = new Movie() { Name= "Avinash" };
+return View(movie);
+
+
+Random.cshtml-->	--> this is view
+@model Vidly.Models.Movie	--> to make Model property dynamic
+
+--> it is decorator, used for defining type of property @Model as movie object to access Name field, @Model.Name in rendering
+--> hit ctrl+f5 by having cursor in view file
+
+------------------------------------------------------------------------------------------
+
+8. Adding a Theme_Downloadly-->
+
+--> go to bootswatch website --> select lumen style --> lumen downarrow --> bootstrap.css
+--> rename it bootstrap-lumen.css --> copy it
+--> go to Content --> right click it --> paste
+--> go to App_Start --> BundleConfig.cs --> change bootstrap.css with bootstrap-lumen.css
+
+--> bundles reduces http request to bring assets for developing webpage, so faster page reload.
+
+--------------------------------------------------------------------------------------------------------
+
+9. Course Layout--> 
+
+Fundamentals
+Entity Framework
+Forms
+Validation
+Build RESTful Services
+Client-side Development
+Authentication and Authorization
+Performance Optimization
+Building a Feature Systematically
+deployment
+
+--------------------------------------------------------------------------------------------------------

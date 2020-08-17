@@ -1,0 +1,519 @@
+1. Intro
+
+--> First we build api
+--> Second, we consume these api in angular
+--> This is walking skeleton
+
+-------------------------------------------------------------------------
+
+2. Creating new project 
+
+--> dotnet -h
+--> dotnet new -h
+--> dotnet new webapi -h
+--> dotnet new webapi -o DatingApp.API -n DatingApp.API
+
+--> We will not use template webapi with Angular
+--> We will keep seperate both.
+
+or
+
+--> Create new project with .net core 2.1 and webapi template with vs ide.
+
+-------------------------------------------------------------------------
+
+3. Reviewing the Project Files
+
+--> In visual studio code, download following extensions
+
+1. C# for visual studio code by omnisharp
+--> Includes syntax highlighting, intellisense, go to definition, dubugging support
+
+2. C# Extensions
+3. NuGet Package Manager
+
+-------------------------------------------------------------------------
+
+--> Reviewing files
+
+1. Program.cs
+
+--> It contains main method
+--> It is entry point to our application
+--> It calls another method CreateWebHostBuilder
+--> This method use Kestrel as the web server and configure it using the application configuration from appsettings.json 
+
+--> This methods calls startup method which is startup file methods
+
+2. Startup.cs
+
+--> It has two main methods
+1. ConfigureServices
+--> It is provider for dependency injection
+--> Right now, it includes services.AddMvc()	--> It is required for webapi application
+
+2. Configure
+--> It handles incoming request pipeline.
+--> Currently, it is handled by app.UseMvc(); 
+
+-------------------------------------------------------------------------
+
+4. Running the dotnet core application
+
+--> app.UseMvc()
+--> It handles network request to our backend application.
+--> It supports attribute and conventional routing both.
+
+-------------------------------------------------------------------------
+
+--> Attribute Routing
+
+--> This data annotation is applied above controller or actionMethod
+--> [Route("api/[controller]")
+--> Any request comes with this syntax, app.UseMvc() will pass it this controller
+
+-------------------------------------------------------------------------
+
+--> REST API
+--> Basically it includes http verbs - get, put, post to do multiple operations with backend
+
+-------------------------------------------------------------------------
+
+
+--> .net is standard library
+--> These libraries make framework so that you don't start creating application from  stratch.
+--> They contain useful methods and functionality to work with application.
+
+-------------------------------------------------------------------------
+
+--> launchSettings.json
+
+--> It contains on which port our application will be hosted
+--> In last json object, projectName: {}
+--> It contains launchBrowser: true		--> Make it false
+--> launchUrl:..				--> There is no meaning of that now
+--> application url				--> It contains port number
+
+-------------------------------------------------------------------------
+
+--> To run the application
+
+--> In cmd line, dotnet run
+--> navigate to: http://localhost:5000/api/values
+--> When you navigate to this url, we will see two json objects
+--> Logging of this navigation is recorded by CreateWebHostBuilder and write in console in Development mode.
+
+-------------------------------------------------------------------------
+
+5. Environment settings and using dotnet watch run
+
+-------------------------------------------------------------------------
+
+--> app.UseDeveloperExceptionPage();
+--> It handles global exception occured in application
+
+--> In any actionMethod, type in code block --> throw new Exception("Test Exception")
+--> And navigate to that actionMethod, it will show important logging stack trace for debugging
+
+-------------------------------------------------------------------------
+
+--> Now change environment from development to production in launchSettings.json
+
+--> Now run again
+--> You won't see exception Page containing details of problem.
+
+-------------------------------------------------------------------------
+
+--> dotnet watch run
+
+--> This is similar to nodemon
+
+-------------------------------------------------------------------------
+
+6. Creating the first Model and DataContext
+
+--> Model contains application Data
+--> But all data cannot be saved in model class
+--> We use database to store application data
+
+--> Now model becomes middleman
+--> We ask model to bring data, save data, etc.
+--> EntityFramework is a ORM which maps model and database through linq queries
+
+-------------------------------------------------------------------------
+
+--> Make new folder --> Models
+--> Make new class by right clicking it 	--> Value	--> Press enter
+--> This is full similar to visual studio.
+
+public int Id { get; set; }
+public string Name { get; set; }
+
+-------------------------------------------------------------------------
+
+--> Making ORM class
+--> Ef needs DataContext class to keep track of all models and this class implements DbContext from EfLibrary
+--> Any changes in model class, will affect database query command.
+
+--> Make new folder --> Data
+--> Make new class  --> DataContext.cs
+
+    public class DataContext : DbContext
+    {
+        public DataContext(DbContextOptions<DataContext> options) : base(options){ }
+
+        public DbSet<Value> Values { get; set; }
+    }
+
+--> Table will save as Values of type Value class.
+
+-------------------------------------------------------------------------
+
+--> In startup class
+
+--> In ConfigureServices method,
+
+services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+
+-------------------------------------------------------------------------
+
+--> appsettings.json
+
+"ConnectionStrings": {
+    "DefaultConnection": "Data Source=DatingApp.db"
+},
+
+-------------------------------------------------------------------------
+
+--> Installing Sqlite from nuget package
+
+--> ctrl + shift + P
+--> nuget package - add package
+--> type - Microsoft.EntityFrameworkCore.Sqlite
+--> select sqlite
+--> select - 2.1.0 version
+
+-------------------------------------------------------------------------
+
+7. Creating the Database using EF migrations
+
+--> Migrations help to build template for generating required sql code
+
+--> dotnet ef migrations add InitialCreate
+--> dotnet ef database update
+
+--> A new db file is generated in project
+--> Open it using Db Browser for sqlite
+
+--> Go to browse tables
+--> Insert new record	--> 1- Value 101, 2- Value 102, 3- Value 103
+--> Write Database
+
+-------------------------------------------------------------------------
+
+8. Retrieving data from the Database
+
+-------------------------------------------------------------------------
+
+--> Shortcut in vscode to fast open any file
+
+--> ctrl + P	--> type name of file
+
+-------------------------------------------------------------------------
+
+--> We need object of DataContext class
+--> This is ORM class
+--> We use dependency injection to use object of that class.
+
+--> We already created dependency injection using services.DbContextOptions<DataContext>();
+
+[Route("api/[controller]")]
+[ApiController]
+public class ValuesController : ControllerBase
+{
+    // Creating readonly property for storing object in this variable
+    private readonly DataContext _context;
+
+    // Dependency Injection
+    public ValuesController(DataContext context)
+    {
+        this._context = context;
+    }
+
+
+    // IActionResult sends HttpResponse object instead of any string or other datatype
+    // Ok is one example
+
+    // GET api/values
+    [HttpGet]
+    public IActionResult GetValues()
+    {
+        var values = _context.Values.ToList();
+        return Ok(values);
+    }
+
+    // GET api/values/5
+    [HttpGet("{id}")]
+    public IActionResult GetValue(int id)
+    {
+        var value = _context.Values.FirstOrDefault(x => x.Id == id);
+        return Ok(value);
+    }
+
+
+--> ToList()    --> Gives list of records
+--> First()     --> return single record, if not found record, then throw exception
+--> FirstOrDefault  --> return single record, if not found record, then return null.
+
+
+--> In post, if you try GET api/values/55       --> You won't get exception, you get no content with status 204
+
+-------------------------------------------------------------------------
+
+9. Making our code asynchronous
+
+--> asynchronous code does not block main thread
+--> To make any actionMethod as async method, do following
+
+[HttpGet]
+public async Task<IActionResult> GetValues()
+{
+    var values = await _context.Values.ToListAsync();
+    return Ok(values);
+}
+
+// GET api/values/5
+[HttpGet("{id}")]
+public async Task<IActionResult> GetValue(int id)
+{
+    var value = await _context.Values.FirstOrDefaultAsync(x => x.Id == id);
+    return Ok(value);
+}
+
+--> async await keyword
+--> Change in linq query
+--> Making return with Task<>
+
+-------------------------------------------------------------------------
+
+10. Creating Angular application
+
+--> Make sibling project
+--> ng new DatingApp-SPA
+
+-------------------------------------------------------------------------
+
+11. The Angular bootstrapping and running angular app
+
+--> index.html  is the single page which is send to client
+--> Webpack compiles our Angular code and make bundles and send it to client
+--> There are different bundles -> styles, vendor, main, polyfills, runtime
+--> main.ts is the file which starts first
+--> It configures Browser with Angular and pass control to app.module
+--> In app.module, we have bootstrap array, which initialises application with app.component.
+
+-------------------------------------------------------------------------
+
+12. Adding Angular code snippets
+
+--> Snippets is something which makes writing code efficiency drastic increase.
+
+1. Angular v6 snippets          --> By john papa
+2. Angualar files               --> It is used to create files like components, interceptors
+3. Angular Language service     --> It gives Go to definition feature
+4. angular2-switcher            --> It switches between html, css, ts in same component
+5. Auto rename tag              --> Also rename html closing tag.
+6. Bracket pair colorizer
+7. Debugger for Chrome
+8. Material Icon theme          --> Give different themes to angular files.
+9. Path intellisense            --> autocomplete paths
+10. prettier
+11. tslint
+
+-------------------------------------------------------------------------
+
+13. Making Http request in Angular
+
+--> To generate new component 
+--> Right click app folder --> Generete new component --> type name: value
+--> This will generate new folder with name --> value --> containing ts, html, css
+--> This will also include reference in app.module
+
+-------------------------------------------------------------------------
+
+--> To change icons of file
+--> ctrl + shift + p    --> open command palatte
+--> search for material icon       --> activate it.
+
+-------------------------------------------------------------------------
+
+--> In value.component.ts
+
+export class ValueComponent implements OnInit {
+  values: any;
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit() {
+    this.getValues();
+  }
+
+  getValues(){
+    this.http
+    .get<any[]>('http://localhost:5000/api/values')
+    .subscribe((response) => {
+      this.values = response;
+    }, error => {
+      console.log(error);
+    });
+  }
+}
+
+-------------------------------------------------------------------------
+
+--> We need to display this on page
+--> To shift to html file from ts file --> Press Alt + o
+
+--> In value.component.html
+
+{{ values }}
+
+--> In app.component.html
+
+<app-value></app-value>
+
+--> When you type this: <app-       --> It will autogenerate this snippet for completing
+
+--> Start both servers
+--> You will get cors error         --> cross origin resource sharing 
+
+-------------------------------------------------------------------------
+
+14. Adding Cors support on backend
+
+--> In startup.cs
+
+--> In services,
+services.AddCors();
+
+--> In middelwares,
+app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
+--> When you look at network tab, in particular request, search response, you will look json data.
+
+-------------------------------------------------------------------------
+
+15. Displaying Data in html
+
+--> In value.component.html
+
+--> When you type <p a-             --> It will give you snippets options to autogenerate directive code
+
+<ul *ngFor="let value of values">
+  <li>{{ value.id }} - {{ value.name}} </li>
+</ul>
+
+-------------------------------------------------------------------------
+
+16. Adding bootstrap and font-awesome
+
+--> npm i bootstrap font-awesome
+
+--> There are two main ways to add that
+1. in angular.json
+2. in styles.css
+
+--> We will second approach,
+
+@import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+@import '../node_modules/font-awesome/css/font-awesome.min.css';
+
+-------------------------------------------------------------------------
+
+17. Adding Git for source control
+
+--> Delete .git of angular project
+--> Go to folder containing both projects
+--> git init
+--> git commit -m "Initial commit"
+--> Make new repository on github --> DatingApp
+--> git remote add origin https://github.com/avinashchawla96/DatingApp.git
+--> git push origin master
+
+-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

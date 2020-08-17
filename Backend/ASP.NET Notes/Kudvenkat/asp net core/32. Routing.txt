@@ -1,0 +1,90 @@
+--> Conventional Routing
+
+1. Routing Techniques
+
+--> There are 2 routing techniques in ASP.NET Core MVC. 
+1. Conventional Routing 
+2. Attribute Routing.
+
+----------------------------------------------------------------------------------
+
+2. Routing Rules
+
+--> When a request from the browser arrives at our application, it is the controller in the MVC design pattern, that handles the incoming http request and responds to the user action. 
+--> The incoming request URL is mapped to a controller action method.
+
+----------------------------------------------------------------------------------
+
+3. Default Route
+
+--> In Configure method of startup file,
+
+--> UseMvcWithDefaultRoute() is this method, that adds MVC with the following default route to our application's request processing pipeline.
+--> {controller=Home}/{action=Index}/{id?}
+
+----------------------------------------------------------------------------------
+
+4. UseMvc() middleware
+
+--> UseMvcWithDefaultRoute() method internally calls UseMvc() method and it sets up the default route. 
+
+app.UseMvc(routes =>
+{
+    routes.MapRoute(
+        name: "default",
+        template: "{controller=Home}/{action=Index}/{id?}");
+});
+
+--> routes		--> It is IRouteBuilder object through extension method
+--> default 		--> It is the name of route given
+--> controller=Home	means HomeController is default if not specified
+--> action = Index	means Index action method is default if not specified
+--> id?			means it is optional parameter.
+
+--> id is binded to actionMethod parameter with concept of model binding. We will learn ahead.
+--> app.UseMvcWithDefaultRoutes() Looks exactly similar.
+
+----------------------------------------------------------------------------------
+
+5. Code in github of public repository of .net core
+
+public static IApplicationBuilder UseMvcWithDefaultRoute(this IApplicationBuilder app)
+{
+    if (app == null)
+    {
+        throw new ArgumentNullException(nameof(app));
+    }
+
+    return app.UseMvc(routes =>
+    {
+        routes.MapRoute(
+            name: "default",
+            template: "{controller=Home}/{action=Index}/{id?}");
+    });
+}
+
+https://github.com/aspnet/Mvc/blob/release/2.2/src/Microsoft.AspNetCore.Mvc.Core/Builder/MvcApplicationBuilderExtensions.cs
+
+----------------------------------------------------------------------------------
+
+6. Convention Routing middleware from .net core3.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

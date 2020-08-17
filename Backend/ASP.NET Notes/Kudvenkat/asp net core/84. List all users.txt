@@ -1,0 +1,227 @@
+1. List all users from asp.net core identity database
+
+--> The registered users of our application are stored in AspNetUsers identity database table. We want to retrieve and display them on a view
+
+--------------------------------------------------------------------------------
+
+2. Users property of UserManager service
+
+--> In AdministrationController,
+
+--> Users property of asp.net core UserManager service returns a list of all application users
+
+--------------------------------------------------------------------------------
+
+[Authorize(Roles = "Admin")]
+public class AdministrationController : Controller
+{
+    private readonly UserManager<ApplicationUser> userManager;
+
+    public AdministrationController(UserManager<ApplicationUser> userManager)
+    {
+        this.userManager = userManager;
+    }
+
+    [HttpGet]
+    public IActionResult ListUsers()
+    {
+        var users = userManager.Users;
+        return View(users);
+    }
+}
+
+--------------------------------------------------------------------------------
+
+3. List Users View
+
+@model IEnumerable<ApplicationUser>
+
+@{
+    ViewBag.Title = "All Users";
+}
+
+<h1>All Users</h1>
+
+@if (Model.Any())
+{
+    <a asp-action="Register" asp-controller="Account"
+       class="btn btn-primary mb-3" style="width:auto">
+        Add new user
+    </a>
+
+    foreach (var user in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                User Id : @user.Id
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">@user.UserName</h5>
+            </div>
+            <div class="card-footer">
+                <a href="#" class="btn btn-danger">Edit</a>
+                <a href="#" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="card">
+        <div class="card-header">
+            No users created yet
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">
+                Use the button below to create a user
+            </h5>
+            <a class="btn btn-primary" style="width:auto"
+               asp-controller="Account" asp-action="Register">
+                Add new user
+            </a>
+        </div>
+    </div>
+}
+
+--------------------------------------------------------------------------------
+
+4. Manage Users navigation menu
+
+--> In the navigation menu we want to display Manage dropdown menu
+--> It should contain 2 options - Users and Roles
+--> This dropdown menu should only be displayed if the user is signed-in and in the Admin role
+
+--------------------------------------------------------------------------------
+--> In _Layout.cshtml
+
+@inject SignInManager<ApplicationUser> signInManager;
+
+@if (signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink"
+           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Manage
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <a class="dropdown-item" asp-controller="Administration"
+               asp-action="ListUsers">Users</a>
+            <a class="dropdown-item" asp-controller="Administration"
+               asp-action="ListRoles">Roles</a>
+        </div>
+    </li>
+}
+
+--------------------------------------------------------------------------------
+
+5. Change in Account Controller
+
+--> An anonymous user can also register himself as an application user, using the following Register action method. 
+--> This method is in the AccountController. The required change is commented.
+
+--> When we are logged in as Admin and register new user, then new user is login automatically
+--> We want that if already logged user is Admin then after registering new user, we want to go to ListUsers View.
+
+--------------------------------------------------------------------------------
+
+[HttpPost]
+[AllowAnonymous]
+public async Task<IActionResult> Register(RegisterViewModel model)
+{
+    if (ModelState.IsValid)
+    {
+        var user = new ApplicationUser
+        {
+            UserName = model.Email,
+            Email = model.Email,
+            City = model.City
+        };
+
+        var result = await userManager.CreateAsync(user, model.Password);
+
+        if (result.Succeeded)
+        {
+            // If the user is signed in and in the Admin role, then it is
+            // the Admin user that is creating a new user. So redirect the
+            // Admin user to ListRoles action
+            if (signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("ListUsers", "Administration");
+            }
+
+            await signInManager.SignInAsync(user, isPersistent: false);
+            return RedirectToAction("index", "home");
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+    }
+
+    return View(model);
+}
+
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

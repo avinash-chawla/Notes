@@ -1,0 +1,80 @@
+1. Default View Discovery
+
+--> View() method looks for a view file with the same name as the action method.
+
+-------------------------------------------------------------------------------
+
+2. Customize View Path
+
+--> We will use another overloaded version of View method
+
+public class HomeController : Controller
+{
+    public ViewResult Details()
+    {
+        return View("Test");
+    }
+}
+
+-------------------------------------------------------------------------------
+
+3. Specifying view file path
+
+public ViewResult Details()
+{
+    return View("MyViews/Test.cshtml");
+}
+
+
+--> If directly custom name written, then look for that in ControllerName folder
+--> In this, it will look for this folder 'MyViews' (reference point)
+
+-------------------------------------------------------------------------------
+
+4. Absolute Path
+
+--> All 3 absolute paths are same in view path.
+
+return View("MyViews/Test.cshtml");
+return View("/MyViews/Test.cshtml");
+return View("~/MyViews/Test.cshtml");
+
+-------------------------------------------------------------------------------
+
+5. Relative View file path
+
+public ViewResult Details()
+{
+    return View("../Test/Update");
+}
+
+--> Presently it is in ~/Views/Home/here
+--> And test folder is in ~/Views/Test/Update.cshtml
+
+-------------------------------------------------------------------------------
+
+6. If you want to go back up 2 levels
+
+public ViewResult Details()
+{
+    return View("../../MyViews/Details");
+}
+
+-------------------------------------------------------------------------------
+
+7. Summary
+
+ 
+1. View() or View(object model)
+--> Looks for a view file with the same name as the action method 
+
+2. View(string viewName) 
+--> Looks for a view file with your own custom name 
+--> You can specify a view name or a view file path 
+--> View file path can be absolute or relative 
+--> With absolute path .cshtml extension must be specified 
+--> With relative path do not specifythe file extension .cshtml 
+
+3. View(string viewName, object model) 
+
+-------------------------------------------------------------------------------

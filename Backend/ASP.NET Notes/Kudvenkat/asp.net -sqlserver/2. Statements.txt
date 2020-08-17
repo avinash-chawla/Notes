@@ -1,0 +1,145 @@
+1. Select Statement--> 
+
+--> select specific or all columns
+--> distinct rows
+--> filtering with where clause
+--> wild cards in sql server
+--> joining multiple conditions using AND and OR operator
+--> sorting rows using order by
+--> selecting top n or top n percentage of rows using limit
+
+1. select all columns
+Select * from tblPerson
+
+2. autogeneate select statement displaying all columns
+--> right click table --> script table as --> select to --> new query editor window
+--> [Sample].[dbo].[tblPerson]	--> database, schema, tableName
+--> This is fully qualified name
+--> if selected database is master and we are querying another database --> select * from tblPerson won't work
+
+3. Select distinct rows-->
+
+--> Select Distinct City from tblPerson
+
+4. Where clause--> 
+
+--> filtering data
+--> Select * from tblPerson Where City='London'
+--> Select * from tblPerson Where City <> 'London' --> not equal to 
+--> Select * from tblPerson Where City != 'London'
+
+5. Operators-->
+
+=
+!= , <>
+>
+<
+>=
+<=
+IN
+BETWEEN
+LIKE
+NOT
+
+6. Wild Cards--> 
+
+%	--> specifies 0 or more
+_	--> specifies exactly one character
+[]	--> any character within brackets
+[^] 	--> not any character with in the brackets
+
+7. IN-->
+
+Select * from tblPerson where age = 20 or age = 23 or age =36
+select * from tblPerson where age in (20, 23,36)
+
+8. BETWEEN-->
+
+--> Select * from tblPerson where age between 10 and 20
+
+9. LIKE AND WILD CARDS-->
+
+--> Select * from tblPerson where city LIKE 'L%'
+--> Select * from tblPerson where email NOT LIKE '%@%'
+--> Select * from tblPerson where Name LIKE '[MST]%'		--> any name starts with m,s,t
+--> Select * from tblPerson where Name LIKE '[^MST]%'		--> not starts with m,s,t
+
+10. AND OR --> 
+
+--> Select * from tblPerson where (city = 'London' or City = 'Mumabi')  AND Age > 25
+
+11. ORDER BY-->
+
+--> Select * from tblPerson ORDER BY Name
+--> Select * from tblPerson ORDER BY Name DESC, Age ASC
+
+12. LIMIT / TOP 10-->
+
+--> Select TOP 10 * from tblPerson 		--> top 10 rows
+
+13. FIND OLDEST PERSON-->
+
+--> Select top 1 * from tblPerson Order By Age DESC
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+14. GROUP BY -->
+
+--> It is used to group set of rows into a set of summary rows by the values of one or more columns or expressions.
+--> It is used in conjuction with one or more aggregate functions
+
+--> Select SUM(Salary) from tblEmployee		--> return single row
+--> Select MAX(Salary) from tblEmployee
+--> Select MIN(Salary) from tblEmployee
+--> Select COUNT(ID) from tblEmployee		--> count rows
+
+--> Select City, SUM(Salary) as TotalSalary from tblEmployee GROUP BY City
+--> Select City, MAX(Salary) from tblEmployee GROUP BY City
+
+--> Select City, SUM(Salary) as TotalSalary 	--> give error 
+--> Select City, Sum(Salary) AS TotalSalary from tblEmployee group by city
+
+-----------------------------------------------------------------------------------------
+
+GROUPING BY Multiple Columns-->
+
+Select City, Gender, SUM(Salary) from tblEmployee group by city 	--> give error
+Select City, Gender, SUM(Salary) from tblEmployee group by city,gender
+
+--> New york --> male --> 27300
+--> New youk --> female --> 8500
+--> sydney   --> male --> 10200
+--> sydney   --> female --> 2800
+
+--> means first group by city, then group by gender 
+--> order by city	--> will match the output in displaying
+
+-----------------------------------------------------------------------------------------
+
+--> Using multiple Aggregate functions-->
+
+--> select sum(salary) as totalSalary, count(id) as [Total Employees] from tblEmployee
+
+-----------------------------------------------------------------------------------------
+
+--> Filtering Group by-->
+
+--> Select gender, city, sum(salary) 
+from tblEmployee
+group by gender, city 
+having gender='Male'
+
+--> Select gender, city, sum(salary) 
+from tblEmployee
+where gender='Male'
+group by gender, city 
+
+difference between where and having-->
+--> 'Where' filters rows before aggregation and 'having' filters groups, after aggregations
+--> 'where' can also be used with select, update, insert while 'having' only used with select
+--> aggregate functions can not be used in the 'where' clause but can be used in 'having' clause eg.
+
+Select * from tblEmployee where SUM(Salary) > 4000	--> give error
+Select city, sum(salary) from tblEmployee group by city having SUM(Salary) > 4000	
+
+--> 'having' should always come after group by.

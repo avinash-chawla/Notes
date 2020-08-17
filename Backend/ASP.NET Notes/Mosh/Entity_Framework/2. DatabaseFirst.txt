@@ -1,0 +1,133 @@
+1. Intro-->
+
+--> Run Pluto.sql in newly created Pluto database and this will create required tables, views, sp and functions
+
+--> Database --> Entity --> Domain Class
+
+--> Setup Entity-->
+DataModel name : PlutoModel
+Database: Pluto (Select)
+Entity: PlutoDbContext
+Table: All
+
+--> edmx-->
+
+1. ctrl + Mouse_scroll
+2. right click empty area --> diagrams --> Layout diagrams 					--> autoformat tables in edmx
+3. Every time you modify your edmx diagram, entity regenerates domain classes with that changes and don't forget to save after changes
+
+------------------------------------------------------------------------------------
+
+2. EDMX-->
+
+--> It is visual representation of xml
+--> right click edmx file--> see two main sections Runtime and Designer 
+--> In Runtime-->
+StorageModels --> representation of database
+ConceptualModels --> representation of entities
+Mappings --> mapping between above two models
+
+Entity is called object relational mapper(ORM)
+
+--> edmx shows Conceptual Models visually
+--> right click any entity --> Table Mapping--> A table is shown telling what maps what
+--> right click empty space --> select Model Browser --> PlutoModel.Store in ModelBrowser --> shows conceptual and storage models
+
+--> in App.config file--> IN connection string, we see 3 metadata (resources)
+1. .csdl --> for conceptual model
+2. .ssdl --> for storage model
+3. .msl  --> for mapper
+
+-------------------------------------------------------------------------------------
+
+3. Dealing with Database Changes-->
+
+--> Just refreshing the entities
+--> right click empty space in edmx
+--> Select Update Model from Database
+--> It contains three tabs --> Add, Refresh, Delete
+
+Add = When any (table or View or SP) is added to database
+
+--------------------------------------------------------------------------------
+
+--> Some Problems encountring in Database First Workflow-->
+
+--> When you rename any table or delete any table
+--> Entity throws error stating that he doesn't know where to map them
+--> solution: 
+1. (deleted column) manually delete that property from entity in edmx 
+2. (deleted table) manually delate that entity from edmx.
+3. (renamed table) map manually to domain class (use Table Mapping)
+4. (change type of column) need to do manually, (first check in Table Mapping) , right click that property in entity, properties --> change type
+
+--> right click empty space, Click Validate to show any errors
+------------------------------------------------------------------------------------
+
+4. Importing Stored Procedures-->
+
+--> right click empty space --> Update Model from database --> Add --> Select SP
+--> Go to ModelBrowser --> See functions automatically created in Conceptual Model
+
+--> DataModel consists three parts: Conceptual model, Storage model, Mapper
+--> DbContext comes under DataModel
+--> DbContext saves all conceptual model as class, all tables as properties, all SP as methods
+
+--> In main method of program.cs
+
+var dbContext = new PlutoDbContext();
+var courses = dbContext.GetCourses();
+foreach(var c in courses)
+{
+	Console.WriteLine(c.Title);
+}
+
+-----------------------------------------------------------------------------------
+
+5. Function Imports-->
+
+
+--> All SP from database maps to functions (names same)
+--> Most of SP named as sp prefix, sometimes we have to change names without changing mapping.
+--> Open Model Browser --> under PlutoModel(conceptual model) --> double click that functions (which are mapped from sp) and change FunctionImportName
+
+--> You see another option returntype: none, scalar, entity, complex
+--------------------------------------------------------------------------------
+
+--> There are two return types of functions: Entity and Complex
+--> functions returntype is complex by default
+
+--> Both types can be used in same way
+--> Complex is more used when stored procedure is combining two tables for getting result or 2nd use case: when table is very large and you want only 2-3 records
+
+--> In main method-->
+
+PlutoDbContext.GetCourses()	--> return type is entity (bec. we changed in that)
+
+---------------------------------------------------------------------------------
+
+6. Working with ENUMS-->
+
+--> Enums is like a small dictionary
+
+--> Go to Model Browser
+--> Expand PlutoModel
+--> right click Enum Types
+--> Add new Enum Type
+--> Name: CourseLevela
+--> Member Name: Beginner, Intermediate, Advanced
+--> Values : 1,2,3
+
+--> uncheck both options below --> ok
+
+------------------------------------------------
+
+--> In edmx, right click Level under Course Entity, properties --> Type : CourseLevel
+--> In Level column, there are only 3 numbers( 1,2,3) which are now mapped to enum
+
+--> in main method of program.cs-->
+
+var course = new Course();
+course.Level = CourseLevel.Beginner;
+
+

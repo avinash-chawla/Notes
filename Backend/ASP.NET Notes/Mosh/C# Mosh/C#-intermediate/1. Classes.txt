@@ -1,0 +1,238 @@
+1. Classes-->
+
+--> Any application is built of different classes
+--> any application is divided into 3 parts
+	1. Presentation			-> PostView
+	2. Business Logic/Domain	-> Post
+	3. Data Access/ Persistence	-> PostRepository --> connect with database
+
+--> anatomy of class--> Data, Behaviour -> Person
+--> object is an instance of a class	-> John, Mary
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+2. Constructor & Overloading-->
+
+--> it is used to initialise some fields
+--> name same as class and no return type
+
+--> by default, if we wont define constructor, a constructor is automatically is created by compiler, with default values, 0, null, "", false
+
+--> this keyword refers to current object and subjects to class fields
+
+public class Customer
+{
+	public int Id;
+	public string Name;
+	public List<Order> Orders;		--> initially it is null, bec no object is instantiated yet --> will give error of nullReferenceException
+
+	public Customer()
+	{
+		Orders = new List<Order>();	--> whenever obj created, List is set empty instead of null
+	}
+
+	public Customer(int id) : this()	--> this keyword references to first constructor, means no need to repeat first constructor code
+	{
+		this.Id = id;
+	}
+
+	public Customer(int id, string name) : this(id)		--> this keyword references to second constructor,automatically adds id and empty Order obj list
+	{
+		this.Name = name;
+	}
+
+}
+
+class Program
+{
+	static void Main(string[] args)
+	{
+		var customer = new Customer();
+		var order = new Order();
+
+		customer.Orders.Add(order);
+	}
+}	
+	
+	
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+3. Object Initializers-->
+
+--> it is syntax for initialising an object with any number of fields values replacing of setting different constructor for different range of fields parameters
+
+var person = new Person 
+		{
+			FirstName = "Mosh"
+			LastName = "hamedani"
+		}
+
+--> no need of constructor to initialise values
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+4. Methods-->
+
+--> Signature of Methods --> name, type and number of parameters
+--> Method Overloading	 --> methods with same name and different signatures
+--> Params modifier	 
+
+--> reduces no. of same type of parameters in methods by converting them into array, but params keyword no need to create new instance of array class everytime in arguments
+
+1. Methods with same type of parameters-->
+
+public int Add(int n1, int n2){}
+public int Add(int n1, int n2, int n3){}
+public int Add(int n1, int n2, int n3, int n4){}
+
+2. Methods accepting array of numbers-->
+
+public int Add(int[] numbers){}
+var result = Add(new int[] {1,2,3,4});
+
+3. with params-->
+
+public int Add( params int[] numbers){}
+var result = Add(1,2,3,4);
+
+-------------------------------------------------------------------------
+
+--> one method is taking datatype parameters and other method is taking object parameter, so we can call one method in other method
+
+public void Move(int x, int y)
+{
+	this.X = x;
+	this.Y = y;
+}
+
+public void Move(Point newLocation)
+{
+	this.X = newLocation.X;
+	this.Y = newLocation.Y;
+}
+
+to-->
+ 
+public void Move(Point newLocation)
+{
+	Move(newLocation.X, newLocation.Y)
+}
+
+-----------------------------------------------------------------------------
+
+--> validating parameters in methods
+
+public void Move(Point newLocation)
+{
+	if(newLocation == null)
+		throw new ArgumentNullException("newLocation");
+	Move(newLocation.X, newLocation.Y)
+}
+
+--> if not mentioned, will give NullReferenceException, instead we want ArgumentNullException
+--> second thing is that, to prevent exception, we use try catch block
+--> exception is a class in c#, which shows error log message
+
+-----------------------------------------------------------------------------
+
+--> try and catch block-->
+
+try{
+	var point = new Point(10, 20);
+	point.Move(null);
+	Console.WriteLine("Point is at ({0}, {1})", point.X, point.Y);
+
+	point.Move(new Point(100, 200));
+	Console.WriteLine("Point is at ({0}, {1})", point.X, point.Y);
+}
+catch (Exception)
+{
+	Console.WriteLine("An unexpected error occured");
+}
+	
+-----------------------------------------------------------------------------
+
+--> method that can accept any number of arguments of same type-->
+
+public int Add(params int[] numbers)
+{
+	var sum = 0;
+	foreach( var number in numbers)
+	{
+		sum += number;
+	}
+	return sum;
+}
+
+var calculator = new Calculator();
+calculator.Add(1,2,3,4,5,6);
+
+-----------------------------------------------------------------------------
+
+5. Fields-->
+
+--> using non-primitive type as fields
+
+public class Customer
+{
+	public List<Order> Orders = new List<Order>();
+}
+
+--> initialising empty List instead of null List;
+--> another way is using constructor
+
+public Customer
+{
+	Orders = new List<Order>();
+}
+
+
+
+-----------------------------------------------------------------------------
+
+--> readonly fields-->
+
+--> in earlier example, if any other method bymistake, reinitialise List field, all data will be lost, to prevent reinitialization of any field, we use readonly attribute
+
+public class Customer
+{
+	public readonly List<Order> Orders = new List<Order>();
+}
+
+
+-----------------------------------------------------------------------------
+
+6. Access Modifiers-->
+
+--> Encapsulation--> access modifiers --> public, private, protected 
+--> Encapsulate data from other classes
+--> we provide setter with some logic
+--> we use camelCase start with underscore for private fields 
+
+public class Person
+{
+	private DateTime _birthdate;
+	public void SetBirthdate(DateTime birthdate)
+	{
+		_birthdate = birthdate;
+	}
+
+	public void GetBirthdate()
+	{
+		return _birthdate;
+	}
+}
+
+class Program
+{
+	static void Main(string[] args){
+		var person = new Person();
+		person.SetBirthdate(new DateTime(1982, 1, 1));
+	}
+}
+
+
+-----------------------------------------------------------------------------
+
+7. Properties-->

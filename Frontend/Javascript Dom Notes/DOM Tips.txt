@@ -1,0 +1,164 @@
+// 1. Selectors					--> querySelector and querySelectorAll
+// 2. Change html content and styles		--> only two methods - innerHtml and style.background
+// 3. Parent, Child and Sibling Elements	--> They are selectors only - firstElementChild, children[0]
+// 4. Adding and Removing ClassList		--> For adding styles - most efficient way
+// 5. Creating, Removing and Replacing element	--> document.createElement('ul')
+// 6. Event Listener - click and change		--> btn.addEventListener('click', (e) => { } );
+// 7. Local Storage				--> localStorage.getItem  and setItem
+
+
+0. Targetting Element
+--> const ul = document.querySelector('ul.collection');			--> single element
+--> const li = document.querySelectorAll('li.collection-item');		--> collections of element
+
+1. converting collections to an Array
+--> let lists = Array.from(mycollections);
+--> Now array methods are applicable
+
+2. Getting attribute
+--> aLink.getAttribute('href');
+
+3. Getting id and className
+--> document.getElementById('task-title').id;
+--> document.getElementById('task-title').className;
+
+4. difference between innerText and TextContent
+--> innerText removes styles also
+
+5. Getting all 'even' childrens in querySelector
+--> document.querySelector('li:nth-child(even)').style.background ='red'
+
+6. DOM can only change Html and css - singly or in group
+
+7. Getting children of ul
+--> const list = document.querySelector('ul.collections');
+    console.log(list.children);
+    console.log(list.children[0]);
+    console.log(list.firstElementChild);
+    
+
+8. Getting parent of li
+--> const listItem = document.querySelector('li.collection-item:first-child');
+    console.log(listItem.parentElement);
+
+9. Getting Sibling of li
+--> console.log(listItem.nextElementSibling);
+    console.log(listItem.previousElementSibling);
+
+----------------------------------------------------------------------------------
+
+10. Creating element-->
+
+const li = document.createElement('li');
+li.className = 'collection-item';
+li.id = 'myList';
+li.appendChild(document.createTextNode('Hello World'));
+ul.appendChild(li);
+
+
+const link = document.createElement('a');
+link.className = 'delete-item secondary-content';
+link.innerHTML = '<i class="fa fa-remove"></i>';
+li.appendChild(link);
+
+----------------------------------------------------------------------------------
+
+11. Replacing and Removing Element-->
+
+--> Replacing
+--> Parent Element is cardAction
+--> cardAction.replaceChild(newHeading, oldHeading);
+--> newHeading is created using DOM
+
+--> Removing 
+--> const li = document.querySelectorAll('li');
+--> const ul = document.querySelector('ul');
+--> li[0].remove();		--> first method
+--> ul.removeChild(li[3]);	--> second method using ParentElement
+
+----------------------------------------------------------------------------------
+
+12. Adding and Removing Class-->
+
+--> li.className	--> will give name of class used in string
+--> li.classList	--> will give array DOMTokenList (array)
+
+--> li.classList[0];
+--> li.classList.add('test');
+--> li.classList.remove('test');
+
+--> link.getAttribute('href');
+--> link.setAttribute('href', 'http://google.com');   --> adds it and also sets it
+--> link.hasAttribute('href');
+--> link.removeAttribute('title');
+
+----------------------------------------------------------------------------------
+
+13. Getting target element details on event calling-->
+
+--> btn.addEventListener('click', e => {
+	e.preventDefault();
+	console.log(e.target.value);
+	console.log(e.target.className);
+	console.log(e.target.id);
+	console.log(e.target.classList);
+	console.log(e.type);			--> click
+});
+
+--> event listeners: 
+on btn --> click, dblclick, mousedown, mouseup, mouseenter, mouseLeave
+on input --> keydown, keyup, keypress, focus, blur, cut, paste, input, change
+
+----------------------------------------------------------------------------------
+
+14. Event Delgation-->
+
+document.body.addEventListener('click', deleteItem);
+
+function deleteItem(e){
+  // if(e.target.parentElement.className === 'delete-item secondary-content'){
+  //   console.log('delete item');
+  // }
+
+  if(e.target.parentElement.classList.contains('delete-item')){
+    console.log('delete item');
+    e.target.parentElement.parentElement.remove();
+  }
+}
+--> This is bad
+
+----------------------------------------------------------------------------------
+
+15. Local Storage-->
+
+--> localStorage saves data in JSON format
+
+localStorage.setItem('name', 'John')
+localStorage.getItem('name');
+localStorage.removeItem('name');
+localStorage.clear();
+
+----------------------------------------------------------------------------------
+
+document.querySelector('form').addEventListener('submit', function(e){
+  const task = document.getElementById('task').value;
+  let tasks;
+  if(localStorage.getItem('tasks') === null) { tasks = []; } 
+  else { tasks = JSON.parse(localStorage.getItem('tasks')); }
+
+  tasks.push(task);
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+  alert('Task saved');
+  e.preventDefault();
+});
+
+const tasks = JSON.parse(localStorage.getItem('tasks'));
+tasks.forEach(function(task){
+  console.log(task);
+});
+
+--> JSON.parse will convert json into javascript object
+--> JSON.stringify will convert javascript object to json
+
+----------------------------------------------------------------------------------
+

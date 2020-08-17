@@ -1,0 +1,64 @@
+1. Why do we need a ViewModel
+
+--> Sometimes, model does not contain all the data, the view needs
+--> Suppose, we want to also pass string along with model data
+--> We will use ViewModel class
+
+--> In general, we use ViewModels to shuttle data between a View and a Controller. For this reason ViewModels are also called as Data Transfer Objects or DTO in short.
+
+----------------------------------------------------------------------------------
+
+2. ViewModel Class
+
+--> Make new folder in project --> ViewModels
+--> Name it: HomeDetailsViewModel.cs
+
+public class HomeDetailsViewModel
+{
+    public Employee Employee { get; set; }
+    public string PageTitle { get; set; }
+}
+
+----------------------------------------------------------------------------------
+
+3. Using ViewModel class
+
+--> Controller Class
+
+public ViewResult Details()
+{
+    HomeDetailsViewModel homeDetailsViewModel = new HomeDetailsViewModel()
+    {
+        Employee = _employeeRepository.GetEmployee(1),
+        PageTitle = "Employee Details"
+    };
+
+    return View(homeDetailsViewModel);
+}
+
+----------------------------------------------------------------------------------
+
+4. Accessing viewModel in view file
+
+@model EmployeeManagement.ViewModels.HomeDetailsViewModel
+
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <h3>@Model.PageTitle</h3>
+
+    <div>
+        Name : @Model.Employee.Name
+    </div>
+    <div>
+        Email : @Model.Employee.Email
+    </div>
+    <div>
+        Department : @Model.Employee.Department
+    </div>
+</body>
+</html>
+
+----------------------------------------------------------------------------------

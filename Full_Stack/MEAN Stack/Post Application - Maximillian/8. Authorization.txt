@@ -1,0 +1,44 @@
+1. Intro
+
+--> We will authorize user, the post which is deleting is done by user or not.
+--> For this, we need to store each user with post
+--> There are two ways to implement that.
+
+1. Make another table/collection linking each post with user
+2. Add new field in post collection --> user which will link each user
+
+--> we will use second approach.
+
+------------------------------------------------------------------------------
+
+2. Adding a Reference to the Model
+
+--> In Post model in Backend,
+
+const postSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true
+    },
+    content: {
+        type: String,
+        required: true
+    },
+    imagePath: {
+        type: String,
+        required: true
+    },
+    creator: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    }
+});
+
+--> We will store User Id in Post collection
+--> The type given will automatically bind with User collections provided through ref
+--> mongoose.Schema.Types.ObjectId	is type of mongodb _id.
+
+------------------------------------------------------------------------------
+
+3. 

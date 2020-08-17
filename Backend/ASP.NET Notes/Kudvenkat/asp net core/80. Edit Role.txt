@@ -1,0 +1,325 @@
+1. Intro
+
+--> How to edit an existing role in asp.net core using the Identity API.
+--> We will create seperate MVC for editRole.
+
+----------------------------------------------------------------------------------
+
+2. ListRoles view
+
+--> In ListRoles View,
+--> When Edit button on one of the roles is clicked, we want to go to EditRole action in the AdministrationController.
+--> Along with Edit button, we also want to pass id of Role to EditRole form
+
+<a asp-controller="Administration" asp-action="EditRole"
+   asp-route-id="@role.Id" class="btn btn-primary">
+    Edit
+</a>
+
+--> It will redirected to /Administration/EditRole/7360350f-2662-4842-8a78-58a308043477
+
+----------------------------------------------------------------------------------
+
+3. Edit Role ViewModel
+
+--> For EditRole form, we want following things,
+
+--> Role ID is non-editable, so keep the input element disabled
+--> Only Role Name is editable
+--> Display the list of Users in each Role
+
+
+--> Note: We will see how to links users with role in next tutorial.
+
+----------------------------------------------------------------------------------
+
+--> Create new domain class -->  EditRoleViewModel 
+--> In ViewModels folder
+
+namespace EmployeeManagement.ViewModels
+{
+    public class EditRoleViewModel
+    {
+        public EditRoleViewModel()
+        {
+            Users = new List<string>();
+        }
+
+        public string Id { get; set; }
+
+        [Required(ErrorMessage = "Role Name is required")]
+        public string RoleName { get; set; }
+
+        public List<string> Users { get; set; }
+    }
+}
+
+--> We have initialised List object, bec. in view of this domain class, we will check records using if statement
+@if(Model.Users.Any()){...}
+
+--> The constructor initializes Users property so we do not get NULL reference exceptions.
+
+----------------------------------------------------------------------------------
+
+4. Edit Role Action Methods
+
+--> First we retrieve Role Id from ListRoles view.
+--> Then find that role in roleManager using FindByIdAsync method
+--> After finding role, we initialise editRole viewModel and pass it to view.
+--> We are passing list of users to that role, using UserManager service instance which is created in constructor
+--> We get list of users using userManager.Users property 
+--> We do for loop on Users based on roles and extract to that specific id role and combined with viewModel and passed to view
+
+
+--> In HttpPost, after user edited it
+--> We receive viewModel object with modifications in name of Role.
+--> First we find that role using userManager.FindByIdAsync(id)
+--> We update role record using userManager.UpdateAsync() in role object which is earlier used for finding Id 
+
+----------------------------------------------------------------------------------
+
+        private readonly RoleManager<IdentityRole> roleManager;
+        private readonly UserManager<ApplicationUser> userManager;
+
+        public AdministrationController(RoleManager<IdentityRole> roleManager,
+                                        UserManager<ApplicationUser> userManager)
+        {
+            this.userManager = userManager;
+            this.roleManager = roleManager;
+        }
+
+
+[HttpGet]
+public async Task<IActionResult> EditRole(string id)
+{
+    // Find the role by Role ID
+    var role = await roleManager.FindByIdAsync(id);
+
+    if (role == null)
+    {
+        ViewBag.ErrorMessage = $"Role with Id = {id} cannot be found";
+        return View("NotFound");
+    }
+
+    var model = new EditRoleViewModel
+    {
+        Id = role.Id,
+        RoleName = role.Name
+    };
+
+    // Retrieve all the Users
+    foreach (var user in userManager.Users.ToList())
+    {
+        // If the user is in this role, add the username to
+        // Users property of EditRoleViewModel. This model
+        // object is then passed to the view for display
+        if (await userManager.IsInRoleAsync(user, role.Name))
+        {
+            model.Users.Add(user.UserName);
+        }
+    }
+
+    return View(model);
+}
+
+// This action responds to HttpPost and receives EditRoleViewModel
+[HttpPost]
+public async Task<IActionResult> EditRole(EditRoleViewModel model)
+{
+    var role = await roleManager.FindByIdAsync(model.Id);
+
+    if (role == null)
+    {
+        ViewBag.ErrorMessage = $"Role with Id = {model.Id} cannot be found";
+        return View("NotFound");
+    }
+    else
+    {
+        role.Name = model.RoleName;
+
+        // Update the Role using UpdateAsync
+        var result = await roleManager.UpdateAsync(role);
+
+        if (result.Succeeded)
+        {
+            return RedirectToAction("ListRoles");
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError("", error.Description);
+        }
+
+        return View(model);
+    }
+}
+
+----------------------------------------------------------------------------------
+
+5. Edit Role View
+
+--> We are displaying readonly id field using disabled property
+--> We are displaying Name of Role
+--> We are showing List of users which add and remove users.
+
+@model EditRoleViewModel
+
+@{
+    ViewBag.Title = "Edit Role";
+}
+
+<h1>Edit Role</h1>
+
+<form method="post" class="mt-3">
+    <div class="form-group row">
+        <label asp-for="Id" class="col-sm-2 col-form-label"></label>
+        <div class="col-sm-10">
+            <input asp-for="Id" disabled class="form-control">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label asp-for="RoleName" class="col-sm-2 col-form-label"></label>
+        <div class="col-sm-10">
+            <input asp-for="RoleName" class="form-control">
+            <span asp-validation-for="RoleName" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group row">
+        <div class="col-sm-10">
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a asp-action="ListRoles" class="btn btn-primary">Cancel</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Users in this role</h3>
+        </div>
+        <div class="card-body">
+            @if (Model.Users.Any())
+            {
+                foreach (var user in Model.Users)
+                {
+                    <h5 class="card-title">@user</h5>
+                }
+            }
+            else
+            {
+                <h5 class="card-title">None at the moment</h5>
+            }
+        </div>
+        <div class="card-footer">
+            <a href="#" class="btn btn-primary" style="width:auto">Add Users</a>
+            <a href="#" class="btn btn-primary" style="width:auto">Remove Users</a>
+        </div>
+    </div>
+</form>
+
+----------------------------------------------------------------------------------
+
+6. Note:
+
+--> I was getting error,
+
+When using Core 3.0 I get an exception When I run EditRole(String Id) (video Number 80).
+This is the line that throws exception
+    foreach (var user in userManager.Users.ToList())
+    {
+        // If the user is in this role, add the username to
+        // Users property of EditRoleViewModel. This model
+        // object is then passed to the view for display
+        if (await userManager.IsInRoleAsync(user, role.Name))
+        {
+            model.Users.Add(user.UserName);
+        }
+    }
+
+InvalidOperationException: There is already an open DataReader associated with this Command which must be closed first
+
+----------------------------------------------------------------------------------
+
+
+--> Solution: 
+
+1. In Core 3.0 , I finally found what to do:
+change userManager.Users to userManager.Users.ToList().
+userManager.Users used to work on 2.2
+
+foreach (var user in userManager.Users.ToList())
+
+earlier: foreach (var user in userManager.Users)
+
+2. OR
+you can add below option to connection string:
+MultipleActiveResultSets=true;
+
+----------------------------------------------------------------------------------
+
+--> Note2:
+
+--> When you want Role Name and match with the another existing Same RoleName
+--> It will give error of not allowed.
+
+
+----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

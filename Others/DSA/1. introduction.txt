@@ -1,0 +1,9 @@
+1. avail coding questions --> the job is yours
+2. whiteboarding
+3. Practice-Practice-Practice
+4. Fizzbuzz, Fibonacci Series with Recursive solution
+5. all exercieses--> github.com/StephenGrider/AlgoCasts
+6. npm install -g jest
+7. cd exercises  --> jest 
+		 --> jest fib/test.js --watch
+

@@ -1,0 +1,908 @@
+1. What is ADO.NET-->
+
+--> ADO.NET is not a different technology, it is set of classes, that can be used to interact with data sources like Databases and XML files.
+
+--> ADO stands for Microsoft ActiveX Data Objects
+
+--> .Net applications like console, windows, asp.net, ado.net web uses 
+--> Ado.net is used to connect to database, execute commands and retrieve data.
+
+------------------------------------------------------------------------------------------
+
+2. dotnet data providers
+
+1. SQL Server	--> System.Data.SqlClient
+2. Oracle	--> System.Data.OracleClient
+3. OLEDB	--> System.Data.OleDb
+4. ODBC		--> System.Data.Odbc
+
+------------------------------------------------------------------------------------------
+
+3. Steps
+
+--> first step is to establish connection
+--> second step is to communicate with database using query language 
+
+------------------------------------------------------------------------------------------
+
+4. Code Demo with Grid View
+
+--> import System.Data.SqlClient;
+--> in page_load event-->
+
+SqlConnection con = new SqlConnection("data source=.; database=Sample; integrated security=SSPI");
+SqlCommand cmd = new SqlCommand("Select * from tblProduct", con);
+con.Open();
+
+SqlDataReader rdr = cmd.ExecuteReader();	--> it returns sql-data-obj containing data
+
+GridView1.DataSource = rdr;		--> storing data in DataSource property
+GridView1.DataBind();			--> binding data
+
+con.Close();				--> closing connection
+
+------------------------------------------------------------------------------------------
+
+5. Can we connect to other database other than sql server
+
+--> absolutely
+--> you need to use different namespace 
+--> Sql Server  --> System.Data.SqlClient
+--> Oracle      --> System.Data.OracleClient
+--> OleDb     	--> System.Data.Oledb;		--> eg. ms access, ms excel
+--> Odbc	--> System.Data.Odbc;
+
+--> only change prefix, Sql, Oracle, OleDb, Odbc 
+
+---------------------------------------------------------------------------------------------
+6. Oracle DB
+
+OracleConnection con = new OracleConnection("data source=.; database=Sample; integrated security=SSPI");
+OracleCommand cmd = new OracleCommand("Select * from tblProduct", con);
+con.Open();
+OracleDataReader rdr = cmd.ExecuteReader();	--> it returns sql-data-obj containing data
+GridView1.DataSource = rdr;		--> storing data in DataSource property
+GridView1.DataBind();
+
+
+---------------------------------------------------------------------------------------------
+
+7.ADO.NET is medium
+
+Web		-----> Ado.Net	------------>   Databases
+Windows						
+Console
+Any other
+
+---------------------------------------------------------------------------------------------
+
+8. SqlConnection Object-->
+
+--> instantiating a sqlconnection object
+--> using the sqlconnection object
+--> why it is important to close the connection
+--> how to properly close a connection
+
+--> in page_load event-->
+
+SqlConnection con = new SqlConnection(connection_string)
+
+--> string CS = "data source=.; database=Sample1; user id=sa; password=1234; integrated security= SSPI";
+
+--> SqlConnection object takes an connection_string
+--> connection_string is key-value pairs, seperated by semi-colon
+--> data source is can be localserver so . or name of user account, in my case LENOVOLAPTOP or it can be an ip-address
+
+--> database or initial catalog can be used to specify name of database
+--> integrated security can be windows authentication or sqlserver authentication
+
+--> if sqlserver auth. then need to provide usedid and password in connection string
+
+-----------------------------------------------------------------------------------------
+
+9. Two ways to include connection string-->
+
+1. SqlConnection con = new SqlConnection(CS);
+2. SqlConnection con = new SqlConnection(); 
+   con.ConnectionString = CS;
+
+----------------------------------------------------------------------------------------
+
+10. Closing Connection
+
+--> It is very necessary to close sql connection, if not, if any exception is raised, and if sql conn is not closed, it will affect application performation very greatly
+--> Always use try catch finally block to close sql conn after all operations
+--> Or you can use 'using' statement
+
+try 
+{
+	SqlCommand cmd = new SqlCommand("Select * from tblProduct", con);
+	con.Open();
+	SqlDataReader rdr = cmd.ExecuteReader();	
+	GridView1.DataSource = rdr;		
+	GridView1.DataBind();
+}
+catch
+{
+}
+finally
+{
+	con.Close();
+}
+
+----------------------------------------------------------------------------------------
+
+11. another way of closing connection is using keyword-->
+
+using(SqlConnection con = new SqlConnection(CS)
+{
+	SqlCommand cmd = new SqlCommand("Select * from tblProduct", con);
+	con.Open();
+	SqlDataReader rdr = cmd.ExecuteReader();	
+	GridView1.DataSource = rdr;		
+	GridView1.DataBind();
+}
+
+--> no need to close connection also, automatically done that
+--> so two uses of using statement --> 1. import namespace  2. to close connection properly.
+
+--------------------------------------------------------------------------------------------
+
+12. Connection Strings in web.config configuration file-->
+
+--> storing CS in a configuartion file
+--> Reading CS from web.config and app.config files
+--> disadvantages of CS in application code
+--> Advantages of CS in configuration files - web.config and app.config
+
+--> web.config file -->
+
+<configuration>
+  <connectionStrings>
+    <add name="DBCS"
+      connectionString="data source=LENOVOLAPTOP; database=Sample1; integrated security=SSPI"
+         providerName ="System.Data.SqlClient" />
+  </connectionStrings>  
+</configuration>
+
+--> webform.aspx-->
+
+using System.Configuration;
+string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+
+--> In case of windows application, right click project --> Add --> Application Configuration file --> enter
+--> References --> right click --> add reference --> add that class
+
+--------------------------------------------------------------------------------------------
+
+13. SqlCommand class-->
+
+--> SqlCommand class is used to prepare an SQL statement or sp that we want to execute on a SQL Server database.
+
+--> most common methods are:
+
+1. ExecuteReader	--> Use when T-Sql statements returns more than a single value like rows of data.(T-sql ==> Transact SQL)
+2. ExecuteNonQuery	--> use when you want to perform an insert, update or delete operation
+3. ExecuteScalar 	--> use when the query returns a single(scalar) value, like query that return total count of rows
+
+--------------------------------------------------------------------------------------------
+--> using parameterless constructor
+
+
+--> SqlCommand cmd = new SqlCommand();
+    cmd.CommandText = "select * from tblPerson";
+    cmd.Connection = con'
+
+--------------------------------------------------------------------------------------------
+1. ExecuteReader --> we already used it.
+
+---------------------------------------------------------------------------------------
+
+2. ExecuteScalar -->
+
+using(SqlConnection con = new SqlConnection(CS))
+        {
+            SqlCommand cmd = new SqlCommand("Select count(*) from tblPerson", con);
+            con.Open();
+            int TotalRows = (int)cmd.ExecuteScalar();
+            Response.Write(TotalRows);
+            
+        }
+
+--> return type of ExecuteScalar is object because query can return any datatype like int, string, etc. so object used by ado.net so explicitly converting to int
+
+---------------------------------------------------------------------------------------
+
+3. ExecuteNonQuery-->
+
+--> return type is int bec. it tells how many rows updated or deleted 
+
+using(SqlConnection con = new SqlConnection(CS))
+        {
+            SqlCommand cmd = new SqlCommand("insert into tblProduct values ('Pen', 50, 5)", con);
+            con.Open();
+            int TotalRowsAffected = cmd.ExecuteNonQuery();
+            Response.Write("Total rows inserted is: " + TotalRowsAffected);
+        }
+
+----------------------------------------------------------------------------------------------
+
+--> updating table row -->
+
+"update tblProduct set QtyAvailable = 200 where ProductId = 2"
+"delete from tblProduct where ProductId = 4"
+--> check in ExecuteNonQuery()
+
+----------------------------------------------------------------------------------------------
+
+4. SQL Injection-->
+
+--> first we make search textbox to search item from database
+--> design-->
+
+TextBox1  Button1
+GridView1
+
+--> code -->
+
+string command = "select * from tblProduct where Name Like '"+ TextBox1.Text +"%'"
+SqlCommand cmd = new SqlCommand( command, con);
+            
+con.Open();
+GridView1.DataSource = cmd.ExecuteReader();
+GridView1.DataBind();
+
+---------------------------------------------------------------------------------------------
+
+--> Sql injection -->
+
+--> in textbox, someone types	~ip'; delete from tblProduct --~
+--> ignore tild symbol
+--> above will delete all data from tblProduct table
+            
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+5. Sql injection prevention-->
+
+1. use parametrised queries
+2. use stored procedures
+
+
+---------------------------------------------------------------------------------------------
+
+
+1. Parametrised queries-->
+
+--> Create placeholder in query string as variable starting from '@'
+
+string command = "select * from tblProduct where Name Like @ProductName";	
+SqlCommand cmd = new SqlCommand( command, con);
+cmd.Parameters.AddWithValue("@ProductName", TextBox1.Text + "%" );
+            
+con.Open();
+GridView1.DataSource = cmd.ExecuteReader();
+GridView1.DataBind();
+
+--> we use @PropertyName property for substitution of value from TextBox
+--> to attach value from textbox with property, we use method of cmd.Parameters.AddWithValue
+--> try to inject sql now
+
+----------------------------------------------------------------------------------------------
+
+--> sql server profiler tools 
+
+--> it is log file and it stores all queries that we have types 
+--> ssms --> tools --> profiler tools --> click on run --> to trace upcoming queries from ado.net
+
+----------------------------------------------------------------------------------------------
+
+2. using stored procedure-->
+
+Create Procedure spGetProductsByName
+@ProductName nvarchar(50)
+as
+Begin
+	Select * from tblProduct
+	where ProductName like @ProductName + '%'
+End
+
+
+string command = "spGetProductsByName";
+SqlCommand cmd = new SqlCommand( command, con);
+cmd.CommandType = System.Data.CommandType.StoredProcedure;
+cmd.Parameters.AddWithValue("@PropertyName", TextBox1.Text + "%");
+con.Open();
+GridView1.DataSource = cmd.ExecuteReader();
+GridView1.DataBind();
+
+--> cmd.CommandType is for telling cmd that sp is used
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+6. Calling a sp with output parameters->
+
+--> Directly saving data from webform to database
+-------------------------------------------------------
+
+Create Table tblEmployees
+(
+	EmployeeId int identity primary key,
+	Name nvarchar(50),
+	Gender nvarchar(10),
+	Salary int
+)
+
+-------------------------------------------------------
+
+Insert into tblEmployees values ('Mike', 'Male', 5000) --> create 7 records like this
+
+-------------------------------------------------------
+
+--> Making sp in sql server -->
+
+Create Procedure spAddEmployee
+@Name nvarchar(50),
+@Gender nvarchar(20),
+@Salary int,
+@Employed int out
+as 
+begin
+	insert into tblEmployees value (@Name, @Gender, @Salary)
+	select @EmployeeId = SCOPE_IDENTITY()
+end
+
+-------------------------------------------------------
+--> testing stored procedure -->
+
+
+declare @EmpId int
+execute spAddEmployee 'Josh', 'Male', 6500 , @EmpId out
+print 'Employee Id generated is ' + Cast(@EmpId as nvarchar(2))
+
+-------------------------------------------------------
+
+--> linking webform and sql server --> using cmd object
+
+string command = "spAddEmployee";						--> stored procedure
+SqlCommand cmd = new SqlCommand(command, con);
+cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+cmd.Parameters.AddWithValue("@Name", TextBox1.Text);				--> input parameters to sql command
+cmd.Parameters.AddWithValue("@Gender" , DownList1.SelectedValue);
+cmd.Parameters.AddWithValue("@Salary", TextBox2.Text);
+
+SqlParameter outputParameter = new SqlParameter();				--> output parameter generated from sql command
+outputParameter.ParameterName = "@EmployeeId";
+outputParameter.SqlDbType = System.Data.SqlDbType.Int;
+outputParameter.Direction = System.Data.ParameterDirection.Output;
+cmd.Parameters.Add(outputParameter);
+
+con.Open();
+cmd.ExecuteNonQuery();								--> we are updating table by inputting data so ExecuteNonQuery()
+
+string EmpId = outputParameter.Value.ToString();				--> getting outputParameter value from sql server and displaying in label.Text
+Label1.Text = "Employee Id = " + EmpId;
+
+
+--> cmd.Parameters.Add() takes an output parameter
+--> outputParameter use 3 methods for output paramter --> name(of output variable), type(of output variable), direction(input/output)
+--> outputParameter.Value returns obj so converted to any data type
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+7. SqlDataReader object-->
+
+--> It reads data in the most efficient manner
+--> It is read-only
+--> It is forward-only nature 	--> means can't read previous record after going to next record
+--> It is connection-oriented, meaning it requires an active connection to database
+--> Instance of it cannot be created using new operator
+--> cmd.ExecuteReader()	method creates and returns an instance of SqlDataReader
+--> SqlDataReader must be closed, if you want your application to be scalable using 'using' statement.
+
+-----------------------------------------------------------------------------------------
+
+--> we can do operations on each row of data-reader object using read method-->
+
+using System.Data;
+
+string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+using (SqlConnection con = new SqlConnection(CS))
+{
+	con.Open();
+	SqlCommand cmd = new SqlCommand("Select ProductId, ProductName, UnitPrice from tblProductInventory", con)
+
+	using(SqlDataReader rdr = cmd.ExecuteReader())
+	{
+		DataTable table = new DataTable();
+		table.Columns.Add("ID");
+		table.Columns.Add("Name");
+		table.Columns.Add("Price");
+		table.Columns.Add("DiscountedPrice");
+		
+		while(rdr.Read())							----> rdr.Read() returns boolean value
+		{
+			DataRow dataRow = table.newRow();
+
+			int OriginalPrice = Convert.ToInt32(rdr["UnitPrice"]);
+			double DiscountedPrice = OriginalPrice * 0.9;
+
+			dataRow["ID"] = rdr["ProductId"];
+			dataRow["Name"] = rdr["ProductId"];
+			dataRow["Price"] = OriginalPrice;
+			dataRow["DiscountedPrice"] = DiscountedPrice;	
+			table.Rows.Add(dataRow);
+		}
+
+		GridView1.DataSource = table;
+		GridView1.DataBind();
+	}
+	
+--> DataTable is class to make tables in webform application
+--> To use DataTable, need to import System.Data namespace
+
+--------------------------------------------------------------------------------------------
+
+--> another way of same above operation in much easier way -->
+
+string Command = "Select ProductId, ProductName, UnitPrice, (0.9 * UnitPrice) as DiscountedPrice from tblProductInventory";
+SqlCommand cmd = new SqlCommand(Command, con);
+
+--------------------------------------------------------------------------------------------
+
+8. SqlDataReader object NextResult Method-->
+
+string command = "select * from tblProduct; select * from tblProductInventory";
+
+--> above query string will produce two result sets
+--> To divide this result,  is divided into parts and passes to DataReader object using NextResult method
+
+DataReader rdr = cmd.ExecuteReader();
+
+GridView1.DataSource = rdr;
+GridView1.DataBind();
+
+while(rdr.NextResult())
+{
+	GridView2.DataSource = rdr;
+	GridView2.DataBind();
+}
+
+
+--> NextResult() will return boolean value, if there is next result set, returns true
+
+-----------------------------------------------------------------------------------------
+
+9. Data Adapter Object-->
+
+--> It provides us with disconneted data access model.
+--> It is not connection-oriented.
+--> Along with Data Adapter, DataSet object is used to store data
+--> treat DataSet as memory representation of tables 
+
+using(SqlConnection con = new SqlConnection(CS))
+{
+	SqlDataAdapter da = new SqlDataAdapter("Select * from tblProductInventory", con);
+	DataSet ds = new DataSet();
+	da.Fill(ds);
+	
+	GridView1.DataSource = ds;
+	GridView1.DataBind();
+}
+
+--> da.Fill  
+--> opens the connection, retrieve information, closes the connection automatically and saves the data in DataSet object
+	
+----------------------------------------------------------------------------------------------
+
+--> using DataAdapter that uses stored procedure-->
+
+---------------------------------------------------------------
+
+Create Procedure spGetProductInventory
+as
+begin
+	select * from tblProductInventory
+end
+
+------------------------------------------------------------------
+
+SqlDataAdapter da = new SqlDataAdapter("Select * from tblProductInventory", con);
+da.SelectCommand.CommandType = CommandType.StoredProcedure;
+
+--> inputing sp in dataAdapter
+--> telling DataAdapter, we are using sp
+
+-----------------------------------------------------------------------------------
+
+--> using DataAdapter that uses stored procedure with parameters-->
+
+---------------------------------------------------------------
+
+Create Procedure spGetProductInventoryById
+@ProductId int
+as
+begin
+	select * from tblProductInventory where ProductId = @ProductId
+end
+
+------------------------------------------------------------------
+
+SqlDataAdapter da = new SqlDataAdapter("Select * from tblProductInventory", con);
+da.SelectCommand.CommandType = CommandType.StoredProcedure;
+da.SelectCommand.Parameters.AddWithValue("@ProductId", TextBox1.Text);
+
+--> above all code of database should come in button click event
+
+------------------------------------------------------------------
+
+
+--> design -->
+
+textbox1	button1
+gridview1
+------------------------------------------------------------------
+
+--> using constructorless SqlDataAdaptor object-->
+
+------------------------------------------------------------------
+
+SqlDataAdapter da = new SqlDataAdapter();
+da.SelectCommand = new SqlCommand("Select * from tblProductInventory", con);
+
+or 
+
+SqlCommand cmd = new SqlCommand("Select * from tblProductInventory", con);
+SqlDataAdapter da = new SqlDataAdapater(cmd)
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+10. DataSet Object-->
+
+--> In this, we are using tables collection property of dataset object-->
+
+-----------------------------------------------------------------------------------------
+
+--> design
+
+gridview1
+gridview2
+
+-----------------------------------------------------------------------------------------
+
+--> code-->
+
+	string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+        using(SqlConnection con = new SqlConnection(CS))
+        {
+            SqlDataAdapter da = new SqlDataAdapter("spGetData", con);
+            da.SelectCommand.CommandType = CommandType.StoredProcedure;
+
+            DataSet ds = new DataSet();
+            da.Fill(ds);
+
+            GridView1.DataSource = ds.Tables[0];
+            GridView1.DataBind();
+
+
+            GridView2.DataSource = ds.Tables[1];
+            GridView2.DataBind();
+        }
+
+-----------------------------------------------------------------------------------------
+
+or specify table Name-->
+
+ds.Tables[0].TableName = "Products";
+ds.Tables[1].TableName = "Categories";
+
+GridView1.DataSource = ds.Tables["Products"];
+GridView1.DataBind();
+
+GridView2.DataSource = ds.Tables["Categories"];
+GridView2.DataBind();
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+11. Caching DataSet-->
+
+--> caching means saving information of dataset in client's machine.
+--> advantage of this is that we need to load data only once from database, then load data from cache memory
+
+----------------------------------------------------------------------
+
+--> design
+
+button(load Data) button2(clear cache)
+label
+gridview
+
+-----------------------------------------------------------------------
+
+--> code-->
+
+protected void Button1_Click(object sender, EventArgs e)
+    {
+        if (Cache["Data"] == null)							---> if cache memory initialially is null, then load data from database
+        {
+            string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+            using (SqlConnection con = new SqlConnection(CS))
+            {
+                SqlDataAdapter da = new SqlDataAdapter("select * from tblProductInventory", con);
+
+                DataSet ds = new DataSet();
+                da.Fill(ds);
+
+                Cache["Data"] = ds;					--> Cache object is taking key and saving ds in cache memory
+
+                GridView1.DataSource = ds;
+                GridView1.DataBind();
+            }
+            Label1.Text = "Data comes from database";
+        }
+        else
+        {
+            GridView1.DataSource = (DataSet)Cache["Data"];				--> Cache["Data"] returns object so converting
+            GridView1.DataBind();
+            Label1.Text = "Data comes from cache memory";
+        }
+        
+    }
+    protected void Button2_Click(object sender, EventArgs e)
+    {
+        if (Cache["Data"] != null)
+        {
+            Cache.Remove("Data");							----> this will clears cache
+            Label1.Text = "dataset is removed from cache";
+        }
+        else
+        {
+            Label1.Text = "there is nothing to remove from cache";
+        }
+    }
+
+--> we can define many cache memory by defining different keys
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+12. SqlCommandBuilder object-->
+
+--> This class automatically generates INSERT, UPDATE, DELETE SQL statements based on the SELECT statement for a single table.
+--> DataAdaptor object is linked to SqlCommandBuilder object for insert, update, delete operations on dataset.
+
+-------------------------------------------------------------------------
+
+--> design-->
+
+StudentId: 	TextBox1  Button1(Load)
+
+Name: 		TextBox2
+Gender: 	DDL
+TotalMarks: 	TextBox3
+Button(Update)	Label(Status of update)
+
+-------------------------------------------------------------------------
+
+--> code to retrieve data from database for given id and display informatin in webformTable
+
+	string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+        using (SqlConnection con = new SqlConnection(CS))
+        {
+            string sqlQuery = "select * from tblStudents where ID = " + TextBox1.Text;
+            SqlDataAdapter da = new SqlDataAdapter(sqlQuery, con);
+
+            DataSet ds = new DataSet();
+            da.Fill(ds, "Students");
+
+            ViewState["SQL_QUERY"] = sqlQuery;
+            ViewState["DATASET"] = ds;
+
+            if(ds.Tables["Students"].Rows.Count > 0)
+            {
+                DataRow dr = ds.Tables["Students"].Rows[0];
+                TextBox2.Text = dr["Name"].ToString();
+                DropDownList1.SelectedValue = dr["Gender"].ToString();
+                TextBox3.Text = dr["TotalMarks"].ToString();
+            }
+            else
+            {
+                Label1.ForeColor = System.Drawing.Color.Red;
+                Label1.Text = "No Student record with ID = " + TextBox1.Text;
+            }
+        }
+    }
+
+--> above code is under button click event --> Load
+--> run it
+-------------------------------------------------------------------------
+
+--> update click event-->
+
+------------------------------------------------------
+
+protected void Button1_Click(object sender, EventArgs e)
+    {
+        string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+        using (SqlConnection con = new SqlConnection(CS))
+        {
+            string sqlQuery = "select * from tblStudents where ID = " + TextBox1.Text;
+            SqlDataAdapter da = new SqlDataAdapter(sqlQuery, con);
+
+            DataSet ds = new DataSet();
+            da.Fill(ds, "Students");
+
+            ViewState["SQL_QUERY"] = sqlQuery;
+            ViewState["DATASET"] = ds;
+
+            if(ds.Tables["Students"].Rows.Count > 0)
+            {
+                DataRow dr = ds.Tables["Students"].Rows[0];
+                TextBox2.Text = dr["Name"].ToString();
+                DropDownList1.SelectedValue = dr["Gender"].ToString();
+                TextBox3.Text = dr["TotalMarks"].ToString();
+            }
+            else
+            {
+                Label1.ForeColor = System.Drawing.Color.Red;
+                Label1.Text = "No Student record with ID = " + TextBox1.Text;
+            }
+        }
+    }
+    protected void Button2_Click(object sender, EventArgs e)
+    {
+        string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+        SqlConnection con = new SqlConnection(CS);
+
+        SqlDataAdapter da = new SqlDataAdapter((string)ViewState["SQL_QUERY"], con);
+
+        SqlCommandBuilder builder = new SqlCommandBuilder(da);
+        
+
+        DataSet ds = (DataSet) ViewState["DATASET"];
+
+        if (ds.Tables["Students"].Rows.Count > 0)
+        {
+            DataRow dr = ds.Tables["Students"].Rows[0];
+            dr["Name"] = TextBox2.Text;
+            dr["Gender"] = DropDownList1.SelectedValue;
+            dr["TotalMarks"] = TextBox3.Text;
+        }
+
+        int rowsupdated = da.Update(ds, "Students");
+        if (rowsupdated > 0)
+        {
+            Label1.ForeColor = System.Drawing.Color.Green;
+            Label1.Text = rowsupdated.ToString() + " row(s) updates";
+        }
+        else
+        {
+            Label1.ForeColor = System.Drawing.Color.Red;
+            Label1.Text = "No row updated";
+        }
+    }
+
+----------------------------------------------------------------------
+
+--> Using property (instead of constructor) to set value in dataAdapter and SqlCommandBuilder-->
+
+SqlDataAdapter dataAdapter = new SqlDataAdapter();
+dataAdapter.SelectCommand = new SqlCommand("Select_Query", con);
+
+SqlCommandBuilder builder = new SqlCommandBuilder();
+builder.DataAdapter = dataAdapter;
+
+----------------------------------------------------------------------
+
+13. Reasons for SqlDataAdapter.Update does not work-->
+
+1. may be missing below code-->
+
+SqlCommandBuilder builder = new SqlCommandBuilder(dataAdapter);
+
+--> SqlCommandBuilder object must be associated with SqlDataAdapter object
+--> without this, sqlDataAdapter does not have methods like Update, Delete, Insert
+
+2. may be missing primary key or unique key in table for autogenerated ID-->
+
+--> raise exception --> "Dynamic SQL generation for the UpdateCommand is not supported against a SelectCommand that does not return any key column information"
+
+------------------------------------------------------------------------------------
+
+--> To see the autogenerated query for insert, update, delete-->
+
+Label1.Text = builder.GetInsertCommand().CommandText();
+Label2.Text = builder.GetUpdateCommand().CommandText();
+Label3.Text = builder.GetDeleteCommand().CommandText();
+
+------------------------------------------------------------------------------------
+
+14. Disconnected Data Access-->
+
+--> ADO.net offers two data access models
+
+1. Connection oriented data access
+2. Disconnected data access
+
+----------------------------------------------------------------------------
+
+--> To understand this concept read below steps-->
+
+1. Get Data from Database
+2. go offline
+3. apply modifications to dataset table
+4. go online
+5. click one button, update database
+
+--> From this, we are able to modify records without being connected to sqlserver network, and when connection is availabe, just click one button to modify database records
+
+--------------------------------------------------------------------------------------
+
+--> DataSet -->
+
+--> It is an in-memory data store that can hold one or more tables. 
+--> DataSets only hold data and do not interact with the underlying database table.
+--> The DataSet object has no knowledge of the underlying Data Source.
+--> It is the SqlDataAdapter object that retrieves data from the datasource
+
+----------------------------------------------------------------------------
+
+--> SqlDataAdapter.Fill() -->
+
+--> It opens the connection to the database
+--> Executes the command
+--> DataSet is populated with the data
+--> automatically closes the connection
+
+da.Fill(ds, "Students");
+
+----------------------------------------------------------------------------
+
+--> design-->
+
+Button(Load Data From DB)
+GridView(with edit and delete column)
+Button(Update Database Source)	Label(Status)
+
+
+--> attach sql data source element(tag) from data in toolbars
+--> configuration
+--> connect database (Students)--> next
+--> select all columns --> advances --> tick mark first checkbox --> Next
+--> Finish
+
+--> select gridview --> choose datasource --> enable editing --> enable deleting
+--> now to go to aspx source code
+--> delete datasource element
+--> delete datasource attribute from gridview1
+--> only keep remaining columns tag
+
+----------------------------------------------------------------------------
+
+--> code --> 
+
+private void GetDataFromDB()
+{
+	string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+        SqlConnection con = new SqlConnection(CS)
+        
+        string sqlQuery = "select * from tblStudents";
+        SqlDataAdapter da = new SqlDataAdapter(sqlQuery, con);
+
+        DataSet ds = new DataSet();
+        da.Fill(ds, "Students");
+
+	ds.Tables["Students"].PrimaryKey = new DataColumn[] { ds.Tables["Students"].Columns["ID"] };
+
+	Cache.Insert("DATASET", ds, null, DateTime.Now.AddHours(24), System.Web.Caching.Cache.NoSlidingExpiration);
+
+	GridView1.DataSource = ds;
+	GridView1.DataBind();
+
+	Label1.Text = "Data Loaded from Database";
+}
+
+Get Data From DB click event-->
+
+GetDataFromDB();
+
+----------------------------------------------------------------------------

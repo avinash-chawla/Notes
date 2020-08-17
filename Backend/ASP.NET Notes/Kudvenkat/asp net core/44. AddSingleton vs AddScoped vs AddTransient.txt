@@ -1,0 +1,133 @@
+1. Singleton Method
+
+--> In ASP.NET Core, services are registered in ConfigureServices() method of the Startup.cs file.
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddMvc();
+    services.AddSingleton<IEmployeeRepository, MockEmployeeRepository>();
+}
+
+
+--> At the moment we are using AddSingleton() method to register MockEmployeeRepository service. 
+
+--> AddSingleton() creates a single instance of the service when it is first requested and reuses that same instance in all the places where that service is needed.
+
+--> This means all the requests throughout the life time of the application use that same instance.
+
+----------------------------------------------------------------------------------
+
+2. Demo
+
+--> This service of IEmployeeRepository object is used by:
+
+1. Controller Class
+
+private IEmployeeRepository _employeeRepository;
+
+----------------------------------------------------------------------------------
+
+2. View 
+
+@inject IEmployeeRepository empRepository
+
+<div>
+    Total Employees Count = @empRepository.GetAllEmployees().Count().ToString()
+</div>
+
+----------------------------------------------------------------------------------
+
+--> At the moment, in our example we need MockEmployeeRepository service instance in 2 places - Create action method in the HomeController and in the Create view.
+
+--> At this point when we navigate to http://localhost:/home/create we see the Total Employees Count is 3
+--> To serve this request an instance of the HomeController is created first. HomeController has a dependency on IEmployeeRepository. 
+--> This is the first time, the instance of the service is requested. So asp.net core creates an instance of the service and injects it into the HomeController.
+--> Create view also needs an instance of the service to calculate the total number of employees. With singleton, the same service instance is used. --> So the instance of the service that is already created is provided to the Create view also.
+--> Now if you provide a Name in the Name textbox and click Create button you will see the count goes up every time you click the button.
+--> This is because with Singleton, the same object is used, so changes made to the object can be viewed in all the places across all the HTTP requests.
+
+----------------------------------------------------------------------------------
+
+3. Registering Services
+
+--> ASP.NET core provides the following 3 methods to register services with the dependency injection container. 
+--> The method that we use determines the lifetime of the registered service.
+
+1.AddSingleton() 
+
+--> As the name implies, AddSingleton() method creates a Singleton service. 
+--> A Singleton service is created when it is first requested. 
+--> This same instance is then used by all the subsequent requests. 
+--> So in general, a Singleton service is created only one time per application and that single instance is used throughout the application life time.
+
+ 
+2. AddTransient() 
+
+--> This method creates a Transient service. A new instance of a Transient service is created each time it is requested. 
+
+3. AddScoped() 
+
+--> This method creates a Scoped service. A new instance of a Scoped service is created once per request within the scope. 
+--> For example, in a web application it creates 1 instance per each http request but uses the same instance in the other calls within that same web request.
+
+----------------------------------------------------------------------------------
+
+4. AddScoped
+
+--> Make sure to not redirect, return same view in Create actionMethod
+
+Now, use AddScoped() method to register the service. 
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddMvc();
+    services.AddScoped<IEmployeeRepository, MockEmployeeRepository>();
+}
+
+--> Issue a request to http://localhost:/home/create. 
+--> We see the Total Employees Count is 3.
+--> Provide a Name and click the Create button.
+--> The Total Employees Count increases to 4.
+--> When we click the Create button again, the Total Employees Count is still 4.
+--> This is because for a scoped service with every http request we get a new instance. 
+
+
+--> However, with in the same http request if the service is required in multiple places like in the view and in the controller then the same instance is provided for the entire scope of that http request.
+
+--> If we relate this to our example, both the HomeController and the Create view will use the same instance of the service for a given http request. This is the reason Create view is also able to see the new employee added by the Create action method of the HomeController. Hence we see the Total Employees Count as 4.
+
+ 
+--> But every new http request will get a new instance of the service. This is the reason an employee added by one http request cannot be seen in another http request. So this means every time we click the Create button we are issuing a new http request and hence the Total Employees Count does not go beyond 4.
+
+----------------------------------------------------------------------------------
+
+5. AddTransient
+
+--> Finally let’s use AddTransient() method to register our service
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddMvc();
+    services.AddTransient<IEmployeeRepository, MockEmployeeRepository>();
+}
+
+--> Issue a request to http://localhost:/home/create
+--> We see the Total Employees Count is 3
+--> Provide a Name and click the Create button.
+--> Notice, on the Create view, we still see the Total Employees Count as 3
+--> This because with a transient service a new instance is provided every time a service instance is requested whether it is in the scope of the same http request or across different http requests.
+
+--> Since a new instance is provided even within the same scope of a given http request, the Create view is not able to see the new employee added by the Create action of the HomeController. This is the reason the count of employees is 3 even after adding a new employee.
+
+----------------------------------------------------------------------------------
+
+6. Scoped Service vs Transient Service vs Singleton Service
+ 
+
+--> With a scoped service we get the same instance within the scope of a given http request but a new instance across different http requests
+
+--> With a transient service a new instance is provided every time an instance is requested whether it is in the scope of the same http request or across different http requests
+
+--> With a singleton service, there is only a single instance. An instance is created, when the service is first requested and that single instance is used by all http requests throughout the application.
+
+----------------------------------------------------------------------------------

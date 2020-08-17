@@ -1,0 +1,40 @@
+1. Comments
+
+--> There are three types of comments in Kava.
+
+1. Single Line Comment
+2. Multi Line Comment
+3. Documentation Comment
+
+---------------------------------------------------------------------------------
+
+2. Single Line Comment
+
+//This is single line comment  
+
+---------------------------------------------------------------------------------
+
+3. Multi Line Comment
+
+/* 
+This  
+is  
+multi line  
+comment 
+*/  
+
+---------------------------------------------------------------------------------
+
+4. Java Documentation Comment
+
+--> The documentation comment is used to create documentation API. To create documentation API, you need to use javadoc tool.
+
+/** 
+This  
+is  
+documentation  
+comment 
+*/ 
+
+---------------------------------------------------------------------------------
+

@@ -1,0 +1,207 @@
+1. Recompile --> ctrl+F5, ctrl+shift+B
+2. define variables- byte, int, float, char, string, bool, var
+
+---------------------------------------------------------------------
+
+3. Type Conversion-->
+
+compatible --> (int)
+non-compatible --> Convert.ToInt32(..)   or  int.Parse(..);
+
+---------------------------------------------------------------------
+
+4. define arrays-->
+
+var numbers = new int[5] {1,2,3,4,5};
+int[]
+string[]
+bool[]
+
+var numbers = new int[];	
+--> when object is instantiated, all properties gets default value like 0, null, false, "".
+
+---------------------------------------------------------------------
+
+5. strings-->
+
+FromArray-->
+string listOfName = string.join(',', arrayName);
+
+toArray-->
+str.Split(' ')
+
+common-->
+--> ToLower()
+--> ToUpper()
+--> Trim()
+
+searching-->
+--> IndexOf('a')
+--> LastIndexOf("Hello")
+
+copying-->
+--> Substring(startIndex)
+--> Substring(startIndex, length)
+
+replacing-->
+--> Replace('a', '!')
+--> Replace("mosh", "moshfegh")
+
+comparison-->
+--> String.IsNullOrEmpty(str)			--> returns boolean
+--> String.IsNullorWhiteSpace(str)
+
+conversion-->
+string s = "1234";
+int i = int.Parse(s);			--> if s = null/empty, return undefined
+int j = Convert.ToInt32(s);		--> if s = null/empty, return 0 int
+
+convertionToString-->
+int i = 1234;
+string s = i.ToString();
+string t = i.ToString("C");		--> C for currency --> insert $ sign
+
+---------------------------------------------------------------------
+
+6. enums-->
+
+--> It is like dictionary to associate byte values
+public enum ShippingMethod{		
+	Express = 1,
+ 	ByAir = 2,
+ 	ByWater = 3;
+}
+
+var method = ShippingMethod.Express;
+
+---------------------------------------------------------------------
+
+7. Arrays-->
+
+var numbers = new int[] { 3,6,4,3,6,6,43};
+
+foreach(var n in numbers);
+   Console.WriteLine(n);
+
+numbers.Length;
+
+Array.IndexOf(numbers, 6);
+
+Array.Clear(numbers, 0, 2);
+
+int[] another = new int[3];
+Array.Copy(numbers, another, 3);
+
+int[] another = new int[numbers.Length];
+Array.Copy(numbers, another, numbers.Length);
+
+Array.Sort(numbers);
+
+Array.Reverse(numbers);
+
+---------------------------------------------------------------------
+
+8. List-->
+
+var numbers = new List<int>();			--> Generic type
+
+--> dynamic length, store complex objects like objects
+
+--> useful methods--> Add(), AddRange(), Remove(), RemoveAt(), IndexOf(), Contains(), Count()
+
+--> using System.Collections.Generic
+
+numbers.Add(5);
+numbers.AddRange(new int[] { 6, 7, 8 });
+	
+
+--> Parameter is IEnumerable, It is base class for array, collection, list, etc.
+
+--> indexOf, Contains, Count-->
+Console.WriteLine("Index of 1:"+numbers.IndexOf(1));
+Console.WriteLine("Contains 8: "+numbers.Contains(8));
+Console.WriteLine("Count "+numbers.Count);
+
+--> Remove() -->
+numbers.Remove(1);		--> remove first occurance of 1 in list
+for (int i = 0; i < numbers.Count; i++)		--> remove all occurance in list
+{
+	if (numbers[i] == 1)
+      		numbers.Remove(numbers[i]);
+}
+
+--> Can not use foreach
+
+---------------------------------------------------------------------
+
+9. typeof and getType-->
+
+   string s = "avinash";
+
+   Console.log(typeof(int))	--> System.Int32;
+   Console.log(s.GetType())	--> System.String;
+
+---------------------------------------------------------------------
+
+10. DateTime object-->
+
+--> displays point in time
+
+   var dateTime = new DateTime(2015, 1, 1);
+
+   var now = DateTime.Now;			--> DateTime is static class
+   var today = DateTime.Today;
+
+   Console.WriteLine(now.Hour);
+   Console.WriteLine(now.Minute);
+
+   var tomorrow = now.AddDays(1); 	--> DateTime objects are immutable so using this 
+   var yesterday = now.AddDays(-1);
+  
+   Console.WriteLine(now.ToLongDateString());		--> formats in string
+   Console.WriteLine(now.ToShortDateString());
+   Console.WriteLine(now.ToLongTimeString());
+   Console.WriteLine(now.ToShortTimeString());
+
+   Console.WriteLine(now.ToString());
+   Console.WriteLine(now.ToString("yyyy-MM-dd"));
+   Console.WriteLine(now.ToString("yyyy-MM-dd HH:mm"));
+
+---------------------------------------------------------------------
+
+11. Shortcuts-->
+
+ctrl+k+f	--> auto formats code
+tab tab		--> auto complete if, for, class
+ctrl+k+c / u	--> for bulk comment
+alt+shift+enter --> for full screen mode
+alt+shift+ up/down	--> multicursor
+ctrl+r+r	--> to change all variable reference at one time
+ctrl+tab	--> to switch between tabs
+ctrl+c+v	--> duplicate lines of code
+
+snippets-->
+cw		--> Console.WriteLine()
+prop		--> To define property in Class
+mvcaction4	--> to generate actionMethod
+
+---------------------------------------------------------------------
+
+12. TimeSpan-->
+
+--> displays time duration
+--> normally used in finding difference of DateTime objects
+
+   var start = DateTime.Now;
+   var end = DateTime.Now.AddMinutes(2);
+   var duration = end - start;
+   Console.WriteLine(duration);		---> 00: 02: 00
+	
+   Console.WriteLine("Minutes: "+ timeSpan.Minutes);			---> returns min from timespan  --> that is 2 min
+   Console.WriteLine("Total Minutes: " + timeSpan.TotalMinutes);	---> returns total min including hr --> that is 60 + 2 + 0.03 = 62.03 min
+
+---------------------------------------------------------------------
+
+13.
+
+

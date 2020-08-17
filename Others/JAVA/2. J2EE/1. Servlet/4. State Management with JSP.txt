@@ -1,0 +1,348 @@
+1. JSP session object
+
+--> JSP session is created once for user's browser session. Unique for this user.
+--> Commonly used when you need to keep track of the users actions
+--> eg. for online exam, you need to keep track of all action of users.
+--> eg. shopping cart for user
+
+--------------------------------------------------------------------------------
+
+2. Big Picture
+
+--> This session of each browser is kept in tomcat server
+--> Not in database and not in application data
+--> tomcat will provide each browser a unique session id
+--> In student-response.jsp
+
+--------------------------------------------------------------------------------
+
+3. Demo
+
+--> Add data to Session object
+
+--> Method Signature
+
+session.setAttribute(String name, Object value)
+
+--> Code example
+
+List<String> items = new ArrayList<String>();
+session.setAttribute("myToDoList", items);
+
+--------------------------------------------------------------------------------
+
+--> Retrieve data from session object
+
+--> Method signature
+Object session.getAttribute(String name)
+
+--> Code example
+List<String> myStuff = (List<String>) session.getAttribute("myToDoList");
+
+--------------------------------------------------------------------------------
+
+4. Other usefull methods
+
+1. isNew(): boolean
+--> Returns true if the session is new.
+
+2. getId() : String
+--> Returns the session id which is provided by tomcat
+
+3. invalidate(): void
+--> Invalidates this session and unbinds any object associated with it.
+--> Helpful in logout
+
+4. setMaxInactiveInterval(long mills) : void
+--> Sets the idle time for a session to expire 
+--> The value is supplied in milliseconds
+--> Default time for tomcat is 30min and varies with different servers.
+
+--------------------------------------------------------------------------------
+
+5. Todo App using Sessions
+
+<%@ page import="java.util.*" %>
+
+<html>
+
+<body>
+
+<!-- Step 1: Create HTML form -->
+<form action="todo-demo.jsp">
+	Add new item: <input type="text" name="theItem" />
+	
+	<input type="submit" value="Submit" />
+</form>
+
+<!-- Step 2: Add new item to "To Do" list -->
+<%
+	// get the TO DO items from the session
+	List<String> items = (List<String>) session.getAttribute("myToDoList");
+
+	// if the TO DO items doesn't exist, then create a new one
+	if (items == null) {
+		items = new ArrayList<String>();
+		session.setAttribute("myToDoList", items);
+	}
+	
+	// see if there is form data to add
+	String theItem = request.getParameter("theItem");
+	if (theItem != null) {
+		items.add(theItem);
+	}
+%>
+
+<!-- Step 3: Display all "To Do" item from session -->
+<hr>
+<b>To List Items:</b> <br/>
+
+<ol>
+<%
+	for (String temp : items) {
+		out.println("<li>" + temp + "</li>");
+	}
+%>
+</ol>
+
+</body>
+
+</html>
+
+
+--> This code will behave for different browser
+--> Tomcat is saving each browser details in its memory
+--> Even if you close your browser and revisit that website, the information will be retained
+--> There is time limit for sessions in tomcat - 30 min
+
+--------------------------------------------------------------------------------
+
+6. Cookies
+
+--> Personalize a web site for a user
+--> Keep track of user preferences
+--> eg. Favorite programming language: Java
+--> eg. Favorite departure airport : Mumbai airport
+
+--> Text data exchanged between web browser and server
+--> Browsers will only send cookies that match the servers domain name
+
+--------------------------------------------------------------------------------
+
+--> Browser will save cookie for each browser individually
+--> In settings, privacy and security, you can see cookies option.
+--> Each cookie has expiration date set to browser.
+
+--------------------------------------------------------------------------------
+
+--> Cookie class defined in package: javax.servlet.http
+--> This package is imported for free in all JSP pages
+
+--------------------------------------------------------------------------------
+
+--> Cookie Constructor
+
+Cookie(String name, String value)
+
+--------------------------------------------------------------------------------
+
+--> Demo
+
+<%
+	String favLang = request.getParameter("favoriteLanguage");
+
+	Cookie theCookie = new Cookie("myApp.favoriteLanguage", favLang);
+
+	theCookie.setMaxAge(60*60*24*365);
+
+	response.addCookie(theCookie);
+%>
+
+--------------------------------------------------------------------------------
+
+--> Reading Cookies from the Browser
+
+<%
+	String favLang = "Java";
+
+	Cookie[] the Cookies = request.getCookies();
+
+	if(theCookies != null){
+	   for (Cookie tempCookie : theCookies) {
+		if("myApp.favoriteLanguage".equals(tempCookie.getName())){
+		   favLang = tempCookie.getValue();
+		   break;
+		}
+	   }
+	}
+%>
+
+--------------------------------------------------------------------------------
+
+--> Code Demo
+
+--> cookies-personalize-form.html
+
+<html>
+<head>
+	<title>Personalize The Site</title>
+</head>
+<body>
+
+<form action="cookies-personalize-response.jsp">
+	Select your Favorite Programming Language
+	<select name="favoriteLanguage">
+			<option>Java</option>
+			<option>C#</option>
+			<option>PHP</option>
+			<option>Ruby</option>
+	</select>
+
+	<br/><br/>
+	
+	<input type="submit" value="Submit" />
+</form>
+</body>
+</html>
+
+--------------------------------------------------------------------------------
+
+--> cookies-personalize-response.jsp
+
+<html>
+
+<head><title>Confirmation</title></head>
+
+<%
+	// read form data
+	String favLang = request.getParameter("favoriteLanguage");
+
+	// create the cookie
+	Cookie theCookie = new Cookie("myApp.favoriteLanguage", favLang);
+	
+	// set the life span ... total number of seconds (yuk!)
+	theCookie.setMaxAge(60*60*24*365);    // <-- for one year
+	
+	// send cookie to browser
+	response.addCookie(theCookie);
+%>
+<body>
+
+	Thanks! We set your favorite language to: ${param.favoriteLanguage}
+	
+	<br/><br/>
+	
+	<a href="cookies-homepage.jsp">Return to homepage.</a>
+	
+</body>
+
+</html>
+
+--------------------------------------------------------------------------------
+
+--> cookies-homepage.jsp
+
+<html>
+
+<body>
+<h3>Training Portal</h3>
+
+<!-- read the favorite programming language cookie -->
+<%
+	// the default ... if there are no cookies
+	String favLang = "Java";
+
+	// get the cookies from the browser request
+	Cookie[] theCookies = request.getCookies();
+	
+	// find our favorite language cookie
+	if (theCookies != null) {
+		
+		for (Cookie tempCookie : theCookies) {
+			
+			if ("myApp.favoriteLanguage".equals(tempCookie.getName())) {
+				favLang = tempCookie.getValue();
+				break;
+			}
+		}
+	}
+%>
+
+<!-- now show a personalized page ... use the "favLang" variable -->
+
+<!-- show new books for this lang -->
+<h4>New Books for <%= favLang %></h4>
+<ul>
+	<li>blah blah blah</li>
+	<li>blah blah blah</li>
+</ul>
+
+<h4>Latest News Reports for <%= favLang %></h4>
+<ul>
+	<li>blah blah blah</li>
+	<li>blah blah blah</li>
+</ul>
+
+<h4>Hot Jobs for <%= favLang %></h4>
+<ul>
+	<li>blah blah blah</li>
+	<li>blah blah blah</li>
+</ul>
+
+<hr>
+<a href="cookies-personalize-form.html">Personalize this page</a>
+</body>
+
+</html>
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,288 @@
+1. let and const
+
+--> It is used to define a variable
+--> let for variable
+--> const for constant
+
+---------------------------------------------------------------------------------
+
+2. Arrow Functions
+
+function printMyName(name){
+   console.log(name);
+}
+
+printMyName = (name) => console.log(name);
+
+---------------------------------------------------------------------------------
+
+3. Exports and Imports
+
+--> It splits code into multiple files
+--> Content is transfered from one to another.
+
+--> export default person
+--> export const clean = () => {}
+
+--> import person, {clean} from './person'
+
+--> Name in the receiving file is up to you.
+
+---------------------------------------------------------------------------------
+
+4. Classes
+
+--> It is blueprint for objects
+--> Class binds related fields and methods
+--> Consider it as custom datatype
+
+class Human {
+   constructor() {
+	this.gender = 'male';
+   }
+
+   printGender() {
+	console.log(this.gender);
+   }
+}
+
+
+class Person extends Human{
+   constructor() {
+	super();			--> It is important to write in inheritance
+	this.name = 'Max';
+	this.gender = 'female';
+   }
+
+   printMyName() {
+	console.log(this.name);
+   }
+}
+
+const person = new Person();
+person.printMyName();
+person.printGender();
+
+---------------------------------------------------------------------------------
+
+5. Classes, Properties and Methods
+
+--> ES6
+
+constructor() {
+	this.myProperty = 'value'
+}
+
+--> ES7
+
+myProperty = 'value'
+
+---------------------------------------------------------------------------------
+
+--> ES6
+
+myMethod() {...}
+
+--> ES7
+
+myMethod = () => {..}
+
+---------------------------------------------------------------------------------
+
+class Person{ 			
+	name = 'Max';
+	gender = 'female';
+   }
+
+   printMyName = () => {
+	console.log(this.name);
+   }
+}
+
+---------------------------------------------------------------------------------
+
+6. Spread and Rest Operators
+
+--> Spread
+--> It is used to split up array elements or object properties
+--> const newArray = [...oldArray, 1, 2]
+--> const newObject = { ...oldObject, newProp: 5 }
+
+--> Rest
+--> It is used to merge a list of function arguments into an array
+--> function sortArgs(...args){
+	return args.sort()
+    }
+
+---------------------------------------------------------------------------------
+
+7. Destructuring
+
+--> It is used to extract array elements or object properties and store them in variables.
+--> [a, b] = ['Hello', 'Max']
+--> {name} = {name: 'Max', age: 28}
+
+--> const numbers = [1,2,3]
+--> [num1, , num3] = numbers;
+
+---------------------------------------------------------------------------------
+
+8. Reference and Primitive Types
+
+--> const person = { name : 'Max' }
+--> const person2 = person			--> copy reference (not value)
+--> const person3 = { ...person }		--> copy all values using spread
+
+--> In reference types, object is created on heaps and variable pointing to that object on stack
+--> In value types, both value and variable is assigned in stack
+
+--> Value types are cleared by scope
+--> Reference types are cleared by garbage collector.
+
+---------------------------------------------------------------------------------
+
+9. Array Functions
+
+--> const numbers = [1,2,3];
+--> const doubleNumArray = numbers.map(i => i*2)		--> [2,4,6]
+--> const filterNumbers = numbers.filter(i => i==2)		--> 2
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

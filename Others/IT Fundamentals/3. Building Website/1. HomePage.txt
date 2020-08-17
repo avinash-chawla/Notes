@@ -1,0 +1,167 @@
+1. Step1: Navbar
+
+   <div class='nav'>
+        <div>Company Name</div>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="./about.html">About</a></li>
+            <li><a href="./services.html">Services</a></li>
+            <li><a href="./contact.html">Contact</a></li>
+        </ul>
+    </div>
+
+--------------------------------------------------------------------------------
+
+2. Styling
+
+--> Programming is about giving instructions to computer in that language
+--> First step of Programming is define the Problem
+--> Second step is Divide the Problem into Smaller Problems
+
+--> Here Problem definition is 
+
+1. Align the links in single row
+2. Background color
+3. Take Width 100% of screen
+
+--------------------------------------------------------------------------------
+
+.nav{
+    height: 50px;
+    background: blue;
+}
+.nav div{
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    padding: 15px;
+    font-size: 20px;
+    color: white;
+}
+.nav ul{
+    position: absolute;
+    right: 5px;
+}
+.nav ul li{
+    display: inline-block;
+}
+.nav ul li a{
+    color: white;
+    padding: 5px
+}
+
+--------------------------------------------------------------------------------
+
+3. Adding Backgroung Image
+
+--> Its height and width should be equal to that of the screen.
+--> And it should not pixelate, i.e. no blurry images.
+--> In order to make sure this doesn’t happen, use an image with good resolution.
+
+--------------------------------------------------------------------------------
+
+--> Well, let’s add a container for our background image.
+--> This will serve as a container for our entire home page.
+--> And the navigation bar should also go inside this div.
+
+ <div class="home">
+     <!--Navbar-->
+      <div class="nav">
+        <div>Company Name</div>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="./about.html">About</a></li>
+          <li><a href="./services.html">Services</a></li>
+          <li><a href="./contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+--------------------------------------------------------------------------------
+
+**Remember we always add a background image through CSS and not using the <img> tag.
+Time to head to our style.css file.
+ .home{
+    background: url("../images/homeBack.jpg");
+    background-size: cover;
+    height: 100vh;
+}
+
+--------------------------------------------------------------------------------
+
+4. Name and TagLine
+
+--> The name and tagline should be horizontally and vertically at the center of the page.
+--> Let’s first add it in our HTML file.
+
+ <div class="text-container">
+        <div>
+          <h1>Company Name</h1>
+          <h2>Tagline Goes Here</h2>
+        </div>
+      </div>
+
+--------------------------------------------------------------------------------
+
+ .home .text-container{
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 90vh;
+}
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

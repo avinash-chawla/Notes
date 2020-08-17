@@ -1,0 +1,11 @@
+1. To edit single element inside group
+--> double click it
+--> ctrl + single click
+
+2. To duplicate object/frame
+--> Alt + drag
+
+3. To Copy Style and Paste the Style
+--> Alt + Ctrl + C
+--> Alt + Ctrl + P
+

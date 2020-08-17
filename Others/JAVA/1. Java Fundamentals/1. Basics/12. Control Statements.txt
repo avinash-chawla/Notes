@@ -1,0 +1,239 @@
+1. If-else statment
+
+public static void main(String[] args) {    
+    int year=2020;    
+    if(((year % 4 ==0) && (year % 100 !=0)) || (year % 400==0)){  
+        System.out.println("LEAP YEAR");  
+    }  
+    else{  
+        System.out.println("COMMON YEAR");  
+    }  
+}   
+
+---------------------------------------------------------------------------------
+
+2. Using Ternary Operator
+
+public static void main(String[] args) {    
+    int number=13;    
+    //Using ternary operator  
+    String output=(number%2==0)?"even number":"odd number";    
+    System.out.println(output);  
+}    
+
+---------------------------------------------------------------------------------
+
+3. Switch Statement
+
+public static void main(String[] args) {  
+    //Declaring a variable for switch expression  
+    int number=20;  
+    //Switch expression  
+    switch(number){  
+    //Case statements  
+    case 10: System.out.println("10");  
+    break;  
+    case 20: System.out.println("20");  
+    break;  
+    case 30: System.out.println("30");  
+    break;  
+    //Default case statement  
+    default:System.out.println("Not in 10, 20 or 30");  
+    }  
+}  
+
+---------------------------------------------------------------------------------
+
+4. for loop
+
+public static void main(String[] args) {  
+    //Code of Java for loop  
+    for(int i=1;i<=10;i++){  
+        System.out.println(i);  
+    }  
+}  
+
+---------------------------------------------------------------------------------
+
+5. for-each Loop
+
+--> The for-each loop is used to traverse array or collection in java. It is easier to use than simple for loop because we don't need to increment value and use subscript notation
+
+---------------------------------------------------------------------------------
+
+Syntax:
+
+for(Type var:array){  
+//code to be executed  
+}  
+
+---------------------------------------------------------------------------------
+
+Example:
+
+public static void main(String[] args) {  
+    //Declaring an array  
+    int arr[]={12,23,44,56,78};  
+    //Printing array using for-each loop  
+    for(int i:arr){  
+        System.out.println(i);  
+    }  
+}  
+
+---------------------------------------------------------------------------------
+
+6. Labeled For Loop
+
+--> We can have a name of each Java for loop. To do so, we use label before the for loop. It is useful if we have nested for loop so that we can break/continue specific for loop.
+
+---------------------------------------------------------------------------------
+
+Syntax:
+
+labelname:  
+for(initialization;condition;incr/decr){  
+//code to be executed  
+}  
+---------------------------------------------------------------------------------
+
+public static void main(String[] args) {  
+    //Using Label for outer and for loop  
+    aa:  
+        for(int i=1;i<=3;i++){  
+            bb:  
+                for(int j=1;j<=3;j++){  
+                    if(i==2&&j==2){  
+                        break aa;  
+                    }  
+                    System.out.println(i+" "+j);  
+                }  
+        }  
+}  
+
+---------------------------------------------------------------------------------
+
+7. Infinitive For Loop
+
+--> If you use two semicolons ;; in the for loop, it will be infinitive for loop.
+
+public static void main(String[] args) {  
+    //Using no condition in for loop  
+    for(;;){  
+        System.out.println("infinitive loop");  
+    }  
+}  
+
+---------------------------------------------------------------------------------
+
+8. While Loop
+
+public static void main(String[] args) {  
+    int i=1;  
+    while(i<=10){  
+        System.out.println(i);  
+    i++;  
+    }  
+}  
+
+---------------------------------------------------------------------------------
+
+9. Infinite While Loop
+
+public static void main(String[] args) {  
+    while(true){  
+        System.out.println("infinitive while loop");  
+    }  
+} 
+
+---------------------------------------------------------------------------------
+
+10. Do-while Loop
+
+public static void main(String[] args) {  
+    int i=1;  
+    do{  
+        System.out.println(i);  
+    i++;  
+    }while(i<=10);  
+}  
+
+---------------------------------------------------------------------------------
+
+11. Break Statement with Loop
+
+public static void main(String[] args) {  
+    //using for loop  
+    for(int i=1;i<=10;i++){  
+        if(i==5){  
+            //breaking the loop  
+            break;  
+        }  
+        System.out.println(i);  
+    }  
+}  
+
+---------------------------------------------------------------------------------
+
+12. Break Statement in while loop
+
+public static void main(String[] args) {  
+    //while loop  
+    int i=1;  
+    while(i<=10){  
+        if(i==5){  
+            //using break statement  
+            i++;  
+            break;//it will break the loop  
+        }  
+        System.out.println(i);  
+        i++;  
+    }  
+}  
+
+
+---------------------------------------------------------------------------------
+
+13. Continue Statement Example
+
+public static void main(String[] args) {  
+    //for loop  
+    for(int i=1;i<=10;i++){  
+        if(i==5){  
+            //using continue statement  
+            continue;//it will skip the rest statement  
+        }  
+        System.out.println(i);  
+    }  
+}  
+
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

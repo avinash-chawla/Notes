@@ -1,0 +1,98 @@
+1. How to add a line around the outside of type-->
+
+--> Layer Style provides effects like-->
+1. Color
+2. Stroke
+3. Gradient
+4. glow
+5. Shadow
+6. Pattern
+7. Satin
+
+--------------------------------------------------------
+
+--> Use strokes on text
+--> Right click text in layer --> Copy Layer Style
+--> Right click another text --> Paste Layer Style
+
+--------------------------------------------------------
+
+--> Add double stroke to text-->
+
+--> Click stroke right below text in layer
+--> Beside stroke in styles, there is + sign
+
+---------------------------------------------------------
+
+--> Fill Mode in stroke
+
+1. Pattern
+2. Gradient
+3. Color
+
+--> Blend Mode-->
+
+--> Select Pattern as Fill mode
+--> Try different blend modes for color patterns
+
+---------------------------------------------------------------
+
+2. How to a bevel or emboss to text-->
+
+--> It is for making 3D effect
+--> Just try some options
+
+---------------------------------------------------------------
+
+3. How to add a drop shadow to text-->
+
+--> Blend Mode, Angle, Opacity, Distance, Spread, Size are some options
+--> Use Global Light --> if it is ticked it changes every shadow in image. 
+
+-----------------------------------------------------------------
+
+4. Presenting your photoshop work for your portfolio-->
+
+--> Select All Stars Postcard asd file
+--> Go to Layer tab --> Flatten Image
+--> All Layers become one
+
+--> Make that one Layer unlock
+--------------------------------------------
+
+--> go to image tab --> Canvas Size
+--> Increase it to 7.5 x 5.5 from 6x4
+--> Now extra background is added behind
+
+--------------------------------------------------------
+
+--> Click on Add new Layer beside dustbin
+--> Go to edit tab --> Fill --> Black
+
+--> Move this black background layer below Original one Layer
+
+-------------------------------------------------------
+
+--> Give layer style to black blackground
+--> Give gradient style of favorite one from grabient.com
+--> Lower its opacity
+
+-------------------------------------------------------
+
+--> Trasform some rotate to Original One Layer
+--> Tilt it some
+
+--> Apply some drop shadow to it
+--> Make some distance and size but not spread
+
+-------------------------------------------------------
+
+--> Create some text below --> Client and Project
+--> To move both at same time --> Select both layer --> then move using move tool
+
+   CLIENT  SCOTT SHOES (dark)
+  PROJECT  SPRING SALE POSTCARD (dark)
+
+-------------------------------------------------------------------
+
+------------------------------------------------------------

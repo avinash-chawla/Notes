@@ -1,0 +1,229 @@
+1. What is Identity Framework
+
+--> ASP.NET Core Identity is a membership system. 
+--> It allows us to create, read, update and delete user accounts. 
+--> Supports 
+1. account confirmation, 
+2. authentication, 
+3. authorisation, 
+4. password recovery, 
+5. two-factor authentication with SMS. 
+
+--> It also supports external login providers like Microsoft, Facebook, Google etc. 
+
+------------------------------------------------------------------------------------
+
+2. Install following dependencies
+
+--> Microsoft.AspNetCore.Identity.EntityFrameworkCore
+
+--> If you choose individual authentication in starting of application, then it is automatically implemented (identity framework)
+
+------------------------------------------------------------------------------------
+
+3. Adding ASP.NET Core Identity Support in ASP.NET Core Application
+
+------------------------------------------------------------------------------------
+
+Step 1 : Inherit from IdentityDbContext class
+
+public class AppDbContext : IdentityDbContext
+{
+    // Rest of the code
+}
+
+--> Your application DbContext class must inherit from IdentityDbContext class instead of DbContext class. 
+--> This is required because IdentityDbContext provides all the DbSet properties needed to manage the identity tables in SQL Server.
+--> IdentityDbContext internally inherit DbContext class.
+
+------------------------------------------------------------------------------------
+
+Step 2 : Configure ASP.NET Core Identity Services
+
+services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
+
+
+--> AddIdentity() method adds the default identity system configuration for the specified user and role types.
+--> IdentityUser class is provided by ASP.NET core and contains properties for UserName, PasswordHash, Email etc. 
+--> This is the class that is used by default by the ASP.NET Core Identity framework to manage registered users of your application. 
+
+ 
+--> If you want store additional information about the registered users like their Gender, City etc. 
+--> Create a custom class that derives from IdentityUser. 
+--> In this custom class add the additional properties you need and then plug-in this class instead of the built-in IdentityUser class. 
+--> We will discuss how to do this in our upcoming videos.
+--> Similarly, IdentityRole is also a builtin class provided by ASP.NET Core Identity and contains Role information.
+--> We want to store and retrieve User and Role information of the registered users using EntityFrameWork Core from the underlying SQL Server database. 
+--> We specify this using AddEntityFrameworkStores<AppDbContext>() passing our application DbContext class as the generic argument.
+
+------------------------------------------------------------------------------------
+
+Step 3 : Add Authentication middleware to the request pipeline
+
+    app.UseStaticFiles();
+    app.UseAuthentication();
+    app.UseMvc(routes =>
+
+
+--> Make sure to add authentication middleware just before mvc middleware.
+
+------------------------------------------------------------------------------------
+
+Step 4 : Add Identity Migration
+
+Add-Migration AddingIdentity
+
+------------------------------------------------------------------------------------
+
+Error : The entity type 'IdentityUserLogin<string>' requires a primary key to be defined
+
+--> If you get this error, the most likely cause is that you are overriding OnModelCreating() method in your application DbContext class but not calling the base IdentityDbContext class OnModelCreating() method. 
+
+--> In AppDbContext class,
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Seed();
+    }
+
+------------------------------------------------------------------------------------
+
+Step 4 : Generate ASP.NET Core Identity Tables
+
+update-database
+
+------------------------------------------------------------------------------------
+
+4. Note:
+
+--> Mistake:
+
+--> I have used services.AddIdentity<IdentityUser, IdentityRole>();
+--> Instead of services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
+
+--> Solution:
+
+--> I was getting error during migration
+--> It is very difficult to debug.
+--> Because it is not giving much information.
+
+--> add-migration init -verbose
+
+--> It will full information
+--> It will give actual information of problem
+--> From there, i know the problem and search on google.
+
+System.AggregateException HResult=0x80131500 Message=Some services are not able to be constructed (Error while validating the service descriptor 'ServiceType: Microsoft.AspNetCore.Identity.ISecurityStampValidator Lifetime: Scoped ImplementationType: Microsoft.AspNetCore.Identity.SecurityStampValidator
+
+------------------------------------------------------------------------------------
+
+--> To Add migration using visual studio code
+
+dotnet ef migrations 
+dotnet ef database update
+
+------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

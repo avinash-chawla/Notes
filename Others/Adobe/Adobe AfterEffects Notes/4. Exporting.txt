@@ -1,0 +1,74 @@
+1. Exporting AFX infographic video-->
+
+--> Select comp
+--> Composition menu --> Add to Adobe Media Encoder Quene
+--> Pick H.264 as Format
+--> Click on Play button
+
+------------------------------------------------------------------
+
+2. To Reduce File size
+
+--> Click on Preset: Match Source in Adobe Media Encoder
+--> Turn off Audio
+--> In Video tab, 
+1. Reduce Height of pixel to 720
+2. Bitrate Setting-->
+
+--> This defines quality of each frame in video
+--> Reduce it to Target: 2, Maximum: 5
+
+------------------------------------------------------------------
+
+3. Save one frame for youtube Preview-->
+--> Set time pointer which you want scene in timeline to save image
+--> composition menu --> Save Frame As --> File
+--> Click on Render buttom bottom done
+--> File saved
+
+------------------------------------------------------------------
+
+4. Play in PPT-->
+--> Open PPT
+--> Import infographic Video from insert menu
+--> Place on right slide
+--> In Playback menu, there is option: Start
+--> 1. Automaticaly, 2.Click
+--> View menu --> Presentation View
+
+--> To set poster frame for video in ppt
+--> Video Format menu --> click on Poster Frame --> Image from file
+
+--> To set Slide Background same as Video Background
+--> Design menu --> Format Background --> Click Color Paint icon --> More Colors --> Select Eye Dropper --> click Video Image
+
+------------------------------------------------------------------
+
+5. Save Part of Infographic Video-->
+--> Reduce Working timeline
+--> Then Adobe Media Encoder Quene
+
+------------------------------------------------------------------
+
+6. To directly Render(save) Video from After Effects-->
+--> Without Adobe Media Encoder
+--> Composition menu --> Add to Render quene
+
+------------------------------------------------------------------
+
+7. Save As GIF-->
+--> Open video in Adobe Photoshop
+--> File --> Export --> Save As Web
+--> Select GIF 128 from Dropdown
+--> May want to reduce Resolution, Height: 500
+--> Looping Options: Once , Forever
+--> Click on Done
+
+------------------------------------------------------------------
+
+8. wonderfull Gifs-->
+--> Check out: www.slimjimstudios.com
+--> Also on Youtube: Adobe Creative Cloud (How to create animated GIFs)
+
+------------------------------------------------------------------
+

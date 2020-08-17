@@ -1,0 +1,757 @@
+1. Add Sub Category Model
+
+--> Create new model class --> SubCategory.cs
+
+public class SubCategory
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Display(Name = "SubCategory Name")]
+        [Required]
+        public string Name { get; set; }
+
+        [Required]
+        [Display(Name ="Category")]
+        public int CategoryId { get; set; }
+
+        [ForeignKey("CategoryId")]
+        public virtual Category Category { get; set; }
+
+    }
+
+---------------------------------------------------------------------------------
+
+--> In ApplicationDbContext class,
+
+public DbSet<SubCategory> SubCategory { get; set; }
+
+---------------------------------------------------------------------------------
+
+--> Doing migration
+
+--> add-migration addSubCategoryToDatabase
+--> update-database
+
+---------------------------------------------------------------------------------
+
+2. Add SubCategory Index Action Method
+
+--> Make new controller 'SubCategoryController' in Admin area
+
+[Area("Admin")]
+    [Authorize(Roles = SD.ManagerUser)]
+    public class SubCategoryController : Controller
+    {
+        private readonly ApplicationDbContext _db;
+
+        public SubCategoryController(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        //Get INDEX
+        public async Task<IActionResult> Index()
+        {
+            var subCategories = await _db.SubCategory.Include(s=>s.Category).ToListAsync();
+            return View(subCategories);
+        }
+
+---------------------------------------------------------------------------------
+
+--> In _Layout.cshtml, in dropdown,
+
+<a class="dropdown-item" asp-action="Index" asp-controller="SubCategory" asp-area="Admin">Sub Category</a>
+
+---------------------------------------------------------------------------------
+
+3. Index View
+
+@model IEnumerable<SubCategory>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<br /><br />
+<div class="border backgroundWhite">
+    <div class="row">
+        <div class="col-6">
+            <h2 class="text-info"> Sub Category List</h2>
+        </div>
+        <div class="col-6 text-right">
+            <partial name="_CreateButtonPartial" />
+        </div>
+    </div>
+    <br />
+    <div>
+        @if (Model.Count() > 0)
+        {
+            <table class="table table-striped border">
+                <tr class="table-secondary">
+                    <th>
+                        @Html.DisplayNameFor(m => m.Name)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(m => m.Category.Name)
+                    </th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                @foreach (var item in Model)
+                {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(m => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(m => item.Category.Name)
+                    </td>
+                    <td>
+                        <partial name="_TableButtonPartial" model="item.Id" />
+                    </td>
+                </tr>
+                }
+            </table>
+        }
+        else
+        {
+            <p>No Sub Category exists...</p>
+        }
+    </div>
+</div>
+
+
+---------------------------------------------------------------------------------
+
+4. Category and SubCategory View Model
+
+--> While creating new subcategory, we want to show all categories available
+--> For that, we need to provide both models, Category and SubCategory model
+--> For that, we use ViewModels and pass that to view, it will combine both models in one class
+--> Make new folder ViewModels in models folder
+--> Make new class --> CategoryAndSubCategoryViewModel
+
+public class SubCategoryAndCategoryViewModel
+    {
+        public IEnumerable<Category> CategoryList { get; set; }
+        public SubCategory SubCategory { get; set; }
+        public List<string> SubCategoryList { get; set; }
+        public string StatusMessage { get; set; }
+    }
+
+--> We do not want to add subCategory in Category which is already included in that.
+--> When admin tends to add same subCategory, we will pass error message
+--> We have used List<string>, we can also use List<SubCategory>
+--> But, as we need only name of SubCategory, we can use list<string>, you will see its implementation.
+
+
+---------------------------------------------------------------------------------
+
+5. SubCategory Create GET Action
+
+	//GET - CREATE
+        public async Task<IActionResult> Create()
+        {
+            SubCategoryAndCategoryViewModel model = new SubCategoryAndCategoryViewModel()
+            {
+                CategoryList = await _db.Category.ToListAsync(),
+                SubCategory = new Models.SubCategory(),
+                SubCategoryList = await _db.SubCategory.OrderBy(p => p.Name).Select(p => p.Name).Distinct().ToListAsync()
+            };
+
+            return View(model);
+        }
+
+---------------------------------------------------------------------------------
+
+6. Extension Method 
+
+--> We want IEnumerable<SelectListItem> for dropdown for displaying list of Categories.
+--> We can make use of Extenstion methods and applied to List<Category> and apply extension method to it to convert to IEnumerable<SelectListItem>
+
+--> 2nd way: We can make use Html Helper method in view file.
+
+---------------------------------------------------------------------------------
+
+--> Make new folder in project --> Extensions
+
+--> Make new class --> IEnumerableExtension.cs
+
+public static class IEnumerableExtension
+    {
+        public static IEnumerable<SelectListItem> ToSelectListItem<T>(this IEnumerable<T> items, int selectedValue)
+        {
+            return from item in items
+                   select new SelectListItem
+                   {
+                       Text = item.GetPropertyValue("Name"),
+                       Value = item.GetPropertyValue("Id"),
+                       Selected = item.GetPropertyValue("Id").Equals(selectedValue.ToString())
+                   };
+        }
+
+    }
+
+---------------------------------------------------------------------------------
+
+--> Also make new one another class --> ReflectionExtension.cs
+
+public static class ReflectionExtension
+    {
+        public static string GetPropertyValue<T>(this T item, string propertyName)
+        {
+            return item.GetType().GetProperty(propertyName).GetValue(item, null).ToString();
+        }
+    }
+
+---------------------------------------------------------------------------------
+
+7. SubCategory Create View 
+
+@model Spice.Models.ViewModels.SubCategoryAndCategoryViewModel
+@using Spice.Extensions
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<br />
+<h2 class="text-info">Create Sub Category</h2>
+<br />
+
+<partial name="_StatusMessage" model="Model.StatusMessage" />
+
+<div class="border backgroundWhite row">
+    <div class="col-8 border-right">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group row">
+                <div class="col-3">
+                    <label asp-for="SubCategory.CategoryId" class="col-form-label"></label>
+                </div>
+                <div class="col-5">
+                   <select id="ddlCategorylist" asp-for="SubCategory.CategoryId" asp-items="Model.CategoryList.ToSelectListItem(Model.SubCategory.CategoryId)" class="form-control"></select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-3">
+                    <label asp-for="SubCategory.Name" class="col-form-label"></label>
+                </div>
+                <div class="col-5">
+                    <input asp-for="SubCategory.Name" class="form-control" />
+                </div>
+                <span asp-validation-for="SubCategory.Name" class="text-danger"></span>
+            </div>
+            <div class="form-group row">
+                <div class="col-5 offset-3">
+                    <partial name="_CreateAndBackToListButton" />
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-3 offset-1">
+        @if(Model.SubCategoryList.Count() > 0)
+        {
+            <p> Existing Subcategories: </p>
+
+            <div id="SubCategoryList">
+                <ul class="list-group"></ul>
+            </div>
+        }
+    </div>
+
+
+   
+</div>
+
+@section Scripts{ 
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        function updateSubCategoryList() {
+            var categorySelected = document.getElementById("ddlCategorylist").value;
+            $list = $('#SubCategoryList');
+            $.ajax({
+                url: '/Admin/SubCategory/GetSubCategory/' + categorySelected,
+                type: 'GET',
+                dataType: 'text',
+                success: function (data) {
+                    results = JSON.parse(data);
+                    $list.html('');
+                    $list.append(' <ul class="list-group"> ');
+                    for (i in results) {
+                        $list.append('<li class="list-group-item">' + results[i].text + '</li>');
+                    }
+                    $list.append('</ul>');
+                }
+            });
+        }
+        $(document).ready(function () {
+            updateSubCategoryList();
+        });
+        $("#ddlCategorylist").on("change", function () {
+            updateSubCategoryList();
+        });
+    </script>
+}
+
+---------------------------------------------------------------------------------
+
+--> Create new partial view in shared folder --> _StatusMessage.cshtml
+
+@model string
+
+@if (!String.IsNullOrEmpty(Model))
+{
+    var statusMessageClass = Model.StartsWith("Error") ? "danger" : "success";
+    <div class="alert alert-@statusMessageClass alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        @Model
+    </div>
+}
+
+---------------------------------------------------------------------------------
+
+8. SubCategory Create Post ActionMethod
+
+	[TempData]
+        public string StatusMessage { get; set; }
+
+	//POST - CREATE
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(SubCategoryAndCategoryViewModel model)
+        {
+            if(ModelState.IsValid)
+            {
+                var doesSubCategoryExists = _db.SubCategory.Include(s => s.Category).Where(s => s.Name == model.SubCategory.Name && s.Category.Id == model.SubCategory.CategoryId);
+
+                if(doesSubCategoryExists.Count()>0)
+                {
+                    //Error
+                    StatusMessage = "Error : Sub Category exists under " + doesSubCategoryExists.First().Category.Name + " category. Please use another name.";
+                }
+                else
+                {
+                    _db.SubCategory.Add(model.SubCategory);
+                    await _db.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+            SubCategoryAndCategoryViewModel modelVM = new SubCategoryAndCategoryViewModel()
+            {
+                CategoryList = await _db.Category.ToListAsync(),
+                SubCategory = model.SubCategory,
+                SubCategoryList = await _db.SubCategory.OrderBy(p => p.Name).Select(p => p.Name).ToListAsync(),
+                StatusMessage = StatusMessage
+            };
+            return View(modelVM);
+        }
+
+---------------------------------------------------------------------------------
+
+9. Get SubCategory Action
+
+[ActionName("GetSubCategory")]
+        public async Task<IActionResult> GetSubCategory(int id)
+        {
+            List<SubCategory> subCategories = new List<SubCategory>();
+
+            subCategories = await (from subCategory in _db.SubCategory
+                             where subCategory.CategoryId == id
+                             select subCategory).ToListAsync();
+            return Json(new SelectList(subCategories, "Id", "Name"));
+        }
+
+---------------------------------------------------------------------------------
+
+10. SubCategory Edit Get Action
+
+//GET - EDIT
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if(id==null)
+            {
+                return NotFound();
+            }
+
+            var subCategory = await _db.SubCategory.SingleOrDefaultAsync(m => m.Id == id);
+
+            if(subCategory==null)
+            {
+                return NotFound();
+            }
+
+            SubCategoryAndCategoryViewModel model = new SubCategoryAndCategoryViewModel()
+            {
+                CategoryList = await _db.Category.ToListAsync(),
+                SubCategory = subCategory,
+                SubCategoryList = await _db.SubCategory.OrderBy(p => p.Name).Select(p => p.Name).Distinct().ToListAsync()
+            };
+
+            return View(model);
+        }
+
+---------------------------------------------------------------------------------
+
+11. SubCategory Edit View
+
+@model Spice.Models.ViewModels.SubCategoryAndCategoryViewModel
+@using Spice.Extensions
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<br />
+<h2 class="text-info">Edit Sub Category</h2>
+<br />
+
+<partial name="_StatusMessage" model="Model.StatusMessage" />
+
+<div class="border backgroundWhite row">
+    <div class="col-8 border-right">
+        <form asp-action="Edit">
+            <input type="hidden" asp-for="SubCategory.CategoryId" />
+            <input type="hidden" asp-for="SubCategory.Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group row">
+                <div class="col-3">
+                    <label asp-for="SubCategory.CategoryId" class="col-form-label"></label>
+                </div>
+                <div class="col-5">
+                    <select id="ddlCategorylist" asp-for="SubCategory.CategoryId" disabled asp-items="Model.CategoryList.ToSelectListItem(Model.SubCategory.CategoryId)" class="form-control"></select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-3">
+                    <label asp-for="SubCategory.Name" class="col-form-label"></label>
+                </div>
+                <div class="col-5">
+                    <input asp-for="SubCategory.Name" class="form-control" />
+                </div>
+                <span asp-validation-for="SubCategory.Name" class="text-danger"></span>
+            </div>
+            <div class="form-group row">
+                <div class="col-5 offset-3">
+                    <partial name="_EditAndBackToListButton" model="Model.SubCategory.Id" />
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-3 offset-1">
+        @if (Model.SubCategoryList.Count() > 0)
+        {
+            <p> Existing Subcategories: </p>
+
+            <div id="SubCategoryList">
+                <ul class="list-group"></ul>
+            </div>
+        }
+    </div>
+
+
+
+</div>
+
+@section Scripts{
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        function updateSubCategoryList() {
+            var categorySelected = document.getElementById("ddlCategorylist").value;
+            $list = $('#SubCategoryList');
+            $.ajax({
+                url: '/Admin/SubCategory/GetSubCategory/' + categorySelected,
+                type: 'GET',
+                dataType: 'text',
+                success: function (data) {
+                    results = JSON.parse(data);
+                    $list.html('');
+                    $list.append(' <ul class="list-group"> ');
+                    for (i in results) {
+                        $list.append('<li class="list-group-item">' + results[i].text + '</li>');
+                    }
+                    $list.append('</ul>');
+                }
+            });
+        }
+        $(document).ready(function () {
+            updateSubCategoryList();
+        });
+    </script>
+
+
+}
+
+---------------------------------------------------------------------------------
+
+12. Edit SubCategory POST Action
+
+//POST - EDIT
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(SubCategoryAndCategoryViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var doesSubCategoryExists = _db.SubCategory.Include(s => s.Category).Where(s => s.Name == model.SubCategory.Name && s.Category.Id == model.SubCategory.CategoryId);
+
+                if (doesSubCategoryExists.Count() > 0)
+                {
+                    //Error
+                    StatusMessage = "Error : Sub Category exists under " + doesSubCategoryExists.First().Category.Name + " category. Please use another name.";
+                }
+                else
+                {
+                    var subCatFromDb = await _db.SubCategory.FindAsync(model.SubCategory.Id);
+                    subCatFromDb.Name = model.SubCategory.Name;
+
+                    await _db.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+            SubCategoryAndCategoryViewModel modelVM = new SubCategoryAndCategoryViewModel()
+            {
+                CategoryList = await _db.Category.ToListAsync(),
+                SubCategory = model.SubCategory,
+                SubCategoryList = await _db.SubCategory.OrderBy(p => p.Name).Select(p => p.Name).ToListAsync(),
+                StatusMessage = StatusMessage
+            };
+            //modelVM.SubCategory.Id = id;
+            return View(modelVM);
+        }
+
+---------------------------------------------------------------------------------
+
+13. Delete Action Method
+
+	//GET Delete
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var subCategory = await _db.SubCategory.Include(s => s.Category).SingleOrDefaultAsync(m => m.Id == id);
+            if (subCategory == null)
+            {
+                return NotFound();
+            }
+
+            return View(subCategory);
+        }
+
+        //POST Delete
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var subCategory = await _db.SubCategory.SingleOrDefaultAsync(m => m.Id == id);
+            _db.SubCategory.Remove(subCategory);
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+
+        }
+
+---------------------------------------------------------------------------------
+
+14. SubCategory Delete View
+
+@model Spice.Models.SubCategory
+@{
+    ViewData["Title"] = "Delete";
+}
+<br />
+<h2 class="text-info">Sub Category Delete</h2>
+<br />
+<form method="post">
+    <div class="border backgroundWhite">
+        <input type="hidden" asp-for="Id" />
+        <fieldset disabled>
+            <div class="form-group row">
+                <div class="col-2">
+                    <label asp-for="Name" class="custom-label"></label>
+                </div>
+                <div class="col-5">
+                    <input asp-for="Name" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-2">
+                    <label asp-for="Category.Name" class="custom-label"></label>
+                </div>
+                <div class="col-5">
+                    <input asp-for="Category.Name" class="form-control" />
+                </div>
+            </div>
+        </fieldset>
+        <br />
+        <div class="form-group row">
+            <div class="col-5 offset-2">
+                <partial name="_DeleteAndBackToListButton" model="Model.Id" />
+            </div>
+        </div>
+    </div>
+</form>
+
+
+---------------------------------------------------------------------------------
+
+15. Details ActionMethod
+
+//GET Details
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var subCategory = await _db.SubCategory.Include(s => s.Category).SingleOrDefaultAsync(m => m.Id == id);
+            if (subCategory == null)
+            {
+                return NotFound();
+            }
+
+            return View(subCategory);
+        }
+
+---------------------------------------------------------------------------------
+
+16. SubCategory Details View
+
+@model Spice.Models.SubCategory
+
+<br />
+<h2 class="text-info">Sub Category Details</h2>
+<br />
+<div class="backgroundWhite rounded">
+    <fieldset disabled>
+        <div class="form-group row">
+            <div class="col-2">
+                <label asp-for="Name" class="custom-label"></label>
+            </div>
+            <div class="col-5">
+                <input asp-for="Name" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-2">
+                <label asp-for="Category.Name" class="custom-label"></label>
+            </div>
+            <div class="col-5">
+                <input asp-for="Category.Name" class="form-control" />
+            </div>
+        </div>
+    </fieldset>
+    <br />
+    <div class="form-group row">
+        <div class="col-5 offset-2">
+            <partial name="_DetailsAndBackToListButton" model="Model.Id" />
+        </div>
+    </div>
+</div>
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

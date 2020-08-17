@@ -1,0 +1,904 @@
+1. Intro
+
+--> We will build our book List using Razor Pages
+
+-----------------------------------------------------------------------------------
+
+2. Runtime Razor Package
+
+--> By modifiying view, when we refresh page, it is refreshed with view
+--> But from .net core 3, this feature is placed in another package
+--> download Microsoft.ASPNetCore.MVC.Razor.RunTimeCompilation
+
+--> After installing, in startup file
+--> Add service services.AddRazorPages().AddRazorRuntimeCompilation();
+
+-----------------------------------------------------------------------------------
+
+3. Creating Book Model for view
+
+--> Create new folder in project --> Models
+--> Create new file in that 	 --> Book.cs
+
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        public string Name { get; set; }
+        public string Author { get; set; }
+    }
+
+-----------------------------------------------------------------------------------
+
+4. Add Connection String and Packages
+
+--> Install following packages:
+
+Microsoft.EntityFrameworkCore
+Microsoft.EntityFrameworkCore.SqlServer
+Microsoft.EntityFrameworkCore.Tools
+
+
+--> In appsettings.json
+
+--> Add connection String,
+
+"ConnectionStrings": {
+    "DefaultConnection":  "data source=LENOVOLAPTOP; database= BookListRazor; integrated security=SSPI"
+  },
+
+-----------------------------------------------------------------------------------
+
+5. Add Book Table To Database
+
+--> Add new class in Models --> ApplicationDbContext.cs
+
+    public class ApplicationDbContext : DbContext
+    {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        {
+        }
+
+        public DbSet<Book> Book { get; set; }
+    }
+
+-----------------------------------------------------------------------------------
+
+--> Add service in startup file 
+--> By including this service, ApplicationDbContext will be available as dependency injection for other classes
+
+services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+
+-----------------------------------------------------------------------------------
+
+--> Adding Migration
+
+--> add-migration AddedBookModel
+--> update-database
+
+-----------------------------------------------------------------------------------
+
+6. Book Index Get Handler
+
+--> Make new folder inside Pages folder --> BookList
+--> Make new razor page --> Index
+
+--> In Index.cs
+
+public class IndexModel : PageModel
+    {
+        private readonly ApplicationDbContext _db;
+
+        public IndexModel(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        public IEnumerable<Book> Books { get; set; }
+        public async Task OnGet()
+        {
+            Books = await _db.Books.ToListAsync();
+        }
+    }
+
+--> First we use dependency injection of ApplicationDbContext class
+--> Then we query using Linq to get list of books and assign to books property of this class.
+--> All properties mentioned here will be availablei in view page.
+
+-----------------------------------------------------------------------------------
+
+7. Designing Book Index Page
+
+--> In _Layout page, 
+
+ <a class="nav-link text-dark" asp-area="" asp-page="/BookList/Index">Book</a>
+
+--> In Index page of bookList,
+
+@page
+@model BookListRazor.Pages.Booklist.IndexModel
+
+
+<br />
+<div class="row container m-0 p-0">
+    <div class="col-9">
+        <h2 class="text-info">Book List</h2>
+    </div>
+    <div class="col-3">
+        <a class="btn btn-info form-control">Create New Book</a>
+    </div>
+</div>
+
+-----------------------------------------------------------------------------------
+
+8. Designing Book Index Page - 2
+
+--> Rendering Table
+--> We have used tag helper methods to render th tag of table
+--> We have used html helper methods to render body of table
+--> Using tag helpers, we bind to model class
+--> For displaying purposes, we use @Html.DisplayFor
+--> For label using tag helper, we use asp-for
+--> On Create button link, we give asp-page to navigate to different page
+--> "Create"
+--> It will redirect to Create in same folder.
+--> We can access properties of razor page class using Model
+
+-----------------------------------------------------------------------------------
+
+@page
+@model BookListRazor.Pages.Booklist.IndexModel
+
+
+<br />
+<div class="row container m-0 p-0">
+    <div class="col-9">
+        <h2 class="text-info">Book List</h2>
+    </div>
+    <div class="col-3">
+        <a asp-page="Create" class="btn btn-info form-control text-white">Create New Book</a>
+    </div>
+</div>
+
+<div class="col-12 p-3 mt-3 border">
+    <form method="post">
+        @if (Model.Books.Count() > 0)
+        {
+            <table class="table table-striped border">
+                <thead>
+                    <tr>
+                        <th>
+                            <label asp-for="Books.FirstOrDefault().Name"></label>
+                        </th>
+                        <th>
+                            @*@Html.DisplayNameFor(m => m.Books.FirstOrDefault().Name)*@
+                            <label asp-for="Books.FirstOrDefault().Author"></label>
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var book in Model.Books)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(m => book.Name)</td>
+                            <td>@Html.DisplayFor(m => book.Author)</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm">Delete</button>
+                                <button class="btn btn-success btn-sm">Edit</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        }
+        else
+        {
+            <p>No books available</p>
+        }
+    </form>
+</div>
+
+-----------------------------------------------------------------------------------
+
+9. Create Book Page Model
+
+--> Make new razor page inside BookList folder --> Create
+
+public class CreateModel : PageModel
+    {
+        private readonly ApplicationDbContext _db;
+
+        public CreateModel(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        public Book Book { get; set; }
+        public void OnGet()
+        {
+
+        }
+    }
+
+-----------------------------------------------------------------------------------
+
+--> Add new field in Book Model
+
+public string ISBN { get; set; }
+
+--> Adding migration
+
+add-migration AddIsbnToBook
+update-database
+
+-----------------------------------------------------------------------------------
+
+--> In index view of booklist,
+
+<th>
+    <label asp-for="Books.FirstOrDefault().ISBN"></label>
+</th>
+
+<td>@Html.DisplayFor(m => book.ISBN)</td>
+
+-----------------------------------------------------------------------------------
+
+10. Create Book Page UI
+
+--> In Create view,
+
+--> We are making form using tag helpers
+
+@page
+@model BookListRazor.Pages.Booklist.CreateModel
+
+<br />
+<h2 class="text-info">Create new Book</h2>
+<br />
+
+<div class="border container" style="padding: 30px;">
+    <form method="post">
+        <div class="form-group row">
+            <div class="col-3">
+                <label asp-for="Book.Name"></label>
+            </div>
+            <div class="col-6">
+                <input asp-for="Book.Name" class="form-control">
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-3">
+                <label asp-for="Book.Author"></label>
+            </div>
+            <div class="col-6">
+                <input asp-for="Book.Author" class="form-control">
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-3">
+                <label asp-for="Book.ISBN"></label>
+            </div>
+            <div class="col-6">
+                <input asp-for="Book.ISBN" class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-3 offset-3">
+                <input type="submit" value="Create" class="btn btn-primary form-control" />
+            </div>
+            <div class="col-3">
+                <a asp-page="Index" class="btn btn-success form-control">Back to List</a>
+            </div>
+        </div> 
+    </form>
+</div>
+
+-----------------------------------------------------------------------------------
+
+11. Create Book and Validation
+
+--> We bind each field with model in create form
+--> When we click on submit button, it is posted with Book object
+--> It is handled in page class in method of OnPost()
+
+-----------------------------------------------------------------------------------
+
+--> In page class file of Create,
+
+--> There are two ways:
+
+1. Getting Book Paramter
+
+public async Task<IActionResult> OnPost(Book bookObj)
+
+or
+
+-----------------------------------------------------------------------------------
+
+2. Binding previous empty Book property in page class with this incoming book object
+
+--> We will use DataAnnotation BindProperty on property
+
+	[BindProperty]
+        public Book Book { get; set; }
+
+        public void OnGet()
+        {
+
+        }
+
+        public async Task<IActionResult> OnPost()
+        {
+            if(ModelState.IsValid)
+            {
+                await _db.Book.AddAsync(Book);
+                await _db.SaveChangesAsync();
+                return RedirectToPage("Index");
+            }
+            else
+            {
+                return Page();
+            }
+        }
+
+
+--> After getting book data, we first do validation using ModelState object
+--> If not valid, return Page()	(return to same page)
+--> If valid, saving in database and redirect to list
+--> It is async method and return redirect so Task<IActionResult>
+
+-----------------------------------------------------------------------------------
+
+--> Displaying error messages in view,
+
+<div class="text-danger" asp-validation-summary="ModelOnly"></div>
+
+<span class="text-danger" asp-validation-for="Book.Name"></span>
+<span class="text-danger" asp-validation-for="Book.Author"></span>
+<span class="text-danger" asp-validation-for="Book.ISBN"></span>
+
+-----------------------------------------------------------------------------------
+
+12. Enabling Client Side Validation
+
+--> There is ValidationPartial file in shared folder
+--> We will use that js file in our Create view.
+
+--> At the bottom of view file,
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+}
+
+-----------------------------------------------------------------------------------
+
+13. Edit Book get handler
+
+--> In index view,
+
+<button asp-page="edit" asp-route-id="@book.Id" class="btn btn-success btn-sm">Edit</button>
+
+--> When user clicks edit button, he is redirect to edit page with id paramter
+--> asp-page for redirect
+--> asp-route-id for sendind paramter along with navigating
+
+-----------------------------------------------------------------------------------
+
+--> Create new razor view "Edit" inside BookList folder
+
+--> In page class file,
+--> In get method, we will get id paramter and find using its book record using FindAsync and assign to Book Property. 
+
+public class EditModel : PageModel
+    {
+        public readonly ApplicationDbContext _db;
+
+        public EditModel(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        [BindProperty]
+        public Book Book { get; set; }
+        public async Task OnGet(int id)
+        {
+            Book = await _db.Book.FindAsync(id);
+        }
+    }
+
+-----------------------------------------------------------------------------------
+
+14. Edit Book UI
+
+--> It is similar to Create Book UI
+--> Just replace name of form Title and button Text
+
+-----------------------------------------------------------------------------------
+
+15. Edit Post Handler
+
+--> In Page class file,
+
+	public async Task<IActionResult> OnPost()
+        {
+            if(ModelState.IsValid)
+            {
+                Book BookFromDb = await _db.Book.FindAsync(Book.Id);
+                BookFromDb.Name = Book.Name;
+                BookFromDb.Author = Book.Author;
+                BookFromDb.ISBN = Book.ISBN;
+
+                await _db.SaveChangesAsync();
+
+                return RedirectToPage("Index");
+            }else
+            {
+                return Page();
+            }
+        }
+
+-----------------------------------------------------------------------------------
+
+--> we get error bec. id is getting null from Book object
+--> We have to include id as input field
+
+--> In Create view file,
+
+<input type="hidden" asp-for="Book.Id" />
+
+-----------------------------------------------------------------------------------
+
+16. Delete Book
+
+--> In index view file,
+
+<button 
+	asp-page-handler="delete" 
+	asp-route-id="@book.Id" 
+	onclick="return confirm('Are you sure you want to delete this book')" 	class="btn btn-danger btn-sm"
+	
+	>Delete</button>
+
+--> asp-page-handler is customer handler like get, post
+--> We are also passing route-id
+
+--> In page class file,
+
+public async Task<IActionResult> OnPostDelete(int id)
+        {
+            var book = await _db.Book.FindAsync(id);
+            if(book == null)
+            {
+                return NotFound();
+            }
+            _db.Book.Remove(book);
+            await _db.SaveChangesAsync();
+
+            return RedirectToPage("Index");
+        }
+
+-----------------------------------------------------------------------------------
+
+17. Book Get Api
+
+--> We will use following tools 
+1. SweetAlert2		--> used for alerts
+2. toastr		--> used for notification
+3. Datatables		--> used for displaying tables with pagination, filtering and sorting.
+
+-----------------------------------------------------------------------------------
+
+--> Include Cdns of above in _layout.cshtml
+
+1. DataTables
+https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css
+https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js
+
+2. Toastr
+https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js
+https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js
+https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.css
+https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css
+
+3. SweetAlert2
+https://cdn.jsdelivr.net/npm/sweetalert2@9.15.3/dist/sweetalert2.all.min.js
+
+-----------------------------------------------------------------------------------
+
+--> In _Layout.cshtml
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css" />
+
+
+
+    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+-----------------------------------------------------------------------------------
+
+--> Make new controller 
+
+--> Make new folder inside project --> Controllers
+--> Right click --> Add Controller --> Choose template any --> We choose mvc controller
+
+namespace BookListRazor.Controllers
+{
+    [Route("api/Book")]
+    [ApiController]
+    public class BookController : Controller
+    {
+        public readonly ApplicationDbContext _db;
+
+        public BookController(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            return Json(new { data = _db.Book.ToList() });
+        }
+    }     
+}
+
+-----------------------------------------------------------------------------------
+
+--> To support this MvcController, we need service injection in startup file,
+
+services.AddControllersWithViews();
+
+--> Also middleware,
+
+app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapRazorPages();
+            });
+
+--> This will map controller url to Route("api/Book") in ApiController
+
+-----------------------------------------------------------------------------------
+
+--> Test this api
+
+https://localhost:44356/api/book
+
+-----------------------------------------------------------------------------------
+
+18. DataTable
+
+--> Make placholder for datatable in index file
+--> Place code, below previous created table list
+--> One table is created using razor pages and other using client side js library with plugin DataTables
+
+
+<div class="col-12" style="text-align:center">
+    <br />
+    <span class="h3 text-info">OR</span>
+    <br /><br />
+</div>
+<div class="col-12 border p-3">
+
+    <table id="DT_load" class="table table-striped table-bordered" style="width:100%">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th> Author</th>
+                <th> ISBN</th>
+                <th></th>
+            </tr>
+        </thead>
+    </table>
+</div>
+@section Scripts{
+    <script src="~/js/bookList.js"></script>
+}
+
+-----------------------------------------------------------------------------------
+
+--> Make new js file in wwwroot --> js folder --> bookList.js
+
+?var dataTable;
+
+$(document).ready(function () {
+    loadDataTable();
+});
+
+function loadDataTable() {
+    dataTable = $('#DT_load').DataTable({
+        "ajax": {
+            "url": "/api/book",
+            "type": "GET",
+            "datatype": "json"
+        },
+        "columns": [
+            { "data": "name", "width": "20%" },
+            { "data": "author", "width": "20%" },
+            { "data": "isbn", "width": "20%" },
+            {
+                "data": "id",
+                "render": function (data) {
+                    return `<div class="text-center">
+                        <a href="/BookList/Edit?id=${data}" class='btn btn-success text-white' style='cursor:pointer; width:70px;'>
+                            Edit
+                        </a>
+                        &nbsp;
+                        <a class='btn btn-danger text-white' style='cursor:pointer; width:70px;'
+                            onclick=Delete('/api/book?id='+${data})>
+                            Delete
+                        </a>
+                        </div>`;
+                }, "width": "40%"
+            }
+        ],
+        "language": {
+            "emptyTable": "no data found"
+        },
+        "width": "100%"
+    });
+}
+
+function Delete(url) {
+    swal({
+        title: "Are you sure?",
+        text: "Once deleted, you will not be able to recover",
+        icon: "warning",
+        buttons: true,
+        dangerMode: true
+    }).then((willDelete) => {
+        if (willDelete) {
+            $.ajax({
+                type: "DELETE",
+                url: url,
+                success: function (data) {
+                    if (data.success) {
+                        toastr.success(data.message);
+                        dataTable.ajax.reload();
+                    }
+                    else {
+                        toastr.error(data.message);
+                    }
+                }
+            });
+        }
+    });
+}
+
+-----------------------------------------------------------------------------------
+
+19. Delete Book 
+
+--> In ApiController,
+
+	[HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            return Json(new { data = await _db.Book.ToListAsync() });
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var bookInDb = await _db.Book.FirstOrDefaultAsync(b => b.Id == id);
+            if(bookInDb == null)
+            {
+                return Json(new { success = false, message = "Error while Deleting" });
+            }
+            _db.Book.Remove(bookInDb);
+            await _db.SaveChangesAsync();
+            return Json(new { success = true, message="Deleted Successfully" });
+        }
+
+-----------------------------------------------------------------------------------
+
+--> Note: 
+
+--> Never asp-page tag helper on button
+--> Always do on anchor tag
+--> If not, get unexpected results
+
+-----------------------------------------------------------------------------------
+
+20. Upsert Page
+
+--> This page will be used for both creating and updating Book
+--> Make new razor page --> Upsert.cshtml.cs and Upsert.cshtml
+
+--> Class file
+
+public class UpsertModel : PageModel
+    {
+        public readonly ApplicationDbContext _db;
+
+        public UpsertModel(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        [BindProperty]
+        public Book Book { get; set; }
+        public async Task<IActionResult> OnGet(int? id)
+        {
+            Book = new Book();
+            if(id == null)
+            {
+                return Page();
+            }
+
+            Book = await _db.Book.FirstOrDefaultAsync(b => b.Id == id);
+
+            if(Book == null)
+            {
+                return NotFound();
+            };
+            return Page();
+        }
+
+        public async Task<IActionResult> OnPost()
+        {
+            if (ModelState.IsValid)
+            {
+                if(Book.Id == 0)
+                {
+                    _db.Book.Add(Book);
+                }
+                else
+                {
+                    _db.Book.Update(Book);
+                }
+
+                await _db.SaveChangesAsync();
+                return RedirectToPage("Index");
+            }
+            return RedirectToPage();
+        }
+    }
+
+-----------------------------------------------------------------------------------
+
+21. Upsert Page UI
+
+--> In Upsert page view,,
+--> Copy paste all ui code of edit form
+--> Modify following code:
+
+<h2 class="text-info">@(Model.Book.Id != 0 ? "Edit" : "Create") Book</h2>
+
+        @if(Model.Book.Id != 0)
+        {
+            <input type="hidden" asp-for="Book.Id" />
+        }
+
+
+<button type="submit" class="btn btn-primary form-control">@(Model.Book.Id != 0 ? "Edit" : "Create")</button>
+
+-----------------------------------------------------------------------------------
+
+--> In index view,
+
+<a asp-page="Upsert" ..>Create New Book</a>
+<a asp-page="upsert" ..>Edit</a>
+
+-----------------------------------------------------------------------------------
+
+--> Booklist.js
+
+<a href="/Booklist/Upsert?id=${data}" ...>Edit</a>
+
+-----------------------------------------------------------------------------------
+
+--> Note:
+
+--> There are two ways to update:
+1. _db.Book.Update(book)
+2. var bookInDb = _db.Book.FirstOrDefault(b => b.Id == id)
+   bookInDb.Name = book.Name
+   bookInDb.Author = bool.Author
+
+--> First method is used to modify all properties at once.
+--> Second method is used to modify selected Properties
+
+-----------------------------------------------------------------------------------
+
+--> There are two ways to single object from database
+
+1. await _db.Book.FirstOrDefaultAsync(b => b.Id == id)
+2. await _db.Book.FindAsync(id)
+
+-----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

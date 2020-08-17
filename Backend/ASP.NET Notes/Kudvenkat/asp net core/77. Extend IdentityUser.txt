@@ -1,0 +1,182 @@
+1. Why should we extend IdentityUser class
+
+--> The built-in IdentityUser class has very limited set of properties like Id, Username, Email, PasswordHash etc. 
+--> The source code of this class is shown below.
+
+---------------------------------------------------------------------------------
+
+public class IdentityUser<TKey> where TKey : IEquatable<TKey>
+{
+    public IdentityUser() { }
+    public IdentityUser(string userName) : this()
+    {
+        UserName = userName;
+    }
+    [PersonalData]
+    public virtual TKey Id { get; set; }
+    [ProtectedPersonalData]
+    public virtual string UserName { get; set; }
+    public virtual string NormalizedUserName { get; set; }
+    [ProtectedPersonalData]
+    public virtual string Email { get; set; }
+    public virtual string NormalizedEmail { get; set; }
+    [PersonalData]
+    public virtual bool EmailConfirmed { get; set; }
+    public virtual string PasswordHash { get; set; }
+    public virtual string SecurityStamp { get; set; }
+    public virtual string ConcurrencyStamp { get; set; } = Guid.NewGuid().ToString();
+    [ProtectedPersonalData]
+    public virtual string PhoneNumber { get; set; }
+    [PersonalData]
+    public virtual bool PhoneNumberConfirmed { get; set; }
+    [PersonalData]
+    public virtual bool TwoFactorEnabled { get; set; }
+    public virtual DateTimeOffset? LockoutEnd { get; set; }
+    public virtual bool LockoutEnabled { get; set; }
+    public virtual int AccessFailedCount { get; set; }
+    public override string ToString()
+        => UserName;
+}
+
+---------------------------------------------------------------------------------
+
+--> What if I want to store additional data about the user like Gender, City, Country etc. 
+--> The built-in IdentityUser class does not have these properties. 
+--> To store custom user data like Gender, City, Country etc, extend the IdentityUser class.
+
+---------------------------------------------------------------------------------
+
+2. Extend IdentityUser Class
+
+--> Make new class in Models folder --> ApplicationUser
+--> You can name anything, but by convention, it is given ApplicationUser
+
+public class ApplicationUser : IdentityUser
+{
+    public string City { get; set; }
+}
+
+---------------------------------------------------------------------------------
+
+3. Replace All reference of IdentityUser with ApplicationUser
+
+--> The easiest way to do this is to, right click on the IdentityUser class and then select "Find All References" from the context menu. 
+--> Navigate to each reference in the list and replace IdentityUser class with ApplicationUser class.
+
+---------------------------------------------------------------------------------
+
+--> Another option --> ctrl + shift + f --> Find Search
+--> It will also search all instances of IdentityUser
+
+---------------------------------------------------------------------------------
+
+4. IdentityDbContext
+
+--> Even after changing all instances, we will get error or adding user column to AspUser table through migration, it will show blank.
+--> Our AppDbContext is inheriting IdentityDbContext
+--> We have to specify ApplicationUser as generic argument for the IdentityDbContext class
+
+--> This is how the IdentityDbContext class knows it has to work with our custom user class (in this case ApplicationUser class) instead of the default built-in IdentityUser class. 
+
+---------------------------------------------------------------------------------
+
+public class AppDbContext : IdentityDbContext<ApplicationUser>
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
+    { }
+
+    public DbSet<Employee> Employees { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Seed();
+    }
+}
+
+---------------------------------------------------------------------------------
+
+5. Generate a new migration to add columns
+
+Add-Migration Extend_IdentityUser
+Update-Database
+
+---------------------------------------------------------------------------------
+
+6. Extending IdentityUser - Add-Migration Not Working
+
+--> If ApplicationUser class (the class that extends IdentityUser class) is not specified as the generic argument for IdentityDbContext class, Add-Migration command does not work. 
+--> It does not generate the required migration code to add the additional columns to the AspNetUsers identity table.
+
+--> To fix this, specify ApplicationUser class as the generic argument for IdentityDbContext class.
+
+---------------------------------------------------------------------------------
+
+7. Adding City field in Register Form
+
+--> In RegisterViewModel,
+
+...
+public string City { get; set; }
+
+---------------------------------------------------------------------------------
+
+--> In Register.cshtml
+
+<div class="form-group">
+                <label asp-for="City"></label>
+                <input asp-for="City" class="form-control" />
+</div>
+
+---------------------------------------------------------------------------------
+
+--> In AccountController.cs
+
+--> In Post method of Register,
+
+var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    City = model.City
+                };
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

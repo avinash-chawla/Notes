@@ -1,0 +1,41 @@
+1. Artboards-->
+
+--> It brings multiple images in one adobe document to work at all images at ones
+--> While saving, each image will save under its own name.
+
+--> For example, Making Images for Google Ads
+--> Square one --> Tile
+--> Height small and width high --> leader board
+--> Height high and width small --> skyscraper
+
+--> All contain same objects, so working at all three would easy our process.
+
+Another Example --> Web Design
+--> Monitor View, Mobile View and Tablet View
+
+-----------------------------------------------------------------
+
+--> Create New Document
+--> Width and Heigth: 250 pixels
+--> Tick Mark: Artboards
+
+--> This will create Layer under Artboard 1, rename it: Scott Shoes (250 x 250)
+--> Name helpful in saving Image
+
+--> For different image, we use other Artboard2
+
+--> Layers tab --> New --> Artboard --> Name it: Scott Shoes 728x90
+--> Layers tab --> New --> Artboard --> Name it: Scott Shoes 120x600 
+
+-----------------------------------------------------------------
+
+--> You can move Artboard using Artboard move tool under move tool only.
+
+--> While dragging image to this document, you have to drag that image in one of artboards
+--> Imagine as multiple containers for each Image.
+
+--> Export as is Normal (multiple images is shown there)
+
+--> To duplicate layer, shortcut, drag that layer to new layer, it will get duplicated.
+
+-----------------------------------------------------------------

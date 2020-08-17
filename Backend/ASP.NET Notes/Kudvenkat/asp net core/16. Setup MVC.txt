@@ -1,0 +1,73 @@
+1. Setup Steps
+
+--> There are two steps that need to follow to implement mvc in empty template
+--> Such setups are automatically implemented in mvc template.
+
+----------------------------------------------------------------------------------
+
+2. Step 1 
+
+--> In ConfigureServices() method of the Startup class in Startup.cs file, include the following line. This line of code adds the required MVC services to the dependency injection container in asp.net core.
+
+services.AddMvc();
+
+----------------------------------------------------------------------------------
+
+3. Step 2 
+
+--> In the Configure() method, add UseMvcWithDefaultRoute() midddleware to our application's request processing pipeline. Modify the code as shown below.
+
+----------------------------------------------------------------------------------
+
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+
+    app.UseStaticFiles();
+
+    app.UseMvcWithDefaultRoute();
+
+    app.Run(async (context) =>
+    {
+        await context.Response.WriteAsync("Hello World!");
+    });
+}
+
+----------------------------------------------------------------------------------
+
+4. Order of this middleware
+
+--> We placed UseStaticFiles() middleware before UseMvcWithDefaultRoute() middleware. 
+
+--> This order is important, because if the request is for a static file like an image, css or JavaScript file, then UseStaticFiles() middleware will handle the request and short-circuit the rest of the pipeline.
+
+----------------------------------------------------------------------------------
+
+5. app.UseMvcWithDefaultRoute() middleware
+
+--> We have not specified the controller and action method segments in the URL, UseMvcWithDefaultRoute() middleware looks for Index() action method in the HomeController.
+
+----------------------------------------------------------------------------------
+
+6. Add HomeController
+
+--> Make new folder --> Controllers
+--> Make new class  --> HomeController.cs
+
+public class HomeController
+{
+    public string Index()
+    {
+        return "Hello from MVC";
+    }
+} 
+
+--> It is default controller for domain name url
+--> eg. http://localhost:49119
+--> eg. http://localhost:49119/home
+--> eg. http://localhost:49119/home/index
+
+----------------------------------------------------------------------------------

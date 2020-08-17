@@ -1,0 +1,124 @@
+1. Logging exceptions
+
+--> We will log exceptions generated in controller class using ILogger interface on output window or console window (in cmd).
+
+------------------------------------------------------------------------
+
+2. Steps
+
+--> Inject an instance of ILogger where you need the logging functionality
+
+private readonly ILogger<ErrorController> logger;
+
+public ErrorController(ILogger<ErrorController> logger)
+{
+    this.logger = logger;
+}
+
+------------------------------------------------------------------------
+
+--> logger.LogError() method logs the exception under Error category. 
+
+logger.LogError($"The path {exceptionHandlerPathFeature.Path} " +
+    $"threw an exception {exceptionHandlerPathFeature.Error}");
+
+--> There are different methods for logging different logs like for information, error, warning, etc.
+
+------------------------------------------------------------------------
+
+3. Real Class
+
+--> In ErrorController.cs
+
+public class ErrorController : Controller
+{
+    private readonly ILogger<ErrorController> logger;			--------------------------------- logger
+
+    // Inject ASP.NET Core ILogger service. Specify the Controller
+    // Type as the generic parameter. This helps us identify later
+    // which class or controller has logged the exception
+
+    public ErrorController(ILogger<ErrorController> logger)			--------------------------------- logger instantiated
+    {
+        this.logger = logger;
+    }
+
+    [AllowAnonymous]
+    [Route("Error")]
+    public IActionResult Error()
+    {
+        // Retrieve the exception Details
+
+        var exceptionHandlerPathFeature =
+            HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+
+        // LogError() method logs the exception under Error category in the log
+
+        logger.LogError($"The path {exceptionHandlerPathFeature.Path} " +			--------------------------------- logger
+            $"threw an exception {exceptionHandlerPathFeature.Error}");
+
+        return View("Error");
+    }
+
+    [Route("Error/{statusCode}")]
+    public IActionResult HttpStatusCodeHandler(int statusCode)
+    {
+        var statusCodeResult =
+            HttpContext.Features.Get<IStatusCodeReExecuteFeature>();
+
+        switch (statusCode)
+        {
+            case 404:
+                ViewBag.ErrorMessage = "Sorry, the resource could not be found";
+
+                // LogWarning() method logs the message under
+                // Warning category in the log
+
+                logger.LogWarning($"404 error occured. Path = " +			--------------------------------- logger
+                    $"{statusCodeResult.OriginalPath} and QueryString = " +
+                    $"{statusCodeResult.OriginalQueryString}");
+                break;
+        }
+
+        return View("NotFound");
+    }
+}
+
+------------------------------------------------------------------------
+
+4. Note
+
+--> When you choose mvc template, this Logger is already applied to home controller
+
+------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

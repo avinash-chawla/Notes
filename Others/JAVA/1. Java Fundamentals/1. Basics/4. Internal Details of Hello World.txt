@@ -1,0 +1,25 @@
+1. Compiling
+
+--> At compile time, java file is compiled by Java Compiler (It does not interact with OS) and converts the java code into bytecode.
+
+--> Simple.java to Simple.class
+
+---------------------------------------------------------------------------------
+
+2. What happens at runtime?
+
+--> At runtime, following steps are performed:
+
+Class File
+ClassLoader
+ByteCode Verified
+Interpreter
+Runtime
+Hardware
+
+--> Classloader: is the subsystem of JVM that is used to load class files.
+--> Bytecode Verifier: checks the code fragments for illegal code that can violate access right to objects.
+--> Interpreter: read bytecode stream then execute the instructions.
+
+---------------------------------------------------------------------------------
+

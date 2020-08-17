@@ -1,0 +1,100 @@
+--> Passing data to view
+
+1. Three ways
+
+--> There are Three ways to pass data from a controller to a view
+
+1. Using ViewData
+2. Using ViewBag
+3. Using a strongly typed model object. This is also called Strongly typed view
+
+----------------------------------------------------------------------------------
+
+2. ViewData 
+
+--> ViewData is a dictionary of weakly typed objects. 
+
+----------------------------------------------------------------------------------
+
+--> Controller class
+
+public ViewResult Details()
+{
+    Employee model = _employeeRepository.GetEmployee(1);
+
+    ViewData["PageTitle"] = "Employee Details";
+    ViewData["Employee"] = model;
+
+    return View();
+}
+
+----------------------------------------------------------------------------------
+
+--> View file
+
+<html>
+    <head>
+        <title></title>
+    </head>
+    <body>
+        <h1>@ViewData["PageTitle"]</h1>
+        @{
+            var employee = ViewData["Employee"] as PragimApp3.Models.Employee;
+        }
+    <ul>
+        <li>@employee.Name</li>
+        <li>@employee.Email</li>
+        <li>@employee.Department</li>
+    </ul>
+    </body>
+</html>
+
+----------------------------------------------------------------------------------
+
+3. ViewData key points to understand
+
+--> To store and retrieve data from the ViewData dictionary we use string keys.
+--> String data can be accessed from ViewData dictionary without the need to cast the data to string type.
+--> If we are accessing any other type of data, we need to explicitly cast it to the type we are expecting.
+--> In our example, we are casting the Employee object to Employee Type before accessing Name, Email and Department properties of the Employee object.
+--> ViewData is dynamically resolved at runtime, so it does not provide compile-time type checking and as a result we do not get intellisense.
+--> Since we do not have intellisense, the speed at which we write code is reduced and the chances of mis-spelling and making typographical errors are also high.
+--> We will only come to know about these errors at run time. 
+--> For this reason we usually do not use ViewData.
+
+----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

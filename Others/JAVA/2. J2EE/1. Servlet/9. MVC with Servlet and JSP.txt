@@ -1,0 +1,247 @@
+1. Benefits of MVC
+
+--> Minimizes HTML code in Servlet
+--> no more: out.println(..) in servlet code
+
+--> Minimize Java Business logic in JSP
+--> no more: large scriptlets in JSP code
+
+-------------------------------------------------------------------------------
+
+2. Steps:
+
+1. Link Servlet class with JSP
+--> We use getRequestDispatcher method in servlet and pass parameter jsp file
+
+2. Send data from servlet to jsp
+--> To send data, we use dispatcher object which is generated from getRequestDispatcher method
+--> This dispatcher object has method forward
+--> We will attach request and response object in its parameter
+
+3. Attaching information to request object in servlet
+
+--> request.setAttribute("student_list", students);
+
+-------------------------------------------------------------------------------
+
+3. In action
+
+--> Make new servlet class --> AnyName
+
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		// step 1: get the student data from helper class (model)
+		List<Student> students = StudentDataUtil.getStudents();
+		
+		// step 2: add students to request object
+		request.setAttribute("student_list", students);
+		
+		// step 3: get request dispatcher
+		RequestDispatcher dispatcher = 
+				request.getRequestDispatcher("view_students_two.jsp");		
+		
+		// step 4: now forward to JSP
+		dispatcher.forward(request, response);
+	}
+
+-------------------------------------------------------------------------------
+
+--> view_students.jsp
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<html>
+<body>
+
+	<c:forEach var="tempStudent" items="${student_list}">
+	
+		${tempStudent} <br/>
+	
+	</c:forEach>
+
+</body>
+</html>
+
+-------------------------------------------------------------------------------
+
+
+--> Now run servlet class
+
+-------------------------------------------------------------------------------
+
+4. Now Creating MVC app
+
+--> Create new package for this mvc project
+--> First we make Model class
+--> Make new class in this new project --> Student.java
+
+	private String firstName;
+	private String lastName;
+	private String email;
+
+--> We will have these 3 fields
+--> Make constructor, getters and setters and toString method for such fields in Student.java
+
+-------------------------------------------------------------------------------
+
+--> Make new class --> StudentDataUtil
+--> It is helper class for Model to access Model data by servlet class
+
+--> StudentDataUtil.java
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class StudentDataUtil {
+
+	public static List<Student> getStudents() {
+		
+		// create an empty list
+		List<Student> students = new ArrayList<>();
+		
+		// add sample data
+		students.add(new Student("Mary", "Public", "mary@luv2code.com"));
+		students.add(new Student("John", "Doe", "john@luv2code.com"));
+		students.add(new Student("Ajay", "Rao", "ajay@luv2code.com"));
+		
+		// return the list
+		return students;
+	}
+}
+
+-------------------------------------------------------------------------------
+
+--> Create Servlet class
+--> This will controller for our application
+
+
+package com.luv2code.servletdemo.mvctwo;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/MvcDemoServletTwo")
+public class MvcDemoServletTwo extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    public MvcDemoServletTwo() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		// step 1: get the student data from helper class (model)
+		List<Student> students = StudentDataUtil.getStudents();
+		
+		// step 2: add students to request object
+		request.setAttribute("student_list", students);
+		
+		// step 3: get request dispatcher
+		RequestDispatcher dispatcher = 
+				request.getRequestDispatcher("view_students_two.jsp");		
+		
+		// step 4: now forward to JSP
+		dispatcher.forward(request, response);
+	}
+}
+
+-------------------------------------------------------------------------------
+
+--> Make view file
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<html>
+<body>
+<h2>Student Table Demo</h2>
+<hr>
+<br/>
+
+<table border="1">
+		
+	<tr>
+		<th>First Name</th>
+		<th>Last Name</th>
+		<th>Email Name</th>		
+	</tr>	
+	
+	<c:forEach var="tempStudent" items="${student_list}">
+		
+		<tr>
+			<td>${tempStudent.firstName}</td> 
+			<td>${tempStudent.lastName}</td> 
+			<td>${tempStudent.email}</td> 
+		</tr>
+		
+	</c:forEach>
+
+</table>
+
+</body>
+</html>
+
+-------------------------------------------------------------------------------
+
+--> Mostly, we have one index file
+--> We have navlinks to access such controllers
+
+--> Make new file --> index.html
+--> In WebContent folder
+
+<html>
+<body>
+
+<a href="MvcDemoServletTwo">View Students with MVC Two</a>
+
+</body>
+</html>
+
+--> Run this file instead of servlet controller class
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

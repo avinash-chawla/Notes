@@ -1,0 +1,651 @@
+1. Category Model
+
+--> Create new model class --> Category
+   
+public class Category
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        public string Name { get; set; }
+    }
+
+-------------------------------------------------------------------------------
+
+--> Register in ApplicationDbContext under Data folder
+
+--> We have choosen individual authentication
+--> So this class extending IdentityDbContext is already created with it.
+
+public DbSet<Category> Category { get; set; }
+
+-------------------------------------------------------------------------------
+
+--> Add-migration 
+
+add-migration addCategoryToDatabase
+update-database
+
+--> To any last migration for reference
+remove-migration
+
+-------------------------------------------------------------------------------
+
+2. Add Category Controller and get action method
+
+--> Create new controller in Admin area --> CategoryController
+--> As this Category domain will only by changed by admin only (CRUD)
+
+--> All domains/controllers related to admin will come in admin area
+
+    [Area("Admin")]
+    public class CategoryController : Controller
+    {
+        public readonly ApplicationDbContext _db;
+        public CategoryController(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        //GET
+        public async Task<IActionResult> Index()
+        {
+            return View(await _db.Category.ToListAsync());
+        }
+    }
+
+
+--> Dont forget to mention [Area("Admin")]
+--> I have spent half an hour on solving this problem.
+
+-------------------------------------------------------------------------------
+
+--> In _Layout.cshtml
+
+<div class="dropdown-menu" aria-labelledby="navbarDropDownMenuLink">
+   <a class="dropdown-item" asp-action="Index" asp-controller="Category" asp-area="Admin">Category</a>
+
+--> We have tag helpers for redirection --> asp-action, asp-controller, asp-area
+
+-------------------------------------------------------------------------------
+
+3. Add Category Index View
+
+--> In Views folder of Admin area, make new folder Category
+--> All CategoryController will find view in this folder
+
+--> Right click --> Add --> View --> Index
+
+@model IEnumerable<Spice.Models.Category>
+@{ 
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h1>Category Index</h1>
+
+-------------------------------------------------------------------------------
+
+4. Add background and Images
+
+--> Download all image file from bhrugen spice project and paste in wwwroot --> images folder
+--> In site.css under wwwroot.com under css folder, write following stlyes.
+
+.search-background {
+    background-image: url('../images/dust_scratches.png');
+}
+
+.backgroundWhite {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.backgroundWhiteBorder {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    border: 1px solid #ddd;
+}
+
+.backgroundWhiteBorder10Padding {
+    background-color: white;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+--> In _layout.cshtml
+
+<body class="search-background">
+
+-------------------------------------------------------------------------------
+
+5. Category Index View Part 1
+
+--> In Index view of Category controller
+
+@model IEnumerable<Spice.Models.Category>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<br /><br />
+<div class="border backgroundWhite">
+    <div class="row">
+        <div class="col-6">
+            <h2 class="text-info"> Category List</h2>
+        </div>
+        <div class="col-6 text-right">
+            <partial name="_CreateButtonPartial" />
+        </div>
+    </div>
+    <br />
+    <div>
+        @if (Model.Count() > 0)
+        {
+        <table class="table table-striped border">
+            <tr class="table-secondary">
+                <th>
+                    @Html.DisplayNameFor(m => m.Name)
+                </th>
+                <th></th>
+                <th></th>
+            </tr>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(m => item.Name)
+                    </td>
+                    <td>
+                        <partial name="_TableButtonPartial" model="item.Id" />
+                    </td>
+                </tr>
+            }
+        </table>
+        }
+        else
+        {
+            <p>No category exists...</p>
+        }
+    </div>
+</div>
+
+--> As this Edit|Detail|Delete button groups can be used in other controllers also, we create partial view '_TableButtonPartial.cshtml'
+--> This partial view is mentioned in point 11 of this article.
+
+-------------------------------------------------------------------------------
+
+6. Create Button Partial View
+
+--> Above in place of button, we mentioned <partial name="_CreateButtonPartial">
+--> Means we have taken button separate view bec this button will be used in more than 1 places.
+
+--> Create new partial view inside shared folder --> _CreateButtonPartial
+
+<p>
+    <a asp-action="Create" class="btn btn-info"><i class="fas fa-plus"></i> &nbsp;  Create New </a>
+</p>
+
+-------------------------------------------------------------------------------
+
+7. Create Form Category
+
+--> Make new actionMethod in CategoryController
+--> Any view , actionMethod, controller, talking here, will be related to Category.
+
+public IActionResult Create()
+        {
+            return View();
+        }
+
+--> Create view for that by right clicking on actionmethod --> add view
+
+-------------------------------------------------------------------------------
+
+8. Create Category View
+
+@model Spice.Models.Category 
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<br />
+<h2 class="text-info">Create Category</h2>
+<br />
+
+<form method="post" asp-action="Create">
+    <div class="border backgroundWhite">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group row">
+            <div class="col-2">
+                <label asp-for="Name" class="col-form-label"></label>
+            </div>
+            <div class="col-5">
+                <input asp-for="Name" class="form-control" />
+            </div>
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="form-group row">
+            <div class="col-5 offset-2">
+                <partial name="_CreateAndBackToListButton" />
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts{
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+-------------------------------------------------------------------------------
+
+9. _CreateAndBackToListButton Partial View
+
+--> Create above mentioned partial view
+
+<div class="row">
+    <div class="col-6">
+        <input type="submit" class="btn btn-info form-control" value="Create" />
+    </div>
+    <div class="col-6">
+        <a asp-action="Index" class="btn btn-success form-control">Back to List</a>
+    </div>
+</div>
+
+-------------------------------------------------------------------------------
+
+10. Create Category Post action Method
+
+--> In Controller Class,
+
+	[HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Category category)
+        {
+            if(ModelState.IsValid)
+            {
+                //if valid
+                _db.Category.Add(category);
+                await _db.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+
+            }
+            return View(category);
+        }
+
+
+--> Previously to navigate, RedirectToAction("Index"); string name is used, which can lead to typo error
+--> So asp.net core give nameof method to avoid any typo error.
+
+-------------------------------------------------------------------------------
+
+11. Create Table Button Partial View
+
+--> Make new partial view with name --> _TableButtonPartial.cshtml
+
+@model int  
+
+<td style="width:150px">
+    <div class="btn-group" role="group">
+        <a class="btn btn-primary text-white" asp-action="Edit" asp-route-Id="@Model">
+            <i class="fas fa-edit"></i>
+        </a>
+
+        <a class="btn btn-success text-white" asp-action="Details" asp-route-Id="@Model">
+            <i class="fas fa-list-alt"></i>
+        </a>
+
+        <a class="btn btn-danger text-white" asp-action="Delete" asp-route-Id="@Model">
+            <i class="fas fa-trash-alt"></i>
+        </a>
+    </div>
+</td>
+
+-------------------------------------------------------------------------------
+
+12. Edit Category Get Action
+
+	//GET - EDIT
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if(id==null)
+            {
+                return NotFound();
+            }
+            var category = await _db.Category.FindAsync(id);
+            if(category==null)
+            {
+                return NotFound();
+            }
+            return View(category);
+            
+        }
+
+-------------------------------------------------------------------------------
+
+13. Edit Category View
+
+@model Spice.Models.Category
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<br />
+<h2 class="text-info">Edit Category</h2>
+<br />
+
+<form method="post" asp-action="Edit">
+    <div class="border backgroundWhite">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group row">
+            <div class="col-2">
+                <label asp-for="Name" class="col-form-label"></label>
+            </div>
+            <div class="col-5">
+                <input asp-for="Name" class="form-control" />
+            </div>
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="form-group row">
+            <div class="col-5 offset-2">
+                <partial name="_EditAndBackToListButton" model="Model.Id" />
+            </div>
+        </div>
+    </div>
+</form>
+
+
+@section Scripts{
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+-------------------------------------------------------------------------------
+
+14. _EditAndBackToListButton Partial View
+
+--> Make this new partial view,
+
+@model int  
+
+<div class="row">
+    <div class="col-6">
+        <input type="submit" class="btn btn-info form-control" asp-route-id="@Model" value="Update" />
+    </div>
+    <div class="col-6">
+        <a asp-action="Index" class="btn btn-success form-control">Back to List</a>
+    </div>
+</div>
+
+-------------------------------------------------------------------------------
+
+15. Edit Category Post Action
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Category category)
+        {
+            if(ModelState.IsValid)
+            {
+                _db.Update(category);
+                await _db.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
+            return View(category);
+        }
+
+-------------------------------------------------------------------------------
+
+16. Delete Category Get Action
+
+	//GET - DELETE
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var category = await _db.Category.FindAsync(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+            return View(category);
+        }
+
+-------------------------------------------------------------------------------
+
+17. Delete Category View
+
+@model Spice.Models.Category
+
+@{
+    ViewData["Title"] = "Delete";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<br />
+<h2 class="text-info">Delete Category</h2>
+<br />
+
+<form method="post" asp-action="Delete">
+    <div class="border backgroundWhite">
+        <div class="form-group row">
+            <div class="col-2">
+                <label asp-for="Name" class="col-form-label"></label>
+            </div>
+            <div class="col-5">
+                <input asp-for="Name" readonly class="form-control" />
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-5 offset-2">
+                <partial name="_DeleteAndBackToListButton" model="Model.Id" />
+            </div>
+        </div>
+    </div>
+</form>
+
+-------------------------------------------------------------------------------
+
+18. Delete Category Post Action
+
+[HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int? id)
+        {
+            var category = await _db.Category.FindAsync(id);
+
+            if(category ==null)
+            {
+                return View();
+            }
+            _db.Category.Remove(category);
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+-------------------------------------------------------------------------------
+
+19. _DeleteAndBackToListButton Partial View
+
+@model int
+
+<div class="row">
+    <div class="col-6">
+        <input type="submit" class="btn btn-danger form-control" asp-route-id="@Model" value="Delete" />
+    </div>
+    <div class="col-6">
+        <a asp-action="Index" class="btn btn-success form-control">Back to List</a>
+    </div>
+</div>
+
+-------------------------------------------------------------------------------
+
+20. Details Category Get Action
+
+//GET - DETAILS
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var category = await _db.Category.FindAsync(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            return View(category);
+        }
+
+
+-------------------------------------------------------------------------------
+
+21. Details View
+
+@model Spice.Models.Category
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<br />
+<h2 class="text-info">Category Details</h2>
+<br />
+<div class=" border  backgroundWhite">
+    <div class="form-group row">
+        <div class="col-2">
+            <label asp-for="Name"></label>
+        </div>
+        <div class="col-5">
+            <input asp-for="Name" disabled class="form-control" />
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-5 offset-2">
+            <partial name="_DetailsAndBackToListButton" model="Model.Id" />
+        </div>
+    </div>
+
+</div>
+
+-------------------------------------------------------------------------------
+
+22. _DetailsAndBackToListButton Partial View
+
+@model int
+
+
+
+<div class="row">
+    <div class="col-6">
+        <a asp-action="Edit" asp-route-id="@Model" class="btn btn-info form-control">Edit</a>
+    </div>
+    <div class="col-6">
+        <a asp-action="Index" class="btn btn-success form-control">Back to List</a>
+    </div>
+</div>
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

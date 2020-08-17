@@ -1,0 +1,165 @@
+1. Virtual Environment Setup
+
+--> venv is the package which comes with python 3.6 or higher automatically
+--> To seperate our project dependencies from global dependencies, we use virtual shell.
+--> Create new project folder --> MagicVilla_Django
+
+# To create venv inside project
+python -m venv ./venv
+
+# To activate virtual environment
+source ./venv/Scripts/activate	(in bash shell)
+./venv/Scripts/activate.bat	(in powershell)
+
+# To deactivate this venv
+deactivate
+
+# To check it works
+python freeze
+
+-------------------------------------------------------------------------------
+
+2. Django Install 
+
+# Installing Django
+--> Make sure you are inside venv
+--> pip install django==2.1.1
+--> pip freeze
+
+# Create new django project
+--> django-admin --help
+--> django-admin startproject MagicVilla_Django .
+
+# manage.py
+--> This file is created in project directory
+--> It includes commands to work with django projects like start server, migration, createsuperuser
+--> python manage.py --help
+
+-------------------------------------------------------------------------------
+
+3. Git init
+
+--> git init
+--> Make new file in this project folder --> .gitignore
+
+--> Sometimes it is hard to know which files to be included in .gitignore when you are using framework
+--> Head over to: gitignore.io website
+--> In search bar, type Django
+--> create
+
+--> It will list all contents for .gitignore for Django
+--> copy and paste it
+
+--> git add . and git commit -m "Initial commit"
+
+-------------------------------------------------------------------------------
+
+4. Exploring the Initial files and Running the Server
+
+# To run the server
+python manage.py runserver
+--> Development server will start at port:8000
+
+# Initial files
+
+1. __pycache__	   
+--> It contains the precompiled files for faster reload
+
+2. __init__.py
+--> It makes simple directory to python package
+
+3. settings.py
+--> It contains various configuration
+--> BASE_DIR
+--> SECRET_Key
+--> DEBUG
+--> Allowed_Hosts
+--> Installed Apps
+--> Middlewares
+--> Root_urlconf
+--> Templates
+--> Database
+--> WSGI path
+--> Auth_Password validators
+--> Static_url
+
+4. urls.py
+--> It contains routing for our app
+--> It passes control to view methods for that domain url
+
+5. wsgi.py
+--> It contains configuration of how web server will connect to our web application
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

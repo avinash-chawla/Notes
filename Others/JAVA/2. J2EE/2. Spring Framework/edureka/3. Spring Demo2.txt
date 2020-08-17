@@ -1,0 +1,155 @@
+1. Create Client.java Class
+
+--> This class will have main method
+
+public class Client {
+
+	public static void main(String[] args) {
+		
+		ApplicationContext context = new ClassPathXmlApplicationContext("employeebean.xml");
+		Employee e1 = (Employee)context.getBean("emp1");
+
+		System.out.println(e1);
+
+		ClassPathXmlApplicationContext cxt = (ClassPathXmlApplicationContext)context;
+		cxt.close();
+	}
+}
+
+-------------------------------------------------------------------------------------
+
+2. Employee.java
+
+public class Employee {
+	int eid;
+	String ename;
+	Address address;
+	
+	public Employee() {
+		System.out.println("Employee object created");
+	}
+	
+	// Constructor Injection
+	public Employee( Address address) {
+		this.address = address;
+	}
+
+	// Setter Injection
+	public void setAddress(Address address) {
+		this.address = address;
+	}
+
+	public void myInit() {
+		System.out.println("----Object Initialised");
+	}
+	
+	public void myDestroy() {
+		System.out.println("----Object Destroyed now");
+	}
+
+	@Override
+	public String toString() {
+		return "Employee [eid=" + eid + ", ename=" + ename + ", address=" + address + "]";
+	}
+
+}
+
+-------------------------------------------------------------------------------------
+
+3. Address.java
+
+public class Address {
+	String city;
+	String state;
+	int zipCode;
+	
+	public Address() {		
+	}
+
+	public Address(String city, String state, int zipCode) {
+		this.city = city;
+		this.state = state;
+		this.zipCode = zipCode;
+	}
+
+	@Override
+	public String toString() {
+		return "Address [city=" + city + ", state=" + state + ", zipCode=" + zipCode + "]";
+	}
+}
+
+-------------------------------------------------------------------------------------
+
+4. employeebean.xml
+
+--> Make this file in src folder
+
+   <bean id="adrs" class="co.edureka.Address"> 
+   	<property name="city" value="Bangaluru"/>
+	<property name="state" value="Karnataka"/>
+	<property name="zipCode" value="520001"/>
+   </bean>
+   
+   <bean id="emp1" class="co.edureka.Employee" init-method="myInit" destroy-method="myDestroy"> 
+   	<property name="eid" value="101"/>
+	<property name="ename" value="Jennie"/>
+	<property name="address" ref="adrs"/>		// setter injection
+	<!-- <constructor-arg ref="adrs" /> -->		// constructor injection
+   </bean>
+
+-------------------------------------------------------------------------------------
+
+--> We first configure Address object in xml file
+--> Then we provide reference of Address object while configuring Employee Object
+
+--> We can provide reference of Address object using two ways:
+1. Using Constructor of Employee Class
+2. Using Setter of Employee Class
+
+--> In Employee Class,
+
+	// Constructor Injection
+	public Employee( Address address) {
+		this.address = address;
+	}
+
+	// Setter Injection
+	public void setAddress(Address address) {
+		this.address = address;
+	}
+
+--> <property name="address" ref="adrs"/> 	will do setter injection
+--> <constructor-arg ref="adrs" /> 		will do constructor injection
+
+-------------------------------------------------------------------------------------
+
+--> Now, Ioc container will call this xml configuration to create object at runtime
+--> This way, we are not creating object by itself, we use container class method to create object using xml file.
+
+-------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

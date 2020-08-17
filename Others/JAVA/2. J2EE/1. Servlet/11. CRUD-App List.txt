@@ -1,0 +1,474 @@
+1. To Do List
+
+--> Create Student.java
+--> Create StudentDBUtil.java
+--> Create StudentControllerServlet.java
+--> Create JSP page: list-students.jsp
+
+--------------------------------------------------------------------------------
+
+2. Student.java
+
+package com.luv2code.web.jdbc;
+
+public class Student {
+
+	private int id;
+	private String firstName;
+	private String lastName;
+	private String email;
+
+	public Student(String firstName, String lastName, String email) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.email = email;
+	}
+
+	public Student(int id, String firstName, String lastName, String email) {
+		this.id = id;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.email = email;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	@Override
+	public String toString() {
+		return "Student [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email + "]";
+	}	
+}
+
+--------------------------------------------------------------------------------
+
+3. StudentDBUtil.java
+
+package com.luv2code.web.jdbc;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+public class StudentDbUtil {
+
+	private DataSource dataSource;
+
+	public StudentDbUtil(DataSource theDataSource) {
+		dataSource = theDataSource;
+	}
+	
+	public List<Student> getStudents() throws Exception {
+		
+		List<Student> students = new ArrayList<>();
+		
+		Connection myConn = null;
+		Statement myStmt = null;
+		ResultSet myRs = null;
+		
+		try {
+			// get a connection
+			myConn = dataSource.getConnection();
+			
+			// create sql statement
+			String sql = "select * from student order by last_name";
+			
+			myStmt = myConn.createStatement();
+			
+			// execute query
+			myRs = myStmt.executeQuery(sql);
+			
+			// process result set
+			while (myRs.next()) {
+				
+				// retrieve data from result set row
+				int id = myRs.getInt("id");
+				String firstName = myRs.getString("first_name");
+				String lastName = myRs.getString("last_name");
+				String email = myRs.getString("email");
+				
+				// create new student object
+				Student tempStudent = new Student(id, firstName, lastName, email);
+				
+				// add it to the list of students
+				students.add(tempStudent);				
+			}
+			
+			return students;		
+		}
+		finally {
+			// close JDBC objects
+			close(myConn, myStmt, myRs);
+		}		
+	}
+
+	private void close(Connection myConn, Statement myStmt, ResultSet myRs) {
+
+		try {
+			if (myRs != null) {
+				myRs.close();
+			}
+			
+			if (myStmt != null) {
+				myStmt.close();
+			}
+			
+			if (myConn != null) {
+				myConn.close();   // doesn't really close it ... just puts back in connection pool
+			}
+		}
+		catch (Exception exc) {
+			exc.printStackTrace();
+		}
+	}
+
+}
+
+--------------------------------------------------------------------------------
+
+4. StudentControllerServlet.java
+
+--> It is controller
+--> We have init method bec in servlet class, init method is used instead of contructor method
+--> tomcat will call this init method while initializing this object.
+
+package com.luv2code.web.jdbc;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
+
+@WebServlet("/StudentControllerServlet")
+public class StudentControllerServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	private StudentDbUtil studentDbUtil;
+	
+	@Resource(name="jdbc/web_student_tracker")
+	private DataSource dataSource;
+	
+	@Override
+	public void init() throws ServletException {
+		super.init();
+		
+		// create our student db util ... and pass in the conn pool / datasource
+		try {
+			studentDbUtil = new StudentDbUtil(dataSource);
+		}
+		catch (Exception exc) {
+			throw new ServletException(exc);
+		}
+	}
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		// list the students ... in mvc fashion
+		listStudents(request, response);					
+	}
+
+	private void listStudents(HttpServletRequest request, HttpServletResponse response) 
+		throws Exception {
+
+		// get students from db util
+		List<Student> students = studentDbUtil.getStudents();
+		
+		// add students to the request
+		request.setAttribute("STUDENT_LIST", students);
+				
+		// send to JSP page (view)
+		RequestDispatcher dispatcher = request.getRequestDispatcher("/list-students.jsp");
+		dispatcher.forward(request, response);
+	}
+
+}
+
+--------------------------------------------------------------------------------
+
+5. list-students.jsp
+
+<%@ page import="java.util.*, com.luv2code.web.jdbc.*" %>
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Student Tracker App</title>	
+</head>
+
+<%
+	// get the students from the request object (sent by servlet)
+	List<Student> theStudents = (List<Student>) request.getAttribute("STUDENT_LIST");
+%>
+
+<body>
+	<div id="wrapper">
+		<div id="header">
+			<h2>FooBar University</h2>
+		</div>
+	</div>
+
+	<div id="container">
+	
+		<div id="content">
+		
+			<table>
+			
+				<tr>
+					<th>First Name</th>
+					<th>Last Name</th>
+					<th>Email</th>
+				</tr>
+				
+				<% for (Student tempStudent : theStudents) { %>
+				
+					<tr>
+						<td> <%= tempStudent.getFirstName() %> </td>
+						<td> <%= tempStudent.getLastName() %> </td>
+						<td> <%= tempStudent.getEmail() %> </td>
+					</tr>
+				
+				<% } %>
+				
+			</table>
+		
+		</div>
+	
+	</div>
+</body>
+</html>
+
+--------------------------------------------------------------------------------
+
+6. Adding Stylesheet to jsp
+
+--> Make new folder in WebContent folder --> css
+--> Make new file inside it    --> style.css
+--> Include all styles in this file
+
+--> In Jsp file, in head tag,
+<link type="text/css" rel="stylesheet" href="css/style.css">
+
+
+--------------------------------------------------------------------------------
+html, body{
+	margin-left:15px; margin-right:15px; 
+	padding:0px; 
+	font-family:Verdana, Arial, Helvetica, sans-serif;
+}
+
+table {   
+	border-collapse:collapse;
+	border-bottom:1px solid gray;
+	font-family: Tahoma,Verdana,Segoe,sans-serif;
+	width:72%;
+}
+ 
+th {
+	border-bottom:1px solid gray;
+	background:none repeat scroll 0 0 #0775d3;
+	padding:10px;
+	color: #FFFFFF;
+}
+
+tr {
+	border-top:1px solid gray;
+	text-align:center;	
+}
+ 
+tr:nth-child(even) {background: #FFFFFF}
+tr:nth-child(odd) {background: #BBBBBB}	
+ 
+#wrapper {width: 100%; margin-top: 0px; }
+#header {width: 72%; background: #0775d3; margin-top: 0px; padding:15px 0px 15px 0px;}
+#header h2 {width: 100%; margin:auto; color: #FFFFFF;}
+#container {width: 100%; margin:auto}
+#container h3 {color: #000;}
+#container #content {margin-top: 20px;}
+
+.add-student-button {
+	border: 1px solid #666; 
+	border-radius: 5px; 
+	padding: 4px; 
+	font-size: 12px;
+	font-weight: bold;
+	width: 120px; 
+	padding: 5px 10px; 
+	
+	margin-bottom: 15px;
+	background: #cccccc;
+}
+
+--------------------------------------------------------------------------------
+
+7. Adding jstl functionality
+
+--> Rewriting jsp view file code,
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Student Tracker App</title>	
+	<link type="text/css" rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+	<div id="wrapper">
+		<div id="header">
+			<h2>FooBar University</h2>
+		</div>
+	</div>
+
+	<div id="container">
+	
+		<div id="content">
+				
+			<table>
+			
+				<tr>
+					<th>First Name</th>
+					<th>Last Name</th>
+					<th>Email</th>
+				</tr>
+				
+				<c:forEach var="tempStudent" items="${STUDENT_LIST}">
+					
+					<tr>
+						<td> ${tempStudent.firstName} </td>
+						<td> ${tempStudent.lastName} </td>
+						<td> ${tempStudent.email} </td>
+					</tr>
+				
+				</c:forEach>
+				
+			</table>
+		
+		</div>
+	
+	</div>
+</body>
+</html>
+
+
+--------------------------------------------------------------------------------
+
+8. Index file for application
+
+--> We want to load home/index page in localhost:8080/<projectName>
+--> For that, we can make it use of web.xml file
+ 
+--> Java Servlet spec defines a deployment descriptor file
+--> It is included in WEB-INF/web.xml
+--> It contains application configuration
+
+--------------------------------------------------------------------------------
+
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" id="WebApp_ID" version="3.1">
+  <display-name>web-student-tracker-solution</display-name>
+  <welcome-file-list>
+    <welcome-file>StudentControllerServlet</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
+</web-app>
+
+--------------------------------------------------------------------------------
+
+--> This app config will look first for Servlet file
+--> If not find it, then look for next file mentioned below
+
+--> Now when you head over to localhost:8080/<projectName>, this servlet file will be rendered in home page.
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

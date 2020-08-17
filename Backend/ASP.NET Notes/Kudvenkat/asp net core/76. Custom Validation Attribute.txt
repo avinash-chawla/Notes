@@ -1,0 +1,128 @@
+1. Built-in validation attribute
+
+--> For most use cases asp.net core has several built-in attributes for model validation.
+
+Required
+Range
+StringLength
+Compare
+Regular Expression
+
+---------------------------------------------------------------------------------
+
+2. Custom Attribute in ASP.NET Core
+
+--> If you have a complex validation requirement that you cannot implement using the built-in attributes, you can create a custom validation attribute and reuse it in your project or even in multiple projects if you create it in a separate class library project.
+
+---------------------------------------------------------------------------------
+
+3. Custom Validation Attribute Example
+
+-->  Our business requirement is to only allow email address where the domain name is pragimtech.com. 
+
+--> If any other domain name is used, we want to display a validation error. 
+
+---------------------------------------------------------------------------------
+
+--> Create new folder in project --> Utilities
+--> Create new class in that     --> ValidEmailDomainAttribute
+
+--> This class inherits asp.net core ValidationAttribute class
+--> It has method IsValid for Validation, we will overrider it
+--> Provide this class name as custom validation attribute to model field in RegisterViewModel
+--> From that attribute, we pass arguments based on requirement, we pass customer paramter allowedDomain and set its value to "pragimtech.com" which will be received in this class
+--> We will receive its value in constructor
+
+--> IsValid takes one parametre object value which gives value which user has typed.
+--> We convert it to string then do splitting at "@"
+--> Then we compare with "pragimtech.com", if not true IsValid will return false
+--> IF true, IsValue will true.
+
+
+public class ValidEmailDomainAttribute : ValidationAttribute
+{
+    private readonly string allowedDomain;	
+
+    public ValidEmailDomainAttribute(string allowedDomain)
+    {
+        this.allowedDomain = allowedDomain;
+    }
+
+    public override bool IsValid(object value)
+    {
+        string[] strings = value.ToString().Split('@');
+        return strings[1].ToUpper() == allowedDomain.ToUpper();
+    }
+}
+
+---------------------------------------------------------------------------------
+
+--> In RegisterViewModel.cs model,
+
+public class RegisterViewModel
+{
+    [ValidEmailDomain(allowedDomain: "pragimtech.com",
+        ErrorMessage = "Email domain must be pragimtech.com")]
+    public string Email { get; set; }
+
+    // Other Properties
+}
+
+---------------------------------------------------------------------------------
+
+--> Use the custom validation attribute just like any other built-in validation attribute.
+--> Email property is decorated with ValidEmailDomain attribute which is our custom validation attribute.
+--> AllowedDomain property specifies the email domain that we want to validate against.
+--> ErrorMessage property specifies the error message that should be displayed if the validation fails.
+--> The ErrorMessage property is inherited from the built-in base class ValidationAttribute.
+--> The validation error message is then picked up and displayed by the built-in validation tag helper.
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

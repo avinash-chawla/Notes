@@ -1,0 +1,780 @@
+0. Summary
+
+--> ngForm					--> Keeps track of form-control elements
+--> ngModel					--> Binds Model object and helps in submitting form data and also to initialise form.
+--> name					--> required by ngModel to keep track of
+--> Access to ngForm and ngModel properties	--> using template variable
+
+------------------------------------------------------------------------------
+
+0.1. Topics that we have learned
+
+--> Create form template
+--> Bind data with a model
+--> Perform validation
+--> Provide visual feedback
+--> Display error messages
+--> Post the form data to a server
+--> Receive the response
+--> Handle any error
+
+------------------------------------------------------------------------------
+
+0.2 Link to Project
+
+https://github.com/gopinav/Angular-Forms-Tutorial
+
+------------------------------------------------------------------------------
+
+1. Forms Usage
+
+--> Register
+--> Login
+--> Submit a Request
+--> Place an order
+--> Schedule an appointment
+
+
+--> As Developers
+1. Data Binding
+2. Change tracking
+3. Validation
+4. Visual feedback
+5. Error messages
+6. Form submission
+
+------------------------------------------------------------------------------
+
+2. Process of forms
+
+1. Template	--> Collects Data
+2. Class	--> Bind Data
+3. Service	--> Send Data
+4. Server	--> Processes Data
+
+------------------------------------------------------------------------------
+
+3. Two Approaches
+
+1. Template forms	--> Heavy on Templates
+2. Reactive forms 	--> Heavy on class
+
+------------------------------------------------------------------------------
+
+4. Template Driven Forms (TDF)
+
+--> Easy to use 
+--> Two way data binding with ngModel
+--> Bulky HTML and minimal component code
+--> Automatically tracks the form and form elements state and validity
+--> Unit testing is a challenge
+--> Readability decresed with complex forms and validation.
+
+------------------------------------------------------------------------------
+
+5. Create new Project
+
+--> ng new AngularApp
+
+------------------------------------------------------------------------------
+
+6. Add Bootstrap
+
+--> npm i bootstrap
+--> npm i jquery
+
+--> In angular.json file, 
+
+"styles": [
+  "./node_modules/bootstrap/dist/css/bootstrap.min.css",
+  "src/styles.css"
+],
+"scripts": [
+  "./node_modules/bootstrap/dist/js/bootstrap.min.js",
+  "./node_modules/jquery/dist/jquery.js"
+]
+
+------------------------------------------------------------------------------
+
+7. App.component.html
+
+--> There are 3 textboxes for name, email and phone
+--> There is dropdownlist for chosing course
+--> There are radio buttons for appointment time.
+--> There is submit button.
+
+
+<div class="container-fluid" style="width:35%">
+    <h1>Enrollment Form</h1>
+    <form>
+        <div class="form-group">
+            <label>Name: </label>
+            <input type="text" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label>Email: </label>
+            <input type="text" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label>Phone: </label>
+            <input type="text" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <select class="custom-select">
+                <option selected>I am interested in </option>
+                <option *ngFor="let topic of topics">{{ topic }}</option>
+            </select>
+        </div>
+
+        <div class="mg-3">
+            <label>Time preference</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="timePreference" value="morning">
+                <label class="form-check-label">Morning (9AM - 12 PM)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="timePreference" value="evening">
+                <label class="form-check-label">Evening (5PM - 8PM)</label>
+            </div>
+        </div>
+
+        <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input">
+            <label class="form-check-label">Send me Promotional Offers</label>
+        </div>
+
+        <button type="submit" class="btn btn-priamry">Submit form</button>
+    </form>
+</div>
+
+------------------------------------------------------------------------------
+
+8. ngForm Directive
+
+--> When we use any form tag in angular html, ngForm directive is bydefault attached to form tag.
+--> It gives valuable information in object form
+--> How we get reference to it:
+--> ngForm directive exports itself as "ngForm" in string, so any template variable assigning to that string, will get reference to that directive.
+
+<form #userForm="ngForm">
+
+---------------------------------------------------------------------------------- 
+
+--> By default, ngForm directive does not keep track of form controls
+--> We need to specify ngModel directive to that form control, whose we want to keep track of.
+--> ngModel also needs name attribute to attach reference to it.
+--> Now, ngForm directive keeps track of each form control and attaches their value in value property of it.
+--> We use interpolation to achieve this.
+
+--> We have applied ngForm directive in form tag  		 (storing in template variable)
+--> We have also applied ngModel directive in each form control  (alongside name attribute)
+----------------------------------------------------------------------------------
+
+<div class="container-fluid" style="width:35%">
+    <h1>Form</h1>
+    <form #userForm="ngForm">
+
+        {{ userForm.value | json }}
+
+        <div class="form-group">
+            <label>Name: </label>
+            <input type="text" class="form-control" name="userName" ngModel>
+        </div>
+
+        <div class="form-group">
+            <label>Email: </label>
+            <input type="text" class="form-control" name="email" ngModel>
+        </div>
+
+        <div class="form-group">
+            <label>Phone: </label>
+            <input type="text" class="form-control" name="phone" ngModel>
+        </div>
+
+        <div class="form-group">
+            <select class="custom-select" name="topics" ngModel>
+                <option selected>I am interested in </option>
+                <option *ngFor="let topic of topics">{{ topic }}</option>
+            </select>
+        </div>
+
+        <div class="mg-3">
+            <label>Time preference</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="timePreference" value="morning" ngModel>
+                <label class="form-check-label">Morning (9AM - 12 PM)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="timePreference" value="evening" ngModel>
+                <label class="form-check-label">Evening (5PM - 8PM)</label>
+            </div>
+        </div>
+
+        <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" name="subscribe" ngModel>
+            <label class="form-check-label">Send me Promotional Offers</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit form</button>
+    </form>
+</div>
+
+
+--> Output:
+
+{ "userName": "", "email": "", "phone": "", "topics": "", "timePreference": "", "subscribe": "" }
+
+
+--> That's why we need name attribute for key of json
+
+---------------------------------------------------------------------------------
+
+9. ngModelGroup directive
+
+--> It binds sub-groups in one group
+--> It helps to build complex json data
+
+{ "address": { "street": "", "city": "", "state": "", "postalCode": "" }, 
+  "userName": "", 
+  "email": "", 
+  "phone": "", 
+  "topics": "", 
+  "timePreference": "", 
+  "subscribe": "" 
+}
+
+---------------------------------------------------------------------------------
+
+--> ngModelGroup is assigned to name for key in json data
+
+<div ngModelGroup="address">
+<div class="form-group">
+    <label>Street: </label>
+    <input type="text" class="form-control" name="street" ngModel>
+</div>
+
+<div class="form-group">
+    <label>City: </label>
+    <input type="text" class="form-control" name="city" ngModel>
+</div>
+
+<div class="form-group">
+    <label>State: </label>
+    <input type="text" class="form-control" name="state" ngModel>
+</div>
+
+<div class="form-group">
+    <label>Postal Code: </label>
+    <input type="text" class="form-control" name="postalCode" ngModel>
+</div>
+</div>
+
+
+--------------------------------------------------------------------------------------------
+
+10. Directives used in TDF
+
+1. ngForm
+2. ngModel
+3. ngModelGroup
+
+--> In this, we use name attribute for two-way binding to attach name with value.
+--> We can also use custom Model type for two-way binding to that model class.
+
+----------------------------------------------------------------------------------
+
+11. Binding Form Data to a Model
+
+--> First Creating Model
+--> ng g class User
+
+export class User {
+    constructor(
+        public name: string,
+        public email: string,
+        public phone: string,
+        public topic: string,
+        public timePreference: string,
+        public subscribe: boolean
+    ) { }
+}
+
+--------------------------------------------------------------------------------------------
+
+12. Attaching Model data using Property Binding
+
+
+--> In app.component.ts
+
+userModel = new User("Avinash", "avinash@gmail.com", "12345", "Angualar", "morning", true);
+
+
+--> Now this object store all the required data by creating instance of model class.
+--> We will use property binding with form using ngModel directive.
+--> This form will be already filled with object data.
+
+----------------------------------------------------------------------------------
+
+--> In app.component.html
+
+
+<div class="container-fluid" style="width:35%">
+    <h1>Form</h1>
+    <form #userForm="ngForm">
+        {{ userForm.value | json }}
+        <hr />
+
+        {{ userModel | json }}
+
+        <div class="form-group">
+            <label>Name: </label>
+            <input type="text" class="form-control" name="userName" [ngModel]="userModel.name">
+        </div>
+
+        <div class="form-group">
+            <label>Email: </label>
+            <input type="text" class="form-control" name="email" [ngModel]="userModel.email">
+        </div>
+
+        <div class="form-group">
+            <label>Phone: </label>
+            <input type="text" class="form-control" name="phone" [ngModel]="userModel.phone">
+        </div>
+
+        <div class="form-group">
+            <select class="custom-select" name="topic" [ngModel]="userModel.topic">
+                <option value="">I am interested in </option>
+                <option *ngFor="let topic of topics">{{ topic }}</option>
+            </select>
+        </div>
+
+        <div class="mg-3">
+            <label>Time preference</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="timePreference" value="morning"
+                    [ngModel]="userModel.timePreference">
+                <label class="form-check-label">Morning (9AM - 12 PM)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="timePreference" value="evening"
+                    [ngModel]="userModel.timePreference">
+                <label class="form-check-label">Evening (5PM - 8PM)</label>
+            </div>
+        </div>
+
+        <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" name="subscribe" [ngModel]="userModel.subscribe">
+            <label class="form-check-label">Send me Promotional Offers</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit form</button>
+    </form>
+</div>
+
+----------------------------------------------------------------------------------
+
+13. Two-way binding with model Data
+
+--> To achieve two-way binding with object, we use [(ngModel)] instead of property binding
+--> In above section, by changing form data, object data is not changing, so we use two binding now.
+
+----------------------------------------------------------------------------------
+
+<div class="container-fluid" style="width:35%">
+    <h1>Form</h1>
+    <form #userForm="ngForm">
+        {{ userForm.value | json }}
+        <hr />
+
+        {{ userModel | json }}
+
+        <div class="form-group">
+            <label>Name: </label>
+            <input type="text" class="form-control" name="userName" [(ngModel)]="userModel.name">
+        </div>
+
+        <div class="form-group">
+            <label>Email: </label>
+            <input type="text" class="form-control" name="email" [(ngModel)]="userModel.email">
+        </div>
+
+        <div class="form-group">
+            <label>Phone: </label>
+            <input type="text" class="form-control" name="phone" [(ngModel)]="userModel.phone">
+        </div>
+
+        <div class="form-group">
+            <select class="custom-select" name="topic" [(ngModel)]="userModel.topic">
+                <option value="">I am interested in </option>
+                <option *ngFor="let topic of topics">{{ topic }}</option>
+            </select>
+        </div>
+
+        <div class="mg-3">
+            <label>Time preference</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="timePreference" value="morning"
+                    [(ngModel)]="userModel.timePreference">
+                <label class="form-check-label">Morning (9AM - 12 PM)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="timePreference" value="evening"
+                    [(ngModel)]="userModel.timePreference">
+                <label class="form-check-label">Evening (5PM - 8PM)</label>
+            </div>
+        </div>
+
+        <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" name="subscribe" [(ngModel)]="userModel.subscribe">
+            <label class="form-check-label">Send me Promotional Offers</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit form</button>
+    </form>
+</div>
+
+---------------------------------------------------------------------------------
+
+14. Tracking State and Validity
+
+State					Class if true	Class if false
+
+1. The control has been visited 	ng-touched	ng-untouched
+2. The control's value has changed	ng-dirty	ng-pristine
+3. The control's value is valid		ng-valid	ng-invalid
+
+--> Such classes are applied dynamically by ngModel directive upon reaction
+
+
+<div class="form-group">
+<label>Name: </label>
+<input type="text" #name required class="form-control" name="userName" [(ngModel)]="userModel.name">
+</div>
+
+{{ name.className}}
+
+
+--> #name will give the whole element as output
+--> Using interpolation to know which classes are applied dynamically
+--> Try to focus, blur, dirty, pristine, valid on input element
+
+---------------------------------------------------------------------------------
+
+--> 2nd alternative:
+
+--> Instead of using such class manually, we can also use properties of ngModel directive
+--> They are touched, pristine, dirty, valid, invalid, etc.
+
+<div class="form-group">
+            <label>Name: </label>
+            <input type="text" #name="ngModel" required class="form-control" name="userName"
+                [(ngModel)]="userModel.name">
+</div>
+
+{{ name.touched}}	--> give boolean value
+
+---------------------------------------------------------------------------------
+
+--> There are two ways to apply validation
+
+1. Class Directive		--> use properties like touched, pristine of ngModel
+2. ngIf Directive		--> use properties like error of ngModel
+
+
+---------------------------------------------------------------------------------
+
+15. Validation with Visual Feedback
+
+--> Required Attritube
+
+<div class="form-group">
+<label>Name: </label>
+<input type="text" #name="ngModel" [class.is-invalid]="name.invalid && name.touched" required
+    class="form-control" name="userName" [(ngModel)]="userModel.name">
+</div>
+
+
+--> To use ngModel property, we first assign to template variable
+--> We dynamically render class using class directive
+--> is-invalid is bootstrap class which makes input border red.
+--> It is dynamically applied with name.invalid and name.touched
+--> name.touched is applied bec. if not then when form loads, it will show validation from there.
+
+---------------------------------------------------------------------------------
+
+--> Pattern Attribute        
+
+<div class="form-group">
+<label>Phone: </label>
+<input type="text" #phone="ngModel" pattern="^\d{10}$" [class.is-invalid]="phone.invalid && phone.touched"
+    class="form-control" name="phone" [(ngModel)]="userModel.phone">
+</div>
+
+---------------------------------------------------------------------------------
+
+16. Displaying Error Messages
+
+--> For Name input
+
+<div class="form-group">
+<label>Name: </label>
+<input type="text" #name="ngModel" [class.is-invalid]="name.invalid && name.touched" required
+    class="form-control" name="userName" [(ngModel)]="userModel.name">
+<small class="text-danger" [class.d-none]="name.valid || name.untouched">Name is required</small>
+</div>
+
+
+--> For phone input
+
+
+<div class="form-group">
+<label>Phone: </label>
+<input type="text" #phone="ngModel" pattern="^\d{10}$" [class.is-invalid]="phone.invalid && phone.touched"
+    class="form-control" name="phone" [(ngModel)]="userModel.phone">
+<div *ngIf="phone.errors && (phone.touched || phone.invalid)">
+    <small class="text-danger" *ngIf="phone.errors.required">Phone number is required</small>
+    <small class="text-danger" *ngIf="phone.errors.pattern">Phone number must be 10 digits</small>
+</div>
+
+---------------------------------------------------------------------------------
+
+17. Select control Validation
+
+--> In html file,
+
+<div class="form-group">
+<select class="custom-select" (blur)="validateTopic(topic.value)" (change)="validateTopic(topic.value)"
+    #topic="ngModel" [class.is-invalid]="topicHasError && topic.touched" name="topic"
+    [(ngModel)]="userModel.topic">
+    <option value="default">I am interested in</option>
+    <option *ngFor="let topic of topics">{{ topic }}</option>
+</select>
+<small class="text-danger" [class.d-none]="!topicHasError || topic.untouched">Please choose a topic</small>
+</div>
+
+---------------------------------------------------------------------------------
+
+--> In class file,
+
+  topicHasError = true;
+  validateTopic(value) {
+    if (value === 'default') {
+      this.topicHasError = true;
+    } else {
+      this.topicHasError = false;
+    }
+  }
+
+---------------------------------------------------------------------------------
+
+18. Validation over form level
+
+--> ngForm directive has same properties as ngModel for validation purposes.
+--> We can disable the button, if form is invalid.
+
+<form #userForm="ngForm">
+
+<button type="submit" [disabled]="userForm.form.invalid || topicHasError" class="btn btn-primary">Submit form</button>
+
+---------------------------------------------------------------------------------
+
+19. Submitting data form
+
+--> There is an inbuilt event on every form tag in angular --> ngSubmit
+
+<form #userForm="ngForm" (ngSubmit)="onSubmit()">
+
+---------------------------------------------------------------------------------
+
+--> As we have used two way binding with model object, we can use value of that model object while sending to server.
+--> In class file,
+
+userModel = new User("Avinash", "avinash@gmail.com", "1234567890", "Angular", "morning", true);
+
+onSubmit() {
+    console.log(this.userModel);
+}
+
+--> We will get updated value of this model object.
+--> We will send this object to post method in service class, which also accepts this same type object.
+
+---------------------------------------------------------------------------------
+
+20. Making service for sending data to server.
+
+ng g s enrollment
+
+---------------------------------------------------------------------------------
+
+--> Include reference of HttpClientModule in app.module.ts
+
+import { HttpClientModule } from '@angular/common/http';
+imports: [
+    HttpClientModule,
+  ],
+
+---------------------------------------------------------------------------------
+
+--> In Service class
+
+--> Include dependency of HttpClient in constructor.
+
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { User } from './user';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class EnrollmentService {
+
+  constructor(private _http: HttpClient) { }
+
+  _url = "";
+
+  enroll(user: User): Observable<User[]> {
+    return this._http.post<any>(this._url, user)
+  }
+}
+
+---------------------------------------------------------------------------------
+
+--> In Component class
+
+  constructor(private _enrollmentService: EnrollmentService) { }
+
+  onSubmit() {
+    this._enrollmentService.enroll(this.userModel)
+      .subscribe(
+        data => console.log("Success ", data ),
+        err => console.log("Error", err)
+      )
+  }
+
+---------------------------------------------------------------------------------
+
+21. Making nodejs BackEnd
+
+--> Make new folder beside Angular folder --> Server
+--> npm init
+--> npm i express body-parser cors
+
+---------------------------------------------------------------------------------
+
+--> Make new file --> server.js
+
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+app.use(bodyParser.json());
+app.use(cors());
+
+
+app.get('/', (req, res) => {
+    res.send("Hello World from Nodejs")
+})
+
+app.post('/enroll', (req, res) => {
+    console.log(req.body);
+    res.status(200).send({ "message": "Data Received" })
+})
+
+app.listen(3000, () => {
+    console.log("Connected to Server...");
+})
+
+---------------------------------------------------------------------------------
+
+22. Submitting form using Angular
+
+--> Place the api url: "http:localhost:3000/enroll" in service class
+--> Fill and Form and submit
+--> In server console, you can see the object
+--> In browser console, you can see json object {"message": "Data Received"}
+
+---------------------------------------------------------------------------------
+
+23. Disable the form after submitting
+
+--> In component class, make new class variable --> submitted = false;
+--> In onSubmit method, in code block, 		--> submitted = true;
+--> In html file, in form tag 			--> *ngIf = !submit;
+
+---------------------------------------------------------------------------------
+
+24. Error Handling
+
+--> If we get any error from server, we need to handle that.
+--> We have imported throwError and catchError
+--> If any error comes api, this service class after catching that error, throw/raise error, which will be handled by component.
+--> In component class, in subscribe method, err object will receive err in property 'statusText'
+--> This error property shows error with status code sent by api
+
+---------------------------------------------------------------------------------
+
+--> In server.js
+--> Send response by status(401)	--> which means unauthorized.
+
+
+app.post('/enroll', (req, res) => {
+    console.log(req.body);
+    res.status(401).send({ "message": "Data Received" })
+})
+
+---------------------------------------------------------------------------------
+
+--> In service class,
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { User } from './user';
+import { catchError } from 'rxjs/operators';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class EnrollmentService {
+
+  constructor(private _http: HttpClient) { }
+
+  _url = "http://localhost:3000/enroll";
+
+  enroll(user: User): Observable<User[]> {
+    return this._http.post<any>(this._url, user)
+      .pipe(catchError(this.errorHandler))
+  }
+
+  errorHandler(err: HttpErrorResponse) {
+    return throwError(err);
+  }
+}
+
+---------------------------------------------------------------------------------
+
+--> In component class,
+
+errorMsg = "",
+
+  onSubmit() {
+    this._enrollmentService.enroll(this.userModel)
+      .subscribe(
+        data => console.log("Success ", data),
+        err => this.errorMsg = err.statusText
+      )
+  }
+
+---------------------------------------------------------------------------------
+
+--> In html file,
+
+<div class="alert alert-danger" *ngIf="errorMsg">
+    {{errorMsg}}
+</div>
+
+---------------------------------------------------------------------------------

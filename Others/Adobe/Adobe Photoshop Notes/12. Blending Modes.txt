@@ -1,0 +1,72 @@
+1. How to instantly remove the white background of a logo-->
+
+--> Select Image
+--> Drag logo to this image
+--> Convert it to Smart Object
+
+--> Select Blend Mode: Multiply 
+--> if black logo text/design on white background
+
+--> Select Blend Mode: Divide
+--> It changes logo black text/design to white
+
+---------------------------------------------------------------------
+
+2. Using blending modes as color accents-->
+
+--> Select some Image
+--> Draw some rectangles
+--> provide Blend mode
+--> Insert text inside Rectangle
+
+--> Note: Do not put text in rectangle directly, bec. it combines rectangle with text and start typing from starting
+--> So type text anywhere and then drag to that rectangle
+
+
+--> Shortcut to change blend modes
+--> Cursor should be move tool, then '=' (shift + '+')
+
+-----------------------------------------------------------------
+
+3. How to put images inside a bottle using Photoshop-->
+
+--> Island/Ship in bottle
+
+--> Select Bottle, Island, Water, Mountain, Sky
+
+--> Select Bottle Object with Quick Selection Tool and go to Select tab --> Save Selection --> Name it = Bottle Selection
+
+--> Select Island object and drag in Bottle Image and adjust it.
+
+--> Select Sky object and drag in Bottle Image and adjust it.
+--> Go to Select tab --> Load Selection
+--> Click on Select and mask
+--> Try different blend modes
+
+--> Select Mountain object and drag in Bottle Image and adjust it.
+--> Go to Select tab --> Load Selection
+--> Click on Select and mask
+--> Try different blend modes
+
+--> Select Water object and drag in Bottle Image and adjust it.
+--> Go to Select tab --> Load Selection
+--> Click on Select and mask
+--> Try different blend modes
+
+--> Duplicate bottle layer
+--> Make it topmost layer
+--> Try different blend modes
+
+--> Duplicate again bottle layer
+--> Make it topmost layer
+--> Try blend modes other than ahead one.
+--> Means we can create multiple blend modes, using a combination, for getting real bottle shadows.
+
+
+--> Burn tool is not applicable to master object
+--> For Seeing Quick Selection Tool Selection accurately, Click on 'edit on Quick Selection' Tool
+
+----------------------------------------------------------------
+
+ 
+--> 

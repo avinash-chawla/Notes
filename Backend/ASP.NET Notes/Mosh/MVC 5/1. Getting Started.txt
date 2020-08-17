@@ -1,0 +1,144 @@
+1. Extensions
+
+--> Web Essentials
+--> Productivity Power Tools
+
+---------------------------------------------------------------------------------
+
+2. First Project
+
+--> Create new Project
+--> .net framework 4.5
+--> Name it: Vidly
+--> Template: MVC
+
+---------------------------------------------------------------------------------
+
+3. Project Structure 
+
+--> App_Data	--> Database file
+--> App_Start	--> Files run during starting of application
+--> Content	--> Static folder
+--> Controllers --> Route Manager
+--> Models	--> Application Domain Classes
+--> Scripts	--> Javascript files
+--> Views	--> Html View Pages
+--> Global.asax	--> Contains lifecycle hook method --> It actually runs App_Start files
+--> Startup.cs	--> Still building for .net core
+--> Web.config	--> configuration in xml --> 2 are important --> connection string and appsettings
+
+---------------------------------------------------------------------------------
+
+4. MVC in action
+
+--> Creating Model
+
+--> It is simple class containing application properties
+--> It binds related properties in one class.
+
+--> Right click Modelsfolder --> Create class --> Movie
+
+    public class Movie
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+---------------------------------------------------------------------------------
+
+--> Creating Controller
+
+--> Controller gets data from model and pass it to view
+--> It also control conventional and attribute routing
+
+--> Right click Controllers folder --> Create new controller --> Movies
+
+       public ActionResult Random()
+        {
+            Movie movie = new Movie() { Id = 1, Name = "Avinash" };
+            return View(movie);
+        }
+
+---------------------------------------------------------------------------------
+
+--> Creating View
+
+--> Right click anywhere in actionMethod --> Add view
+--> Select master layout as _layout under shared folder
+
+@Model Vidly.Models.Movie 
+@{
+    ViewBag.Title = "Random";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@Model.Name</h2>
+
+--> ViewBag.Title property passes to _layout page
+--> We get Model properties under Model property
+--> Any C# code starts with @
+--> @model will add reference to model class to get access to model property and tightly coupled to model class
+
+---------------------------------------------------------------------------------
+
+5. Adding a Theme
+
+--> Bootstrap is already installed in this project by selecting mvc template
+--> This bootstrap file goes to client in bundle
+--> In App_Start, there is a file bundle_config.cs which bundles all client side files to reduce req-res cycle and increase performance
+--> It also do's minification and uglification
+
+--> Download bootstrap-lumen from bootswatch website
+--> It is bootstrap styles with modifications
+--> First download css file, paste under content folder
+--> In bundle.config file, replace bootstrap with bootstrap-lumen.css
+
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

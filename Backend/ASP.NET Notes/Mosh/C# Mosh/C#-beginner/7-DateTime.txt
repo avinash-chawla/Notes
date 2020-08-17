@@ -1,0 +1,56 @@
+0. typeof-->
+   string s = "avinash";
+
+   Console.log(typeof(int))	--> System.Int32;
+   Console.log(s.GetType())	--> System.String;
+
+1. DateTime-->	
+
+--> displays point in time
+
+   var dateTime = new DateTime(2015, 1, 1);
+
+   var now = DateTime.Now;			--> DateTime is static class
+   var today = DateTime.Today;
+
+   Console.WriteLine("Hour: "+ now.Hour);
+   Console.WriteLine("Minute: "+now.Minute);
+
+   var tomorrow = now.AddDays(1); 	--> DateTime objects are immutable so using this 
+   var yesterday = now.AddDays(-1);
+  
+   Console.WriteLine(now.ToLongDateString());		--> formats in string
+   Console.WriteLine(now.ToShortDateString());
+   Console.WriteLine(now.ToLongTimeString());
+   Console.WriteLine(now.ToShortTimeString());
+
+   Console.WriteLine(now.ToString());
+   Console.WriteLine(now.ToString("yyyy-MM-dd"));
+   Console.WriteLine(now.ToString("yyyy-MM-dd HH:mm"));
+
+
+2. TimeSpan-->
+
+--> displays time duration-->
+--> Normally used in difference of DateTime objects
+
+   var timeSpan = new TimeSpan(1,2,3);			---> (int hours, int minutes, int seconds)
+   
+   var timeSpan1 = new TimeSpan(1,0,0);			---> this and below both are same; 
+   var timeSpan2 = TimeSpan.FromHours(1)
+
+   var start = DateTime.Now;
+   var end = DateTime.Now.AddMinutes(2);
+   var duration = end - start;
+   Console.WriteLine("Duration: "+duration);		---> 00: 02: 00
+	
+   Console.WriteLine("Minutes: "+ timeSpan.Minutes);			---> returns min from timespan  --> that is 2 min
+   Console.WriteLine("Total Minutes: " + timeSpan.TotalMinutes);	---> returns total min including hr --> that is 60 + 2 + 0.03 = 62.03 min
+
+   Console.WriteLine("Add Example: " + timeSpan.Add(TimeSpan.FromMinutes(8)));
+   Console.WriteLine("Subtract Example: " + timeSpan.Subtract(TimeSpan.FromMinutes(2)));
+
+   Console.WriteLine("ToString" + timeSpan.ToString());
+   
+   Console.WriteLine("Parse: "+TimeSpan.Parse("01:02:03"));
+

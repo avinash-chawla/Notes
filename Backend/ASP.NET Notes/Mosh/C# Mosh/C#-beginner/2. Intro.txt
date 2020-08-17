@@ -1,0 +1,40 @@
+1. C# vs .Net
+
+--> C# is a programming language
+--> .Net is framework for building windows applications
+
+2. .Net-->
+
+--> it consists of two components--> CLR(Common Language Runtime) and Class Library(dll)
+--> CLR = compiler
+--> dll = Libraries like System.Data, System.Web, System.Net
+
+3. CLR-->
+
+--> CLR converts IL code (Intermediate Level) to machine code
+--> C# compiler converts sourse code to IL code and CLR is an application which converts IL code to machine code
+--> CLR is different for different machines and C# is same
+
+4. Architecture of .Net Applications-->
+
+--> class is a container for data and methods
+--> namespace is a collection of related classes --> another name library
+--> Assembly is a collection of all related namespaces called DLL (dynamically linked library)
+--> Application is a collection of all assembly 
+
+5. Hello World-->
+
+--> open VS IDE --> new project --> C# WindowsApplication (Console Application)--> name it DemoProject
+--> using statements are importing namespaces, all included in .Net framework
+
+1. System		--> utility functions, primitive data types
+2. System.Collections	--> lists, array
+3. Linq			--> To query DataModel objects
+4. Text 		--> work with text
+5. Threading		--> for making multithreading application
+
+--> Main method is starting point of application
+--> it accepts array of string called args
+--> Console is a class to access to console application
+--> Console.WriteLine("Hello World");
+--> ctrl+f5 --> to run

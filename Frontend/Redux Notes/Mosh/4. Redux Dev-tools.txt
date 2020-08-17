@@ -1,0 +1,82 @@
+1. Redux Store
+
+--> console.log(store);
+
+--> As you can see 3 methods are important
+1. dispatch
+2. subscribe
+3. getState
+
+--> State only changes from dispatch method
+
+-------------------------------------------------------------------------
+
+2. Installing Redux DevTools
+
+--> Downlaod Redux DevTools from chrome extensions
+
+--> For this extension to work, you have to pass 2nd argument to createStore method
+
+const store = createStore(
+  reducer, 
+  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+);
+
+-------------------------------------------------------------------------
+
+3. The Basics
+
+--> On upper left tab, it is monitor
+--> It displays actions in different forms
+--> 1. Log Monitore display as list of action and state
+--> 2. Inspector is more nice
+
+--> On right upper tab, it is instance
+--> If you have more one project running, then all instance of project show here.
+
+-------------------------------------------------------------------------
+
+4. Inspector Monitor
+
+--> Left side shows all actions
+--> On right side, shows information of selected action, if not selected, display information of last action
+
+--> On right side, there are 5 tabs
+1. Action: shows action information/data to modify in state object
+2. State : show state of application after that action
+3. Diff  : show difference between previous state and after state.
+
+-------------------------------------------------------------------------
+
+5. Tracing
+
+--> npm i redux-devtools-extension
+--> It tells position in source code, from where your action gets dispatched.
+
+--> few changes in store.js
+
+import { devToolsEnhancer } from 'redux-devtools-extension'
+const state = createStore(reducer, devToolsEnhancer({ trace: true }));
+
+--> In webpack.config.js, add this property,
+devtool: "source-map"
+
+--> Now open trace tab, show position of selected action method
+--> Go to settings in right bottom, choose external location: vscode and give path of project
+
+--> Now when you select in trace action method, it will go to vscode editor.
+
+-------------------------------------------------------------------------
+
+6. Exporting and Importing
+
+--> It is best for finding bug in application 
+--> When any user sees bug in our application, we do not follow all steps to reach that to that bug
+--> There is package Log Rocket is used for this.
+
+--> When you are done with all actions
+--> Click on download button below in redux dev-tools
+--> When user finds a bug, it will recorded in this file
+--> So you just open that file by importing in dev-tools and see all corresponding actions.
+
+-------------------------------------------------------------------------

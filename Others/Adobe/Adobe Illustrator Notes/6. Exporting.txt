@@ -1,0 +1,31 @@
+1. Extension-->
+
+--> Save As --> Choose Option
+--> Mostly used are svg, pdf
+
+2. Send as Package-->
+
+--> It will include font, images that are used, and final product
+--> This is more than AI file
+--> File menu --> Send as Package
+
+3. Export As-->
+
+--> It gives extra option of Quality and Resolution
+--> For Websites, make Resolution to 72 PPI
+--> When asking for location, choose jpeg extension and tick mark artboard and range:1
+
+4. Asset Export-->
+
+--> When there are multiple shapes in one Artboard, and you have to save individually like ninja, comb, Smiley, etc.
+--> It is important to group them before to export
+
+--> Window tab --> Asset Export 
+--> Select shape with move tool and drag to asset area and name it
+--> Drag all shapes and name it all
+
+--> Choose extension of file to save in
+--> Add Scale --> Means you want more than one extension of same filename
+--> Choose jpeg and svg
+
+--> Export

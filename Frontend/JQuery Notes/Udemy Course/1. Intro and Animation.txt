@@ -1,0 +1,130 @@
+1. function of javasript
+
+--> It is a programming language of web
+--> It makes webpages functional and dynamic
+--> It can change content of webpage without reloading (ajax)
+--> Handle user input, form validation, custom animation
+--> event handler
+--> Change CSS styles using Dom manipulation (mostly for animation)
+
+-----------------------------------------------------------------------
+
+2. Other frameworks of Javascript
+
+--> JQuery
+--> AngularJs
+--> ReactJs
+--> UnderscoreJs
+--> Dojo 
+--> Backbone Js
+--> Mootools
+
+-----------------------------------------------------------------------
+
+3. Setting up jQuery Project
+
+--> Download jQuery CDN and reference it in index.html
+--> <script src="https://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
+--> Start jquery code from here
+--> $(function() { ... })
+--> $ stands for jquery 
+--> function will load jquery only after webpage completed dom loading
+--> jquery can be used in place of $ sign
+
+-----------------------------------------------------------------------
+
+4. Fade In/Out Elements
+
+--> $(.red-box).fadeOut(2000)
+--> $(.red-box).fadeIn(1000)
+--> $(.blue-box).fadeTo(2000, 0.5)		--> fadeOut to opacity 0.5
+--> $(.green-box).fadeToggle()			--> first fadeToggle --> fadeOut
+--> $(.green-box).fadeToggle()			--> second fadeToggle --> fadeIn (automatically detect)
+
+--> Applications in clicking button
+--> If not mentioned time, default is 400 ms
+--> fadeOut completely removes element
+--> fadeTo does not remove element (we can mention opacity: 0)
+--> jquery automatically apply styles to these elements like opacity, display, animation
+
+-----------------------------------------------------------------------
+
+5. Showing and Hiding Elements
+
+--> $(".red-box").hide()		--> make display: none
+--> $(".blue-box").show()		--> make display: block (from none)
+--> $(".green-box").toggle()		--> make display: none/block (opp. of css style)
+
+--> Application: When you hover on image in Amazon website, it appears instantly
+
+-----------------------------------------------------------------------
+
+6. Sliding Elements Up and Down
+
+--> $(".blue-box").slideUp(2000)	--> make element disappear
+--> $(".blue-box").slideDown(2000)	--> make element appear
+--> $(".blue-box").slideToggle		--> Toggle from previous state
+
+--> if only slideDown to use:
+--> $(".blue-box").hide()
+--> $(".blue-box").slideDown(2000)	
+
+
+--> Application in Read more button in paragraph
+
+-----------------------------------------------------------------------------
+
+7. Moving Elements -- Custom 
+
+--> $(".blue-box").animate({
+	"margin-left" : "+=200px"
+    }, 1000, "linear")
+
+--> Start margin from original margin to 200px in 1000ms 
+--> If only 200 mentioned then will start from 0 margin
+--> This is animation only of CSS properties
+
+-----------------------------------------------------------------------------
+
+8. Get Creative Custom Animation
+
+--> $(".blue-box").animate({
+	marginLeft : "200px",
+	"opacity" : "0",
+	"height" : "50px",
+	"width" : "50px",
+	marginTop: "25px",
+    }, 1000);
+
+-----------------------------------------------------------------------------
+
+9. Delaying and Chaining Animations
+
+--> $(".red-box").fadeTo(1000, 0.2)
+--> $(".green-box").delay(1000).fadeTo(1000, 0.5)
+--> $(".blue-box").delay(1000).fadeTo(1000, 0.2).fadeOut().delay(500).fadeIn();
+
+--> delay can be useful to start animating after specific time
+--> Animations can also be chained one after another
+
+-----------------------------------------------------------------------------
+
+10. Timing Animations using Callback Functions
+
+$(".red-box").fadeTo(1000, 0.5, function () {
+    $(".blue-box").fadeTo(1000, 0.5, function () {
+      $(".green-box").fadeTo(1000, 0.5)
+    })
+  })
+});
+
+
+--> When first function gets completed, second one starts in callback function
+
+-----------------------------------------------------------------------------
+
+11. Signup Lightbox
+
+--> $(".lightbox").delay(500).fadeIn(1000);
+
+-----------------------------------------------------------------------------

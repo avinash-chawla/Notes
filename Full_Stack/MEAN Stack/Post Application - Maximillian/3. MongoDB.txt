@@ -1,0 +1,238 @@
+1. Comparing SQL and NoSQL
+
+1. NOSQL
+
+--> eg. mongodb
+--> enforce no Data Schema
+--> Less focused on Relations
+--> Independent Documents
+--> Great for: Logs, Orders, Messages
+
+2. SQL
+
+--> MySql
+--> Enforces a Strict Data Schema
+--> Relations are a Core Feature
+--> Records are Related
+--> Great for : Shopping Carts, Contacts, Networks
+
+--------------------------------------------------------------------------------
+
+2. Mongoose Models
+
+--> Make new folder in server project --> models
+--> Make new file --> Post.js
+
+const mongoose = require('mongoose');
+
+const postSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true
+    },
+    content: {
+        type: String,
+        required: true
+    }
+});
+
+module.exports = mongoose.model("Post", postSchema);
+
+
+--> In app.js
+
+--> Making model object to save data
+
+app.post('/api/posts', (req, res) => {
+    const post = new Post({
+        title: req.body.title,
+        content: req.body.content
+    })
+    post.save();
+    console.log(post);
+    res.status(201).send({
+        message: "Successfully Posted"
+    });
+});
+
+--------------------------------------------------------------------------------
+
+3. Connecting to Mongodb
+
+--> In app.js
+
+mongoose.connect("mongodb://localhost:27017/max", { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+        console.log("Connected to DB...");
+    })
+    .catch(() => {
+        console.log("Something failed to connect to DB");
+    })
+
+--------------------------------------------------------------------------------
+
+4. Getting Data from mongodb
+
+app.get('/api/posts', async (req, res) => {
+    const posts = await Post.find().then((documents) => console.log(documents));
+    res.json({
+        message: "Posts fetched Successfully",
+        posts: posts
+    });
+})
+
+
+--------------------------------------------------------------------------------
+
+5. Transforming Response Data
+
+--> We need id in angular and we get _id from node
+--> If changing in node, we use map operator
+--> If changing in angualar, we use rxjs library map operator
+
+--> In service class,
+--> We use pipe method to include all operators 
+--> pipe method should be used in chain before subscribe method
+--> map operator takes result return by Observable and return modified posts with id instead of _id coming from nodejs
+
+
+import { map } from 'rxjs/operators';
+
+getPosts() {
+  this.http.get<{ message: string, posts: any[] }>(this.apiURL)
+    .pipe(
+      map((postData) => {
+        return postData.posts.map(post => {
+          return {
+            title: post.title,
+            content: post.content,
+            id: post._id
+          }
+        })
+      })
+    )
+    .subscribe((transformedPost) => {
+      this.posts = transformedPost;
+      this.postsUpdated.next([...this.posts]);
+    })
+}
+
+--------------------------------------------------------------------------------
+
+6. Deleting Post
+
+--> In app.js of Server,
+
+app.delete("/api/posts/:id", (req, res) => {
+    Post.deleteOne({ _id: req.params.id }).then(result => {
+        console.log(result);
+        res.status(200).json({ message: "Successfully deleted!" });
+    });
+});
+
+--> In Angular
+
+--> In post-list.html
+
+<button mat-button color="warn" (click)="onDelete(post.id)">DELETE</button>
+
+--> In post-list.ts
+
+  onDelete(postId: string) {
+    console.log(postId);
+    this.postsService.deletePost(postId);
+  }
+
+--> In service class
+
+  deletePost(postId: string) {
+    this.http.delete("http://localhost:3000/api/posts/" + postId)
+      .subscribe(() => {
+        console.log("Deleted");
+      })
+  }
+
+--------------------------------------------------------------------------------
+
+7. Updating Deleting Post in service class
+
+  deletePost(postId: string) {
+    this.http.delete("http://localhost:3000/api/posts/" + postId)
+      .subscribe(() => {
+        const updatedPost = this.posts.filter(post => post.id !== postId);
+        this.posts = updatedPost;
+        this.postsUpdated.next([...this.posts]);
+      })
+  }
+
+--------------------------------------------------------------------------------
+
+8. Adding Post with an Id
+
+--> In app.js of Server,
+--> Previously, we were returning only message, now id too.
+
+app.post('/api/posts', (req, res) => {
+    const post = new Post({
+        title: req.body.title,
+        content: req.body.content
+    })
+    console.log(post);
+    post.save().then(updatedPost => {
+        res.status(201).send({
+            message: "Successfully Posted",
+            postId: updatedPost._id
+        });
+    })
+});
+
+
+--> In service class,
+
+  addPost(title: string, content: string) {
+    const post: Post = { id: null, title: title, content: content };
+    this.http
+      .post<{ message: string, postId: string }>("http://localhost:3000/api/posts", post)
+      .subscribe(responseData => {
+        const id = responseData.postId;
+        post.id = id;
+        this.posts.push(post);
+        this.postsUpdated.next([...this.posts]);
+      });
+  }
+
+--------------------------------------------------------------------------------
+
+9. Why we have used posts array in service and sending duplicate of it to components
+
+--> Benefit of this, will be, every time we are not fetching data from get request
+--> We want data from posts only if it is updated.
+--> service class will save get request data in posts array
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,23 @@
+1. Save as Image
+
+--> Choose pdf
+--> Give name to image along with date like (All Starts 180519)
+--> Choose High Quality and untick the Preserve Photoshop Editing Capabilities.
+
+--> Choose jpeg
+--> Choose Quality
+
+-----------------------------------------------------------------
+
+2. Export Image-->
+
+--> It gives the option of Quality selecting
+--> It also displays Size in pixels 
+--> It also displays Size in memory
+--> We can differ canvas size to attach background
+
+-----------------------------------------------------------------
+
+3. ASD file-->
+
+--> If want to edit in future, save in asd file

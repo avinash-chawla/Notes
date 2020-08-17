@@ -1,0 +1,167 @@
+1. How to bend a logo onto an image realistically in Photoshop-->
+
+--> Like pasting logo on shoes image 
+--> Select Show Image
+--> File --> Open Embedded Image --> Choose AI logo file (logo.ai)
+--> It automatically knows it is smart object and embedd in same image tab.
+
+--> Options available in transform-->
+
+Scale
+Rotate
+Skew
+Distort
+Perspective
+Warp
+Flip Horizontal
+Flip Vertical
+
+--> For Smart objects, some features are not working
+--> So convert smart object to Rasterise image
+--> Now features like distort, perspective, warp appear.
+--> Make sure before doing that, duplicate L ogo
+
+-------------------------------------------------------------------
+
+--> Click on Distort
+--> Try to adjust such that it is place on Surface
+
+
+--> Click on Wrap
+--> It makes logo into vector points with handlers
+--> It is more like fabric cloth
+--> Try to adjust such that it is place on Shoe
+
+--> Choose different Blend motions just before layers, ofcourse, after clicking that layer.--> It makes more realistic logo on shoe.
+
+---------------------------------------------------------------------
+
+2. To Rotate whole image-->
+
+--> Go to Image tab
+--> Click on Image Rotation
+--> Choose your option
+
+---------------------------------------------------------------------
+
+3. How to make a sky peeling like fabric revealing background-->
+
+--> Select an image with dark sky
+--> Duplicate this layer
+--> Click on Wrap
+--> Distort it like peeling the sky
+--> Bring shining sky Image in this
+--> Bring this layer below dark sky layer
+--> Adjust its clouds
+
+--> Where Peeling like sky, darker it, to look more like peeling off.
+--> Use Burn tool to darken it where peeling takes place.
+
+--------------------------------------------------------------------
+
+4. How to shrink body parts using Liquify-->
+
+--> Select Fat Man Body Image
+--> Convert to smart object
+--> Go to Filter tab
+--> Click on Liquify
+
+--------------------------------------------------------
+
+--> Click on first Brush (Forward Wrap Tool)
+--> Make its size bigger 400 to 500
+--> Smoothly try to reduce its fat to inner side. One small steps at a time
+
+--------------------------------------------------------
+
+--> Click on Pucker tool--> 
+--> It reduces the size
+--> Make its size bigger
+--> Don't drag with mouse, just click and leave
+--> Try at lowering the nipple size
+
+--------------------------------------------------------
+
+--> click on Bloat tool-->
+--> It expands the size
+--> Make its size bigger (brush)
+--> Only Click, No Drag
+--> Try to build muscules and triceps with it.
+
+-----------------------------------------------------------------
+
+--> Freeze Mask tool-->
+--> When you want to distort something using pucker, bloat or forward tool, except some area but in surrounding area.
+--> Make some red using this, where you dont want distortion
+--> Now, try distortion using forward wrapper tool and that area is not affected.
+
+--> Thaw Mask tool-->
+--> It removes Freeze mask tool red color
+
+--> Reconstruct tool-->
+--> It undo the Forward Wrapper tool or Pucker or Bloat effect
+--> Try it where you like original than forward wrapper tool like change.
+
+--------------------------------------------------------------------
+
+5. How to create dripping paint text effect-->
+
+--> Select Image
+--> Blur the image
+--> Convert to smart object
+--> Go to Filter tab --> Noise --> Median --> Increase Radius
+
+------------------------------------------------------------
+
+--> Put Text 'G'
+--> Make this text layer below image layer
+--> On Layers tab, click Create Clipping Mask being image selected.
+
+------------------------------------------------------------
+
+--> Select both these layers, right click, Merge Layer
+--> Now this merged layer can never be seperated so save as first if you want.
+
+------------------------------------------------------------
+
+--> Create new Layer
+--> Edit --> Fill --> Black
+--> make this layer below text layer
+
+--> Filter tab --> Liquify
+--> Select Forward Wrapper tool 
+--> Drag the paint inside Text making such that waving paint
+--> Not drag whole at a time, one small drag at a time.
+
+--> Now using this tool only, draw dropping paint like at some locations
+
+--> Now select Bloat tool, make larger drop at end of dropping paint.
+--> Now select pucker tool, make thinner line of dropping paint
+--> Okay
+
+--> Now select marquee tool
+--> Select small circle for already dropped paint but in air
+--> copy and paste
+--> Select move tool and adjust its location below dropping paint
+
+--> Now merge this both layer (new black layer and text layer)
+--> In Layers style, select emboss
+--> Make it like 3d 
+
+Style: Inner Bevel
+Depth: 53
+Size: 51
+Angle: 137
+Soften: 0
+
+---------------------------------------------------------
+
+--> Create shadow effect using Dodge and burn tool
+--> Make first burn tool to create shadow
+--> Near it only, use dodge tool, to create more contrast between shadow and non-shadow, highlight it.
+
+-----------------------------------------------------------
+
+
+
+

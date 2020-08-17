@@ -1,0 +1,397 @@
+1. The Problem
+
+--> Application should be locked and open using credentials
+--> Restrict all capabilities to loggedin users
+--> Limit adding, updating and deleting movies to store managers
+
+-------------------------------------------------------------------------------
+
+2. Authentication Options
+
+1. No Authentication
+2. Individual user accouts (mostly used)
+3. Organizational Accounts (cloud applications)
+4. Windows Authentication (internet application) (login through desktop login)
+
+-------------------------------------------------------------------------------
+
+3. History of Identity Framework
+
+--> Membership
+--> Single Membership
+--> Universal Providers
+--> Identity Framework
+
+-------------------------------------------------------------------------------
+
+4. Identity Framework
+
+--> It consists of 3 sections of project
+--> It has domain classes like IdentityUser and Role	(Model)
+--> It has API/Services like UserManager, RoleManager, SignInManager (Controller)
+--> It has Persistant Store like UserStore, RoleStore
+
+-------------------------------------------------------------------------------
+
+--> For Persistant Store, Identity internally uses EntityFramework using migrations and talk with Sql Server.
+
+--> Based on domain models, Identity generated tables like Roles, UserRoles, Users
+
+-------------------------------------------------------------------------------
+
+--> In Models folder, there is IdentityModel which has two classes
+
+--> ApplicationUser : IdentityUser
+--> ApplicationDbContext: IdentityDbContext
+
+-------------------------------------------------------------------------------
+
+--> In Controllers folder, there is Account Controller
+
+--> It contains actionMethods for register, login, logout
+--> eg. Look at Register actionMethod of Post
+
+--> If Validation is successfully, it creates new ApplicationUser
+--> Then it calls UserManager, it is an API service which is responsible for creating user, removing user, getting all users
+
+--> Then it calls SignInManager which is responsible for signing in, signing out.
+
+-------------------------------------------------------------------------------
+
+5. Restricting Access to Anonymous User
+
+--> Attribute: [Authorize]
+--> It is applied to actionMethod
+--> It will check whether the user is authorize or not
+
+-------------------------------------------------------------------------------
+
+--> You can apply this filter or Attribute at controller level.
+--> You can apply this filter globally
+
+--> In filter.config.cs under App_Start folder
+--> Add this filter
+
+filters.Add(new AuthorizeAttribute());
+
+-------------------------------------------------------------------------------
+
+--> To allow any controller or action to anonymous User
+[AllowAnonymous] attribute
+
+--> eg. 
+
+    [AllowAnonymous]
+    public class HomeController : Controller
+
+-------------------------------------------------------------------------------
+
+6. Seeding Users and Roles
+
+--> In this section, we will assign users
+--> We will assign two user --> guest and admin
+
+-------------------------------------------------------------------------------
+
+--> In AccountController.cs
+
+--> There is Register Post method which will register guest users
+
+--> So run the application, register application as a guest user
+--> This will user as guest user in application byDefault.
+
+-------------------------------------------------------------------------------
+
+--> Now in AccountController.cs
+
+--> Write following code,
+
+        public async Task<ActionResult> Register(RegisterViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var result = await UserManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    // Temp
+                    var roleStore = new RoleStore<IdentityRole>(new ApplicationDbContext());
+                    var roleManager = new RoleManager<IdentityRole>(roleStore);
+                    await roleManager.CreateAsync(new IdentityRole("CanManageMovies"));
+                    await UserManager.AddToRoleAsync(user.Id, "CanManageMovies");
+
+
+
+                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
+		    ...
+	}
+
+--> Above code explanation:
+
+--> First We create Store for Role using RoleStore
+--> Consider it as Database for saving different Roles
+
+--> After that we create roleManager for that store
+--> Consider it as User of that database
+
+--> Then we provide that user a new role "CanManageMovies"
+--> Consider it as new field with User in table
+
+--> Finally adding that User in UserManager table
+
+-------------------------------------------------------------------------------
+
+--> In code, we implement it, now actually creating user in database
+
+--> Run the application again
+--> Register again with following credentials
+--> username: admin@vidly.com
+--> password: Avinash@3
+
+--> After loging in, go to Account Controller
+--> Delete that code which we have written
+--> This is only for registering admin with roles by specifying in different tables like User, Roles, UserRoles
+
+-------------------------------------------------------------------------------
+
+--> Now we want that when we deploy our application
+--> We do not need to write in 3 tables and join them and make admin
+--> What we will do is create migration and using that, seed the admin in database
+
+--> add-migration SeedAdmin
+--> This will generete empty migrationfile
+
+--> Now open in that file, write,
+
+Sql(@"
+
+
+
+")
+
+--> Between space we will write our sql query
+
+--> Earlier, we created admin user in 3 tables in User, Role, UserRole (user assigned with role)
+--> So we will use that to generate query
+
+--> View data of User, Role, UserRole
+--> Right click on Row
+--> View Scripts
+--> Copy codes and paste in space of Sql()
+
+--> Now, when we update database, it will conflict already admin user in that database
+--> Delete all records from 3 tables
+--> And add such records using migration
+
+--> update-database
+
+-------------------------------------------------------------------------------
+
+--> Seeding Method is used for registering admin in official documentation
+--> It is much faster method of Mosh
+
+-------------------------------------------------------------------------------
+
+7. Working with Roles
+
+--> We have two options:
+1. Hide and display elements based on authority
+2. Create separate view for both.
+
+--> We choose 2nd one here.
+
+-------------------------------------------------------------------------------
+
+--> In Movies View folder
+
+--> Rename Index to List
+--> Make copy of it and name it: ReadOnlyList
+
+--> In ReadOnlyList view,
+
+--> Remove 3 things
+1. Create new Movie button
+2. Remove link on Name of Movie for editing
+3. Remove 3rd column of Delete
+
+-------------------------------------------------------------------------------
+
+--> In Index actionMethod of MovieContrller
+--> We will check for user and based on that render view
+
+public ActionResult Index()
+{
+   if(User.IsInRole("CanManageMovies"))
+	return View("List");
+   else
+	return View("ReadOnlyList");
+}
+
+--> Every controller has access to User object
+--> It gives access to current user
+
+-------------------------------------------------------------------------------
+
+--> Protecting routes
+
+--> Security Holes
+--> Any user can still access routes (like for New, Edit)
+--> localhost:1234/Movies/New
+--> localhost:1234/Movies/Edit/1
+
+--> To protect such routes, we use DataAnnotations
+[Authorize(Roles = "CanManageMovies")]
+public ActionResult New()
+
+--> This will override auth in filter.config.cs
+
+-------------------------------------------------------------------------------
+
+--> Handling magic string above of Role
+
+--> Make new class in Models folder --> RoleName
+--> Define one property there.
+
+public static class RoleName
+{
+public const string CanManageMovies = "CanManageMovies";
+}
+
+--> In actionMethod,
+
+[Authorize(Roles = RoleName.CanManageMovies)]
+
+--> and here too,
+
+if(User.IsInRole(RoleName.CanManageMovies))
+
+-------------------------------------------------------------------------------
+
+8. OAuth
+
+--> Social Logins
+
+--> What is OAuth
+--> It stands for Open Authorization
+--> It is Authentication Protocol
+--> Using this, user can login to our application
+
+-------------------------------------------------------------------------------
+
+--> How it works
+--> First we register our app with facebook
+--> Facebook provide use api_key and api_secret_key (username and password)
+
+--> When user clicks on facebook icon to login
+--> He is redirected to facebook
+--> With redirection, we send API key and secret along with it.
+
+--> For this, we https secure protocol
+
+--> Facebook will ask the user that vidly wants to take your details
+--> It yes, facebook will authorization token but not user data
+--> facebook will send authorization token to registered application in facebook, not to from where request came from.
+
+--> Vidly will send api key and secret along with token to facebook
+--> Facebook then gives user data
+--> Benefit is that facebook knows that it is right application to talk to.
+
+-------------------------------------------------------------------------------
+
+--> how to use that 
+
+1. Enable SSL (for secure communication)
+2. Register app with Facebook
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

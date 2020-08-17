@@ -1,0 +1,214 @@
+1. Internationalization
+
+--> There is module in JSTL library for internationalization 
+--> Messages Formatting I18N
+
+--> The term Internationalization is frequently abbreviated as I18N
+--> There are 18 letters between the first "i" and the last "n" in internationalization
+
+---------------------------------------------------------------------------------
+
+2. Formatting Messages
+
+--> Instead of hard-coding display text/messages in your application
+--> Make use of labels / the placeholders
+
+--> You need to create translated versions of each label
+--> Based on users language selection, system will include appropriate text.
+
+--> Locale = language + region
+1. en_US = English (US)
+2. en_GB = Englist (UK)
+
+--> Function in I18N module
+1. Setting Locale
+2. Messaging
+3. Number and Date Formatting
+
+--> Prefix: "fmt"
+
+---------------------------------------------------------------------------------
+
+3. To do List
+
+--> Step1: Create Resource Files
+--> Translated versions of your labels
+
+--> Step2: Create JSP Page with Labels
+--> Step3: Update JSP page to change local based on user selection
+
+---------------------------------------------------------------------------------
+
+4. Create Resource File
+
+--> Translated versions of your labels
+--> You will need to use Google Translate or similar translator service.
+
+--> Must name the file using the locale
+--> <your project file name>_LanguageCode_CountryCode.properties
+--> mylabels_es_ES.properties
+
+--> Locale = Language Code + Country Code
+
+--> Language Codes based on ISO Standard 639-1 (2 letter code)
+--> Country Codes based on ISO Standard 3166-2 (2 letter code)
+
+---------------------------------------------------------------------------------
+
+--> Create new package
+--> Name it: com.luv2code.jsp.tagdemo.i18N.resources
+
+--> Create new file --> mylables.properties
+
+label.greeting=Howdy
+label.firstname=First Name
+label.lastname=Last Name
+label.welcome=Welcome to the training class.
+
+--> mylabels_es_ES.properties
+
+label.greeting=Hola
+label.firstname=Nombre de pila
+label.lastname=Apellido
+label.welcome=Bienvenidos a la clase de formacion.
+
+--> mylabels_de_DE.properties
+
+label.greeting=Hallo
+label.firstname=Vorname
+label.lastname=Nachname
+label.welcome=Willkomen in der Ausbildung Klasse.
+
+---------------------------------------------------------------------------------
+
+5. Create JSP page with labels
+
+--> These are placeholders
+
+<fmt:message key="label.greeting" /> <br/> <br/>
+
+<fmt:message key="label.firstname" /> <i>John</i> <br/>
+
+<fmt:message key="label.lastname" /> <i>Doe</i> <br/><br/>
+
+<fmt:message key="label.welcome" /> <br/>
+
+---------------------------------------------------------------------------------
+
+6. Update JSP page to change locale based on user selection
+
+--> Our JSP page will send links to itself
+--> Will pass the locale as a parameter.
+
+<a href="i18n-messages-test.jsp?theLocale=en_US">English (US)</a>
+ |
+<a href="i18n-messages-test.jsp?theLocale=es_ES">Spanish (ES)</a>
+ |
+<a href="i18n-messages-test.jsp?theLocale=de_DE">German (DE)</a>
+
+<c:set var="theLocale" 
+value="${not empty param.theLocale ? param.theLocale : pageContext.request.locale}"
+scope="session" />
+
+<fmt:setLocale value="${theLocale}" />
+
+<fmt:setBundle basename="com.luv2code.jsp.tagdemo.i18n.resources.mylabels" />
+
+---------------------------------------------------------------------------------
+
+7. All In Action
+
+--> Make new jsp file in project
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
+<c:set var="theLocale" 
+value="${not empty param.theLocale ? param.theLocale : pageContext.request.locale}"
+scope="session" />
+
+<fmt:setLocale value="${theLocale}" />
+
+<fmt:setBundle basename="com.luv2code.jsp.tagdemo.i18n.resources.mylabels" />
+
+<html>
+
+<body>
+
+<a href="i18n-messages-test.jsp?theLocale=en_US">English (US)</a>
+ |
+<a href="i18n-messages-test.jsp?theLocale=es_ES">Spanish (ES)</a>
+ |
+<a href="i18n-messages-test.jsp?theLocale=de_DE">German (DE)</a>
+ 
+<hr>
+
+<fmt:message key="label.greeting" /> <br/> <br/>
+
+<fmt:message key="label.firstname" /> <i>John</i> <br/>
+
+<fmt:message key="label.lastname" /> <i>Doe</i> <br/><br/>
+
+<fmt:message key="label.welcome" /> <br/>
+
+<hr>
+
+Selected locale: ${theLocale}
+
+</body>
+
+</html>
+
+--> pageContext.request.locale will load default language based on user os configuration 
+--> fmt:setLocale will set value for local in provided app
+--> fmt:setBundle will link resource language files with this app
+--> fmt:message are placeholders
+--> c:set will set variable which is then provided to fmt:setLocale
+--> a href links will set corresponding locale value
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

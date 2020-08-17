@@ -1,0 +1,39 @@
+6. Pioneers of Computing
+
+--> Rome Wasn’t Built in a Day Nor was the computer!
+
+---------------------------------------------------------------------------------
+
+The First Calculator
+
+--> One of the first computing machines known was the Abacus. It was used in Europe, as well as Asia, around the 15th Century.
+
+---------------------------------------------------------------------------------
+
+Blaise Pascal
+
+--> In 1642, Blaise Pascal invented the Pascaline, which was a mechanical calculator.
+
+---------------------------------------------------------------------------------
+
+Leibniz
+
+--> Almost 30 years later, Gottfried Von Leibniz took things a step further. He called it the Stepped Reckoner.
+--> Pascal’s machine could do multiplications, divisions and find square root
+
+---------------------------------------------------------------------------------
+
+Charles Babbage
+
+--> Then, the early 1800s, Charles Babbage made history by building The Difference Engine.
+--> The world now had a machine that mechanised a whole series of complex calculations and provided an output. He is called the Father of the Computer.
+--> One of the most remarkable things is that this machine had a memory. Here, data could be held temporarily for later use.
+
+---------------------------------------------------------------------------------
+
+Alan Turing
+
+--> The Turing Machine was the first incarnation of the modern day computer.
+--> Built in 1936, it consisted of a long magnetic tape that had a combination of symbols, a sensor head that could read the tape and write symbols to the tape, and a set of simple instructions that directed the head to read and change the symbols on the tape.
+
+---------------------------------------------------------------------------------

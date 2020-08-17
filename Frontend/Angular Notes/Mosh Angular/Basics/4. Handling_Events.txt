@@ -1,0 +1,268 @@
+1. Property Binding-->
+
+template: `<img src="{{ imageUrl }}" />`
+
+--> but property of html tag doesn't uses string interpolation for property insertion rather it uses property binding method under the hood 
+
+template: `<img [src]="imageUrl" />`
+
+--> it is one way binding property means any change in imageUrl will affect change in dom but if for input onchange property, any change in input value does not affect data variable in class
+
+--> normally we use string interpolation for text content between h1, p, div
+and property binding for src attribute
+
+--> we can also bind textContent property inside h1 tag
+
+---------------------------------------------------------------------------
+
+2. Attribute Binding-->
+
+--> atttibute is 99% same as dom property. Eg. src, fontSize, body, 
+--> html parses tags into dom objects and then displays in browser
+--> there are some attributes which are not defined in dom eg. colspan
+--> so we have to tell angular explicitly that it is attribute not property
+
+
+template: `<table>
+		<tr>
+			<td [attr.colspan]="colSpan"></td>
+		</tr>
+	   </table>`
+
+export class CoursesComponent{
+	colSpan = 2;
+}
+
+------------------------------------------------------------------------
+
+3. Include bootstrap-->
+
+styles.css-->
+
+@import "~bootstrap/dist/css/bootstrap.css";	--> look into node_modules
+body { padding: 10px; }
+
+------------------------------------------------------------------------
+
+4. Class binding-->
+
+template: `<button class="btn btn-primary" [class.active]="isActive">Save</button>`
+
+export class CoursesComponent{
+	isActive = true;
+}
+
+
+---> adding and removing class from html element is done in this way called class binding
+
+------------------------------------------------------------------------
+
+5. style binding-->
+
+template: `<button [style.background]="isActive ? 'red' : 'blue' ">Save</button>`
+
+------------------------------------------------------------------------
+
+6. Event binding-->
+
+template: `<button (click)="onSave($event)">Save</button>
+
+export class CoursesComponent{
+	onSave($event){
+	   console.log("button was clicked", $event);
+	}
+}
+
+------------------------------------------------------------------------
+
+7. Stopping event bubbling-->
+
+onSave($event){
+      $event.stopPropagation();
+      console.log("button was clicked", $event);
+}
+
+
+------------------------------------------------------------------------
+
+8. Event filtering-->
+
+template: `<input (keyup)="onKeyUp($event)" >
+
+export class CoursesComponent{
+	onKeyUp($event) {
+		if($event.keyCode === 13) console.log("Enter key is pressed");
+	}
+
+-----------------------------------------------------------------------------------
+
+template: `<input (keyup.enter)="onKeyUp()" >
+
+export class CoursesComponent{
+	onKeyUp() {
+		console.log("Enter key is pressed");
+	}
+
+----------------------------------------------------------------------------
+
+9. Template variable-->
+
+--> how to know what user has types 
+--> by event obj
+
+template: `<input (keyup)="onKeyUp($event)" />`
+
+export class CoursesComponent{
+	onKeyUp($event) {
+		console.log($event.target.value);
+	}
+
+------------------------------------------------------------------------------
+
+template: `<input (keyup.enter)="onKeyUp($event)" />`
+
+export class CoursesComponent{
+	onKeyUp($event) {
+		console.log($event.target.value);
+	}
+
+------------------------------------------------------------------
+--> using template variable provided by angular instead of $event object
+
+template: `<input #email (keyup.enter)="onKeyUp(email.value)" />`
+
+export class CoursesComponent{
+	onKeyUp(email) {
+		console.log(email);
+	}
+
+------------------------------------------------------------------------
+
+10. Two-way binding-->
+
+template: `<input [value]="email" (keyup)="onKeyUp()" />`
+
+export class CoursesComponent{
+	email = "me@example.com";
+	onKeyUp() {
+		console.log(this.email);
+	}
+
+--> above is one-way binding --> component to view
+
+-------------------------------------------------------------------------------
+
+template: `<input [value]="email" (keyup)="email=$event.target.value; onKeyUp()" />`
+
+export class CoursesComponent{
+	email = "me@example.com";
+	onKeyUp() {
+		console.log(this.email);
+	}
+
+--> above is two js statements in (keyup) property, one for setting email property and other is onKeyUp() function, don't forget ; inbetween them
+
+----------------------------------------------------------------------------------
+
+--> two way binding method in angular
+
+template: `<input [(ngMode)]="email" (keyup)="onKeyUp()" />`
+
+export class CoursesComponent{
+	email;
+	onKeyUp() { console.log(this.email); }
+
+--> app.module.ts-->
+
+imports: [ FormsModule ]
+
+--> ngModel is special directive which is used for two-way data binding
+--> component to view and view to component
+--> this method is available in another library --> FormsModule
+
+
+------------------------------------------------------------------------
+
+11. Pipes-->
+
+--> it is building block in angular for formating data
+
+template: `
+{{ course.title }} <br/>
+{{ course.students }} <br />
+{{ course.rating }} <br />
+{{ course.price }} <br />
+{{ course.releaseDate }} `
+
+export class CoursesComponent{
+   course = {
+	title: "The Complete Angular Course",
+	rating: 4.8745,
+	students: 30123,
+	price: 190.95,
+	releaseDate: new Date(2019,3,2)
+   }
+
+--> object is rendered in template
+
+template: `
+    {{ courses.title | uppercase | lowercase }} <br />
+    {{ courses.rating | number:'1.2-2'}} <br />
+    {{ courses.price | currency: 'AUD':true }} <br />	--> true shows symbol also
+    {{ courses.students | number}} <br />
+    {{ courses.releaseDate | date:'shortDate'}} <br />
+`
+
+------------------------------------------------------------------------
+
+12. Custom Pipes-->
+
+template: {{ text | summary }}
+
+export class CoursesComponent{
+	text = "lorem";
+}
+
+-------------------------------------------------------------------
+
+summary.pipe.ts-->
+
+import { Pipe, PipeTransform } from '@angular/core;
+
+@Pipe({
+ 	name: 'summary'
+})
+export class SummaryPipe implements PipeTransform{
+	transform(value? : number, args? : any){
+		if(!value) 
+			return null;
+		return value.substr(0, 50) + "...";
+	}
+}
+
+
+@Pipe is a decorator which takes name in its object argument
+this custom class is implementing interface PipeTransform
+--------------------------------------------------------------------------
+---> giving arguments to custom pipe summary
+
+template: {{ text | summary:10 }}
+
+export class CoursesComponent{
+	text = "lorem";
+}
+
+summary.pipe.ts-->
+
+import { Pipe, PipeTransform } from '@angular/core;
+@Pipe({
+ 	name: 'summary'
+})
+export class SummaryPipe implements PipeTransform{
+	transform(value? : number, limit? : number){
+		if(!value) 
+			return null;
+		let actualLimit = limit ? limit: 50;
+		return value.substr(0, actualLimit) + "...";
+	}
+}

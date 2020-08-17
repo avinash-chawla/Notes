@@ -1,0 +1,92 @@
+1. Computers Only Execute
+
+--> Computers have no ethics.
+--> They simply execute the instructions that are given to them.
+--> So, a computer is unable to distinguish between code that could rob a bank and that which enables a patient’s life support.
+
+--------------------------------------------------------------------------------
+
+2. The Bad Guys
+
+--> So, while we interact with so many nameless, faceless entities online, we must remember that not all of them may abide by the rules and most certainly, not all of them will be our friend.
+--> There are people out there who want to access data that was not meant for them. Such people are called Hackers.
+--> Our Facebook status is something we would like people to know. Our bank and credit card passwords are decidedly not!
+
+--------------------------------------------------------------------------------
+
+3. Threats
+
+--> There are different kinds of threats that Internet users face. To understand these better, let’s group them up.
+--> Threat of Secrecy
+--> Threat of Integrity
+--> Threat of Availability
+
+--------------------------------------------------------------------------------
+
+4. Threat of Secrecy
+
+--> Secrecy means that only certain people or entities should have access to certain data. Cases where a user’s bank details or passwords are revealed, is a breach of secrecy
+
+--------------------------------------------------------------------------------
+
+5. Threat of Integrity
+
+--> Integrity means that only some people should be able to access and modify certain sets of data.
+--> Example, if someone finds out your Facebook password and posts on Facebook pretending to be you, it is called a breach of integrity.
+--> If multiple requests are sent to a website on purpose, making its servers unable to take the load and thus be unavailable to genuine users who want to access it. This is called an attack of availability.
+
+--------------------------------------------------------------------------------
+
+6. Measures
+
+--> As a precaution against all these threats, we use a two-step process, to ascertain the identity of a user.
+Step 1: Authentication
+Step 2: Access Contro
+
+--------------------------------------------------------------------------------
+
+7. Authentication
+
+--> Step 1: Authenticating the user makes sure that the computer is interacting with the correct person by asking users for:
+--> Passwords: A user is asked to enter a username and password to judge whether he/she is the right person to provide data to.
+--> Tokens are a bit like a digital key to a digital lock. Included as part of the request for a page, they help to identify that the user is coming from an authentic source.
+--> Biometrics, as most of us know, are to do with scanning a fingerprint or the retina.
+
+--------------------------------------------------------------------------------
+
+8. Measures, ACL
+
+--> Step 2: Access Control
+--> Access control is a mechanism by which the computer knows how much information to reveal to which user.
+--> This is done by using an Access Control List (ACL). It lists out all registered users along with the type of access to be given.
+--> A simple example would be the sales department of a company.
+--> A salesperson logging into the system can see all the sales that he has made during a month.
+--> But a Sales Manager logging in can see all the sales of all his subordinates during that month.
+
+--------------------------------------------------------------------------------
+
+9. Hi I’m A Hacker
+
+--> Let’s take a look at some of the kinds of mischief that hackers get up to.
+--> Often, hackers will try to get into a system by tricking users into revealing their passwords.
+--> These could be calls from people pretending to be from your bank, from your telephone company or even your company’s IT department.
+--> Hi I’m calling from the server room, we are facing some network issues, could you just open your up your system settings and……..”
+
+--------------------------------------------------------------------------------
+
+10. What’s the PIN?
+
+--> Another way is by a brute force attack.
+--> Suppose the hacker needs to guess your 4 digit credit card pin.
+--> He could make the computer do a simple exercise using probability and check each result.
+--> He needs to find out the correct combination of digits, given that each is in the range of 0 to 9.
+
+--------------------------------------------------------------------------------
+
+11. Bugs Are Gateways
+
+--> A common way for hackers to find a bug in the system is gaining access through the internet. This is done by a fair bit of trial and error.
+--> Example: The system or application asks the user to enter a User ID and a Password to authenticate him. Now instead of entering a username, the --> hacker includes a bit of malicious code. If the creators of the system have not safeguarded against this, the system could be compromised
+
+--------------------------------------------------------------------------------
+

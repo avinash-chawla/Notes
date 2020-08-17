@@ -1,0 +1,641 @@
+
+--> Always focus on the Big Picture
+
+---------------------------------------------------------------------------------
+
+1. create-react-app cli
+
+--> We need different tools to build web application using react library
+--> All tools can be available in one go by using this cli.
+
+--> It uses dependency Management Tool npm
+--> It uses Bundler (WebPack)
+--> It uses Compiler (Babel + Presets)
+--> It uses Developer Server
+
+--> npm i create-react-app -g
+--> create-react-app react-complete-guide --scripts-version 1.1.5
+
+--> scripts attribute will make sure to have same folder structure.
+
+---------------------------------------------------------------------------------
+
+2. Understanding Folder Structure
+
+--> package.json file
+--> It contains primarily 3 packages to build web application
+1. react
+2. react-dom
+3. react-scripts
+
+--> react-scripts contains all packages like development server, bundlepack
+--> react-dom is used to render jsx to browser html
+--> react is used to make components which can be created using both function and class. It contains both business logic and view presentation.
+--> In SPA, there is only one index.html so dom will render only at one place.
+
+--> public 
+--> It contains index.html which is main page which is rendered on browser
+--> It contains manifest.json which is meta information about project
+
+--> src
+--> All js and css scripts files will be included here
+--> App.css and index.css for global styling
+--> App.test.js for testing
+--> index.js for main js file connecting all other script files.
+--> registeringServiceWorker.js is file of PWA, it stores scripts files in cache of browser to work offline (Progressive Web Apps)
+
+---------------------------------------------------------------------------------
+
+3. Class and jsx
+
+import React, { Component } from 'react';
+import './App.css';
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <h1>Hello World</h1>
+      </div>
+    );
+  }
+}
+
+--> This class extends Components class 
+--> So this class needs to apply render method
+--> In render method, we are not returning html template, we are returning jsx template which react-dom will understand and transpile to something else.
+
+--> This return is given () bec. with this, we can write jsx code in multiple lines with enter key.
+
+---------------------------------------------------------------------------------
+
+--> JSX
+
+--> The above html like code is compiled to:
+
+React.createElement('div', { className : 'App' }, React.createElement('h1', null, 'Hello World'))
+
+---------------------------------------------------------------------------------
+
+4. Creating a Functional Component
+
+--> Create new folder inside src folder --> Person
+--> Make new component file --> Person.js
+
+---------------------------------------------------------------------------------
+
+import React from 'react';
+
+const person = () => {
+    return (
+        <p>I am a Person</p>
+    )
+}
+
+export default person;
+
+---------------------------------------------------------------------------------
+
+--> In App.js, 
+
+import React, { Component } from 'react';
+import './App.css';
+import Person from './Person/Person';
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <h1>Hello World</h1>
+        <Person />
+      </div>
+    );
+  }
+}
+
+export default App;
+
+---------------------------------------------------------------------------------
+
+5. Advantage of Components
+
+--> Reusing Them.
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <h1>Hello World</h1>
+        <Person />
+        <Person />
+        <Person />
+        <Person />
+      </div>
+    );
+  }
+}
+
+---------------------------------------------------------------------------------
+
+6. Outputting dyanamic content
+
+--> Javascript expressions
+
+const person = () => {
+    return (
+        <p>I am a Person and I m {Math.floor(Math.random() * 30)} years old</p>
+    )
+}
+
+--> Any one line expression can be included in {}
+--> We can pass one function reference also, which can do complex task.
+
+---------------------------------------------------------------------------------
+
+7. Working with Props
+
+--> Providing Input to Components
+--> This makes them more reusable.
+
+---------------------------------------------------------------------------------
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <h1>Hello World</h1>
+        <Person name='Max' age='22'/>
+        <Person name="Manu" age = "23"/>
+        <Person name="Stepanie" age="21"/>
+      </div>
+    );
+  }
+}
+
+---------------------------------------------------------------------------------
+
+const person = (person) => {
+    return (
+        <p>I am a {person.name} and I m {person.age} years old</p>
+    )
+}
+
+--> You can use any name 
+--> Mostly props keyword is used.
+
+---------------------------------------------------------------------------------
+
+8. Understanding Children Property
+
+--> It is alternative to attributes for passing data to components
+
+---------------------------------------------------------------------------------
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <h1>Hello World</h1>
+        <Person name='Max' age='22'/>
+        <Person name="Manu" age = "23">My Hobbies: Racing</Person>
+        <Person name="Stepanie" age="21"/>
+      </div>
+    );
+  }
+}
+
+--> Here we are sending text as children property
+--> But you can send html, jsx or whole react component to render.
+
+---------------------------------------------------------------------------------
+
+const person = (props) => {
+    return (
+        <div>
+            <p>I am a {props.name} and I m {props.age} years old</p>
+            <p>{props.children}</p>
+        </div>
+    )
+}
+
+---------------------------------------------------------------------------------
+
+9. Understanding and Using State
+
+--> Props are used to transfer data between components
+--> State is used to manage data inside a component
+--> When you pass data using attributes(in props), it is better to use non-hardcorded values.
+
+--> Mostly states are used to changes values for fields on any events raising.
+
+---------------------------------------------------------------------------------
+
+class App extends Component {
+  state = {
+    persons : [
+      { name: "Max", age: 23 },
+      { name: "Manu", age: 24 },
+      { name: "Stepanie", age: 20 }
+    ]
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <h1>Hello World</h1>
+        <Person name={this.state.persons[0].name} age={this.state.persons[0].age}/>
+        <Person name={this.state.persons[1].name} age = {this.state.persons[1].age}>My Hobbies: Racing</Person>
+        <Person name={this.state.persons[2].name} age={this.state.persons[2].age}/>
+      </div>
+    );
+  }
+}
+
+---------------------------------------------------------------------------------
+
+10. Using the UseState() hook for State Manipulation
+
+--> This feature React hooks is added from version 16.8.0
+--> Hooks are nothing but collection of useful functions
+--> UseState() is used for managing state in functional component.
+--> useState takes one argument of initial state and return two items --> InitialState, UpdatedState
+--> InitialState is assigned to props for data manipulation on event triggering.
+--> UpdatedState is a function to change the previous state and used in event handler.
+
+--> Problems: UpdatedState will not merge with previousState means you have to define all other properties which are not as well.
+--> Solution: We use another useState hook to merge remaining state properties with the changed property.
+
+
+--> Note: 
+--> We can define another function inside funtion in javascript
+--> We use destructing method of javascript in useState function.
+--> We will use class component only for managing state, there are two seperate modules for hooks later.
+
+---------------------------------------------------------------------------------
+
+import React, { useState } from 'react';
+import './App.css';
+import Person from './Person/Person';
+
+const app = (props) => {
+  const [personsState, setPersonsState] = useState({
+     persons : [
+      { name: "Max", age: 23 },
+      { name: "Manu", age: 24 },
+      { name: "Stepanie", age: 20 }
+    ]
+  });
+
+  const [otherProperty, setOtherProperty] = useState({ otherProperty: 'some other value' })
+
+  const switchNameHandler = () => {
+    setPersonsState({
+      persons: [
+        { name: "Maximillian", age: 23 },
+        { name: "Manu", age: 24 },
+        { name: "Stepanie", age: 27 }
+      ]
+    });
+  };
+
+    return (
+      <div className="App">
+        <h1>Hello World</h1>
+        <button onClick={switchNameHandler}>SwitchName</button>
+        <Person name={personsState.persons[0].name} age={personsState.persons[0].age}/>
+        <Person name={personsState.persons[1].name} age = {personsState.persons[1].age}>My Hobbies: Racing</Person>
+        <Person name={personsState.persons[2].name} age={personsState.persons[2].age}/>
+      </div>
+    );
+  
+}
+
+export default app;
+
+---------------------------------------------------------------------------------
+
+11. Stateless and Statefull Components
+
+--> State should be managed by less number of components
+--> Other components should be based on input and output for reusability purpose.
+
+--> Containers, Stateful, Smart Components
+--> Presentational, Stateless, Dumb Components
+
+---------------------------------------------------------------------------------
+
+12. Passing Method Reference Between Components
+
+--> In props, we pass the method reference
+
+
+---------------------------------------------------------------------------------
+
+class App extends Component {
+  state = {...}
+
+  switchNameHandler = (newName) => {
+    this.setState({...})
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <button onClick={this.switchNameHandler}>SwitchName</button>
+        <Person 
+          name={this.state.persons[0].name} 
+          age={this.state.persons[0].age}/>
+        <Person 
+          name={this.state.persons[1].name} 
+          age = {this.state.persons[1].age}
+          click = {this.switchNameHandler}>My Hobbies: Racing</Person>		---> Passing method reference in props
+        <Person 
+          name={this.state.persons[2].name} 
+          age={this.state.persons[2].age}/>
+      </div>
+    );
+  }
+
+---------------------------------------------------------------------------------
+
+const person = (props) => {
+    return (
+        <div>
+            <p onClick={props.click}>I am a {props.name} and I m {props.age} years old</p>
+            <p>{props.children}</p>
+        </div>
+    )
+}
+
+---------------------------------------------------------------------------------
+
+--> Passing Parameter to method
+--> There are two approaches to do this:
+1. Use bind()
+2. Use (), anonymous function
+
+---------------------------------------------------------------------------------
+
+--> app.js
+
+  render() {
+    return (
+      <div className="App">
+        <button onClick={() => this.switchNameHandler('Maximilian!')}>SwitchName</button>
+        ...
+        <Person
+          click = {this.switchNameHandler.bind(this, 'Max!')}>My Hobbies: Racing</Person>
+        ...
+    );
+  }
+
+---------------------------------------------------------------------------------
+
+--> Note:
+
+--> Handlers are defined in app.js bec. they are changing state
+--> We provide such handler reference to childs components, and they trigger events using onClick like function
+--> This is called outputting from component.
+--> We provide inputs using props which are bind to state
+--> We receive outputs using props by method reference.
+
+---------------------------------------------------------------------------------
+
+13. Two Way Binding
+
+--> This is mostly done in form fields like input text
+
+---------------------------------------------------------------------------------
+
+class App extends Component {
+  state = {...}
+
+  switchNameHandler = (newName) => {
+    ...
+  };
+
+  nameChangedHandler = (event) => {				------> Event Handler
+    this.setState({
+      persons: [
+        { name: "Maximilian", age: 23 },
+        { name: event.target.value, age: 24 },			------> Dynamically changing value
+        { name: "Stepanie", age: 27 }
+      ]
+    })
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <button onClick={this.switchNameHandler.bind(this, 'Maximilian!')}>SwitchName</button>
+        <Person 
+          name={this.state.persons[1].name} 
+          age = {this.state.persons[1].age}
+          click = {this.switchNameHandler.bind(this, 'Max!')}
+          changed = {this.nameChangedHandler}>My Hobbies: Racing</Person>		--> Passing method reference
+      </div>
+    );
+  }
+}
+
+---------------------------------------------------------------------------------
+
+const person = (props) => {
+    return (
+        <div>
+            <p onClick={props.click}>I am a {props.name} and I m {props.age} years old</p>
+            <p>{props.children}</p>
+            <input type='text' onChange={props.changed} value={props.name}/>		--> Triggering 'onChange' event in input field
+        </div>
+    )
+}
+
+--> Note:
+--> onChange event will automatically pass event object to event handler
+--> Two way binding is possible with, onChange will change state and again state is passed as props
+
+---------------------------------------------------------------------------------
+
+14. Adding Styling with Stylesheets
+
+--> Make new file --> Person.css in Person folder --> Person.css
+
+.Person{
+    width: 30%;
+    border: 1px solid #eee;
+    padding: 10px;
+    margin: auto;
+    text-align: center;
+    box-shadow: 0px 2px 3px #ccc;
+}
+
+---------------------------------------------------------------------------------
+
+import './Person.css';
+
+const person = (props) => {
+    return (
+        <div className="Person">
+	...
+    )
+}
+
+---------------------------------------------------------------------------------
+
+15. Working with Inline Styling
+
+class App ...
+
+render() {
+    const style = {
+      backgroundColor: 'white',
+      border: '1px solid blue',
+      font: 'inherit',
+      padding: '8px'
+    }
+
+    return (
+      <div className="App">
+        <h1>Hello World</h1>
+        <button 
+          style={style}
+          onClick={this.switchNameHandler.bind(this, 'Maximilian!')}>SwitchName</button>
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

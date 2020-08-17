@@ -1,0 +1,220 @@
+1. Intro
+
+--> ng serve is also using node server in back.
+
+---------------------------------------------------------------------------------
+2. Connecting Angular and node
+
+--> There are two ways to connect
+1. Nodejs serves Angular app
+2. Other server like apache serves Angular app and connect to nodejs server
+
+---------------------------------------------------------------------------------
+
+3. RestFul API
+
+--> Instead of using HTML pages from server, we are using only data
+--> Thats why API's are called Stateless Backends.
+
+--> Advantage of this is that client can be anybody - browser, mobile, software, etc
+--> Data format is json mostle
+--> SPA uses Ajax in back to process request with server.
+--> SPA makes DOM faster
+--> SPA Reduces time for req-res cycle
+
+---------------------------------------------------------------------------------
+
+4. Adding the Node Backend
+
+--> Creating server using node (not express)
+
+--> Make sure to have node install
+--> Create new project folder 
+--> Insert server.js file inside it.
+
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+	res.end("This is my first response");
+});
+
+server.listen(process.env.PORT || 3000);
+
+---------------------------------------------------------------------------------
+
+5. Making Server using express
+
+--> npm i express nodemon
+--> Make new file in Backend folder --> app.js
+--> We will make get request from angular to server for posts data.
+
+
+const express = require('express');
+const app = express();
+
+app.get('/api/posts', (req, res) => {
+    const posts = [
+        {
+            id: 1,
+            title: "title1",
+            content: "content1"
+        },
+        {
+            id: 1,
+            title: "title2",
+            content: "conten2"
+        }
+    ];
+    res.json({
+        message: "Posts fetched Successfully",
+        posts: posts
+    });
+})
+
+app.listen(3000, () => {
+    console.log("Server Started...");
+});
+
+---------------------------------------------------------------------------------
+
+6. Using Service class to request get request from server
+
+--> posts.service.ts
+
+private posts: Post[] = [];
+private postsUpdated = new Subject<Post[]>();
+
+getPosts() {
+  this.http.get<{ message: string, posts: Post[] }>			("http://localhost:3000/api/posts")
+    .subscribe((postData) => {
+      this.posts = postData.posts;
+      this.postsUpdated.next([...this.posts]);
+    })
+} 
+
+---------------------------------------------------------------------------------
+
+--> As we are getting 3 properties from server, we will change post.model
+--> post.model.ts
+
+export interface Post {
+    id: string;
+    title: string;
+    content: string;
+}
+
+---------------------------------------------------------------------------------
+
+--> In post-list.ts
+
+ngOnInit(): void {
+  this.postService.getPosts();
+  this.postsSub = this.postService.getPostUpdateListener()
+    .subscribe(
+      posts => this.posts = posts
+    )
+}
+
+---------------------------------------------------------------------------------
+
+7. Cors
+
+--> When two domain applications hosted on different port, they can't communicate
+--> To make them communicate, we do some settings in setting header of incoming req from angular
+
+--> We will use middleware function
+
+app.use((req, res, next) => {
+   res.setHeader("Access-Control-Allow-Origin", "*");
+   res.setHeader(
+	"Access-Control-Allow-Headers",
+	"Origin, X-Requested-With, Content-Type, Accept"
+   );
+   res.setHeader(
+	"Access-Control-Allow-Methods",
+	"GET, POST, PATCH, DELETE, OPTIONS"
+   );
+   next();
+});
+
+--> Option request is request which is send by browser prior to post request to check whether the post request is valid or not
+--> This is automatically done by browser implicitly.
+
+--> We are allowing every domain, irrespective of their ports
+--> We supports given headers
+--> We support given http methods.
+
+
+--> This same middleware if of code of cors package
+--> npm i cors
+--> app.use(cors());
+
+---------------------------------------------------------------------------------
+
+8. Creating post request in server
+
+--> npm i body-parser
+--> app.use(bodyParser.json())
+--> app.use(bodyParser.urlencoded({ extended: false });
+
+--> bodyParser will retrieve data from req and bind in body property of req.
+--> urlencoded means body-parser will receieve data from url 
+--> extended : false means we only default settings of browser.
+
+
+app.post("/api/posts", (req, res) => {
+    const post = req.body;
+    console.log(post);
+    res.status(201).send({
+        message: "Successfully Posted"
+    });
+})
+
+---------------------------------------------------------------------------------
+
+9. Post Request from Angular
+
+--> Earlier mistake, I have added form.reset() before posting to service class.
+
+--> In Service class,
+
+addPost(title: string, content: string) {
+  const post = { id: null, title, content };
+  this.http.post<{ message: string }>(this.apiURL, post)
+    .subscribe(responseData => {
+      console.log(responseData.message);
+      this.posts.push(post);
+      this.postsUpdated.next([...this.posts])
+    })
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

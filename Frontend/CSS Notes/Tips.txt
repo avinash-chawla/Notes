@@ -1,0 +1,258 @@
+1. flex stands for flexible
+--> Making child elements flexible
+
+2. Display:none on Parent Element
+--> It will make child Display:none also
+
+3. min-height is adjustible
+--> Always use min-height for text content
+
+4. To align background image in container
+--> background-image: url('../assets/image.jpg');
+    background-position: center center			---> Defines origin of image
+    background-size: cover/contain
+--> cover will cover whole area
+--> contain will contain whole image
+
+5. Pseudo-Element is used to target child element
+--> ul li:first-child{ background: yellow }
+--> ul li:nth-child(odd)
+--> ul li:nth-child(5)
+
+--------------------------------------------------------------------------------------------------------------
+
+6. Align Center
+--> text-align		--> For text
+--> margin: auto	--> For blocked level element
+--> display: block; margin: 0 auto	--> For inline level element
+
+1. Aligning block elements like div-->
+margin: auto
+width: 50%
+border: 2px solid black
+
+--> No effect if width is not mentioned
+
+2. Center Text Align-->
+text-align: center
+border: 2px solid black
+
+3. Center an Image-->
+display: block
+margin: 0 auto 	 
+
+or 
+
+margin-left: auto
+margin-right: auto
+width: 40%
+
+
+4. Align using Position
+position: absolute
+right: 0px;
+width: 300px;
+border: 2px solid black
+
+--> Sometimes Overlap
+
+5. Use Flex on parent element-->
+--> align-content: center
+    justify-content: center
+
+-------------------------------------------------------
+
+--> Vertically align-->
+
+1. Using Padding-->
+padding: 70px 0;
+border: 2px solid black
+text-align: center
+
+2. Using Line-height-->
+line-height: 200px
+height: 200px
+border: 2px solid black
+text-align: center
+
+3. Using Position-->
+.container{
+	heigth: 200px;
+	position: relative;
+	border: 2px solid black
+}
+
+.p{
+	margin: 0px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%)
+
+4. Using Flex-->
+display: flex;
+justify-content: center;
+align-items: center;
+height: 200px;
+border: 1px solid black
+
+--------------------------------------------------------------------------------------------------------------
+
+7. Combinators-->
+
+1. Descendant Selector-->
+
+--> Selects all descesdants
+--> div p{  }
+
+2. Child Selector-->
+
+--> Selects all childs
+--> div > p{  }
+
+3. Adjacent Sibling Selector-->
+
+--> Select immediately following
+--> div + p{   }
+
+4. General Sibling Selector-->
+
+--> Select all siblings
+--> div ~ p{   }
+
+--------------------------------------------------------------------------------------------------------------
+
+8. Most Unique Property-->
+--> Opacity
+--> Applied on h1, p, img, div
+
+--> Text in Transparent Box
+--> div{ background: rgba(76, 175, 80, 0.3) }		--> Inside div, there is text
+
+--------------------------------------------------------------------------------------------------------------
+
+9. ul and li-->
+--> Binds related texts
+--> Like navbar, checkboxes
+
+--------------------------------------------------------------------------------------------------------------
+
+10. To display Browser inside VS code-->
+
+--> download "browser preview" extension
+--> In settings of Live server, under extensions tab, under Live server, Enable Browser Preview
+
+--------------------------------------------------------------------------------------------------------------
+
+11. Vertical Navbar-->
+
+ul{
+	list-style-type: none;		--> removes bullets
+	margin: 0;
+	padding: 0;
+	width: 200px;
+	background-color: #f1f1f1;
+	height: 100%;
+	position: fixed;	
+	overflow: auto			--> if content of navbar is more, make it scrollable
+}
+
+ul a{
+	display: block;			--> make whole area clickable
+	text-align: center;
+	color: #000;
+	padding: 8px 16px;
+	text-decoration: none;		--> removes underline
+	border-bottom: 2px solid black;
+}
+
+ul a:last-child{
+	border-bottom: none;
+}
+
+ul a:hover{
+	background-color: #555;
+	color: white;
+}
+
+.active{
+	background-color: #green;
+	color: white;
+}
+
+-------------------------------------------------------------------------------------------------------------------
+
+12. Horizontal Navbar-->
+
+ul{
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #333;
+}	
+
+li{
+	display: inline		or 	float: left
+}
+
+a{
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
+
+li a:hover{
+	background-color: #111
+}
+
+--> To make position fix-->
+
+ul{
+	position: fixed;
+	top: 0;
+	width: 100%;
+}
+
+-------------------------------------------------------------------------------------------------------------------
+
+13. Difference between inline and block-->
+--> Block inserts new line before and after content
+--> float converts block level to inline and position it also
+--> Block makes whole area clickable
+
+-------------------------------------------------------------------------------------------------------------------
+
+14. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

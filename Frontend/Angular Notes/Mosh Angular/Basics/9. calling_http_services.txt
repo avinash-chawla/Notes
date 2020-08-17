@@ -1,0 +1,768 @@
+1. API/HttpServices-->
+
+--> In real-world applications, we need bunch of http services on server, and we use this service to get and save data.
+
+---------------------------------------------------------------------------------------------------------------------
+
+2. Getting Data-->
+
+--> this is called consuming http services for getting data
+
+app.module.ts-->
+
+import { HttpClientModule } from '@angular/common/http';
+imports: [
+    BrowserModule,
+    HttpClientModule
+  ],
+
+
+---------------------------------------------------------------------------------------------------------------------
+
+posts.ts-->
+
+import { HttpClient } from '@angular/common/http';
+constructor(http: HttpClient) { }		
+
+--> here provider is not set because Http class also need other providers to work, so we need to include that also other classes in provider.
+--> basically, HttpModule library also contains a class where ngModule is defined and it includes all that library where Http class depends upon so provider is defined in that library
+
+
+
+constructor(http: HttpClient) {
+    http.get('https://jsonplaceholder.typicode.com/posts')
+      .subscribe(response => {
+        console.log(response);
+      })
+  }
+
+
+
+--> http is object
+--> http.get()	returns Observalable object, it is just like promise object and it has bunch of methods, one is subscribe method
+--> subscribe is method which accepts arrow functions optional and as parameter as a response object
+--> { responseType: 'text' } in get function converts response to json data format
+
+---------------------------------------------------------------------------------------------------------------------
+
+posts: any;
+
+constructor(http: Http) {
+    http.get('https://jsonplaceholder.typicode.com/posts', { responseType: 'json' }		--> 'text' | 'json' | 'blob' | 'arraybuffer'
+      .subscribe(response => {
+        this.posts = response;
+})
+}
+
+
+<ul class="list-group p-5">
+  <li class="list-group-item" *ngFor="let post of posts">{{ post.title }}</li>
+</ul>
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+3. Posting Data-->
+
+<input type="text" class="form-control" (keyup.enter)="createPost(title)" #title>
+<ul class="list-group">
+  <li class="list-group-item" *ngFor="let post of posts">{{ post.title }}</li>
+</ul>
+
+createPost(title: HTMLInputElement) {
+    let post = { title: title.value };
+    title.value = '';					--> to create the field after enter
+    this.http.post('https://jsonplaceholder.typicode.com/posts', JSON.stringify(post), { responseType: 'json')
+      .subscribe((response: any) => {
+        post['id'] = response.id;	--> attaching id to post object
+        console.log(response);
+        this.posts.splice(0, 0, post);		--> add at first item in array
+      })
+  }
+
+--> We are getting only id as response object from jsonplaceholder api
+--> So binding that only.
+--> We can also use this.posts.unshift(post)	--> to add item at first place
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+4. Updating Post-->
+
+<ul class="list-group">
+  <li class="list-group-item" *ngFor="let post of posts">
+    <button class="btn btn-secondary btn-sm" (click)="updatePost(post)">Update</button>
+    {{ post.title }}</li>
+</ul>
+
+
+updatePost(post) {
+    this.http.patch('https://jsonplaceholder.typicode.com/posts' + '/' + post.id, JSON.stringify({ isRead: true }))
+      .subscribe(response => {
+        console.log(response.json());
+      })
+  }
+
+
+--> check in network tab --> double click 1 --> headers --> payload
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+5. Delete Posts-->
+
+<ul class="list-group">
+  <li class="list-group-item" *ngFor="let post of posts">
+    <button class="btn btn-secondary btn-sm" (click)="updatePost(post)">Update</button>
+    <button class="btn btn-secondary btn-sm" (click)="deletePost(post)">Delete</button>
+    {{ post.title }}</li>
+</ul>
+
+ deletePost(post) {
+    this.http.delete('https://jsonplaceholder.typicode.com/posts' + '/' + post.id)
+      .subscribe(response => {
+        let index = this.posts.indexOf(post);
+        this.posts.splice(index, 1);
+      })
+  }
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+6. OnInit Interface-->
+
+--> earlier we are loading posts objects in constructor, but normally constructor should be light weight
+--> there are lifecycle methods hooks which are called by angular at specific times during the lifecycle of a component.
+eg. creates, renders, destroys a component
+--> eg. OnInit, OnChanges, DoCheck, AfterContentInit --> these are interfaces which include methods with same name prefixed by ng
+
+ngOnInit() {
+	http.get('https://jsonplaceholder.typicode.com/posts')
+      		.subscribe(response => {
+        		this.posts = response.json(); }
+}	
+------------------------------------------------------------------------------------------------------------------------------------
+
+7. Seperation of Concerns-->
+
+--> We make service class where data from api call getted and supply to components who needed.
+--> Why it is needed:
+1. If in future, url of api changes, we have to change it at one place that is service class
+2. Easy for unit testing
+
+create post.service.ts-->
+
+export class PostService{...}		--> include all http services methods belongs here 
+
+or 
+
+ng g s Post		--> Autogenerate template for service class
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+create post.service.ts-->
+import { Injectable } from '@angular/core';
+import { Http } from '@angular/http';
+
+
+@Injectable()
+export class PostService {
+  public url = "https://jsonplaceholder.typicode.com";
+
+  constructor(private http: Http) { }
+
+  getPosts() {
+    return this.http.get(this.url);
+  }
+
+  createPost(post) {
+    return this.http.post('https://jsonplaceholder.typicode.com/posts', JSON.stringify(post));
+  }
+
+  updatePost(post) {
+    return this.http.patch('https://jsonplaceholder.typicode.com/posts' + '/' + post.id, JSON.stringify({ isRead: true }));
+  }
+
+  deletePost(id) {
+    return this.http.delete('https://jsonplaceholder.typicode.com/posts' + '/' + id);
+  }
+
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+
+post.component.ts-->
+
+import { Component, OnInit } from '@angular/core';
+import { PostService } from './../services/post.service';
+
+@Component({
+  selector: 'posts',
+  templateUrl: './posts.component.html',
+  styleUrls: ['./posts.component.css']
+})
+export class PostsComponent implements OnInit {
+  posts: any[];
+  constructor(private service: PostService) {
+
+  }
+
+  ngOnInit() {
+
+    this.service.getPosts().subscribe(response => {
+      this.posts = response.json();
+    })
+  }
+
+  createPost(title: HTMLInputElement) {
+    let post = { title: title.value };
+    title.value = '';
+    this.service.createPost(post)
+      .subscribe(response => {
+        post['id'] = response.json().id;
+        console.log(response.json());
+        this.posts.splice(0, 0, post);
+      })
+  }
+
+  updatePost(post) {
+    this.service.updatePost(post)
+      .subscribe(response => {
+        console.log(response.json());
+      })
+  }
+
+  deletePost(post) {
+    this.service.deletePost(post.id)
+      .subscribe(response => {
+        let index = this.posts.indexOf(post);
+        this.posts.splice(index, 1);
+      })
+  }
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+
+8. Handling Unexpected Errors-->	server down, network busy
+
+ngOnInit() {
+
+    this.service.getPosts().subscribe(response => {
+      this.posts = response.json();
+    }, error => {
+      alert('An unexpected error has occured');
+      console.log(error);
+    })
+  }
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+9. Handling Expected Errors-->		bad request, 404 error -> client mistake
+
+--> import { HttpErrorResponse } from "@angular/common/http"
+
+deletePost(post) {					----> 404 request
+    this.service.deletePost(post.id)
+      .subscribe(response => {
+        let index = this.posts.indexOf(post);
+        this.posts.splice(index, 1);
+      }, (error: HttpErrorResponse) => {
+        if (error.status == 404) {
+          alert('This post has already been deleted');
+        } else {
+          alert('An unexpected error has occured');
+          console.log(error);
+        }
+      })
+  }
+
+updatePost(post) {					----> 400 Bad request
+    this.service.updatePost(post)
+      .subscribe(response => {
+        console.log(response.json());
+      }, (error: Response) => {
+        if (error.status === 400) {
+          // this.form.setErrors(error.json())
+        } else {
+          alert('An unexpected error has occured');
+          console.log(error);
+        }
+      })
+  }
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+10. Breaking changes in rxjs external library
+
+1. import { Observable } from 'rxjs'
+ 
+2. Also, in RxJS 6 throw is now throwError and can be imported as
+import { throwError } from 'rxjs' 
+3. catch is now catchError and can be imported as
+import { catchError } from 'rxjs/operators'
+
+4. The newer versions of Angular does not support map. So you need to install it using the command prompt using the following command. First go the the project directory and use the command:
+
+npm install --save rxjs-compat
+Don't forget to import this:
+
+import 'rxjs/add/operator/map';
+
+
+5. following youtube tutorial things are change from import 'rxjs/add/operator/map'; this.http.get('jsonplaceholder.typicode.com/posts'). map(res => res.json()); 
+
+--> to import { map } from 'rxjs/operators'; this.http.get('jsonplaceholder.typicode.com/posts').pipe ( map(res => res.json()) )
+
+6. import { Observable, of, Subject } from 'rxjs';
+
+--> You will need to use pipe to apply most operators, which might look a bit strange.
+e.g. :
+obs.pipe(
+    map(....),
+    secondOperator(....),
+    thirdOperator()
+)
+instead of
+
+obs.map(....)
+   .secondOperator(....)
+   .thirdOperator()
+And finally, due to the change with pipe and conflict with JavaScript reserved words, some operators had to be renamed :
+
+---------------------------------------------------------------------
+7. 
+
+do becomes tap
+catch and finally become catchError finalize
+switch becomes switchAll
+other functions were renamed as well :
+fromPromise becomes from
+throw becomes throwError
+
+---------------------------------------------------------------------------------------------------------
+
+11. Throwing Application specific errors-->
+
+--> we will not throw Response error object to component, either we will send catch error which is inbuilt in angular 
+--> Observable is a type that is part of 3rd party reactiveextensions and it has bunch of methods called operators 
+--> we want catch operator for converting httpservices error to application error
+
+
+post.service.ts-->
+
+import { AppError } from '../common/app-error';
+import { NotFoundError } from './../common/not-found-error';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators'
+import { catchError} from 'rxjs/operators'
+import { throwError } from 'rxjs'
+
+deletePost(id) {
+    return this.http.delete('https://jsonplaceholder.typicode.com/posts' + '/' + id)
+      .catch((error: Response) => {
+        if (error.status === 404) {
+          return throwError(new NotFoundError());
+        }
+        return throwError(new AppError(error));
+
+      })
+  }
+
+--> catch operator is used to called httpservice error object
+--> but this arrow function will not return void, instead it should return Obsertable type class object
+--> so it is imported
+--> in its parameter we define custom error object which is defined in two classes - notfounderror and app-error
+
+app-error.ts-->
+
+export class AppError {
+    constructor(public originalError?: any) { }
+}
+
+not-found-error-->
+
+--> import { AppError } from './app-error';
+export class NotFoundError extends AppError{
+    constructor() { }
+}
+
+--> both these class are defined in app-->common
+
+--> finally component will receive Observable class object which is custom here
+
+post.component.ts-->
+
+deletePost(post) {
+    this.service.deletePost(post.id)
+      .subscribe(response => {
+        let index = this.posts.indexOf(post);
+        this.posts.splice(index, 1);
+      }, (error: AppError) => {
+        if (error instanceof NotFoundError) {
+          alert('This post has already been deleted');
+        } else {
+          alert('An unexpected error has occured');
+          console.log(error);
+        }
+      })
+  }
+
+---------------------------------------------------------------------------------------------------------
+
+12. Handling Bad Request Errors
+
+--> service class
+  createPost(post) {
+    return this.http.post(this.url, JSON.stringify(post), { responseType: 'json' })
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          if (error.status === 400)
+            return throwError(new BadInput(error))
+          return throwError(new AppError(error))
+        })
+      )
+  }
+
+--> component class which is consuming data from service class
+
+ createPost(title) {
+    let post: any = { title: title.value }
+    title.value = "";
+    this.service.createPost(post)
+      .subscribe((response: any) => {
+        post.id = response.id;
+        this.posts.unshift(post);
+      }, (error: AppError) => {
+        if (error instanceof BadInput) { }
+        // this.forms.setErrors(error.originalError)
+        else {
+          alert("An Unexpected error has occured");
+          console.log(error)
+        }
+      })
+  }
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+13. Global Error Handling-->
+
+--> This class will handle all unexpected errors at one place.
+--> There is inbuilt class ErrorHandler which does this function, we will overwrite it by implementing it and providing at app.module.ts
+--> Make new file in app --> common --> app-error-handler.ts
+
+import { ErrorHandler } from "@angular/core";
+
+export class AppErrorHandler implements ErrorHandler {
+    handleError(error) {
+        alert('An unexpected error has occured');
+        console.log(error);
+    }
+}
+
+-------------------------------------------------------------------------------------
+
+--> replacing all inbuilt ErrorHandlers with custom AppErrorHandler
+
+app.module.ts-->
+providers: [
+    PostService,
+    { provide: ErrorHandler, useClass: AppErrorHandler }	
+  ],
+
+
+-------------------------------------------------------------------------------------
+
+app.component.ts-->
+
+  ngOnInit(): void {					---> removed 2nd argument of error in subscriber method
+    this.service.getPosts()
+      .subscribe(
+        (response) => {
+          this.posts = response;
+        })
+  }
+
+  createPost(title) {
+    let post: any = { title: title.value }
+    title.value = "";
+    this.service.createPost(post)
+      .subscribe((response: any) => {
+        post.id = response.id;
+        this.posts.unshift(post);
+      }, (error: AppError) => {
+        if (error instanceof BadInput) { }
+        // this.forms.setErrors(error.originalError)
+        else throw error;				-----> rethrowing error (bec. if not, application will not receive error globaly)
+      })
+  }
+
+  updatePost(post) {					-----> removed 2nd argument of error in subscriber method
+    this.service.updatePost(post)
+      .subscribe((response: any) => {
+        console.log(response);
+      })
+  }
+
+  deletePost(post) {
+    let index = this.posts.indexOf(post);
+    this.posts.splice(index, 1);
+    this.service.deletePost(post.id)
+      .subscribe((response) => {
+        console.log(response);
+      }, (error: AppError) => {
+        if (error instanceof NotFoundError)
+          alert("This post has already been deleted");
+        else throw error;				-----> rethrowing error (bec. if not, application will not receive error globaly)
+      })
+  }
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+14. extracting reusable method-->
+
+--> In service class
+
+private handleError(error: Response) {
+    if (error.status === 400) {
+      return throwError(new BadInput(error.json()));
+    }
+    if (error.status === 404) {
+      return throwError(new NotFoundError());
+    }
+    return throwError(new AppError(error.json()));
+  }
+
+deletePost(id) {
+    return this.http.delete('https://jsonplaceholder.typicode.com/posts' + '/' + id)
+      .catch(this.handleError);		only reference is passed
+  }
+
+--> putting this same in every http method for catching error, reducing duplicated lines of code
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+15. Extracting Reusable Data Service-->
+
+--> The idea of making this new common service class is that we are repeating same lines of code (get, post, put, delet) for authorService, PostService, ProductsService.
+--> Instead, all service class will extends one common service to reduce same lines of codes.
+
+
+--> post.service.ts-->
+import { Injectable } from '@angular/core';
+import { Http } from '@angular/http';
+import { DataService } from './data.service';
+
+@Injectable()
+export class PostService extends DataService {
+
+  constructor(http: Http) {
+    super('https://jsonplaceholder.typicode.com/posts', http);
+  }
+}
+
+
+--> data.service.ts-->
+--> Make this file in services folder
+
+import { Injectable } from '@angular/core';
+import { Http } from '@angular/http';
+import 'rxjs/add/operator/catch';
+import 'rxjs/add/Observable/throw';
+import { Observable } from 'rxjs/observable';
+import { AppError } from '../common/app-error';
+import { NotFoundError } from './../common/not-found-error';
+import { BadInput } from './../common/bad-input';
+
+@Injectable()
+export class DataService {
+
+    constructor(private url: string, private http: Http) { }
+
+    getAll() {
+        return this.http.get(this.url)
+            .catch(this.handleError);
+    }
+
+    create(resourse) {
+        return this.http.post(this.url, JSON.stringify(resourse))
+            .catch(this.handleError);
+    }
+
+    update(resourse) {
+        return this.http.patch(this.url + '/' + resourse.id, JSON.stringify({ isRead: true }))
+            .catch(this.handleError);
+
+    }
+
+    delete(id) {
+        return this.http.delete(this.url + '/' + id)
+            .catch(this.handleError);
+    }
+
+    private handleError(error: Response) {
+        if (error.status === 400) {
+            return Observable.throw(new BadInput(error.json()));
+        }
+        if (error.status === 404) {
+            return Observable.throw(new NotFoundError());
+        }
+        return Observable.throw(new AppError(error.json()));
+    }
+
+}
+
+
+--> Errors came here: 
+--> no suitable injection token for parameter 'url' of class 'dataservice'. found string
+--> Solution:
+1. Remove Injectable() decorator from DataService class (It is not service class, PostService is service class)
+or
+2. Do following in Data Service class
+//import { Inject } from '@angular/core';
+constructor(@Inject(String) private url: string, private http: Http)
+
+--> refer: https://github.com/angular/angular/issues/32981
+--> https://stackoverflow.com/questions/60801513/angular-9-error-ng2003-no-suitable-injection-token-for-parameter-url-of-cla/61076510#61076510
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+16. Map Operator-->
+
+--> No need of Map Operator from Angular 5
+--> It converts response json to javascript objects
+
+---------------------------------------------------------------------------------------
+
+--> Like catch operator is for handling errors from apis
+--> Map operator is for handling response and returning arrays of objects
+
+data.service.ts-->
+import 'rxjs/add/operator/map';
+getAll() {
+        return this.http.get(this.url)
+            .map(response => response.json())
+            .catch(this.handleError);
+    }
+
+    create(resourse) {
+        return this.http.post(this.url, JSON.stringify(resourse))
+            .map(response => response.json())
+            .catch(this.handleError);
+    }
+
+    update(resourse) {
+        return this.http.patch(this.url + '/' + resourse.id, JSON.stringify({ isRead: true }))
+            .map(response => response.json())
+            .catch(this.handleError);
+
+    }
+
+    delete(id) {
+        return this.http.delete(this.url + '/' + id)
+            .map(response => response.json())
+            .catch(this.handleError);
+    }
+
+
+posts.component.ts-->
+ngOnInit() {
+    this.service.getAll().subscribe(posts => this.posts = posts);			--> directly accessing array of objects coming from map method
+  }
+
+  createPost(title: HTMLInputElement) {
+    let post = { title: title.value };
+    title.value = '';
+    this.service.create(post)
+      .subscribe(newPost => {
+        post['id'] = newPost.json().id;
+        console.log(newPost.json());
+        this.posts.splice(0, 0, post);
+      }, (error: AppError) => {
+        if (error instanceof BadInput) {
+          // this.form.setErrors(error.originalError);
+        } else throw error;
+      })
+  }
+
+  updatePost(post) {
+    this.service.update(post)
+      .subscribe(updatedPost => {
+        console.log(updatedPost.json());
+      }, (error: Response) => {
+        if (error instanceof BadInput) {
+          // this.form.setErrors(error.json())
+        }
+      })
+  }
+
+  deletePost(post) {
+    this.service.delete(post.id)
+      .subscribe(() => {
+        let index = this.posts.indexOf(post);
+        this.posts.splice(index, 1);
+      }, (error: AppError) => {
+        if (error instanceof NotFoundError) {
+          alert('This post has already been deleted');
+        } else throw error;
+      })
+  }
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+17. Optimistic And Pessimistic Approach--->
+
+--> optimistic means hopeful and pessimistic means hopeless
+--> while creating and deleting post, first ui should change, then response from api came called optimistic	--> presents appears to be at higher speed
+
+
+createPost(title: HTMLInputElement) {
+    let post = { title: title.value };
+    this.posts.splice(0, 0, post);			----------> ui changes earlier
+    title.value = '';
+    this.service.create(post)
+      .subscribe(newPost => {
+        post['id'] = newPost.id;
+        console.log(newPost);
+      }, (error: AppError) => {
+        this.posts.splice(0, 1);			----------> removed from ui if error
+
+        if (error instanceof BadInput) {
+          // this.form.setErrors(error.originalError);
+        } else throw error;
+      })
+  }
+
+  deletePost(post) {
+    let index = this.posts.indexOf(post);
+    this.posts.splice(index, 1);			----------> ui changes earlier
+    this.service.delete(post.id)
+      .subscribe(null, (error: AppError) => {
+        this.posts.splice(index, 0, post);		----------> adds to ui if error
+
+        if (error instanceof NotFoundError) {
+          alert('This post has already been deleted');
+        } else throw error;
+      })
+  }
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+18. Observables vs Promises-->
+
+1. Observables are Lazy		--> need subscribe method, then and only send request to api
+2. Promises are eager
+key points--> 
+--> observable can be converted to promises	--> using toPromise() operator
+--> prefer observables, bec it provide bunch of useful operators like retry(3)  --> server will retry request 3 times
+--> they allow reactive programming 	--> fast and small code and powerful
+--> they won't react if subscibe method is not provided.
+--> while promise will work even if then is not provided

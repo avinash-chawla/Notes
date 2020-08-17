@@ -1,0 +1,112 @@
+1. HttpPost Edit Action
+
+--> Id is getting from hidden field in model object
+--> After getting real Employee object, we applied changes.
+--> If fileupload input is null, we will not update image
+--> If fileupload input is not null, we will remove existing image.
+--> To remove existing image from static folder, we are using System.IO.File.Delete(fileName) method.
+--> SaveChanges to Database and redirect the user to index view.
+--> We do processing of image in seperate method and use in both actionMethods of create and edit.
+
+---------------------------------------------------------------------------------
+
+// Through model binding, the action method parameter
+// EmployeeEditViewModel receives the posted edit form data
+
+[HttpPost]
+public IActionResult Edit(EmployeeEditViewModel model)
+{
+    // Check if the provided data is valid, if not rerender the edit view
+    // so the user can correct and resubmit the edit form
+
+    if (ModelState.IsValid)
+    {
+        // Retrieve the employee being edited from the database
+
+        Employee employee = _employeeRepository.GetEmployee(model.Id);
+
+        // Update the employee object with the data in the model object
+
+        employee.Name = model.Name;
+        employee.Email = model.Email;
+        employee.Department = model.Department;
+
+        // If the user wants to change the photo, a new photo will be
+        // uploaded and the Photo property on the model object receives
+        // the uploaded photo. If the Photo property is null, user did
+        // not upload a new photo and keeps his existing photo
+
+        if (model.Photo != null)
+        {
+            // If a new photo is uploaded, the existing photo must be
+            // deleted. So check if there is an existing photo and delete
+
+            if (model.ExistingPhotoPath != null)
+            {
+                string filePath = Path.Combine(hostingEnvironment.WebRootPath,
+                    "images", model.ExistingPhotoPath);
+                System.IO.File.Delete(filePath);
+            }
+
+            // Save the new photo in wwwroot/images folder and update
+            // PhotoPath property of the employee object which will be
+            // eventually saved in the database
+
+            employee.PhotoPath = ProcessUploadedFile(model);
+        }
+
+        // Call update method on the repository service passing it the
+        // employee object to update the data in the database table
+
+        Employee updatedEmployee = _employeeRepository.Update(employee);
+
+        return RedirectToAction("index");
+    }
+
+    return View(model);
+}
+
+------------------------------------------------------------------------------
+
+2. Extracting Method
+
+--> We have used IFormFile to copying and saving to static folder
+--> We can extract this function as seperate private function and use in create and edit actionMethod 
+
+--> To extract this method, select this inside CreateActionMethod and right click it
+--> Click on Quick Actions And Refactoring
+--> Click on Extract Method
+
+--> As this method is taking EmployeeCreateViewModel as parameter, it can accept both objects EmployeeCreateViewModel and EmployeeEditViewModel bec. EmployeeEditViewModel derives this class.
+--> Reverse is not possible.
+
+------------------------------------------------------------------------------
+
+3. ProcessUploadedFile() method
+
+--> The following is the private ProcessUploadedFile() method which saves the photo in wwwroot/images folder and returns the unique file name. 
+--> This file name is then assigned as the value for the PhotoPath on the employee object which will eventually be saved in the database.
+
+--> We are using FileStream, so we need to close the connection so using 'using' keyword in FileStream
+
+
+private string ProcessUploadedFile(EmployeeCreateViewModel model)
+{
+    string uniqueFileName = null;
+
+    if (model.Photo != null)
+    {
+        string uploadsFolder = Path.Combine(hostingEnvironment.WebRootPath, "images");
+        uniqueFileName = Guid.NewGuid().ToString() + "_" + model.Photo.FileName;
+        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+        using (var fileStream = new FileStream(filePath, FileMode.Create))
+        {
+            model.Photo.CopyTo(fileStream);
+        }
+    }
+
+    return uniqueFileName;
+}
+
+------------------------------------------------------------------------------
+

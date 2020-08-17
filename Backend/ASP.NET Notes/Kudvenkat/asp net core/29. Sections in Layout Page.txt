@@ -1,0 +1,110 @@
+1. Section in a Layout View
+
+--> Section means Script tag
+--> A layout page in ASP.NET Core MVC can also include a section. 
+--> A section can be optional or mandatory. 
+--> It provides a way to organize where certain page elements should be placed.
+
+--------------------------------------------------------------------------
+
+2. Placing Section inside layout view file
+
+--> We can apply same section to all view files by implementing in _layout view.
+--> We can either make it required or optional.
+--> Those views who provide script tag, will be rendered in layout view.
+--> But below script tag will be same for all view files
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+</head>
+<body>
+    <div>
+        @RenderBody()
+    </div>
+
+    <script src="~/js/CustomScript.js"></script>
+</body>
+</html>
+
+
+--------------------------------------------------------------------------
+
+3. Rendering the Section
+
+--> This way, each view file can have seperate script tag
+--> This script tag will then be rendered in _layout file at place of @RenderSection method.
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+</head>
+<body>
+    <div>
+        @RenderBody()
+    </div>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
+
+
+--> Above code will give error if required is true and any view file implementing this _layout view does not apply script tag.
+
+--------------------------------------------------------------------------
+
+4. Making the layout section optional
+
+--> There are 2 options to mark a layout section as optional
+
+--------------------------------------------------------------------------
+
+Option 1 : Set required parameter of RenderSection() method to false
+
+@RenderSection("Scripts", required: false)
+
+--------------------------------------------------------------------------
+
+Option 2 : Use IsSectionDefined() method
+
+@if (IsSectionDefined("Scripts"))
+{
+    @RenderSection("Scripts", required: false)
+}
+
+--------------------------------------------------------------------------
+
+5. Providing Section Content
+
+--> Make new folder inside wwwroot --> js
+--> Make new file inside it	   --> CustomScript.js
+
+--> Details view
+
+@model EmployeeManagement.ViewModels.HomeDetailsViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3>@Model.PageTitle</h3>
+
+<div>
+    Name : @Model.Employee.Name
+</div>
+<div>
+    Email : @Model.Employee.Email
+</div>
+<div>
+    Department : @Model.Employee.Department
+</div>
+
+@section Scripts {
+    <script src="~/js/CustomScript.js"></script>
+}
+
+--> This script tag will be rendered in _layout view file at @RenderSection method is called.
+
+--------------------------------------------------------------------------

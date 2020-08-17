@@ -1,0 +1,178 @@
+Reference Link: https://www.tutorialsteacher.com/csharp/csharp-nullable-types#:~:text=As%20you%20know%2C%20a%20value,null%20to%20value%20type%20variables.&text=For%20example%2C%20Nullable,2147483647%2C%20or%20a%20null%20value.
+
+--------------------------------------------------------------------------------
+
+1. Nullable Type in C#
+
+--> As you know, a value type cannot be assigned a null value. For example, int i = null will give you a compile time error.
+
+--> C# 2.0 introduced nullable types that allow you to assign null to value type variables. You can declare nullable types using Nullable<t> where T is a type.
+
+--> Example: Nullable type
+
+Nullable<int> i = null;
+
+--> A nullable type can represent the correct range of values for its underlying value type, plus an additional null value. 
+--> For example, Nullable<int> can be assigned any value from -2147483648 to 2147483647, or a null value.
+
+----------------------------------------------------------------------------------
+
+2. Nullable struct
+
+--> The Nullable types are instances of System.Nullable<T> struct. 
+--> Think it as something like the following structure.
+
+Example: Nullable struct
+[Serializable]
+public struct Nullable<T> where T : struct
+{        
+    public bool HasValue { get; }
+      
+    public T Value { get; }
+        
+    // other implementation
+}
+
+----------------------------------------------------------------------------------
+
+3. HasValue
+
+--> Accessing the value using NullableType.value will throw a runtime exception if nullable type is null or not assigned any value. 
+
+--> The HasValue returns true if the object has been assigned a value; if it has not been assigned any value or has been assigned a null value, it will return false.
+
+
+static void Main(string[] args)
+{
+    Nullable<int> i = null;
+
+    if (i.HasValue)
+        Console.WriteLine(i.Value); // or Console.WriteLine(i)
+    else
+        Console.WriteLine("Null");
+}
+
+----------------------------------------------------------------------------------
+
+4. GetValueOrDefault()
+
+--> Alternative way of HasValue
+
+Use the GetValueOrDefault() method to get an actual value if it is not null and the default value if it is null.
+
+static void Main(string[] args)
+{
+    Nullable<int> i = null;
+
+    Console.WriteLine(i.GetValueOrDefault()); 
+}
+
+----------------------------------------------------------------------------------
+
+5. Shorthand Syntax for Nullable Types
+
+--> You can use the '?' operator to shorthand the syntax e.g. int?, long? instead of using Nullable<T>
+
+int? i = null;
+double? D = null;
+
+----------------------------------------------------------------------------------
+
+6. ?? Operator
+
+--> Use the '??' operator to assign a nullable type to a non-nullable type.
+
+int? i = null;          
+int j = i ?? 0;
+Console.WriteLine(j);
+
+--> In the above example, i is a nullable int and if you assign it to the non-nullable int j then it will throw a runtime exception if i is null. 
+--> So to mitigate the risk of an exception, we have used the '??' operator to specify that if i is null then assign 0 to j.
+
+----------------------------------------------------------------------------------
+
+7. Assignment Rules
+
+--> A nullable type has the same assignment rules as a value type. It must be assigned a value before using it if nullable types are declared in a function as local variables. 
+
+--> If it is a field of any class then it will have a null value by default.
+
+--> For example, the following nullable of int type is declared and used without assigning any value. The compiler will give "Use of unassigned local variable 'i'" error:
+
+static void Main(string[] args)
+{
+    Nullable<int> i;	(or int? i;)
+    CW(i);
+}
+
+
+----------------------------------------------------------------------------------
+
+--> In the following example, a nullable of int type is a field of the class, so it will not give any error.
+
+class MyClass
+{
+    public Nullable<int> i;
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        MyClass mycls = new MyClass();
+
+        if(mycls.i == null)
+            Console.WriteLine("Null");
+    }
+}
+
+----------------------------------------------------------------------------------
+
+8. Nullable Helper Class
+
+--> Null is considered to be less than any value. 
+--> So comparison operators won't work against null.
+
+    int? i = null;
+    int j = 10;
+
+    if (i < j)
+        Console.WriteLine("i < j");
+
+--> Give Error
+
+----------------------------------------------------------------------------------
+
+static void Main(string[] args)
+{
+    int? i = null;
+    int j = 10;
+
+    if (Nullable.Compare<int>(i, j) < 0)
+        Console.WriteLine("i < j");
+    else if (Nullable.Compare<int>(i, j) > 0)
+        Console.WriteLine("i > j");
+    else
+        Console.WriteLine("i = j");
+} 
+
+----------------------------------------------------------------------------------
+
+9.Characteristics of Nullable Types
+
+1. Nullable types can only be used with value types.
+2. The Value property will throw an InvalidOperationException if value is null; otherwise it will return the value.
+3. The HasValue property returns true if the variable contains a value, or false if it is null.
+4. You can only use == and != operators with a nullable type. For other comparison use the Nullable static class.
+5. Nested nullable types are not allowed. Nullable<Nullable<int>> i; will give a compile time error.
+
+----------------------------------------------------------------------------------
+
+10.  Points to Remember :
+
+1. Nullable<T> type allows assignment of null to value types.
+2. ? operator is a shorthand syntax for Nullable types.
+3. Use value property to get the value of nullable type.
+4. Use HasValue property to check whether value is assigned to nullable type or not.
+5. Static Nullable class is a helper class to compare nullable types.
+
+----------------------------------------------------------------------------------

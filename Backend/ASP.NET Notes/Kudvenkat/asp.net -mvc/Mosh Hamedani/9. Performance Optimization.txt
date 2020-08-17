@@ -1,0 +1,137 @@
+1. Intro
+
+--> Premature optimization is the root of all evils
+--> First Profile then optimize
+--> For checking perfomance, we use Three-tier Architecture
+--> There are many architecture, but some are famous
+
+--> tier means where your code runs
+--> Three-tier divides application profile in 3 areas: 
+1. Data (Sql Server), 		(Needed highest Optimization)
+2. Application (IIS),
+3. Client (Browser)
+
+
+--> Mosh's Optimization Rules
+1. Do not sacrifice the maintainability of your code to premature optimization
+2. Be realistic and think like an "engineer"
+3. Be pragmatic and ensure your efforts have observable results and give value.
+
+---------------------------------------------------------------------------
+
+3. Data-Tier
+
+--> Performation lags here due to two things: Database Schemas and Sql Queries
+--> Schema Issues: Make sure to have Primary Keys, Relationships, Indexes
+
+--> There is a architecture to deal with Database Performance --> EAV (Entities, Attributes, Values)
+--> It provides seperation of concerns but needed lot of queries and stored procedures and no ORM (Object Relational Mapper)
+--> Wasteful architecture, technically it is correct but practically it is very wrong
+--> NOt all architectures are good.
+
+--> Some ways to improve performance of Optimizing Queries:
+1. Use Execution plan in SQL Server ( where you write two different queries and their execution time)
+2. Create a "read database" (look up CQRS)
+--> When application mostly uses to read data then modifying data use read-only database for getting data
+--> Problem is you need to keep two database and in sync too
+3. Use Stored Procedure of combined tables, instead of foreign key queries
+
+---------------------------------------------------------------------------
+
+4. Glimpse
+
+--> It is a super tool 
+--> It provides real-time diagonostics and insight of application
+--> install-package glimpse.mvc5
+--> install-package glimpse.ef6		(ef = entity framework)
+
+--> localhost:44300/glimpse.axd
+--> On it Glipse
+--> Go to /customers url
+--> At bottom will show you everything
+--> Timing 
+--> From which controller it loads
+--> Click on G icon
+--> Sql tab will show you all queries and their execution times
+
+--> There are two types of loading: Eager loading and Lazy loading in database
+--> Eg. Customer table is linked with Membership Table
+--> Suppose we do forloop on its properties to display list of customers with MembershipType
+--> First database load Customer table through _context object which is passed to view
+--> In every loop, it goes to database to load Membership type Table
+--> 2 queries for 2 tables
+--> Instead we use stored procedure of combined table and post data
+--> This will reduce connections to open and close and reduce queries to one
+
+--> Glimpse is mainly used for database timing and which queries does it running
+
+---------------------------------------------------------------------------
+
+5. Output Caching
+
+--> It improves Performance of Application/middle tier
+--> We cache the rendered html page after first load
+--> When again this page is getting in request, submit it via cache instead of querying it again
+--> We apply attribute [OutputCache] to actionMethod
+--> All attributes are called action filters which are applied on actionMethods before and after loading of actionMethod
+--> If webpage data does not change with time and remain stable, we can apply this attribute
+
+--> [OutputCache(Duration = 50)]		--> setting duration of cache
+
+--> If cache to be stored on server 
+--> [OutputCache(Duration=50, Location=OutputCacheLocation.Server)]
+
+--> If some output is changing in webpage like genre in movie, then we can store each webpage with individual genre, if 5 genre then 5 webpage
+--> [OutputCache(Duration=50, Location=OutputCacheLocation.Server, VaryByParam = "genre")]
+
+--> To disable Cache temporarily
+--> [OutputCache(Duration=0, VaryByParam="*", NoStore=true)
+
+---------------------------------------------------------------------------
+
+6. Data Caching
+
+--> Instead of caching HTML page, we cache data
+--> Like caching list of customer if it doesn't change much
+--> using System.Runtime.Caching
+--> public ViewResult Index()
+    {
+	if(MemoryCache.Default["Genres"] = _context.Genres.ToList();
+    }
+	
+    var genres = MemoryCache.Default["Genres"] as IEnumerable<Genre>;
+    return View(genres);
+
+--> Don't use blindly, first check perfomance
+
+---------------------------------------------------------------------------
+
+7. Release Builds
+--> There are two modes in visual studio
+--> Debug and Release
+--> Debug mode add extra libraries for debugging, so release mode works faster
+
+---------------------------------------------------------------------------
+
+8. Disabling Session
+
+--> Session means storing user data on server
+--> This is very very bad practice nowadays
+--> Session should never be used in this modern world
+--> To close session for application: In web.config file
+--> <system.web>
+	<sessionState mode="Off"></sessionState>	--> Off is case-sensitive (O is capital here)
+
+
+---------------------------------------------------------------------------
+
+9. Client-Tier
+
+--> As Client and Server are on different geographical locations, we should reduce the number of request-response and size of response
+--> We can use bundles to combine multiple js and css files and then compress them
+--> Scripts should be placed at bottom of html page, first markup should load, then javascript
+--> To see the number of request, just reload the page and see in Network tab in developers tool
+--> File size and number of request shown when js icon clicked
+--> In release mode, those bundles are compressed and combined
+
+

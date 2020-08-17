@@ -1,0 +1,124 @@
+1. What are JSPs and Servlets?
+
+--> JSP stands for Java Server Pages
+--> Java code that runs on the web server
+--> Reads users actions...normally from HTML Form
+--> Perform the work
+--> Returns an HTML page that is generated dynamically.
+
+----------------------------------------------------------------------------------
+
+2. Types of Web Applications
+
+--> E-commerce
+--> Student / Employee Tracking
+--> Restaurant / Hotel Reservations
+--> Social Media
+--> Any type of apps ... no limits .. be creative
+
+----------------------------------------------------------------------------------
+
+3. Key Building Blocks
+
+--> JSPs and Servlets are key components of the Java Enterprise Edition(Java EE)
+--> Popular MVC frameworks are actuallyy built  on top of JSP and servlets
+--> eg. spring, jsf, struts
+
+----------------------------------------------------------------------------------
+
+4. Softwares
+
+--> JDK
+--> Tomcat (Java Application Server)
+--> Eclipse (IDE)
+
+----------------------------------------------------------------------------------
+
+5. Installing Tomcat
+
+--> Head over to: https://tomcat.apache.org/download-90.cgi
+--> Download 32-bit/64-bit Windows Service Installer (pgp, sha512) under Core options
+--> Run it
+--> Next, Next, in Choose Components --> Select Full
+--> Make sure that all are selected
+--> Install it
+
+--> In Last window, run it
+--> Go to: localhost:8080
+--> If it is running, successfully installed
+
+--> To stop this server, there is icon in taskbar below
+--> Right click it --> Configure
+--> There are different settings showing
+
+--> Another way is: search services.msc in run command
+--> There you will see tomcat9 service running
+--> You can also run or stop from there.
+
+-------------------------------------------------------------------------------
+
+4. Installing Eclipse
+
+--> Head over to: https://www.eclipse.org/downloads/packages/release/photon/r/eclipse-ide-java-ee-developers
+
+--> Make sure it is Eclipse IDE for Java EE Developers and latest version
+
+--> Download for Windows 64bit
+--> Extract in C drive
+--> Just Run the application
+--> It asks for workspace --> map location
+--> It will start
+
+-------------------------------------------------------------------------------
+
+5. Connecting Tomcat to Eclipse
+
+--> Open Servers tab in botton of eclipse
+--> Open Server or right click -> Add new
+--> Select Apache --> Tomcat9 --> Next
+--> Select its installation path
+--> Finish
+--> Done
+
+--> Make sure to install latest version of eclipse Oxygen2017 or Photon2018
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

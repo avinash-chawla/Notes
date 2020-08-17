@@ -1,0 +1,160 @@
+1. Logging
+
+--> There are two processes in asp --> InProcess and OutProcess
+--> When we run our application using visual studio in debug mode,
+--> For OutProcess, dotnet.exe process will log the details on output window
+--> For InProcess, iisexpress process will log the details on output window
+
+
+--> This is automatically done by .net core
+--> This stop this default behaviour, go to options in Tools tab.
+--> Under Debugging tab, Off all settings from 2nd line.
+
+---------------------------------------------------------------------------------
+
+2. Logging in cmd
+
+--> When you run your application from command line --> dotnet run
+--> Logging is done in console.
+
+---------------------------------------------------------------------------------
+
+3. Logging Provider
+
+--> It is the Logging Provider that stores or Displays logs
+
+1. Console Logging Provider
+2. Debug Logging Provider
+
+---------------------------------------------------------------------------------
+
+4. CreateHostBuilder
+
+--> Main method calls this methods
+--> It is responsible for configuring logging Provider
+--> You can see its method on .net core github repository.
+
+.ConfigureLogging((hostingContext, logging) =>
+{
+    logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+    logging.AddConsole();
+    logging.AddDebug();
+    logging.AddEventSourceLogger();
+})
+
+--> Responsibility of CreateHostBuilder
+1. Setting up the web server 
+2. Loading the host and application configuration from various configuration sources and 
+3. Configuring logging
+
+---------------------------------------------------------------------------------
+
+5. Built-in logging providers
+
+--> Asp.net provides several logging Providers.
+
+Console
+Debug
+EventSource
+EventLog
+TraceSource
+AzureAppServicesFile
+AzureAppServicesBlob
+ApplicationInsights
+
+---------------------------------------------------------------------------------
+
+6. Third party Logging Providers
+
+--> We can also use third party logging providers.
+--> There are several of that.
+
+NLog
+elmah
+Serilog
+Sentry
+Gelf
+JSNLog
+KissLog.net
+Loggr
+Stackdriver
+
+---------------------------------------------------------------------------------
+
+7. Note:
+
+--> Right now, Logging Provider only log warnings
+--> To log all information, go to appsettings.json file,
+
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+
+
+--> When you choose mvc template, this is automatically done.
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

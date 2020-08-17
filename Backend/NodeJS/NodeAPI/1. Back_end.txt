@@ -1,0 +1,311 @@
+1. Dependencies
+
+--> npm init
+--> npm i express
+--> npm i nodemon
+--> npm i mongoose
+--> npm i dotenv
+--> npm i body-parser
+--> npm i 
+
+-------------------------------------------------------------------------------
+
+2. Nodemon
+
+--> In package.json file
+
+"scripts" : {
+    "start" : "nodemon app.js"
+}
+
+-------------------------------------------------------------------------------
+
+3. Hello World
+
+--> Make new file in project : app.js
+
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+    res.send("Hello World");
+})
+
+app.listen(3000, () => {
+    console.log("Server Started...");
+});
+
+-------------------------------------------------------------------------------
+
+4. MLab
+
+--> It is free online database platform to work with mongodb database online
+--> It provides free 500mb data storage.
+--> Create new account or login in mongodb atlas
+--> Create new sandbox or cluster
+--> Create user in Database Access tab in side bar
+--> Create url
+
+-------------------------------------------------------------------------------
+
+5. Mongoose
+
+--> Replace dbname and password in url provided by Mlab.
+
+const mongoose = require('mongoose');
+
+mongoose.connect("mongodb+srv://avinashchawla:<Avinash@3>@avinash-ieyjq.mongodb.net/rest?retryWrites=true&w=majority", () => {
+    console.log("Connected to Database...");
+}) 
+
+-------------------------------------------------------------------------------
+
+6. dotenv
+
+--> To hide username and password credentials, we use this package.
+--> There are also other packages to work with credentials by hiding details of it.
+--> npm i dotenv
+
+-------------------------------------------------------------------------------
+
+--> Make new file .env
+--> Place all credentials in variable
+--> eg.
+
+DB_CONNECTION=mongodb+srv://<username>:<Password>@
+
+--> You should not deploy this file on github.
+
+-------------------------------------------------------------------------------
+
+--> Accessed using Env Variable
+
+--> In app.js
+
+require('dotenv/config');
+
+mongoose.connect(process.env.DB_CONNECTION, () => {
+    console.log("Connected to Database...");
+})
+
+-------------------------------------------------------------------------------
+
+7. Seperate Routes folder
+
+--> Make new folder in project  --> routes
+--> Make new file in that	--> posts.js
+
+-------------------------------------------------------------------------------
+
+const express = require('express');
+const router = express.Router();
+
+router.get('/', (req, res) => {
+    res.send("Posts here");
+});
+
+module.exports = router; 
+
+-------------------------------------------------------------------------------
+
+--> In app.js
+
+const postsRoute = require('./routes/posts');
+app.use('/posts', postsRoute);				//Middleware
+
+-------------------------------------------------------------------------------
+
+8. Models
+
+--> It describes the shape/type of our data
+--> It can also do's validation on required data fields
+--> Basically it defines schema for our data.
+
+--> Make new folder inside project	--> models
+--> Make new file inside it		--> Post.js
+
+const mongoose = require('mongoose');
+
+const PostSchema = mongoose.Schema({
+    title: {
+        type: required,
+        required: true
+    },
+    description: {
+        type: required,
+        required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    }
+})
+
+module.exports = mongoose.model("Posts", PostSchema);
+
+
+--> This will not be useful in get and delete request.
+--> It will useful in post, put request
+
+-------------------------------------------------------------------------------
+
+9. Diff between Model vs Data Storage
+
+--> Class gives shapes to data
+--> Object actually saves data in memory of application
+
+--> Model defines schema for an object/data
+--> Creating object will actually save data in application
+
+-------------------------------------------------------------------------------
+
+10. Body Parser in Post or Put
+
+--> For post request, data is send to an api endpoint
+--> Like we have modelbinding in asp, we have bodyParser in node
+--> It binds req object in req.body property .
+--> npm i body-parser
+
+--> In app.js
+
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
+
+-------------------------------------------------------------------------------
+
+11. Post request
+
+router.post('/', (req, res) => {
+   console.log(req.body);
+}
+
+
+router.post('/', (req, res) => {
+    const post = new Post({
+        title: req.body.title,
+        description: req.body.description
+    });
+
+    post.save()
+        .then(data => res.send(data))
+        .catch(err => res.send({ message: err }))
+});
+
+
+--> We have created the object of model to save data
+--> We then call save method to save data in database
+--> It will return a promise so then and catch method applied to handle output.
+
+-------------------------------------------------------------------------------
+
+12. Postman
+
+--> To test api, we use postman
+--> It supports all request - get, post, put and delete
+
+--> Have post request to url : http://localhost:3000/posts
+{
+	
+   "title": "Product1",
+	
+   "description": "Desc1"
+
+}
+
+--> Have a look at response and also look at database.
+
+-------------------------------------------------------------------------------
+
+13. Async/Await 
+
+--> We can also use async await, instead of promise
+
+router.post('/', async (req, res) => {
+    const post = new Post({
+        title: req.body.title,
+        description: req.body.description
+    });
+
+    try{
+        const savedPost = await post.save();
+        res.send(savedPost);
+    }
+    catch(err){
+        res.send(err);
+    }
+});
+
+-------------------------------------------------------------------------------
+
+14. Get Request
+
+router.get('/', async (req, res) => {
+    try {
+        const posts = await Post.find();
+        res.send(posts);
+    } catch (err) {
+        res.send({ message: err })
+    }
+});
+
+-------------------------------------------------------------------------------
+
+15. res.send or res.json
+
+--> You can use both to send json response to user such as api
+
+-------------------------------------------------------------------------------
+
+16. Getting Specific Post
+
+router.get('/:id', async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        res.json(post);
+    } catch (err) {
+        res.json({ message: err })
+    }
+})
+
+--> In Postman, put get request to url: http://localhost:3000/posts/5ef41e07f4facf23ac4ebb97
+
+-------------------------------------------------------------------------------
+
+17. Delete specific Post
+
+router.delete('/:id', async (req, res) => {
+    try {
+        const removedPost = await Post.remove({ _id: req.params.id });
+        res.json(removedPost);
+    } catch (err) {
+        res.json({ message: err });
+    }
+})
+
+-------------------------------------------------------------------------------
+
+18. Update Post
+
+router.patch('/:id', async (req, res) => {
+    try {
+        const updatedPost = await Post.updateOne(
+            { _id: req.params.id },
+            {
+                $set: {
+                    title: req.body.title
+                }
+            });
+        res.json(updatedPost);
+    } catch (err) {
+        res.json({ message: err });
+    }
+})
+
+--> First parameter is Id  --> from req.params.id
+--> Second parameter is object --> from req.body	--> using $set object
+
+
+--> Do Patch Request on url: http://localhost:3000/posts/5ef43d88c1ce5d089c5d7cdb
+
+-------------------------------------------------------------------------------
+

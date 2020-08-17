@@ -1,0 +1,108 @@
+1. Requirement
+
+--> We are using Bootstrap in our ASP.NET Core Application
+--> For ease of debugging, on our local development machine (i.e on the Development Environment) we want the application to load non-minified bootstrap css file (bootstrap.css)
+
+--> On Staging, Production or any other environment except Development environment we want the application to load minified bootstrap css file (bootstrap.min.css) from a CDN (Content Delivery Network) for better performance.
+
+--> However, if the CDN is down or for some reason, our application is not able to reach the CDN, we want our application to fallback and load the minified bootstrap file (bootstrap.min.css) from our own application web server.
+
+----------------------------------------------------------------------------------
+
+2. How to set Application Environment
+
+--> Use the ASPNETCORE_ENVIRONMENT variable to set the environmental variable in launchsettings.json file
+
+----------------------------------------------------------------------------------
+
+3. Environment Tag Helper
+
+--> Environment tag helper supports rendering different content depending on the application environment.
+--> There are two keywords used 'include' and 'exclude'.
+
+
+<environment include="Development">
+    <link href="~/lib/bootstrap/css/bootstrap.css" rel="stylesheet" />
+</environment>
+
+<environment include="Staging,Production">
+    <link rel="stylesheet" href="cdnLink"
+</environment>
+
+or
+
+<environment exclude="Development">
+    <link rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+            integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+            crossorigin="anonymous">
+</environment>
+
+----------------------------------------------------------------------------------
+
+4. The integrity attribute on Link tag
+
+--> The "integrity" attribute on the <link> element is used for Subresource Integrity check. 
+--> Subresource Integrity (SRI for short), is a security feature that allows a browser to check if the file being retrieved has been maliciously altered. 
+--> When the browser downloads the file, it recalculates the hash and compares it against the "integrity" attribute hash value. 
+--> If the hash values match, the browser allows the file to be downloaded otherwise it is blocked.
+
+----------------------------------------------------------------------------------
+
+4. What if the CDN is down
+
+--> If the CDN is down or for some reason, our application is not able to reach the CDN, we want our application to fallback and load the minified bootstrap file (bootstrap.min.css) from our own application web server
+
+----------------------------------------------------------------------------------
+
+<environment include="Development">
+    <link href="~/lib/bootstrap/css/bootstrap.css" rel="stylesheet" />
+</environment>
+
+<environment exclude="Development">
+    <link rel="stylesheet"
+            integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+            crossorigin="anonymous"
+            href="https://sstackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+            asp-fallback-href="~/lib/bootstrap/css/bootstrap.min.css"
+            asp-fallback-test-class="sr-only" asp-fallback-test-property="position"
+            asp-fallback-test-value="absolute"
+            asp-suppress-fallback-integrity="true" />
+</environment>
+
+----------------------------------------------------------------------------------
+
+5. asp-fallback
+
+--> The following 3 attributes and their associated values are used to check if the CDN is down
+asp-fallback-test-class="sr-only" 
+asp-fallback-test-property="position" 
+asp-fallback-test-value="absolute"
+
+--> The Last attribute, asp-suppress-fallback-integrity="true", will check for integrity from our server, instead of 3rd party server.
+--> We can make it false.
+
+----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

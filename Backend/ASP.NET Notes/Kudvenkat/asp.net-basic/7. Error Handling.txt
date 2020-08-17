@@ -1,0 +1,129 @@
+1. Intro-->
+
+--> Exceptions are unforeseen errors that happen within the logic of application.
+--> If it not handled, that exception is called as unhandled exception
+--> An unhandled exception is displayed to the user using as "Yellow screen of death"
+
+--> Handled by try-catch block
+--> Below code try to read xml file-->
+
+protected void Page_Load(object sender, EventArgs e)
+    {
+        Response.Write(System.Security.Principal.WindowsIdentity.GetCurrent().Name);	---> identity access mode --> only allow that user which is allowed to access
+        try
+        {
+            DataSet ds = new DataSet();
+            ds.ReadXml(Server.MapPath("~/Countrie.xml"));
+
+            GridView1.DataSource = ds;
+            GridView1.DataBind();
+        }
+        catch(System.IO.FileNotFoundException error)		--> catching exception  (className and variable)
+        {
+            // Log the exception
+            Label1.Text = error.Message;
+        }
+        catch(Exception exception)				--> catches all exception (Exception is base class of all exceptions)
+        {
+            Label1.Text = exception.Message;
+        }
+        finally
+        {
+            // clean up code					---> also be used to close database connection
+        }
+      
+    }
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+2. Error Events-->
+
+--> Try/Catch block are termed as structural exception handling.
+--> Error Events can be used as a substitute or supplemental to structured exceptional handling.
+
+--> When any exception is raised, it first propages to page level and then finally to application level
+--> So specific event listeners are added to system to handle that.
+
+--> Events->
+1. Page_Error
+--> This event is raised at the page level. The event handler resides on the page.
+
+2. Application_Error
+--> This event is raised at the applcation level. The event handler resides in Global.asax file.
+
+-----------------------------------------------------------------------------
+
+protected void Page_Load(object sender, EventArgs e)
+    {
+        DataSet ds = new DataSet();
+        ds.ReadXml(Server.MapPath("~/Countrie.xml"));
+
+        GridView1.DataSource = ds;
+        GridView1.DataBind();
+    }
+
+protected void Page_Error(object sender, EventArgs e)
+    {
+        Exception ex = Server.GetLastError();
+        // log the error
+        Server.ClearError();
+        Response.Redirect("~/Errors.aspx");
+
+    }
+
+--> Errors.aspx-->
+
+<h1>Application Error</h1>
+<h2>An Error has occured. Sorry for inconvinience</h2>
+
+--------------------------------------------------------------------
+Notes-->
+
+1. If exception is not cleared in Page_Error event, it gets propagated to the application level which centralised zone for error handling.
+2. If application_error event handler is not clearing exception, the application crashes with the yelow screen of death.
+3. If the exception is cleared at an event and redirection to Errors.aspx is not done, then a blank page is displayed. This is because web form processing is immediately stopeed when an exception occurs
+
+----------------------------------------------------------------------------------
+
+3. Custom Errors-->
+
+--> Third alternative to handle exceptions
+--> It also redirects to error page but method is different
+--> It uses web.config and directive
+--> It only uses httpstatuscode for redirection for any page.
+
+--> Custom Error pages can be defined at 2 levels
+1. Application level--> in web.config file using "customErrors" element.
+2. Page level --> in page directive, using "ErrorPage" attribute
+
+--> Custom error pages takes precedence over application level custom error pages.
+
+----------------------------------------------------------------------------
+
+--> web.config file--> under <system.web>
+
+<customErrors mode="On" defaultRedirect="DefaultErrorPage.aspx">
+	<error statusCode="401" redirect="UnauthorizedErrorPage.aspx" />
+	<error statusCode="404" redirect="PageNotFoundErrorPage.aspx" />
+	<error statusCode="500" redirect="InternalServerErrorPage.aspx" />
+</customErrors>
+
+--> in page-directice-->
+
+<% Page ErrorPage="~/UnauthorizedErrorPage.aspx"  ... /> 
+
+----------------------------------------------------------------------------
+
+--> The Mode-->
+
+--> It determines when a custom error page is displayed over the yellow screen of death.
+1. On --> custom error pages displayed on both on local and remote machine
+2. Off --> Not displayed anywhere.
+3. RemoteOnly (default)--> custom error pages are displayed on remote machines and exception page on local machine.
+
+-------------------------------------------------------------------------------
+
+--> If the redirection is done in Application_Error() event handler in global.asax, custom error pages will have no effect.
+--> Always use Server.GetLastError() during custom error page, because the context for the error is lost and Server.GetLastError() return nothing from the target custom error page.
+
+------------------------------------------------------------------------------

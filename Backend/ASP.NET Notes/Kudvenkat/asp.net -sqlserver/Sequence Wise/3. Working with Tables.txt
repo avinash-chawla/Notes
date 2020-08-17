@@ -1,0 +1,70 @@
+--> Create Table and setting primary and foreign key
+
+1. Create Table Graphically
+
+1. Right click on Tables folder in Object explorer window
+2. Select New Table
+3. Fill Column Name, Data Type and Allow Nulls
+
+--------------------------------------------------------------------------------
+
+2. Create Table using Query
+
+
+Create table tblEmployee
+(
+Id int primary key Not Null,
+Name nvarchar(50) not null,
+Email nvarchar(50) not null,
+GenderId int 
+)
+
+
+Create Table tblGender
+(
+ID int Not Null Primary Key,
+Gender nvarchar(50)
+)
+
+--------------------------------------------------------------------------------
+
+3. Setting Foreign Key Graphically
+
+--> In tblPerson table, GenderID is the foreign key referencing ID column in tblGender table
+
+1. Right click tblPerson table and select Design
+2. In the table design window, right click on GenderId column and select Relationships
+3. In the Foreign Key Relationships window, click Add button
+4. Now expand, in Tables and Column Specification row, by clicking the, + sign
+5. Click on the elipses button, that is present in Tables and Column Specification row
+6. From the Primary Key Table, dropdownlist, select tblGender
+7. Click on the row below, and select ID column
+8. From the column on the right hand side, select GenderId
+9. Click OK and then click close.
+10. Finally save the table.
+
+--------------------------------------------------------------------------------
+
+4. Setting Foreign Key using Query
+
+Alter table tblPerson 
+add constraint tblPerson_GenderId_FK 
+FOREIGN KEY (GenderId) references tblGender(ID)
+
+--------------------------------------------------------------------------------
+
+5. General Formula for FK
+
+Alter table ForeignKeyTable 
+add constraint ForeignKeyTable_ForiegnKeyColumn_FK 
+FOREIGN KEY (ForiegnKeyColumn) references PrimaryKeyTable (PrimaryKeyColumn)
+
+--------------------------------------------------------------------------------
+
+6. Benefits of FK
+
+--> Foreign keys are used to enforce database integrity. 
+--> In layman's terms, A foreign key in one table points to a primary key in another table. 
+--> The foreign key constraint prevents invalid data form being inserted into the foreign key column. 
+
+--------------------------------------------------------------------------------

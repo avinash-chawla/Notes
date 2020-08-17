@@ -1,0 +1,36 @@
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <form>
+        Element: <input type="text" class="getElement"><br>
+        Attribute: <input type="text" class="getType"><br>
+        Class: <input type="text" class="getClass"><br>
+        Value: <input type="text" class="getValue"><br><br>
+        <button type="button" class="btn">Generate</button>
+    </form>
+    <div class="space"></div>
+
+    <script>
+        $(document).ready(function () {
+            $(".btn").click(function () {
+                var element = $('.getElement').val();
+                var attribute = $('.getType').val();
+                var classValue = $('.getClass').val();
+                var value = $('.getValue').val();
+
+                if ($(".getElement").val() == "input") {
+                    $(".space").append('<input type="' + $('.getType').val() + '" class="' + $('.getClass').val() + '" value="' + $('.getValue').val() + '"></input>');
+                }
+
+                if($(".getElement").val() == "checkbox"){
+                    $(".space").append('<input type')
+                }
+            })
+        })
+    </script>
+</body>
+</html>

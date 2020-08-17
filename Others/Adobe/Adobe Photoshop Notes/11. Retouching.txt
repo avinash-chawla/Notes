@@ -1,0 +1,92 @@
+1. How to remove people & text from a picture-->
+
+--> Select image
+--> Select Object to remove from image using Polygon Lasso Tool
+--> Edit tab --> Fill --> Contents --> Content-aware --> OK
+
+--> Object can be selected using Polytool Lasso tool or Marquee tool
+--> Use both, first use Rectangle Marquee tool then Lasso tool
+
+------------------------------------------------------------------
+
+2. How to fix teeth in Adobe Photoshop-->
+
+--> We can use Dodge tool to lighten and brighten teeth, but sometimes sparkly red and you also lighten and appear in dodge tool
+--> Trick is, first we desaturate teeth (take out color of teeth, make it gray) using sponge tool
+--> Then we dodge teeth.
+
+--> Select Image with teeth
+--> Duplicate this Image
+--> Choose Sponge tool with mode: Desaturate
+--> Gray the teeth
+
+--> Select Dodge tool
+--> Make sure to uncheck protect tones --> To get freedom in whitening the teeth without worrying about toner
+--> Make teeth white and bright.
+
+--> If you gone too far in whitening
+--> Select Duplicated Layer, reduce its opacity
+
+
+------------------------------------------------------------
+
+3. How to remove red eye from photographs-->
+
+--> Select Image
+--> Select RedEye tool placed inside of spot healing brush tool
+--> Click on Red Eye
+
+
+--------------------------------------------------------------
+
+4. How to retouch skin in adobe photoshop-->
+
+--> Remove marks and spots in image or skin
+--> Select Image
+--> Select Spot Healing Brush
+
+--> Only useful for very smaller objects.
+
+--> It will make destructive layer, so can't undo changes once saved
+
+------------------------------------------------------------
+
+--> Solution-->
+
+--> Create new layer above image
+--> Select that new layer
+--> In spot healing brush properties, check Sample All Layers
+--> This will not destroy original image, every change is in this new layer not image layer
+
+
+--> To make more real, lower the opacity of this new layer which you created.
+------------------------------------------------------------
+
+5. Retouching Eyes-->
+
+--> Select Image with Beautiful Face
+
+--> Select Dodge tool with exposure 20-30%
+--> Whiten the white portion of eyes.
+--> Select Sponge tool with Desaturate mode and remove any color like yellow, brown from white portion of eye.
+
+--> With Dodge tool, bright the reflection of light which is appearing on eyeball.
+--> With Sponge tool with Saturate mode, saturate eye ball
+
+--> Explosure is taken less bec. to make like real, should not look like overcooked photograph.
+----------------------------------------------------------------
+
+--> Select burn tool
+--> Darken the eye brow and little shadow between eye and eyebrow, from this, eye will look sharpen due to contrast and shadow
+
+--> With burn tool with larger brush
+--> Draw some jaw line indicating shadow of jaw line
+
+--> With Sponge tool in saturate mode
+--> Drag on Hair part to make it more Saturate, rich, attractive hair.
+
+
+--> At last, if image is looked like overcooked, extra, --> just lower its opacity
+--> Make sure to duplicate this layer first
+
+---------------------------------------------------------------

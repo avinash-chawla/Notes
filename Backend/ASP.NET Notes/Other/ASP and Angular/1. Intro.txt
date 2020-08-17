@@ -1,0 +1,158 @@
+1. Software Settings
+
+1. .Net SDK
+--> dotnet -v
+--> visual studio also installs dot.net sdk on machine
+--> dotnet core sdk is a set of libraries and tools that allows developers to create
+--> It also contains components to build and run applications
+--> sdk stands for software development kits
+--> It is used to develop applications for Microsoft Windows and .Net Framework.
+
+2. Nodejs
+--> download and install nodejs also that gives npm to install angular
+--> npm -v and node -v
+
+3. DB for sqlite
+
+--> Dotnet will make api endpoint for data 
+--> Angular will be used to generate view on client side based on data from api endpoint
+
+----------------------------------------------------------------------
+
+2. Walking Skeleton
+
+--> A walking skeleton is a tiny implementation of the system that performs a small end-to-end function. It need not use the final architecture, but it should link together the main architectural components. The architecture and the functionality can then evolve in parallel
+--> In layman language, what we need and what to do first
+--> We need DB, ORM, API, SPA(Single Page Applications)
+--> Steps:
+1. Create the Web API project
+2. Review the default files created by the DotNetCLI
+3. Ensure the Web API runs successfully
+4. Create our Database using the Code First approach
+5. Add source control
+6. Create the Angular application
+7. Make Http requests from Angular to fetch data from our API
+8. Bind data from the API to html to display it on page
+9. Add support for Bootstrap and Font-Awesome
+
+-----------------------------------------------------------------------------
+
+3. DotNetCli
+
+--> dotnet -h		--> help --> shows all commands
+--> dotnet new -h	--> new will create project and -h will show templates
+--> dotnet new webapi -h	--> shows more options
+--> mkdir DatingApp
+--> cd DatingApp
+--> ls
+--> dotnet new webapi -o DatingApp -n DatingApp.API	  (o for output and n for name)
+
+
+or 
+
+--> Use Visual Studio to create new project --> simple and easy
+
+---------------------------------------------------------------------------
+
+4. Reviewing Project Files
+
+--> To make visual studio code supports dotnet
+--> open command pallete(ctrl+shift+p) --> type "shell" (there is one option to make it on PATH)
+
+--> Extension: 
+1. C# (OmniSharp) 	--> give intellisense and debug mode
+2. C# Extensions	--> able to create classes in solution explorer
+3. NuGet Package Manager --> able to install packages
+
+--> To run application and start the webserver 
+1. dotnet run 		(in terminal)
+2. dotnet watch run 	(watch all files and does not need to stop the server for changes in files)
+--> visit: http://localhost:5000/weatherforecast 
+
+1. Controllers folder 	--> contains all controllers for api
+2. bin 			--> contains compiled file
+3. Properties 		--> contains launchSettings.json like portnumber, debugging mode
+4. wwwroot 		--> Different Environment Settings for Debug and release mode
+5. program.cs 		--> starting point --> contains main method
+6. Startup.cs   	--> contains App_Start settings like database settings
+7. WeatherForecase.cs 	--> model domain class
+
+---------------------------------------------------------------------------
+
+5. Creating the First Model and DataContext
+
+--> Make new folder Models
+--> Make new file inside it --> Value.cs
+--> Model and Entity are similar words in mvc
+--> Value.cs
+--> namespace DatingApp.Models
+{
+    public class Value
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+}
+
+------------------------------------------------------------------
+
+--> To let entity framework know which model we are using --> DbContext class is used
+--> Any class inheriting DbContext class can be used.
+
+--> Make new folder --> Data
+--> Make new file inside it --> DataContext.cs
+--> public class DataContext : DbContext
+--> DbContext instance represents session with database and can be used to query and save instances of your entities
+
+--> using DatingApp.Models;
+--> using Microsoft.EntityFrameworkCore;
+--> public class DataContext : DbContext
+    {
+        public DataContext(DbContextOptions<DbContext> options) : base (options) {}		--> overriding constructor
+        public DbSet<Value> Values { get; set; }
+    }
+
+------------------------------------------------------------------
+
+--> To let application know, we are entityframework with sqlite database --> configuration done in startup.cs
+--> using Microsoft.EntityFrameworkCore;
+--> public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddDbContext<DataContext>(x => x.UseSqlite("connections"));		--> in argument, there is action argument
+            services.AddControllers();
+        }
+
+--> install package from package manager: EntityFrameworkCore.Sqlite and EntityFrameworkCore
+
+---------------------------------------------------------------------------
+
+5. Creating the Database using Entity Framework migrations
+
+--> In appsettings.json-->
+{
+  "ConnectionStrings": {
+    "DefaultConnection":  "data Source = DatingApp.db"
+  },
+  "Logging": {
+
+--------------------------------------------------------
+
+--> To Let Application about this connectionString --> startup.cs
+--> using Microsoft.EntityFrameworkCore;
+--> public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddControllers();
+        }
+
+--------------------------------------------------------
+
+--> To create migration
+
+--> dotnet tool install --global dotnet-ef
+--> dotnet-ef --help
+--> dotnet ef migrations add InitialCreate
+
+
+--> Install-Package Microsoft.EntityFrameworkCore.Tools -Version 3.1.4
+--------------------------------------------------------

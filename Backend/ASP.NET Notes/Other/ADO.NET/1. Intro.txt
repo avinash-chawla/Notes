@@ -1,0 +1,141 @@
+1. Intro
+
+--> ADO.NET is a module of .Net Framework which is used to establish connection between application and data sources. 
+--> Data sources can be such as SQL Server and XML. ADO.NET consists of classes that can be used to connect, retrieve, insert and delete data.
+
+--> All the ADO.NET classes are located into System.Data.dll and integrated with XML classes located into System.Xml.dll.
+
+--> ADO.NET has two main components that are used for accessing and manipulating data are the .NET Framework data provider and the DataSet.
+
+-------------------------------------------------------------------------------
+
+2. .NET Framework Data Providers
+
+--> These are the components that are designed for data manipulation and fast access to data. 
+--> It provides various objects such as Connection, Command, DataReader and DataAdapter that are used to perform database operations.
+
+-------------------------------------------------------------------------------
+
+3. The DataSet
+
+--> It is used to access data independently from any data resource. 
+--> DataSet contains a collection of one or more DataTable objects of data.
+
+-------------------------------------------------------------------------------
+
+4. Which one should we use DataReader or DataSet?
+
+--> We should consider the following points to use DataSet.
+
+--> It caches data locally at our application, so we can manipulate it.
+--> It interacts with data dynamically such as binding to windows forms control.
+--> It allows performing processing on data without an open connection. It means it can work while connection is disconnected.
+--> If we required some other functionality mentioned above, we can use DataReader to improve performance of our application.
+
+--> DataReader does not perform in disconnected mode. It requires DataReader object to be connected.
+
+-------------------------------------------------------------------------------
+
+5. ADO.NET Framework Data Providers
+
+--> Data provider is used to connect to the database, execute commands and retrieve the record. 
+--> It is lightweight component with better performance. It also allows us to place the data into DataSet to use it further in our application.
+
+--> Following are the core object of Data Providers.
+
+
+Object		Description
+
+Connection	It is used to establish a connection to a specific data source.
+Command		It is used to execute queries to perform database operations.
+DataReader	It is used to read data from data source. The DbDataReader is a base class for all DataReader objects.
+DataAdapter	It populates a DataSet and resolves updates with the data source. The base class for all DataAdapter objects is the DbDataAdapter 			class.
+
+
+--> The .NET Framework Data Provider for SQL Server classes is located in the System.Data.SqlClient namespace.
+
+-------------------------------------------------------------------------------
+
+6. .NET Framework Data Provider for SQL Server
+
+--> The .NET Framework Data Provider for SQL Server classes is located in the System.Data.SqlClient namespace.
+--> This namespace contains the following important classes.
+
+SqlConnection	It is used to create SQL Server connection. This class cannot be inherited.
+SqlCommand	It is used to execute database queries. This class cannot be inherited.
+SqlDataAdapter	It represents a set of data commands and a database connection that are used to fill the DataSet. This class cannot be inherited.
+SqlDataReader	It is used to read rows from a SQL Server database. This class cannot be inherited.
+SqlException	This class is used to throw SQL exceptions. It throws an exception when an error is occurred. This class cannot be inherited.
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

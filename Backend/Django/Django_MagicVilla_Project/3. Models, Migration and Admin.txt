@@ -1,0 +1,485 @@
+1. Install Postgre and PgAdmin
+
+--> Open Postge CMD
+--> Write following commands,
+
+--> \password postgres		# creating user:postgres with password: password
+--> Enter password again: password
+--> Create Database btredb OWNER postgres;	(name of user at end)
+--> \l				# list all databases
+--> \q				# to quit from that 
+
+---------------------------------------------------------------------------------
+
+2. PgAdmin
+
+--> Create DB using PgAdmin
+--> open PgAdmin
+--> It will automatically find postre and ask for password
+
+if not
+
+--> Right click server
+--> In General tab, Name: dbserver
+--> In Connection tab, Name: localhost, username: postgres, password: password
+
+--> Right click servers
+--> Create database --> Name it: btredb
+--> In security tab --> set all priviledges for this user
+
+---------------------------------------------------------------------------------
+
+3. Django Postgres Setup
+
+--> pip install psycopg2
+--> pip install psycopg2-binary
+
+--> In settings.py
+
+Databases = {
+   'default' : {
+	'ENGINE' : 'django.db.backends.postgresql',
+	'NAME': 'btredb',
+	'USER': 'postgres',
+	'PASSWORD': 'password'
+	'HOST': 'localhost'
+    }
+}
+
+--> python manage.py migrate
+
+--> It will do migrations for admin domain which is inbuilt in Django
+--> Refresh the pgAdmin
+
+---------------------------------------------------------------------------------
+
+4. Planning our Schemas
+
+MODEL/DB FIELDS
+
+### LISTING
+
+
+id: INT
+
+realtor: INT (FOREIGN KEY [realtor])
+
+title: STR
+address: STR
+
+city: STR
+state: STR
+
+zipcode: STR
+
+description: TEXT
+
+price: INT
+
+bedrooms: INT
+
+bathrooms: INT
+
+garage: INT [0]
+
+sqft: INT
+
+lot_size: FLOAT
+
+is_published: BOOL [true]
+
+list_date: DATE
+
+photo_main: STR
+
+photo_1: STR
+
+photo_2: STR
+
+photo_3: STR
+
+photo_4: STR
+
+photo_5: STR
+
+photo_6: STR
+
+
+
+
+
+### REALTOR
+id: INT
+name: STR
+
+photo: STR
+
+description: TEXT
+
+email: STR
+
+phone: STR
+
+is_mvp: BOOL [0]
+
+hire_date: DATE
+
+
+
+
+
+### CONTACT
+
+id: INT
+
+user_id: INT
+
+listing: INT
+
+listing_id: INT
+
+name: STR
+
+email: STR
+
+phone: STR
+
+message: TEXT
+
+contact_date: DATE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> We will store the image in static folder
+--> And pass the file path to database
+
+---------------------------------------------------------------------------------
+
+5. Create Listing Model
+
+--> https://docs.djangoproject.com/en/2.1/ref/models/fields/
+--> This doc contains all fields for creating model schema
+
+--> In models.py of listing app
+
+from django.db import models
+from datetime import datetime
+from realtors.models import Realtor
+
+class Listing(models.Model):
+    realtor = models.ForeignKey(Realtor, on_delete = models.DO_NOTHING)
+    title = models.CharField(max_length=200)
+    address = models.CharField(max_length=200)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    zipcode = models.CharField(max_length=20)
+    description = models.TextField(blank = True)
+    price = models.IntegerField()
+    bedrooms = models.IntegerField()
+    bathrooms = models.DecimalField(max_digits=2, decimal_places=1)
+    garage = models.IntegerField(default=0)
+    sqft = models.IntegerField()
+    lot_size = models.DecimalField(max_digits=5, decimal_places=1)
+    photo_main = models.ImageField(upload_to = 'photos/%Y/%m/%d/')    
+    photo_1 = models.ImageField(upload_to = 'photos/%Y/%m/%d/', blank=True)
+    photo_2 = models.ImageField(upload_to = 'photos/%Y/%m/%d/', blank=True)
+    photo_3 = models.ImageField(upload_to = 'photos/%Y/%m/%d/', blank=True)
+    photo_4 = models.ImageField(upload_to = 'photos/%Y/%m/%d/', blank=True)
+    photo_5 = models.ImageField(upload_to = 'photos/%Y/%m/%d/', blank=True)
+    photo_6 = models.ImageField(upload_to = 'photos/%Y/%m/%d/', blank=True)
+    is_published = models.BooleanField(default=True)
+    list_date = models.DateTimeField(default = datetime.now, blank=True)
+    def __str__(self):
+        return self.title
+    
+
+--> This __str__ function if for display in admin area at title of list
+--> For photos, we use ImageField and upload_to parameter will save photo file to static folder (datewise folder)
+
+---------------------------------------------------------------------------------
+
+6. Creating Realtor Model
+
+--> In models.py of realtor app,
+
+from django.db import models
+from datetime import datetime
+
+class Realtor(models.Model):
+    name = models.CharField(max_length=200) 
+    photo = models.ImageField(upload_to = 'photos/%Y/%m/%d/') 
+    description = models.TextField(blank = True) 
+    phone = models.CharField(max_length=20) 
+    email = models.CharField(max_length=30) 
+    is_mvp = models.BooleanField(default = False)
+    hire_date = models.DateTimeField(default = datetime.now, blank=True)
+    def __str__(self):
+        return self.name
+
+---------------------------------------------------------------------------------
+
+7. Making Migrations and running Migrations
+
+--> To make migrations from django, we need to install a package --> Pillow
+--> pip install Pillow
+
+--> Now we have created our models
+--> python manage.py makemigrataions
+
+--> It will create a migration file in migrations folder
+--> To view the sql queries run by this migration file
+
+--> python manage.py sqlmigrate listings 0001
+--> It will list all queries
+
+--> To update the database with migration file
+--> python manage.py migrate
+
+--> Now check database for tables
+
+---------------------------------------------------------------------------------
+
+8. Create superuser and Register models with Admin
+
+--> There is an inbuilt app --> admin
+--> When you head over to --> localhost:8000/admin --> It will ask for username and password
+--> python manage.py createsuperuser
+--> It will ask for username, email and password
+--> Now login in that admin area in above url
+
+--> To Register model with Admin
+--> In admins folder of listings app,
+
+from .models import Listing
+
+admin.site.register(Listing)
+
+--> In admins folder of Realtor app,
+
+from .models import Realtor
+
+admin.site.register(Realtor)
+
+---------------------------------------------------------------------------------
+
+9. Media Folder and Adding Data
+
+--> We will not use static folder for storing images
+--> We will use media folder for storing images
+
+---------------------------------------------------------------------------------
+
+--> In settings.py,
+
+# Media Folder Settings
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+---------------------------------------------------------------------------------
+
+--> In main urls.py,
+
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns = [
+    path('', include("pages.urls")),
+    path('listings/', include("listings.urls")),
+    path('admin/', admin.site.urls),
+] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT )
+
+---------------------------------------------------------------------------------
+
+--> Now Adding Data,
+--> Open theme about page,
+--> In admin page, in realtors fill all realtors with image and other details, there are total 3
+
+--> Open Index theme page
+--> Fill all 6 listings with images
+
+--> Images will be found in btre resources.
+
+---------------------------------------------------------------------------------
+
+10. Changing Admin Logo and CSS 
+
+--> In templates folder, make new folder 'admin'
+--> Make new file --> base_site.html
+
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block branding %}
+  <h1 id="head">
+    <img src="{% static 'img/logo.png' %}" alt="BT Real Estate" height="50" width="80" class="brand_img"> Admin Area
+  </h1>
+{% endblock %}
+{% block extrastyle %}
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+
+--> WE are extending admin html and replacing with our features
+--> In block branding, we can change title from django Adminitration to our own name, also included logo
+--> We are also changing default colors of admin page with admin.css
+
+---------------------------------------------------------------------------------
+
+--> In static folder of btre main app, in css folder,
+--> Make new file --> admin.css
+
+#header {
+  height: 50px;
+  background: #10284e;
+  color: #fff;
+}
+
+#branding h1 {
+  color: #fff;
+}
+
+a:link,
+a:visited {
+  color:#10284e;
+}
+
+div.breadcrumbs {
+  background: #30caa0;
+  color: #10284e;
+}
+
+div.breadcrumbs a {
+  color: #333;
+}
+
+.module h2, .module caption, .inline-group h2 {
+  background: #30caa0;
+}
+
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+  background: #10284e;
+  color: #fff;
+}
+
+---------------------------------------------------------------------------------
+
+11. Customize Admin Display Data
+
+--> When you do to edit menu of domain in admin, a table is displayed of all entities inside that domain
+
+--> Now, there is only field there title
+--> We want to customize it by adding other fields also
+
+--> In admins.py of listing,
+
+---------------------------------------------------------------------------------
+
+from django.contrib import admin
+
+from .models import Listing
+
+class ListingAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'is_published', 'price', 'list_date', 'realtor')
+    list_display_links = ('id', 'title')
+
+admin.site.register(Listing, ListingAdmin)
+
+---------------------------------------------------------------------------------
+
+--> Now other fields are also added
+--> list_display property will include properties
+--> list_display_links will navigate us to detail of it.
+--> By default, this navigation is available on id, so we use this property to add both fields as navigation to go to detail view.
+
+--> Now all table titles will do sorting by default when you click it.
+
+---------------------------------------------------------------------------------
+
+--> To add filter box, just like in amazon website, we use another property
+
+list_filter = ('realtor',)		--> as it is tuple, so trailing comma
+
+---------------------------------------------------------------------------------
+
+--> To make list editable from this table only, not going into details view
+
+list_editable = ('is_published',)
+
+---------------------------------------------------------------------------------
+
+--> Make search fields available,
+
+search_fields = ('title', 'description', 'address', 'city', 'state', 'zipcode', 'price')
+
+---------------------------------------------------------------------------------
+
+--> Make Pagination available
+
+list_per_page = 25
+
+---------------------------------------------------------------------------------
+
+--> For Realtor,
+
+class RealtorAdmin(admin.ModelAdmin):
+   list_display = ('id', 'name', 'email', 'hire_date')
+   list_display_links = ('id', 'name')
+   search_fields = ('name',)
+
+admin.site.register(Realtor, RealtorAdmin)
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

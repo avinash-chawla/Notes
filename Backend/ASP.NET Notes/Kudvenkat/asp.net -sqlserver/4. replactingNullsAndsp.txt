@@ -1,0 +1,329 @@
+1. Different ways to replace NULL values-->
+
+--> ISNULL(), CASE, COALSCE()
+
+1. ISNULL()-->
+
+select E.Name as Employee, ISNULL (M.NAME, 'No Manager') as Manager
+from tblEmployee E
+left join tblEmployee M
+ON E.ManagerID = M.EmployeeID
+
+--> ISNULL (M.Name, 'No Manager') --> whenever M.Name is null, function will replace it with NO Manager
+
+-------------------------------------------------------------------------------------------
+2. CASE-->
+
+CASE WHEN Expression THEN '' ELSE '' END
+
+select E.Name as Employee,
+CASE WHEN M.Name IS NULL THEN 'No Manager' ELSE M.Name END M.Name as Manager
+from tblEmployee E
+left join tblEmployee M
+ON E.ManagerID = M.EmployeeID
+
+--------------------------------------------------------------------------------------------
+
+3. COALESCE()-->
+
+--> remember as coal-esc-e
+
+select E.Name as Employee, COALESCE (M.NAME, 'No Manager') as Manager
+from tblEmployee E
+left join tblEmployee M
+ON E.ManagerID = M.EmployeeID
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+2. COALESCE()-->
+
+--> suppose we have to write name from fullName
+--> if firstName is absent, we use middleName as name
+--> if middleName is absent, we use lastName as name
+
+--> such prioritise of fields is decided by coalesce()
+
+--> it returns the first NON NULL value
+
+select id, coalesce(firstName, middleName, lastName) as Name from tblEmployee 
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+3. UNION & UNION ALL-->
+
+--> they are used to combine rows of different tables
+--> for union to work, the number, data type and order of columns in the select statement should be same
+
+--> Union --> combine rows and also remove duplicate rows
+--> Union All--> combine rows but also contains duplicate rows
+
+Select Id, Name, Email from tblIndiaCustomers
+UNION 
+Select Id, Name, Email from tblUKCustomers
+
+-----------------------------------------------------
+
+--> below will give unexpected error
+Select Id, Email, Name from tblIndiaCustomers
+UNION 
+Select Id, Name, Email from tblUKCustomers
+
+--> add name to email and email to name
+
+-----------------------------------------------------
+
+--> we can also combine 3 tables using union clause
+
+select * from ..
+UNION
+select * from ..
+UNION
+select * from ..
+
+-----------------------------------------------------
+
+note--> order by clause should be used only on the last select statement in union query
+
+difference between joins and unions-->
+
+union combine rows from 2 or more tables
+joins combine columns from 2 or more tables
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+4. Stored Procedure-->
+
+--> It is a group of T-SQL (Transact Sql) statements.
+--> If you have a situation, where you write the same query over and over again, you can save the specific query as a stored procedure and call it just by it's name.
+
+CREATE PROCEDURE spGetEmployeees		--> or PROC
+AS 
+BEGIN 
+	Select Name, Gender from tblEmployee
+END
+
+--> expand table --> expand programmability --> expand stored procedures --> refresh it
+
+--------------------------------------------------------------------------------------
+
+--> use it anywhere 
+
+different ways to use it--> 
+spGetEmployees			--> run it
+execute spGetEmployees
+exec spGetEmployees
+right click in sidebar to stored procedure --> execute it
+
+--> in above, it is like we store query in variable
+
+--------------------------------------------------------------------------------------
+
+--> using sp with parameters just like function
+
+Create Proc spGetEmployeesByGenderAndDepartment
+@Gender nvarchar(20),
+@DepartmentId int
+as 
+Begin
+	Select Name, Gender, DepartmentId from tblEmployee Where Gender = @Gender
+	and DepartmentId = @DepartmentId
+End							--> run it
+
+
+spGetEmployeeByGenderAndDepartment 'Male',1					--> run it
+spGetEmployeeByGenderAndDepartment @DepartmentId = 1, @Gender = 'Male'		--> run it
+
+--------------------------------------------------------------------------------------
+
+--> getting the definition of stored procedure-->
+
+two ways --> 
+1. expand database --> programmability --> right click that sp --> script stored procedure as --> create to
+2. type below query-->
+
+sp_helptext spGetEmployees	--> sp_helptext is system sp
+
+--> Never use sp_ in user defined sp bec. system has sp_ so may conflict
+
+--------------------------------------------------------------------------------------
+
+--> you can create only once and alter many times as you want for modifications
+
+ALTER PROCEDURE spGetEmployeees		--> or PROC
+AS 
+BEGIN 
+	Select Name, Gender from tblEmployee order by Name		--> added order by clause
+END
+
+--> Drop Proc spGetEmployees	--> to drop procedure
+
+--------------------------------------------------------------------------------------
+
+--> we can also encript sp 
+
+Alter Proc spGetEmployeesByGenderAndDepartment
+@Gender nvarchar(20),
+@DepartmentId int
+WITH Encryption				--> add this keyword
+as 
+Begin
+	Select Name, Gender, DepartmentId from tblEmployee Where Gender = @Gender
+	and DepartmentId = @DepartmentId
+End
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+5. Stored Procudures with output parameters-->
+
+--> In this, variable will store output (result of query)
+
+Create Procedure spGetEmployeeCountByGender
+@Gender nvarchar(20),
+@EmployeeCount int output
+as 
+begin
+	Select Count(Id) from tblEmployee where Gender = @Gender
+end
+
+--> above will generate output, not store
+
+Create Procedure spGetEmployeeCountByGender
+@Gender nvarchar(20),
+@EmployeeCount int output
+as 
+begin
+	Select @EmployeeCount = Count(Id) from tblEmployee where Gender = @Gender
+end
+
+--> this will store output in variable 
+--> run it 
+
+----------------------------------------------------------------------------------------------
+
+--> time to use sp
+
+Declare @TotalCount int
+Execute spGetEmployeeCountByGender 'Male', @TotalCount output
+Print @TotalCount
+
+--> print is same as select
+--> we declare variable, store output of sp in that variable, we print the variable 
+
+----------------------------------------------------------------------------------------------
+
+--> using if and else in above --> 
+
+Declare @TotalCount int
+Execute spGetEmployeeCountByGender 'Male', @TotalCount output		--> or out
+Print @TotalCount
+if(@TotalCount is null)
+	print '@TotalCount is null'
+else
+	print '@Totalcount is not null'
+
+
+--> if output keyword is not specified, @TotalCount is null by default
+
+----------------------------------------------------------------------------------------------
+
+--> if we want to change order of parameter-->
+
+Declare @TotalCount int
+Execute spGetEmployeeCountByGender @EmployeeCoun = @TotalCount out , @Gender = 'Male'
+Print @TotalCount
+
+----------------------------------------------------------------------------------------------
+
+--> Useful system stored procedures -->
+
+1. sp_help --> view the information about the stored procedure, table, views, triggers, database any, information like parameter names, their databases,
+
+--> alternate way--> select that obj (sp, table) and press alt+f1
+
+2. sp_helptext --> view the text of the sp. if sp is encrypted, this will won't work
+
+3. sp_depends --> view the dependencies of sp. 
+
+--> this sp is very usefull, especially if you want to check, if there are any stored procedures that are referencing a table that you are abput to drop.
+--> sp_depends can also be used with table object
+
+----------------------------------------------------------------------------------------------
+
+6. Stored Procedure with return -->
+
+--> in output parameter, variable is used to store output (result)
+--> in return, sp returns an integer status variable, 0 for success and non-zero for failure
+
+1. Output Paramter-->
+
+Create Procedure spGetTotalCountOfEmployee
+@TotalCount int output
+as 
+begin 
+	select @TotalCount = Count(Id) from tblEmployee
+end
+
+declare @TotalEmployee int
+Execute spGetTotalCountOfEmployee @TotalEmployees Output
+select @TotalEmployess
+
+----------------------------------------------------------------------------------------------
+
+2. Using Return keyword-->
+
+Create Procedure spGetTotalCountOfEmployee
+as 
+begin 
+	return (select Count(Id) from tblEmployee)
+end
+
+
+declare @TotalEmployee int
+Execute @TotalEmployees = spGetTotalCountOfEmployee 
+select @TotalEmployess
+
+--> return sp can only be used when returning int
+--> return sp will give error below
+
+return (Select Name from tblEmployee where id = @id)
+--> error --> 'Conversion failed when converting the ncharvar value 'Sam' to data type int.'
+
+difference-->
+
+return --> 
+
+only integer datatype, 
+only one value, 
+use to convery success or failure
+
+
+output --> 
+
+any datatype, 
+more than one value, 
+use to return values like name, count both.
+
+-------------------------------------------------------------------------------------------
+
+7. Advantage
+
+1. check syntax
+2. compile query
+3. generated execution plan
+
+--> there are different to retrieve data from database, so it generates execution plan basically path to retrieve that data
+--> it is saved in sql server cache data, and whenever that query runs again, it will use that execution plan to save time
+
+-----------------------------------------------------------------------------------------
+
+
+--> Advantages of sp
+
+1. Execution plan retention and reusability
+2. Redues network traffic
+3. Code reusability and better maintainability
+4. Better Security
+5. Avoids SQL Injection attack
+
+--> there is video on what is sql injection and how to prevent it? -> check it out

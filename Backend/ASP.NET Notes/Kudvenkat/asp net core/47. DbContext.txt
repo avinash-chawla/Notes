@@ -1,0 +1,45 @@
+1. DbContext Class
+
+--> One of the very important classes in Entity Framework Core is the DbContext class. 
+--> This is the class that we use in our application code to interact with the underlying database. 
+--> It is this class that manages the database connection and is used to retrieve and save data in the database.
+
+----------------------------------------------------------------------------------
+
+2. To use the DbContext class in our application
+
+--> We create a class that derives from the DbContext class.
+--> We will create this class in Models folder.
+--> DbContext class is in Microsoft.EntityFrameworkCore namespace.
+
+public class AppDbContext : DbContext
+{ }
+
+----------------------------------------------------------------------------------
+
+3. DbContextOptions
+
+--> For the DbContext class to be able to do any useful work, it needs an instance of the DbContextOptions class.
+--> The DbContextOptions instance carries configuration information such as the connection string, database provider to use etc.
+--> To pass the DbContextOptions instance we use the constructor as shown in the example below.
+
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
+    {
+    }
+}
+
+----------------------------------------------------------------------------------
+
+4. DbSet
+
+--> The DbContext class includes a DbSet<TEntity> property for each entity in the model.
+--> We will use this DbSet property Employees to query and save instances of the Employee class.
+--> The LINQ queries against the DbSet<TEntity> will be translated into queries against the underlying database.
+
+public DbSet<Employee> Employees { get; set; }
+
+----------------------------------------------------------------------------------
+

@@ -1,0 +1,633 @@
+1. Understanding the Problem
+
+--> Add the ability to record rentals
+--> Approach: FrontEnd/BackEnd
+--> Input: Customer and Movie
+--> Output: Successful Message
+--> First work on skeleton/architecture/frame
+--> Action: MVC Controller/api controller
+--> If you want to return markup --> choose MVC controller
+--> If you want to return data --> choose API controller
+
+--> Questions:
+1. Understanding the problem
+2. Input and Output
+3. Approach from where to start--> front or back
+4. Which Action to choose --> api or mvc
+
+--> Here the problem is we have to register customer who has rented a movie and decrease Movie Stock from record
+--> For form, we need fields/Properties like Id(for database purpose only), CustomerId, more than one MovieId, DateRented, DataReturned
+
+-------------------------------------------------------------------------------
+
+2. Domain Modelling
+
+--> Starting from backend
+--> Action used: Api controller
+--> public class NewRentalsController : ApiController
+--> {
+	[HttpPost]
+	public IHttpActionResult CreateNewRentals(NewRentalDto newRental)
+	{
+		throw new NotImplementedException();
+	}
+--> }
+
+--> It is accepting form from client
+--> This an input to our application
+
+--------------------------------------------------------------------------
+
+--> NewRentalDto.cs
+--> public class NewRentalDto
+--> {
+	public int CustomerId {get; set; }
+	public List<int> MovieIds { get; set; }
+--> }
+
+--------------------------------------------------------------------------
+
+--> UML Class Diagram (Unified Modelling Language)
+--> It tells relationship between two or more model classes
+--> A customer can rent many movies and one movie can be rent by many customers
+--> When such relationship exists between models, we need association class which takes customer_id and movie_id and creates link between them, just like viewModel with additional properties like Date Rental and DateReturned
+--> Problem is rental so we give name as Rental class
+--> Customer and Movie will be navigation property, Id will be primary key, 
+
+---------------------------------------------------------------------------
+
+3. Domain Modelling - part2
+
+--> public class Rental
+--> {
+--> 	public int Id { get; set; }
+
+	[Required]
+	public Customer Customer { get; set; }
+	
+	[Required]
+	public Movie Movie { get; set; }
+	
+	public DateTime DateRented { get; set; }
+	public DateTime? DateReturned { get; set; }
+
+--> add migration after compiling application
+
+---------------------------------------------------------------------------
+
+4. Building the Simplest API
+
+--> [HttpPost]
+--> public IHttpActionResult CreateNewRental(NewRentalDto newRental)
+--> {
+	var customer = _context.Customers.Single(
+	    c => c.Id == newRental.CustomerId);
+
+	var movies = _context.Movies.Where(
+	    m => newRental.MovieIds.Contains(m.Id));
+
+	foreach (var movie in movies)
+	{
+		var rental = new Rental
+		{
+			Customer = customer,
+			Movie = movie,
+			DateRented = DateTime.Now
+		};
+		
+		_context.Rentals.Add(rental);
+	}
+	_context.SaveChanges()
+	return Ok();
+   }
+
+---------------------------------------------------------------------------
+
+--> Here we are using internal api for our application that we build for ourself
+--> If any external api we used, implemented using: 
+--> var customer = _context.Customers.SingleOrDefault(c => c.Id == newRental.CustomerId);
+--> if (customer == null)
+	return BadRequest("Invalid Customer Id.);
+
+---------------------------------------------------------------------------
+
+--> var movies = _context.Movies.Where(
+	    m => newRental.MovieIds.Contains(m.Id));
+--> It will take multiple movies instead of one
+--> Similar SQL statement:
+--> Select *
+--> From Movies
+--> Where Id IN (1, 2, 3)
+
+--> And for each movie object, we iterate over things and making new rental object storing properties of Movie, Customer and DateRented
+--> And in output, we return 200 OK status code
+
+---------------------------------------------------------------------------
+
+5. Adding the Details
+
+--> We can only rent a movie to customer if it is available in stock
+--> This should be property of Movie Model class
+--> NumberInStock --> total numbers of movies in store
+--> NumberAvailble --> total numbers of movies at present which can be rented
+
+--> Add this property in Movie Model class
+--> public byte NumberAvailable { get; set; }
+--> add-migration AddNumberAvailableToMovie
+--> add this sql statement in migration file:
+--> Sql("Update Movies Set NumberAvailable = NumberInStock");
+--> To initialize NumberAvailable column with initial values
+
+--> On each specific movie rented, we have to decrease NumberAvailable for Movie
+--> In api controller, CreateNewRental
+--> foreach(var movie in movies)
+--> {
+	movie.NumberAvailable--;
+	...
+--> }
+
+---------------------------------------------------------------------------
+
+6. Edge Cases
+
+--> We haven't discussed about following points:
+1. CustomerId is invalid
+2. No MovieIds
+3. One or more MovieIds are invalid
+4. One or more movies are not available
+
+---------------------------------------------------------------------------
+--> Defensive Approach
+
+[HttpPost]
+--> public IHttpActionResult CreateNewRental(NewRentalDto newRental)
+--> {
+	if (newRental.MovieIds.Count == 0)				-----------------------------------> Point 2
+	    return BadRequest("No Movie Ids have been given.");
+	
+	var customer = _context.Customers.SingleOrDefault(
+	    c => c.Id == newRental.CustomerId);
+
+	if(customer == null)
+	    return BadRequest("CustomerId is not valid");		-----------------------------------> Point 1
+
+	var movies = _context.Movies.Where(
+	    m => newRental.MovieIds.Contains(m.Id));
+
+	if(movies.Count !== newRental.MovieIds.Count)			-----------------------------------> Point 3
+	   return BadRequest("One or more MovieIds are invalid.");
+
+	foreach (var movie in movies)
+	{
+		if (movie.NumberAvailable == 0)				-----------------------------------> Point 4
+		    return BadRequest("Movie is not available");
+
+		movie.NumberAvailable--;
+
+		var rental = new Rental
+		{
+			Customer = customer,
+			Movie = movie,
+			DateRented = DateTime.Now
+		};
+		
+		_context.Rentals.Add(rental);
+	}
+	_context.SaveChanges()
+	return Ok();
+   } 
+
+---------------------------------------------------------------------------
+--> Optimistic Approach
+
+[HttpPost]
+--> public IHttpActionResult CreateNewRental(NewRentalDto newRental)
+--> {
+	var customer = _context.Customers.Single(
+	    c => c.Id == newRental.CustomerId);
+
+	var movies = _context.Movies.Where(
+	    m => newRental.MovieIds.Contains(m.Id));
+	
+	foreach (var movie in movies)
+	{
+		if (movie.NumberAvailable == 0)				
+		    return BadRequest("Movie is not available");
+
+		movie.NumberAvailable--;
+
+		var rental = new Rental
+		{
+			Customer = customer,
+			Movie = movie,
+			DateRented = DateTime.Now
+		};
+		
+		_context.Rentals.Add(rental);
+	}
+	_context.SaveChanges()
+	return Ok();
+   } 
+
+---------------------------------------------------------------------------
+
+7. Building the Front-end
+
+--> Create new controller: RentalsController
+--> public ActionMethod New()
+    {
+	return View(); 
+    }
+
+--> New.cshtml (View) -->
+
+--> There is no need of mentioning Layout property in each view file
+--> To make it default for each view, place this property in _ViewStart.cshtml under Views folder
+--> @{ 	Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+--> We will use Ajax method to process form under the hood without flickering browser page
+--> @Ajax.BeginForm()	--> It is used to call MVC actionMethod not api actionMethod
+
+<h2>New Rental Form</h2>
+
+<form id="newRental">
+    
+<div class="form-group">
+       
+ 	<label>Customer</label>
+        
+	<div class="tt-container">
+            
+		<input id="customer" name="customer" data-rule-validCustomer="true" required type="text" value="" class="form-control" />
+        
+	</div>
+    
+</div>
+
+ 
+   
+<div class="form-group">
+        
+	<label>Movie</label>
+        
+	<div class="tt-container">
+            
+		<input id="movie" name="movie" data-rule-atLeastOneMovie="true" type="text" value="" class="form-control" />
+        
+	</div>
+    
+</div>
+
+  
+  
+<div class="row">
+        
+	<div class="col-md-4 col-sm-4">
+            
+		<ul id="movies" class="list-group"></ul>
+        
+	</div>
+    
+</div>
+
+  
+  
+<button class="btn btn-primary">Submit</button>
+</form>
+
+---------------------------------------------------------------------------
+
+8. Adding Auto-completion feature to input fields
+
+--> We use jquery-plugin - typeahead for autocompletion
+--> install-package Twitter.Typeahead
+--> add in bundles in bundleconfig.cs: "~/scripts/typeahead.bundle.js"
+--> This plugin does not provide css file, so we need to make manually.
+-----------------------------------------------------------------------------
+
+--> Right click content folder
+--> Add --> StyleSheet --> Name it: typeahead.css
+--> Paste the styles
+.twitter-typeahead {
+    
+	width: 300px;
+}
+
+
+
+.typeahead {
+  
+	background-color: #fff;
+
+}
+
+
+
+.typeahead:focus {
+  
+	border: 2px solid #0097cf;
+
+}
+
+
+
+.tt-query {
+  
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+     
+	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+          
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+
+}
+
+
+
+.tt-hint {
+  
+color: #999
+}
+
+
+
+.tt-menu {
+  
+width: 422px;
+  
+margin: 12px 0;
+  
+padding: 8px 0;
+  
+background-color: #fff;
+  
+border: 1px solid #ccc;
+  
+border: 1px solid rgba(0, 0, 0, 0.2);
+  
+-webkit-border-radius: 8px;
+     
+-moz-border-radius: 8px;
+          
+border-radius: 8px;
+  
+-webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+     
+-moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+          
+box-shadow: 0 5px 10px rgba(0,0,0,.2);
+
+}
+
+
+
+.tt-suggestion {
+  padding: 3px 20px;
+  
+font-size: 15px;
+  
+line-height: 24px;
+
+}
+
+
+
+.tt-suggestion:hover {
+  
+cursor: pointer;
+  
+color: #52656B;
+  
+background-color: #CDFF00;
+
+}
+
+
+
+.tt-suggestion.tt-cursor 
+{
+  
+color: #52656B;
+  
+background-color: #CDFF00;
+
+
+}
+
+
+
+.tt-suggestion p {
+  
+margin: 0;
+
+}
+
+
+
+.tt-container {
+    
+position: relative;
+
+}
+
+--> This styles got from twitter typeahead examples webpages: search in chrome , right click inspect, go to css link in there
+--> https://twitter.github.io/typeahead.js/examples/
+--> Add reference in css bundles: "~/Content/site.css"
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+--> Required Jquery Code from documentation
+
+@section scripts
+{
+    
+	@Scripts.Render("~/bundles/jqueryval")
+    
+	<script>
+        
+		$(document).ready(function () {
+
+            
+			var vm = {
+                
+				movieIds: []
+            
+			};
+
+            
+			var customers = new Bloodhound({
+                
+				datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+                
+				queryTokenizer: Bloodhound.tokenizers.whitespace,
+                
+			remote: {
+                    
+				url: '/api/customers?query=%QUERY',
+                    
+				wildcard: '%QUERY'
+                
+			}
+            
+		});
+
+            
+		$('#customer').typeahead({
+                
+			minLength: 3,
+                
+			highlight: true
+            
+		}, {
+                
+			name: 'customers',
+                
+			display: 'name',
+                
+			source: customers
+            
+		}).on("typeahead:select", function(e, customer) {
+                
+			vm.customerId = customer.id;
+            
+			});
+
+            
+		var movies = new Bloodhound({
+                
+			datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+                
+			queryTokenizer: Bloodhound.tokenizers.whitespace,
+                
+		remote: {
+                    
+			url: '/api/movies?query=%QUERY',
+                    
+			wildcard: '%QUERY'
+                
+			}
+            
+		});
+
+            
+		$('#movie').typeahead({
+                
+			minLength: 3,
+                
+			highlight: true
+            
+		}, {
+                
+			name: 'movies',
+                
+			display: 'name',
+                
+			source: movies
+            
+		}).on("typeahead:select", function (e, movie) {
+                
+			$("#movies").append("<li class='list-group-item'>" + movie.name + "</li>");
+
+    
+            		$("#movie").typeahead("val", "");
+
+                
+			vm.movieIds.push(movie.id);
+            
+		});
+
+    
+	        
+		$.validator.addMethod("validCustomer", function () {
+                
+			return vm.customerId && vm.customerId !== 0;
+            
+		}, "Please select a valid customer.");
+
+            
+	
+		$.validator.addMethod("atLeastOneMovie", function () {
+                
+			return vm.movieIds.length > 0;
+            
+		}, "Please select at least one movie.");
+
+  
+          
+		var validator = $("#newRental").validate({
+                
+			submitHandler: function () {
+                    
+		$.ajax({
+                        
+			url: "/api/newRentals",
+                        
+			method: "post",
+                        
+			data: vm
+                    
+		}).done(function () {
+                        
+			toastr.success("Rentals successfully recorded.");
+
+                        
+			$("#customer").typeahead("val", "");
+                        
+			$("#movie").typeahead("val", "");
+                        
+			$("#movies").empty();
+
+                        
+			vm = { movieIds: [] };
+
+                       
+ 			validator.resetForm();
+                    
+		})
+                    
+		.fail(function () {
+                        
+			toastr.error("Something unexpected happened.");
+                    
+		});
+
+                    
+		return false;
+                
+		}
+            
+		});
+        
+	});
+    
+</script>
+
+-----------------------------------------------------------------------------
+
+--> Bloodhound is a suggestion engine used by typeahead
+--> 
+
+---------------------------------------------------------------------------
+
+11. Displaying Toast Notification
+
+--> install-package toastr
+--> It is also jquery plugin
+--> Add this reference in bundleconfig.cs
+--> "~/scripts/toastr.js"
+--> "~/content/site.css"
+
+---------------------------------------------------------------------------
+
+12. Summary
+
+--> Understand the problem
+--> Start with the backend
+--> Think of the inputs and outputs
+--> Declare a simple API
+--> Extend the domain model(if required)
+--> Build the happy path
+--> Add the details one by one
+--> Move on to the front end
+
+---------------------------------------------------------------------------
+

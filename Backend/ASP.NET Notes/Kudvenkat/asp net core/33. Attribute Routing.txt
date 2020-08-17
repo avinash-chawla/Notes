@@ -1,0 +1,186 @@
+1. Delete Default Conventional Route
+
+--> Modify middleware to use --> app.UseMvc();
+--> This is without Conventional Route
+--> This means, at the moment our application does not have any routes configured and when we navigate to any of the following URLs we see 404 errors.
+
+---------------------------------------------------------------------------------
+
+2. Attribute Routing
+
+--> With attribute routing, we use the Route attribute to define our routes. 
+--> We could apply the Route attribute on the Controller or on the Controller Action Methods.
+
+
+public class HomeController : Controller
+{
+    [Route("")]
+    [Route("Home")]
+    [Route("Home/Index")]
+    public ViewResult Index()
+    {
+        return View();
+    }
+}
+
+--> This actionMethod can receive url of any following
+1. localhost:1234
+2. localhost:1234/home
+3. localhost:1234/home/index
+
+---------------------------------------------------------------------------------
+
+3. Attribute Routing Parameters
+
+--> This route attribute also takes addtional parameter
+--> In this route attribute, id parameter is compulsory
+
+
+[Route("Home/Details/{id}")]
+public ViewResult Details(int id)
+{
+    HomeDetailsViewModel homeDetailsViewModel = new HomeDetailsViewModel()
+    {
+        Employee = _employeeRepository.GetEmployee(id),
+        PageTitle = "Employee Details"
+    };
+
+    return View(homeDetailsViewModel);
+}
+
+---------------------------------------------------------------------------------
+
+4. Attribute Route Optional Parameters
+
+--> In this route attribute, id parameter is not compulsory
+
+[Route("Home/Details/{id?}")]
+public ViewResult Details(int? id)
+{
+    HomeDetailsViewModel homeDetailsViewModel = new HomeDetailsViewModel()
+    {
+        // If "id" is null use 1, else use the value passed from the route
+        Employee = _employeeRepository.GetEmployee(id ?? 1),
+        PageTitle = "Employee Details"
+    };
+
+    return View(homeDetailsViewModel);
+}
+
+---------------------------------------------------------------------------------
+
+5. Controller and Action Method Names Don't Matter
+
+public class WelcomeController : Controller
+{
+    [Route("")]
+    [Route("Home")]
+    [Route("Home/Index")]
+    public ViewResult Welcome()
+    {
+        return View();
+    }
+}
+
+--> Still accessible through
+/
+/Home
+/Home/Index
+
+---------------------------------------------------------------------------------
+
+6. Attribute Routes are Hierarchical
+
+--> The Route() attribute can be applied on the Controller class as well on the individual actions. 
+
+--> To make attribute routing less repetitive, route attributes on the controller are combined with route attributes on the individual action methods. 
+
+[Route("Home")]
+public class HomeController : Controller
+{
+    private IEmployeeRepository _employeeRepository;
+
+    public HomeController(IEmployeeRepository employeeRepository)
+    {
+        _employeeRepository = employeeRepository;
+    }
+
+    [Route("/")]	or [Route("~/")]
+    [Route("")]
+    [Route("Index")]
+    public ViewResult Index()
+    {
+        var model = _employeeRepository.GetAllEmployees();
+        return View(model);
+    }
+
+    [Route("Details/{id?}")]
+    public ViewResult Details(int? id)
+    {
+        HomeDetailsViewModel homeDetailsViewModel = new HomeDetailsViewModel()
+        {
+            Employee = _employeeRepository.GetEmployee(id ?? 1),
+            PageTitle = "Employee Details"
+        };
+
+        return View(homeDetailsViewModel);
+    }
+}
+
+--> One very important point to keep in mind is, the controller route template is not combined with action method route template if the route template on the action method begins with / or ~/
+
+---------------------------------------------------------------------------------
+
+7. Tokens in Attribute Routing
+
+--> Main aim of this is we can change Controler or actionMethod name, still url automatically changes.
+--> Attribute routes support token replacement by enclosing a token in square-braces ([ ]). 
+--> The tokens [controller] and [action] are replaced with the values of the controller name and action name where the route is defined.
+
+
+[Route("[controller]")]
+public class DepartmentsController : Controller
+{
+    [Route("[action]")]
+    public string List()
+    {
+        return "List() of DepartmentsController";
+    }
+
+    [Route("[action]")]
+    public string Details()
+    {
+        return "Details() of DepartmentsController";
+    }
+}
+
+---------------------------------------------------------------------------------
+
+--> Instead of including the [action] token on every action method in a controller, we can apply it just once on the controller 
+--> But it will accept actionMethod also.
+--> localhost:1234/home	won't work
+--> One way to overcome this is to put [Route("~/home")] over index actionMethod.
+
+[Route("[controller]/[action]")]
+public class DepartmentsController : Controller
+{
+    public string List()
+    {
+        return "List() of DepartmentsController";
+    }
+
+    public string Details()
+    {
+        return "Details() of DepartmentsController";
+    }
+}
+
+---------------------------------------------------------------------------------
+
+8. Conventional Routing vs Attribute Routing
+
+--> With attribute routing, routes are placed next to the action methods that will actually use them. 
+--> Attribute routes offer a bit more flexibility than conventional routes. 
+--> However, in general, conventional routes are used for controllers that serve HTML pages, and attribute routes for controllers that serve REST APIs. 
+
+---------------------------------------------------------------------------------

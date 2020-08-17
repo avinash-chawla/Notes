@@ -1,0 +1,79 @@
+1. What is a Layout View
+
+--> Mostly in every route urls, we have common navbar, footer and head element
+--> Instead of repeating in all view files, we use partial view
+--> Layout view is not specific to a controller, treat it as a master page
+
+-----------------------------------------------------------------------------------
+
+2. Making Layout View
+
+--> Make new folder inside Views folder --> Shared
+--> Add new item --> Razor layout item --> Name it : _Layout.cshtml
+
+-----------------------------------------------------------------------------------
+
+3. Auto-generated HTML
+
+--> All view files inheriting this partial view will be placed at @RenderBody()
+--> It has ViewBag property for page title, it will receive this data from view file which is inheriting this partial view
+--> The standard html, head, title and body elements are in this layout file, we do not have to repeat all this in view files.
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+</head>
+<body>
+    <div>
+        @RenderBody()
+    </div>
+</body>
+</html>
+
+-----------------------------------------------------------------------------------
+
+4. Using the Layout in Details view
+
+@model PragimApp3.ViewModels.HomeDetailsViewModel
+@{ 
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Employee Details";
+}
+
+<h1>@Model.PageTitle</h1>
+
+<ul>
+    <li>@Model.Employee.Name</li>
+    <li>@Model.Employee.Email</li>
+    <li>@Model.Employee.Department</li>
+</ul>
+
+-----------------------------------------------------------------------------------
+
+5. Using the Layout in Index view
+
+@model IEnumerable<PragimApp3.Models.Employee>
+
+@{ 
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Employee List";
+}
+
+<table>
+...
+
+-----------------------------------------------------------------------------------
+
+6. Summary
+
+--> Consistent look and behaviour for all the views in a web application
+--> Similar to master page in ASP.NET Web Forms 
+--> File on the file system with .cshtml extension 
+--> Default name is _Layout.cshtml 
+--> Usually placed in Views/Shared folder 
+--> An application can have multiple layout views 
+
+-----------------------------------------------------------------------------------

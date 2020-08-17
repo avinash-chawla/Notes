@@ -1,0 +1,85 @@
+1. Filters and Effects-->
+
+--> Select Image
+--> Go to Filter tab
+--> Click on Convert to Smart Filter
+--> This will make layer non-destructive
+--> As if not selected, filter will attach to Background image, not as another layer
+
+--> Click on Filter Gallery in Filter tab
+--> Try different options
+
+
+--> Smart Filter will create smart objects.
+---------------------------------------------------------------------
+
+2. How to turn an image into a oil painting image-->
+
+--> Select image
+--> Convert to Smart object
+--> Under Stylize --> Oil Paint ( all under filter tab)
+--> Do some trial and click OK
+
+----------------------------------------------------------
+
+--> After changing some default settings in filter box which is displayed, if we want to go to default again, hold down alt key, cancel button becomes Reset button
+
+--> This happens nearly in every new window for editing in photoshop.
+
+----------------------------------------------------------
+
+3. How to create the Dotted Halftone Poster Effect-->
+
+--> Select Image
+--> Convert to Smart Object
+--> Choose Foreground and Background color
+--> Click on Filter galary in filter tab
+--> Click on Sketch
+--> Click on halftone pattern
+--> Select pattern type as Dot
+--> Try some Size and Contrast based on image
+
+--------------------------------------------------------
+
+--> After applying filter
+--> Apply Gradient to image
+
+--------------------------------------------------------
+
+4. How to fake realistic motion blur-->
+
+--> This is needed when some might want to show car running at high speed, surrounding is somewhat like blurr.
+
+--> Select Image
+--> Duplicate this Image
+--> Lower Layer (Blurr)
+--> Upper Layer (Runner)
+
+--> Disable Runner Layer
+--> Select Blurr Layer
+--> Convert to Smart object
+--> Click on Blur --> Motion Blur (in filter tab)
+--> Make sure Preview is checked mark.
+--> Do some trials and okay
+
+--> In Runner Layer, Enable it
+--> Select Object using quick selection tool
+--> Create Mask on it.
+
+--> Now image looks like in motion at high speed.
+
+------------------------------------------------------------------
+
+5. The Lens Flare right of passage-->
+
+--> It just places sun
+--> Select Image
+--> Convert to Smart Object
+--> Filter tab --> Render --> Lens Flare
+--> Adjust suns position, adjust brightness, adjust Lens Type
+--> Okay
+
+-----------------------------------------------------------------
+
+
+

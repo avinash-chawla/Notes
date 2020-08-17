@@ -1,0 +1,322 @@
+1. Intro
+
+--> Why generics
+1. Help avoid duplicate code
+2. Type safety
+3. We mostly use generics rather than create them.
+
+-----------------------------------------------------------------------------------------
+
+2. GenericRepository Interface
+
+--> Make new interface in Core library: IGenericRepository
+
+    public interface IGenericRepository<T> where T : BaseEntity
+    {
+        Task<T> GetByIdAsync(int id);
+        Task<IReadOnlyList<T>> ListAllAsync();
+    }
+
+--> We would then pass any List Item to this interface. 
+
+-----------------------------------------------------------------------------------------
+
+3. Implementation of this interface
+
+--> Make new class in Infrastructure Library : Generic Repository
+
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using API.Data;
+using Core.Entities;
+using Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace Infrastructure.Data
+{
+    public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
+    {
+        private readonly StoreContext _context;
+
+        public GenericRepository(StoreContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<T> GetByIdAsync(int id)
+        {
+            return await _context.Set<T>().FindAsync(id);
+        }
+
+        public async Task<IReadOnlyList<T>> ListAllAsync()
+        {
+            return await _context.Set<T>().ToListAsync();
+        }
+    }
+}
+
+-----------------------------------------------------------------------------------------
+
+6.  Startup.cs
+
+services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+-----------------------------------------------------------------------------------------
+
+5. ProductsController
+
+    public class ProductsController : ControllerBase
+    {
+        private readonly IGenericRepository<Product> _productsRepo;
+        private readonly IGenericRepository<ProductBrand> _productBrandRepo;
+        private readonly IGenericRepository<ProductType> _productTypeRepo;
+
+        public ProductsController(IGenericRepository<Product> productsRepo, 
+				  IGenericRepository<ProductBrand> productBrandRepo, 
+				  IGenericRepository<ProductType> productTypeRepo)
+        {
+            _productsRepo = productsRepo;
+            _productBrandRepo = productBrandRepo;
+            _productTypeRepo = productTypeRepo;
+        }
+
+--> Angular brackets <> will set the type for given class.
+--> It will go to startup class for implementation of this Generic interface 
+--> Instead of repeating methods for each domain model, we have only two methods - GetByIdAsync and ListAllAsync
+--> This reduces repeatability of code greatly.
+
+-----------------------------------------------------------------------------------------
+
+6. Intro to Specification Pattern
+
+--> Generic repository is an anti-pattern
+--> Consider the following generic method,
+
+IReadOnlyList<T> FindAsync(Expression<Func<T, bool>> query)
+
+--> This Expression will receive IQueriable<> Object on which it does filter on and again returns IQueriable object
+--> This is called Leaky Abstraction.
+
+-----------------------------------------------------------------------------------------
+
+--> The Specification Pattern to the rescue!
+1. Describes a query in an object instead of expression
+2. Returns an IQueryable<T> which can be used by FindAsync method
+3. Generic List method takes specification as parameter
+4. Specification can have meaningful name instead of only expression.
+
+-----------------------------------------------------------------------------------------
+
+7. Evolution
+
+1. Simple Context object of ef framework
+2. General Repository
+3. Generic Repository
+4. Specification Pattern
+
+1. General Repository 
+
+--> drawback: It will contain similar methods for all ListAsyncs for all domain models.
+
+-----------------------------------------------------------------------------------------
+
+2. Generic Repository
+
+--> It is placeholder for any object type and fill in the gap for all
+--> This helps in not repeating code for every domain model and same template for all for returning IQueryable object.
+--> Whenever you see template is repeating, solution is Generic.
+
+--> Generic Repository drawback: It does not contain 'include' and criteria search much in better way. 
+--> Because it can contain expressions which will be complex, so solution is object.
+
+-----------------------------------------------------------------------------------------
+
+3. Specification Pattern
+
+--> It makes seperate object for including specification needed in Generic Repository.
+--> This spec object will return Generic expressions - Criteria and Includes
+
+--> This will pass to Generic Repository and attach to Generic IQueryable List with Aggragate function.
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

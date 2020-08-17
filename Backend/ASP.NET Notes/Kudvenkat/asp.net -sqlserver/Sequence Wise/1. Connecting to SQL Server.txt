@@ -1,0 +1,10 @@
+1. SQL Server Management Studio (SSMS)
+
+--> It is the client tool that can be used to write and execute SQL queries.
+--> SSMS is a client tool and not the Server by itself. 
+
+--> Usually database server (SQL Server), will be on a dedicated machine, and developers connect to the server using SSMS from their respective local (development) computers.
+
+---------------------------------------------------------------------------------
+
+2. 

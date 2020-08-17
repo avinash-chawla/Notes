@@ -1,0 +1,608 @@
+1. CheckBoxList -->
+
+--> It is a collection of ListItem object
+--> Items can be added in html tag or in code
+--> It can be bound to a database table or an xml file
+
+Useful Properties-->
+1. RepeatDirection
+2. RepeatColumns
+3. Enabled
+4. SelectedIndex
+5. SelectedValue
+6. SelectedItem
+
+--------------------------------------------------------------------
+
+<asp:CheckBoxList...>
+<asp:ListItem Text="Diploma" Value="1" /></asp:ListItem>
+<asp:ListItem Text="Graduate" Value="2" /></asp:ListItem>
+<asp:ListItem Text="Post Graduate" Value="3" /></asp:ListItem>
+<asp:ListItem Text="Doctrate" Value="4" /></asp:ListItem>
+</asp:CheckBoxList>
+
+--> by default, align in vertical
+--> RepeatDirection -> Horizontal to align horizontal
+--> RepeatColumns --> 2 (divide into 2 columns)
+--> Enabled=false --> make it unselected checkbox
+
+---------------------------------------------------------------------------
+
+--> design-->
+
+CheckBoxList with 4 checkboxes
+Submit(button)
+
+--------------------------------------------------------------------------
+
+--> on button click event -->
+
+foreach(ListItem li in CheckBoxList1.Items)
+{
+	if(li.Selected == true)
+	{
+		Response.Write("Text = " + li.Text + ", ");
+		Response.Write("Value = " + li.Value + ", ");
+		Response.Write("Index = " + CheckBoxList1.Items.IndexOf(li));
+		Response.Write("<br />");	
+	}
+}
+
+
+--> CheckBoxList1.SelectedValue, SelectedIndex, SelectedItem only return first item selected, not all items so not used anymore
+--> if not selected any checkbox, CheckBoxList1.SelectedItem.Text will raise exception of  NullReferenceException
+
+------------------------------------------------------------------------------------
+
+--> which checkbox is selected by default when page loads-->
+
+--> on page load events-->
+
+CheckBoxList1.SelectedValue = "1";	--> Graduate
+or	
+CheckBoxList1.SelectedIndex = 1;	--> Graduate
+
+--> please put in if(!IsPostBack) code of block, because if any other checkbox is selected, the value which goes to server is only 1 which is mentioned above
+
+------------------------------------------------------------------------------------
+
+--> select or deselect all list items --> 
+--> on button click event-->
+
+foreach(ListItem li in CheckBoxList1)
+{
+	li.Selected = true;
+}
+	
+------------------------------------------------------------------------------------
+
+2. RadioButtonList Control-->
+
+--> Several List Controls are :
+
+1. DropDownList
+2. CheckBoxList
+3. BulletedList
+4. ListBox
+5. RadioButtonList
+
+--> RadioButtonList is same as CheckBoxList
+
+------------------------------------------------------------------------------
+
+Properties
+1. RepeatDirection
+2. RepeatColumns
+3. RepeatLayout
+4. SelectedItem
+5. SelectedIndex
+
+--> RepeatLayout has 4 options --> Table, Flow, OrderedList, UnorderedList
+--> All looks same in webpage, only difference in source code of html generated
+--> ordered and unordered only support if repeatdirection is vertical
+
+--> By default, RadioButtonList only selects one radio button, no need to give Groupname property
+
+--> there is no loop through listitems bec. no need to get all values, retrieve only one value in radio 
+
+------------------------------------------------------------------------------------
+
+--> on button click event-->
+
+if(RadioButtonList1.SelectedValue != null)
+	Response.Write("Text = " + RadioButtonList1.SelectedItem.Text);
+	Response.Write("Text = " + RadioButtonList1.SelectedItem.Value);
+	Response.Write("Text = " + RadioButtonList1.SelectedIndex.ToString()); --> if not selected, return -1
+
+--> without if, raise nullreference exception
+
+--> deselect radiobutton on button click-->
+
+RadioButtonList1.SelectedIndex = -1;
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+3. BulletedList -->
+
+--> Same as CheckBoxList and RadioButtonList
+
+Properties-->
+
+1. BulletStyle		--> Numbered, LowerAlpha, UpperAlpha, Circle, Square, customImage
+2. FirstBulletNumber	--> from which ordering to start
+3. DisplayMode		--> Text, Hyperlink, Linkbutton		
+4. Target		--> used when display mode is hyperlink
+
+5. BulletImageUrl --> only displays when bulletstyle is customImage
+
+---------------------------------------------------------------------------------------
+--> display: LinkButton on bulletList -->
+
+--> double click bulletList --> click event is generated
+--> type below:
+
+ListItem li = BulletedList1.Items[e.Index];
+
+Response.Write("Text = " + li.Text + "<br/>");
+Response.Write("Value = " + li.Value + "<br/>");
+Response.Write("Index = " + e.Index.ToString() + "<br/>");
+
+--> Means list behaves like checkbox click event
+
+--------------------------------------------------------------------------------------------
+
+4. ListBox Control-->
+
+--> Similar to ddl and checkboxlist
+--> ListBox is a collection of ListItem objects
+
+Properties-->
+
+1. Rows			--> how many items to be displayed on screen --> put 2 to check
+2. SelectionMode	--> single, multiple	--> to multi select items
+
+--------------------------------------------------------------------
+
+--> on button click event-->
+
+if selectionMode = single-->
+
+
+if(ListBox1.SelectedItem != null)
+	Response.Wrie("Text = " + ListBox1.SelectedItem.Text + "<br/ >");
+	Response.Wrie("Value = " + ListBox1.SelectedItem.Value + "<br/ >");
+	Response.Wrie("Index = " + ListBox1.SelectedIndex.ToString() + "<br/ >");
+
+or 
+
+if(ListBox1.SelectedIndex != -1)
+
+--> To avoid NullReferenceException
+
+---------------------------------------------------------------------------
+
+--> for SelectionMode = Multiple
+--> on button click event-->
+
+foreach(ListItem li in ListBox1.Items)
+{
+	if(li.Selected)
+		Response.Write(li.Text);	
+		Response.Write(li.Value);
+		Response.Write(ListBox1.Items.IndexOf(li).ToString());
+}
+
+---------------------------------------------------------------------------
+
+5. Exercise of checkbox and listbox combined-->
+
+--> those we select checkbox, must be added in listbox
+--> design-->
+
+5 checkboxes
+1 Listbox
+Label			--> <asp:Label Font-Bold="true" runat="server" ID="Label1"></asp:Label>
+
+--> make sure that autopost property of checkbox is true
+--> make sure that selectionMode property of listbox is multiple
+----------------------------------------------------------------------------
+
+--> code -->
+
+protected void CheckBoxList1_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        ListBox1.Items.Clear();				--> To avoid duplicate items in listbox from for-loop
+        foreach (ListItem li in CheckBoxList1.Items)
+        {
+            if(li.Selected)
+                ListBox1.Items.Add(li.Text);	--> if Add(li) is used, then it is already selected in listbox
+        }
+
+        if(ListBox1.Items.Count == 0 )		or    if(CheckBoxList1.SelectedIndex == -1)
+        {
+            Label1.ForeColor = System.Drawing.Color.Red;
+        }
+        Label1.Text = ListBox1.Items.Count.ToString() + " items selected";
+    }
+
+
+---------------------------------------------------------------------------
+
+6. List Control-->
+
+--> All ListItem controls like 
+checkboxlist, 
+radiobuttonlist, 
+bulletedlist, 
+listbox, 
+ddl 
+
+inherit from ListControl class
+
+--> this class is a collection of ListItem objects
+--> supports databinding
+--> listitems can be added in html or through code
+
+--------------------------------------------------------------------------------
+
+--> Adding Same ListItem Collection in all ListControl Elements using Code--> 
+
+private void AddListItems(ListControl listControl)
+{
+	ListItem li1 = new ListItem("Item1", "1");
+	ListItem li1 = new ListItem("Item2", "2");
+	ListItem li1 = new ListItem("Item3", "3");
+
+	listControl.Items.Add(li1);
+	listControl.Items.Add(li2);
+	listControl.Items.Add(li3);
+}
+
+--> A parent class reference variable can point to a derived class reference
+--> This fact allows us to pass any list control into the AddListItems() method as a parameter
+--> this concept is called inheritance.
+
+--> Page_load event-->
+
+if(!IsPostBack)
+{
+	AddListItems(DropDownList1);
+	AddListItems(CheckBoxList1);
+	AddListItems(RadioButtonList1);
+	AddListItems(ListBox1);
+	AddListItems(BulletedList1);
+}
+
+--------------------------------------------------------------------------------
+
+--> Retrieving ListItems data from listControl elements using code-->
+
+1. For ListBox(if SelectionMode = Multiple) and CheckBoxList-->
+
+private void RetriveMultipleSelections(ListControl listControl)
+{
+	foreach(ListItem li in listControl.Items)
+	{
+		if(li.Selected)
+			Response.Write("Text = " + li.Text + ", Value = " + li.Value + ", Index = " + listControl.Items.IndexOf(li).ToString() + "<br />");
+
+	}
+}
+
+--------------------------------------------------------------------------
+
+2. For ListBox(if SelectionMode = Single), RadioButtonList and DDL-->
+
+private void RetrieveSelectedItemTextValueandIndex(ListControl listControl)
+{
+	Response.Write("Text = " + listControl.SelectedItem.Text + "<br />");
+	Response.Write("Text = " + listControl.SelectedItem.Value + "<br />");
+	Response.Write("Text = " + listControl.SelectedIndex.ToString());
+}
+
+-------------------------------------------------------------------------------------
+
+7. FileUpload Control--->
+
+--> This control also need extra button to upload file on server
+--> All code written in this button_click event
+
+--> design-->
+
+Fileupload button
+label
+
+--> Properties and methods of FileUpload Control-->
+
+1. FileUpload1.HasFile		--> return boolean
+2. FileUpload1.SaveAs()		--> save to project directory
+3. FileUpload1.PostedFile.ContentLength		--> return int --> fileSize
+4. FileUpload1.FileName				--> return string --> fileName
+
+5. System.IO.Path.GetExtension(FileUpload1.FileName)				--> string
+6. FileUpload1.SaveAs(Server.MapPath("~/Uploads/" + FileUpoad1.FileName))
+
+--------------------------------------------------------
+
+--> code -->
+on button_click event-->
+
+if(FileUpload1.HasFile)
+{
+
+	string fileExtension = System.IO.Path.GetExtension(FileUpload1.FileName);
+
+	if(fileExtension.ToLower() != ".doc" && fileExtension.ToLower() != ".docx")
+	{
+		Label1.Text = "Only files with .doc or .docx extension are allowed";
+		Label1.ForeColor = System.Drawing.Color.Red;
+	}
+	else
+	{
+
+		int fileSize = FileUpload1.PostedFile.ContentLength;
+
+		if(fileSize > 2097152)		-->  2MB * 1024
+		{
+			Label1.Text = "Maximum file size (2MB) exceeded";
+			Label1.ForeColor = System.Drawing.Color.Red;
+		}
+
+		else
+		{
+
+			FileUpload1.SaveAs(Server.MapPath("~/Uploads/" + FileUpoad1.FileName));
+			Label1.Text = "File Uploaded";
+			Label1.ForeColor = System.Drawing.Color.Green;
+
+		}
+	}
+}
+else
+{
+
+	Label1.Text = "Please select a file to upload";
+	Label1.ForeColor = System.Drawing.Color.Red;	
+
+}
+
+----------------------------------------------------------------------------------------------------------------
+
+8. AdRotator Control-->
+
+--> It is used to display random ads.
+--> This ads information can be stored in an xml file or in database
+
+--> XML file attributes-->
+
+1. ImageUrl		--> URL of the image
+2. NavigateUrl 		--> The URL to navigate when clicked
+3. AlternateText	--> The text to use if image is missing
+4. Keyword		--> Used by the adrotator control to filter ads
+5. Impressions		--> like z-index
+
+--> To open the target web page to different window, set Target="_blank"
+
+---------------------------------------------------------------------------------------------------
+
+--> XML file --> AdsData.xml in project directory -->
+
+<Advertisements>
+	<Ad>
+		<ImageUrl>~/Images/Google.png</ImageUrl>
+		<NavigateUrl>http://google.com</Navigate>
+		<AlternateText>Please visit http:..</AlternateText>
+		<Impressions>10</Impressions>
+		<Keyword>Google</Keyword>
+	</Ad>
+</Advertisements>
+
+-----------------------------------------------------------------------------
+
+--> aspx file -->
+
+<asp:AdRotator 
+
+ID="AdRotator1" 
+Target="_blank" 
+KeywordFilter="Google" 		--> xml contains hundreds of ad, only shows that ads that has google keyword
+runat="server" 
+AdvertisementFile="~/AdsData.xml" 
+/>
+
+--> code -->
+
+in page_load event-->
+
+AdRotator1.KeywordFilter = "Google";	--> providing keyword at runtime in master page
+
+------------------------------------------------------------------------------------------
+
+9. Calender Control-->
+
+-------------------------------------------------------------
+design-->
+
+TextBox ImageButton(link to images in folder)
+CalenderControl
+
+--> imagebutton is of calender icon
+--> whenever user clicks calender icon,  calender control expands
+--> when user selects date, textBox field populates with calender data
+
+-------------------------------------------------------------
+
+--> code -->
+
+page_load event-->
+
+if(!IsPostBack)
+	Calender1.Visible = false;
+
+----------------------------------------
+imagebutton_click event-->
+
+Calender1.Visible = !Calender1.Visible;
+
+or 
+
+if(Calender1.Visible)
+	Calender1.Visible = false;
+else
+	Calender1.Visible = true;
+
+----------------------------------------
+
+Calender1_SelectionChanged event-->
+
+TextBox.Text1 = Calender1.SelectedDate.ToString("d");
+Calender1.Visible = false;
+
+-----------------------------------------
+
+TextBox1.Text = Calender1.SelectedDate.ToLongDateString()	--> 17 November 2012
+
+ToString		--> 17/11/2012 19:32:49
+ToLongDateString()	--> 17 November 2012
+ToShortDateString()	--> 17/11/2012
+ToLongTimeString()	--> 19:32:49
+ToShortTimeString()	--> 19:32
+
+ToString("d")			--> 17/11/2012
+ToString("D")			--> 17 November 2012
+ToString("dd/MM/yyyy")		--> 17/11/2012
+ToString("dd/MMMM/yyyy")	--> 17/November/2012
+ToString("dd/MMMM/yy")		--> 17/November/12
+ToString("MM/dd/yy")		--> 11/17/12
+
+---------------------------------------------------------
+
+--> To make changes in calender object, DayRender event is used
+--> we can make other month dates unselectable, change color of font or back, change style
+--> This event is fired for event date in calender that is 49 times
+
+Calender1_DayRender event-->
+
+Response.Write(e.Day.DayNumberText = "<br />");
+
+--> e is DayRenderEventArgs 
+-----------------------------------------------
+Calender1_DayRender event-->
+
+if(e.Day.IsOtherMonth || e.Day.IsWeekend)
+{
+	e.Day.IsSelectable = false;
+	e.Cell.BackColor = System.Drawing.Color.Green;
+}
+
+----------------------------------------------
+
+10. Calender Control Properties and events-->
+
+1. Caption property 	--> used to give heading text
+2. CaptionAlign		--> to align caption
+3. DayHeaderStyle
+
+--> BackColor
+--> BorderColor
+--> BorderStyle
+--> BorderWidth
+--> Font
+--> height
+--> horizontal align
+--> vertical align
+--> width
+--> wrap
+--> forecolor
+
+4. DayNameFormat-->
+
+--> Full		--> Monday
+--> Short		--> Mon
+--> FirstLetter		--> M
+--> FirstTwoLetters	--> Mo
+--> Shortest		--> Mo
+
+
+5. FirstDayOfWeek	--> which day of the week is displayed first
+
+
+6. NextPrevFormat	--> Can be shortMonth, FullMonth, CustomText
+
+--> FullMonth	--> October  Novermber2012 December
+--> shortMonth  --> Oct November2012 Dec
+--> CustomText	--> << November2012 >>
+
+7. NextMonthText	--> text to use for the next month button ("&gt;" , ">>")	
+
+--> only if NextPrevFormat = Custom Text
+
+8. PrevMonthText	--> text to use for the previous month button ("&lt;", "<<");
+
+9. SelectionMode 	--> can be day, dayweek, dayweekmonth
+
+--> dayweek 		--> can select whole week
+--> dayweekmonth	--> can select whole month
+
+10. SelectMonthText, SelectWeekText to change text of selection mode 
+
+------------------------------------------------------------------------------------------
+
+11. Retrieve dates from selection mode on to dayweekmonth-->
+
+--> we will use SelectedDates property of Calender1
+
+Calender1_SelectionChanged event-->
+
+foreach(DateTime selectedDateTime in Calender1.SelectedDates)
+{
+	Response.Write(selectedDateTime.ToShortDateString() + "<br />");
+}
+
+--------------------------------------------------------------------------------------------
+
+12. DayRender event another example-->
+
+if(!e.Day.IsOtherMonth && e.Day.Date.Day % 2 == 0)		--> for all even dates and of same month
+{	
+	e.Cell.BackColor = System.Drawing.Color.Red;
+	e.Cell.ForeColor = System.Drawing.Color.White;
+	e.Cell.Font.Bold = true;
+	e.Cell.Text = "x";
+	e.Cell.ToolTip = "Booked";
+}
+else
+{
+	e.Cell.ToolTip = "Available";
+}
+
+-----------------------------------------------------------------------
+
+13. VisibleMonthChanged event -->
+
+--> whenever user click next month button, this event is raised
+--> go to events of calender1, double click visiblemonthchanged event
+
+{
+string NewMonth = GetMonthName(e.NewDate.Month);
+string OldMonth = GetMonthName(e.PreviousDate.Month)
+
+Response.Write("Month Changed from " + OldMonth + " to " + NewMonth);
+
+}
+
+private string GetMonthName(int MonthNumber)
+{
+	switch(MonthNuumber)
+	{
+		case 1:
+			return "Jan";
+		:
+		:
+		case 12: 
+			return "Dec";
+		default: 
+			return "Invalid";
+	}
+}
+	

@@ -1,0 +1,194 @@
+1. Intro
+
+--> We will discuss, how to enforce foreign key constraint referential integrity ON DELETE NO ACTION in entity framework core.
+
+--> Users are stored in AspNetUsers table
+--> Roles are stored in AspNetRoles table
+--> User and Role mapping data is stored in AspNetUserRoles table
+--> This table has just 2 columns : UserId & RoleId
+--> Both are foreign keys
+
+--> Problem is that when you delete Role, the uses in that Role also gets deleted
+--> This is default behoviour which is set to Cascase referential Integrity
+
+------------------------------------------------------------------------------------
+
+2. Cascading referential integrity constraint
+
+--> Cascading referential integrity constraint allows to define the actions Microsoft SQL Server should take when a user attempts to delete or update a key to which an existing foreign keys points.
+
+--> Foreign key with Cascade DELETE
+
+--> In Entity Framework Core, by default the foreign keys in AspNetUserRoles table have Cascade DELETE behaviour. 
+--> This means, if a record in the parent table (AspNetRoles) is deleted, then the corresponding records in the child table (AspNetUserRoles ) are automatically be deleted.
+
+
+
+--> Foreign key with NO ACTION ON DELETE
+
+--> What if you want to customise this default behaviour. 
+--> We do not want to allow a role to be deleted, if there are rows in the child table (AspNetUserRoles) which point to a role in the parent table (AspNetRoles).
+
+------------------------------------------------------------------------------------
+
+3. Use modelBuilder property
+
+--> This can change default behoviour.
+--> In AppDbContext.cs,
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+    modelBuilder.Seed();
+
+    foreach (var foreignKey in modelBuilder.Model.GetEntityTypes().SelectMany(e => 	e.GetForeignKeys()))
+    	{
+        	foreignKey.DeleteBehavior = DeleteBehavior.Restrict;
+    	}
+}
+
+--> We are getting all entities in sql using modelBuilder.Model.GetEntityTypes
+--> We are selecing all Foreign Keys
+--> Every foreign key has a property DeleteBehvoir
+--> There are 4 types of DeleteBehaviour.
+
+public enum DeleteBehovior
+{
+	ClientSetNull = 0,
+	Restrict = 1,
+ 	SetNull = 2,
+	Cascade = 3
+}
+
+------------------------------------------------------------------------------------
+
+4. Add Migration
+
+--> Build the solution. Add a new migration and update the database.
+
+--> With this change, if you view the properties of the foreign key you will see ON DELETE is set to NO ACTION
+
+------------------------------------------------------------------------------------
+
+5. Result
+
+--> At this point, an error will be thrown, if you try to delete a role from AspNetRoles table, for which there are child rows in AspNetUserRoles table and the DELETE action will be rolled back. 
+
+--> You have to delete the CHILD rows before deleting the parent row.
+
+------------------------------------------------------------------------------------
+
+6. To see foreign keys in database
+
+--> Open any table using desing view
+--> On Right side, Foreign keys are displayed
+--> Right click it.
+--> Properties
+
+--> You can see DeleteBehovior there.
+
+------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

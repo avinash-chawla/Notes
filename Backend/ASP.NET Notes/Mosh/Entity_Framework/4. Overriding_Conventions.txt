@@ -1,0 +1,228 @@
+1. Intro-->
+
+--> Two ways to override conventions
+1. Data Annotations
+2. Flunt Api
+
+2. Data Annotations-->
+
+--> In Course.cs, we have Description property, we have to make it required
+
+using System.ComponentModel.DataAnnotations
+
+[Required]					---> This is Data Annotation
+public string Description { get; set; }
+
+--> console --> add-migration makingDescriptionColumnRequiredInCoursesTable
+
+--> When we make property stringtype, when we migrate to database, column becomes nvarchar(MAX) and nulleable
+--> But we also have to make required property (not nulleable)
+
+
+------------------------------------------------------------ 
+
+--> Flunt-Api-->
+
+--> There is method in PlutoContext.cs OnModelCraeting which is overrided from DbContext.cs class
+--> Flunt-Api is mentioned here
+
+protected override void OnModelCreating(DbModelBuilder modelBuilder)
+{
+	modelBuilder.Entity<Course>()
+		.Property(t => t.Description)
+		.IsRequired();
+
+	...
+}
+
+--> console --> add-migration makingDescriptionColumnRequiredInCoursesTable
+
+--> modelBuilder is an object passed to this function,
+--> t stands for type --> actually in lambda expression, any character can be taken
+
+
+----------------------------------------------------------------------------------
+
+4. Data Annotations in Detail -->
+
+1. Table Name: 	
+
+[Table("tbl_Course")]
+public class Course
+
+--> To map class to specific table in database
+
+--> If table is in other schema than dbo, then,
+[Table("tbl_Course"), Schema("catalog")]
+
+
+2. Column Names-->
+
+[Column("sName")]
+public string Name { get; set; }
+
+[Column("sName", TypeName = "varchar")]
+
+3. Primary Key-->
+
+[Key]
+public string ISBN { get; set; }
+
+[Key]
+[DatabaseGenerated(DatabaseGeneratedOption.None)]
+public string ISBN { get; set; }
+
+--> There are three options: None, Identity, Computed
+
+4. Composite Keys-->
+
+[Key]
+[Column(Order = 1)]
+public int OrderId { get; set; }
+
+[Key]
+[Column(Order = 2)]
+public int OrderItemId { get; set; }
+
+5. Nulls-->
+
+[Required]
+
+6. Length of Strings-->
+
+[MaxLength(255)]
+public string Name { get; set; }
+
+7. Index-->
+
+[Index]
+public int AuthorId { get; set; }
+
+[Index(IsUnique = true)]
+public string Name { get; set; }
+
+[Index("IX_AuthorStudentsCount", 1]
+public int AuthorId { get; set; }
+
+
+8. Foreign Keys-->
+
+[ForeignKey("Author")]
+public int AuthorId { get; set; }
+
+public Author Author { get; set; }
+
+or 
+
+public int AuthorId { get; set; }
+
+[ForeignKey("AuthorId")]
+public Author Author { get; set; }
+
+---------------------------------------------------------------------------------
+
+5. Fluent API-->
+
+modelBuilder.Entity<Course>()
+	.ToTable("tbl_Course");
+
+1. Map to Table-->
+.ToTable("tbl_Course");
+
+2. Primary keys-->
+.HasKey(t => t.ISBN);
+
+.Haskey(t => new { t.OrderId, t.OrderItemId });
+
+3. Column Names-->
+
+.Property(t => t.Name)
+.HasColumnName("sName");
+
+4. Column Types-->
+
+.Property(t => t.Name)
+.HasColumnType("varchar");
+
+5. Column Orders-->
+
+.Property(t => t.Name)
+.HasColumnOrder(2);
+
+6. Making identity-->
+
+.Property(t => t.ISBN)
+.HasDatabaseGenerator(DatabaseGeneratedOption.None);
+
+7. Nulls-->
+
+.Property(t => t.Name)
+.IsRequired();
+
+8. Length of Strings-->
+
+.Property(t => t.Name)
+.HasMaxLength(255);
+
+.IsMaxLength();
+
+---------------------------------------------------------------------------------
+
+6. Fluent API Relationships-->
+
+--> Course.cs has Author property
+--> This means there is relation between Course and Author
+--> There is one Author and that author can have many courses
+--> So it is one to many relationship between author and course
+
+Course is parent	--> Course has property Author
+WithMany()
+WithRequired()
+WithOptional()
+
+Author is child here 
+HasMany()
+HasRequired()
+HasOptional
+
+-----------------------------------------------------------------
+1. One to Many-->
+
+modelBuilder.Entity<Author>()
+	.HasMany(a => a.Courses)	---> Author has many courses
+	.WithRequired(c => c.Author)	---> Each author is unique
+	.HasForeignKey(c => c.AuthorId)	---> Author has foreign key
+
+
+2. Many to Many-->
+
+Between Course and Tag-->
+
+modelBuilder.Entity<Course>()
+	.HasMany(a => a.Tags)	
+	.WithMany(c => c.Courses)	
+	.Map(m => m.ToTable("CourseTags"))
+
+3. One to zero/one-->
+
+modelBuilder.Entity<Course>()
+	.HasOptional(c => c.Caption)	---> Author has many courses
+	.WithRequired(c => c.Course)
+
+4. One to One-->
+
+relation between course and cover
+
+modelBuilder.Entity<Cover>()
+	.HasRequired(c => c.Cover)
+	.WithRequiredPrincipal(c => c.Course)
+
+or
+
+modelBuilder.Entity<Cover>()
+	.HasRequired(c => c.Course)
+	.WithRequiredDependant(c => c.Cover)
+
+
+.WillCascadeOnDelete(false);		--> fluent api method
+----------------------------------------------------------------------------

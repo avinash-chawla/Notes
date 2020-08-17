@@ -1,0 +1,80 @@
+1. ListView
+
+--> We want to display List of Employee Model objects in View
+--> We will use IEnumerable<ModelClass> for iterating over model object.
+
+-----------------------------------------------------------------------------------
+
+2. IEmployeeRepository
+
+--> This interface will create method for retrieving all employees.
+
+public interface IEmployeeRepository
+{
+    Employee GetEmployee(int Id);
+    IEnumerable<Employee> GetAllEmployees();
+}
+
+-----------------------------------------------------------------------------------
+
+3. MockEmployeeRepository Class
+
+--> This class will implement interface and implement that method for getting all employees from database or mockDatabase.
+
+public IEnumerable<Employee> GetAllEmployees()
+{
+    return _employeeList;
+}
+
+-----------------------------------------------------------------------------------
+
+4. Controller Class
+
+--> Passing List of model objects to Index View
+
+public ViewResult Index()
+{
+    var model = _employeeRepository.GetAllEmployees();
+    return View(model);
+}
+
+-----------------------------------------------------------------------------------
+
+5. Index.cshtml View file
+
+@model IEnumerable<EmployeeManagement.Models.Employee>
+
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Department</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employee in Model)
+            {
+                <tr>
+                    <td>
+                        @employee.Id
+                    </td>
+                    <td>
+                        @employee.Name
+                    </td>
+                    <td>
+                        @employee.Department
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>
+
+-----------------------------------------------------------------------------------

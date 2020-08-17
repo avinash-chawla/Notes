@@ -1,0 +1,50 @@
+--> Using sql server with entity framework core
+
+1. DbContextOptions
+
+--> DbContext class needs this class for configuration settings
+--> This DbContextOptions is defined in service class and provided options object to class deriving DbContext.
+
+services.AddDbContextPool<AppDbContext>(
+            options => options.UseSqlServer(_config.GetConnectionString("EmployeeDBConnection")));
+
+---------------------------------------------------------------------------------
+
+2. Difference between AddDbContextPool and AddDbContextPool
+
+--> AddDbContextPool() method provides DbContext pooling.
+
+--> Means AddDbContextPool will look in its pool and check for existing object if previously created, without creating new one.
+--> If found out, uses that one.
+
+---------------------------------------------------------------------------------
+
+--> DbContext pooling is conceptually similar to how connection pooling works in ADO.NET.
+--> From a performance standpoint AddDbContextPool() method is better over AddDbContext() method.
+--> AddDbContextPool() method is introduced in ASP.NET Core 2.0. 
+
+---------------------------------------------------------------------------------
+
+3. Database Connection String
+
+--> In appsettings.json file, define our ConnectionString
+
+{
+  "ConnectionStrings": {
+    "EmployeeDBConnection": "server=(localdb)\\MSSQLLocalDB;database=EmployeeDB;Trusted_Connection=true"
+  }
+}
+
+--> Sql Server Express is inbuilt installed with Visual Studio, so server name is of that is (localdb)\\MSSQLLocalDB
+
+---------------------------------------------------------------------------------
+
+4. Note
+
+Trusted_Connection=True;
+Integrated Security=SSPI;
+Integrated Security=true;
+
+--> All the above 3 settings specify the same thing, use Integrated Windows Authentication to connect to SQL Server instead of using SQL Server authentication.
+
+---------------------------------------------------------------------------------

@@ -1,0 +1,56 @@
+1. What is Identity Column
+
+--> When you insert a new row into the table, column marked with identity column will be automatically generated.
+
+--> There are 2 properties: seed and increment
+--> seed means starting value
+--> increment means steps of incrementing
+--> If not specified, be dafault, considered one for both.
+
+--------------------------------------------------------------------------------
+
+2. Using Identity Property to Column
+
+Create Table tblPerson
+(
+PersonId int Identity(1,1) Primary Key,
+Name nvarchar(20)
+)
+
+--------------------------------------------------------------------------------
+
+3. Error
+
+--> If you try to execute the following query, you will get an error
+
+Insert into tblPerson values (1,'Todd')
+
+--> Error message:  An explicit value for the identity column in table 'tblPerson' can only be specified when a column list is used and IDENTITY_INSERT is ON. 
+
+--------------------------------------------------------------------------------
+
+4. Add custom value instead of Identity value
+
+--> When you delete a record, that record with identity value, a gap will create.
+--> Steps need to follow to insert custom value for identity value
+
+SET Identity_Insert tblPerson ON
+
+Insert into tblPerson(PersonId, Name) values(2, 'John')
+
+--> As long as the Identity_Insert is turned on for a table, you need to explicitly provide the value for that column. If you don't provide the value, you get an error
+--> To get back on track,
+
+SET Identity_Insert tblPerson OFF
+
+--------------------------------------------------------------------------------
+ 
+5. Deleted all records and set identity start back from (1,1)
+
+--> If you have deleted all the rows in a table, and you want to reset the identity column
+
+DBCC CHECKIDENT(tblPerson, RESEED, 0)
+
+--> This command will reset the identity to start from (1,1).
+
+--------------------------------------------------------------------------------

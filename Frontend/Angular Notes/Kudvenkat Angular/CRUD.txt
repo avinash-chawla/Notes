@@ -1,0 +1,2 @@
+1. ng new AngularCrud --skip-tests true
+2. 

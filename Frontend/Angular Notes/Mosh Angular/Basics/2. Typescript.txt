@@ -1,0 +1,292 @@
+1. benefits of typescript compared to js-->
+--> strong typing--> int, float
+--> object-oriented features --> class, access modifiers, generics
+--> compile-time errors
+--> great-tooling--> intellisense for typescript
+
+2. npm i -g typescript@2.4.1
+--> tsc --version
+
+3. main.ts-->
+
+function log(message) { console.log(message); }
+var message = "Hello World";
+log(message);
+
+terminal--> tsc main.ts ( compiles to main.js)
+-->node main.js 	( runs javascript code) 
+
+
+tsc main.ts && node main.js
+
+4. var has scope to nearest function instead of in "for loop"
+
+5. types -->
+in javascript, single variable can assign any data type at any place which may make code break anytime
+----------------------------------------------------
+
+let a = 5;
+a = "Avinash";	--> error in ts bec. only single data type allowed in ts
+
+---------------------------------------------------------------
+let a;		--> type: any (in tooltip)
+a = 1;
+a = true;
+a = 'a';   --> this time no error
+
+--------------------------------------------------------------------------
+solution is --> 
+
+let a: number;
+a = 1; 	   --> valid
+a = true;  --> non valid now
+
+--------------------------------------------------------------------------
+
+let a: number;
+let b: boolean;
+let c: string;
+let d: any;
+let e: number[] = [1,2,3];
+let f: any[] = [1, true, 'a', false];
+
+enum Color { Red = 0, Green = 1, Blue = 2};
+let backgroundColor = Color.Red;
+
+
+6. Type Assertion-->
+
+it is method to specify type of variable to get features of intellisense only
+
+let message; 	--> type any (not assigned)
+message = 'abc';
+
+let endsWithC = message.	--> no intellisense is provided here
+let another = (<string>message).	--> intellisense is provided
+let alternativeWay = (message as string).	--> here also
+
+--> it does not change type of variable at compile time but just gives features of intellisense
+
+7. inline-annotations-->
+
+sometimes function take so many arguments so concept of object is developed --> it groups all related data in one container
+
+and instead of passing many arguments pass one object
+
+inline-annotations--> to describe type of object
+
+let drawPoint = (point) => {...}	--> no type of object is specified
+drawPoint({x: 1, y: 2 })
+
+drawPoint({name: 'avinash'}) 	--> called breaking code
+
+
+let drawPoint = (point: {x:number, y:number}) => {...} 	     --> inline-annotation
+
+8. Interface-->
+alternative of inline-annotation
+it is necessary to give shape to objects to prevent errors by wrong input
+
+interface Point{
+   x: number,
+   y: number,
+   draw: () => void	--> no need to give arguments if args are x and y
+}
+
+let drawPoint = (point: Point) => {...}
+drawPoint({x: 1, y: 2})
+
+
+--> drawPoint is a function which is hanging in air so concept of class established
+
+9. class-->
+
+groups all related properties and functions in one container
+
+class Point {
+	x: number;
+	y: number;
+
+	draw() {...}
+	getDistance(another: Point) {...}
+}
+
+10. Objects -->
+
+class Point {
+	x: number;
+	y: number;
+
+	draw() {
+		console.log('X: '+ this.x +', Y: ' + this.y);
+	}
+	getDistance(another: Point) {...}
+}
+
+let point: Point	--> type annotation point is of type Point class but we have to memory to it
+point.draw()
+
+--------------------------------------------------------------------------
+let point: Point = new Point();		
+let point = new Point();	--> short trick
+
+-----------------------------------------------------------------------------
+let point = new Point();
+point.x = 1;
+point.y = 2;
+point.draw();
+
+11. Constructor--->
+
+class Point {
+	x: number;
+	y: number;
+
+	constructor(x: number, y: number) {
+	   this.x = x;
+	   this.y = y;
+	}
+
+	draw() {
+		console.log('X: '+ this.x +', Y: ' + this.y);
+	}
+	getDistance(another: Point) {...}
+}
+
+let point = new Point();
+point.draw();
+
+
+12. making parameters optional in constructor-->
+
+constructor(x?: number, y?: number) {
+	this.x = x;
+	this.y = y;
+}
+
+13. Access Modifiers-->
+
+class Point { 
+   private x: number;
+   private y: number;
+}
+
+14. Access Modifiers in Constructor Parameters-->
+
+class Point {
+	constructor(private x?:number, private y?:number) {}
+
+--> no need for specify properties differently and no need to set value in constructor
+
+15. getters and setters-->
+
+class Point {
+   	constructor( private x?:number, private y?:number) {}
+
+	getX() { return this.x; };
+	
+	setX(value) {
+	   if(value< 0 ) throw new Error('value must be greater than 0');
+           this.x = value;
+	}
+}
+
+let point = new Point(1,2);
+let x = point.getX();
+point.setX(10);
+
+
+16. Properties-->
+
+making getters and setters methods as properties by get and set keyword
+
+class Point {
+   	constructor( private x?:number, private y?:number) {}
+
+	get X() { return this.x; };
+	
+	set X(value) {
+	   if(value< 0 ) throw new Error('value must be greater than 0');
+           this.x = value;
+	}
+}
+
+
+let point = new Point(10, 20);
+let x = point.X;
+point.X = 10;
+
+-----------------------------------------------------------------------
+above we are using pascal notation for getting and setting fields, so changing that
+
+
+class Point {
+   	constructor( private _x?:number, private _y?:number) {}
+
+	get x() { return this.x; };
+	
+	set y(value) {
+	   if(value< 0 ) throw new Error('value must be greater than 0');
+           this.x = value;
+	}
+}
+
+
+let point = new Point(10, 20);
+let x = point.x;
+point.x = 10;
+
+
+17. Modules-->
+
+creating section between different classes
+
+point.ts-->
+export class Point{...} 	--> now becomes module
+
+main.ts-->
+import { Point } from './point';
+
+we can export anything --> class, method, object, variable
+
+
+18. Exercise-->
+
+--> make a like component in facebook page
+--> onclicking --> likesCount should increase if not selected
+	       --> likesCount should decrease if already selected
+
+--> inputs are two --> likesCount and isSelected
+
+like.component.ts-->
+
+export class LikeComponent{
+    constructor(public likesCount: number, public isSelected: boolean);
+
+    onClick() {
+	if(this.isSelected) {
+		this.likesCount--;
+		this.isSelected = false;
+        } else {
+	    	this.likesCount++;
+		this.isSelected = true;
+	}
+    }
+}
+
+
+export class LikeComponent{
+    constructor(public likesCount: number, public isSelected: boolean);
+
+    onClick() {
+	this.likesCount += this.isSelected ? -1 : 1;
+	this.isSelected = !this.isSelected;
+    }
+}
+
+main.ts-->
+
+import { LikeComponent } from './like.component.ts';
+let component = new LikeComponent(10, true);
+component.onClick();
+console.log(`LikesCount: ${component.likesCount}, isSelected: ${isSelected}`);

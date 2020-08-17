@@ -1,0 +1,178 @@
+1. String methods-->
+
+common-->
+--> ToLower()
+--> ToUpper()
+--> Trim()
+
+searching-->
+--> IndexOf('a')
+--> LastIndexOf("Hello")
+
+copying-->
+--> Substring(startIndex)
+--> Substring(startIndex, length)
+
+replacing-->
+--> Replace('a', '!')
+--> Replace("mosh", "moshfegh")
+
+comparison-->
+--> String.IsNullOrEmpty(str)			--> returns boolean
+--> String.IsNullorWhiteSpace(str)
+
+toArray-->
+str.Split(' ')
+
+conversion-->
+string s = "1234";
+int i = int.Parse(s);			--> if s = null/empty, return undefined
+int j = Convert.ToInt32(s);		--> if s = null/empty, return 0 int
+
+convertionToString-->
+int i = 1234;
+string s = i.ToString();
+string t = i.ToString("C");		--> C for currency --> insert $ sign
+string t = i.ToString("C0");
+
+FormatSpecifier-->
+c/C	--> Currency
+d/D	--> Decimal
+e/E	--> Exponential
+f/F	--> FixedPoint
+x/X	--> Hexadecimal
+
+---------------------------------------------------------------------------------------------------------------
+
+
+2. Demo-->
+
+var fullName = "Mosh Hamedani";
+
+var index = fullName.IndexOf(' ');
+var firstName = fullName.Substring(0, index);
+var lastName = fullName.Substring(index+1);
+
+var names = fullName.Split(' ');
+var firstName = names[0];
+var lastName = names[1];
+
+if(String.isNullorEmpty(null))	--> true
+
+if(String.isNullorEmpty(""))	--> true
+
+if(String.isNullorEmpty(" ".Trim()))	--> true
+
+if(String.isNullorWhiteSpace(" "))	--> true
+
+---------------------------------------------------------------------------------------------------------------
+
+3. Summarize Text Algorithm-->
+
+--> This is very long long...
+
+public static string SummarizeText(string text, int maxLength = 20)
+        {
+            if (text.Length < maxLength)
+            {
+                return text;
+            }
+            else
+            {
+                var words = text.Split(' ');
+                var totalCharacters = 0;
+                var summaryWords = new List<string>();
+
+                foreach (var word in words)
+                {
+                    summaryWords.Add(word);
+                    totalCharacters += word.Length;
+                    if (totalCharacters > maxLength)
+                    {
+                        break;
+                    }
+                }
+
+                return String.Join(" ", summaryWords) + "...";
+
+
+            }
+        }
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+4. String Builder-->
+
+--> this class is used to make string mutable
+--> but this class does not have methods like IndexOf(), Contains(), StartsWith() basically for searching
+--> it is defined in System.text class
+--> it has methods like append, insert, remove, replace, cl ear
+
+            var builder = new StringBuilder();
+            builder.Append('-', 20);			---> "-" repeats for 20 times
+            builder.AppendLine();			---> insert new line
+            builder.Append("Header");
+            builder.AppendLine();
+            builder.Append('-', 20);
+
+            builder.Replace('-', '+');
+
+            builder.Remove(0, 20);
+
+            builder.Insert(0, new string('-', 20));
+
+            Console.WriteLine(builder[0]);
+            Console.WriteLine(builder);
+
+----------------------------------------------------------------------
+
+	var builder = new StringBuilder("hello World");
+
+--> this builder returns Stringbuilder instead of void so we chain these methods
+
+-----------------------------------------------------------------------
+
+5. Procedural Programming-->
+
+--> A programming paradigm based on procedure calls.
+--> dividing program into functions, each responsible for specific tasks.
+--> functions, methods, routines, sub-routines are all same
+
+--> other is object-oriented programming -> A programming paradigm based on objects
+
+--> algorithm to reverse a string-->
+
+
+------------------------------------------------------------------------
+Console.Write("Whats your name: ");
+var name = Console.ReadLine();
+
+var array = new char[name.Length];
+for(int i = name.Length, i>0; i--){
+
+	array[name.Length-i] = name[i-1];
+}
+
+var reversed = new string(array);
+Console.WriteLine("Reversed name: " + reversed);
+
+or 
+
+var reversed = String.Join("", array);
+Console.WriteLine("Reversed name: " + reversed);
+-----------------------------------------------------------------------
+to-->
+
+public static string reverseName(string name)
+        {
+            var array = new char[name.Length];
+            for (int i = name.Length; i > 0; i--)
+            {
+
+                array[name.Length - i] = name[i - 1];
+            }
+
+            return String.Join("", array);
+        }
+
+--> no need to create instance of this function, so static

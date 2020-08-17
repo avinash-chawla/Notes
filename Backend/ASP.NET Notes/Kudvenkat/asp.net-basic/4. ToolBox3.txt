@@ -1,0 +1,733 @@
+1. Hidden Field -->
+
+--> It is similar to View State Property
+--> This control is used to store a value that needs to be persisted across posts to the server, but you don't want the control or its value visible to the user. 
+
+--> For example, when editing and updating an employee record, we don't want the user to see the EmployeeId. So, we will store the EmployeeId in a HiddenField.
+
+--> HiddenField:
+1. Value property of the HiddenField is used to get or set the value.
+2. The value is stored as string
+3. ViewState uses HiddenField to maintain state across postback
+4. HiddenField is rendered as an <input type="hidden" /> element
+
+--------------------------------------------------------------------
+Alternatives for HiddenField-->
+
+--> ViewState, QueryStrings, session state, cookies
+
+--> Sessions and cookies will be accessible from other pages as well and will be available until their timeout has reached.
+--> ViewState and Hiddenfield data is only availabel on that page and data is lost when you navigate away from the page.
+
+-------------------------------------------------------------------- 
+
+--> design-->
+
+HiddenField Property
+
+Name: TextBox1
+Gender: TextBox2
+Department: TextBox3
+
+(Button)Upload (Button)Load an employee
+
+---------------------------------------------------------------
+
+--> code -->
+
+private void LoadEmployee()
+    {
+        string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+        using(SqlConnection con = new SqlConnection(CS))
+        {
+            string sqlString = "Select Id, Name, Gender, DeptName from tblEmployees2 where Id=202"; 
+            SqlCommand cmd = new SqlCommand(sqlString, con);
+            con.Open();
+
+            using (SqlDataReader rdr = cmd.ExecuteReader()) 
+            {
+                while(rdr.Read())
+                {
+                    TextBox1.Text = rdr["Name"].ToString();
+                    TextBox2.Text = rdr["Gender"].ToString();
+                    TextBox3.Text = rdr["DeptName"].ToString();
+                    HiddenField1.Value = rdr["Id"].ToString();
+                }
+            }
+        }
+    }
+
+---------------------------------------------------------------
+
+protected void Page_Load(object sender, EventArgs e)
+    {
+        if(!IsPostBack)
+        {
+            LoadEmployee();
+        }
+    }
+
+--------------------------------------------------------------------
+
+--> upload button click event-->
+--> using parametrised query-->
+
+protected void Button1_Click(object sender, EventArgs e)
+    {
+        string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+        using (SqlConnection con = new SqlConnection(CS))
+        {
+            string sqlString = "update tblEmployees set Name=@Name, Gender=@Gender, DeptName=@DeptName where Id=@Id";
+            SqlCommand cmd = new SqlCommand(sqlString, con);
+
+            cmd.Parameters.AddWithValue("@Name", TextBox1.Text);
+            cmd.Parameters.AddWithValue("@Gender", TextBox2.Text);
+            cmd.Parameters.AddWithValue("@DeptName", TextBox3.Text);
+            cmd.Parameters.AddWithValue("@Id", HiddenField1.Value);
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            TextBox1.Text = "";
+            TextBox2.Text = "";
+            TextBox3.Text = "";
+
+        }
+
+    }
+
+--------------------------------------------------------------------
+--> Load an Employee button click event-->
+
+LoadEmployee();
+
+---------------------------------------------------------------------
+
+--> hidden field is storing ID of particular employee
+--> now user doesn't need to know id and also if there are any multiple names of that user
+--> when user updates his records, hiddenfield is also sent to server for correct update record
+
+
+--> Disadvantage --> can be seen value of hiddenfield in browser by ctrl+U	--> (view in page source)
+--> can be accessible by javasript --> not written here, but in video of hiddenfield control
+
+-----------------------------------------------------------------------
+
+
+
+2. MultiView Control-->
+
+--> It is made up of multiple view controls, and each view control in turn can have controls inside it.
+
+--> Simple example will be to capture employee information on a step by step basis
+1. First capture Employee Personal details , then click next
+2. Next capture Employee contact details, then click next
+3. Show summary for confirmation, upon confimation, save the data to a database table
+
+--> Property-->
+ActiveViewIndex
+
+--> Alternatives to Multiview control-->
+1. WIZARD control
+2. creating multiple webforms and passing data between webforms using Cookies, QueryStrings, Sessions.
+
+--------------------------------------------------------------------------------------
+
+--> aspx -->
+
+<asp:MultiView ID="MultiView1" runat="server">
+	<asp:View ID="View1" runat="server"><table1...></asp:View>
+	<asp:View ID="View2" runat="server"><table2...></asp:View>
+	<asp:View ID="View3" runat="server"><table3...></asp:View>
+</asp:MultiView>
+
+--> code --> 
+on corresponding button_click event-->
+
+MultiView.ActiveViewIndex = 0/ 1/ 2	--> first view, second view, third view
+
+-----------------------------------------------------------------------
+--> all is happening in single page only but with different views
+
+---------------------------------------------------------------------
+
+--> actual aspx file-->
+
+<asp:MultiView ID="MultiView1" runat="server">
+            <asp:View ID="View1" runat="server">
+                <table style="width: auto;" border="1">
+                    <tr>
+                        <td colspan="2"><h2>Step1 - Personal Details</h2></td>
+                    </tr>
+                    <tr>
+                        <td>First Name</td>
+                        <td>
+                            <asp:TextBox ID="TextBox1" runat="server"></asp:TextBox></td>
+                    </tr>
+                     <tr>
+                        <td>Last Name</td>
+                        <td>
+                            <asp:TextBox ID="TextBox2" runat="server"></asp:TextBox></td>
+                    </tr>
+                    <tr>
+                        <td>Gender:</td>
+                        <td>
+                            <asp:DropDownList ID="DropDownList1" runat="server">
+                                <asp:ListItem>Male</asp:ListItem>
+                                <asp:ListItem>Female</asp:ListItem>
+                            </asp:DropDownList></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right" colspan="2">
+                            <asp:Button ID="btnGoToStep2" runat="server" Text="Step 2 >>" OnClick="btnGoToStep2_Click" />;</td>
+                        
+                    </tr>
+                </table>
+            </asp:View>
+            <asp:View ID="View2" runat="server">
+                <table style="width: auto;" border="1">
+                    <tr>
+                        <td  colspan="2"><h2>Step2- Contact Details</h2></td>
+                      
+                    </tr>
+                    <tr>
+                        <td>Email Address</td>
+                        <td>
+                            <asp:TextBox ID="TextBox3" runat="server"></asp:TextBox></td>
+                       
+                    </tr>
+                    <tr>
+                        <td>Mobile Number</td>
+                        <td>
+                            <asp:TextBox ID="TextBox4" runat="server"></asp:TextBox></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left">
+                            <asp:Button ID="btnBackToStep1" runat="server" Text="<< Step1" OnClick="btnBackToStep1_Click" /></td>
+                        <td style="text-align: right">
+                            <asp:Button ID="btnGoToStep3" runat="server" Text="Step3 >>" OnClick="btnGoToStep3_Click" /></td>
+                    </tr>
+                </table>
+            </asp:View>
+            <asp:View ID="View3" runat="server">
+                <table style="width: auto" border="1">
+                    <tr>
+                        <td colspan="2"><h2>Step3: Summary Details</h2></td>
+                        
+                    </tr>
+                    <tr>
+                        <td colspan="2">Step1: Personal Details</td>
+                    </tr>
+                    <tr>
+                        <td>First Name</td>
+                        <td>
+                            <asp:Label ID="Label1" runat="server" Text="Label"></asp:Label></td>
+                        
+                    </tr>
+                    <tr>
+                        <td>Last Name</td>
+                        <td>
+                            <asp:Label ID="Label2" runat="server" Text="Label"></asp:Label></td>
+                        
+                    </tr>
+                    <tr>
+                        <td>Gender</td>
+                        <td>
+                            <asp:Label ID="Label3" runat="server" Text="Label"></asp:Label></td>
+                        
+                    </tr>
+                    <tr>
+                        <td colspan="2">Step2: Contact Details</td>
+                    </tr>
+                    <tr>
+                        <td>Email Address</td>
+                        <td>
+                            <asp:Label ID="Label4" runat="server" Text="Label"></asp:Label></td>
+                        
+                    </tr>
+                    <tr>
+                        <td>Phone Number</td>
+                        <td>
+                            <asp:Label ID="Label5" runat="server" Text="Label"></asp:Label></td>
+                        
+                    </tr>
+                    <tr>
+                        <td style="text-align:left">
+                            <asp:Button ID="btnBackToStep2" runat="server" Text="Step2 <<" OnClick="btnBackToStep2_Click" /></td>
+                        <td style="text-align:right">
+                            <asp:Button ID="btnsubmit" runat="server" Text="Submit" OnClick="btnsubmit_Click" /></td>
+                    </tr>
+                </table>
+            </asp:View>
+        </asp:MultiView>
+
+-----------------------------------------------------------------------------
+
+--> actual code -->
+
+protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+            MultiView1.ActiveViewIndex = 0;
+    }
+    protected void btnGoToStep2_Click(object sender, EventArgs e)
+    {
+        MultiView1.ActiveViewIndex = 1;
+    }
+    protected void btnBackToStep1_Click(object sender, EventArgs e)
+    {
+        MultiView1.ActiveViewIndex = 0;
+    }
+    protected void btnGoToStep3_Click(object sender, EventArgs e)
+    {
+        MultiView1.ActiveViewIndex = 2;
+    }
+    protected void btnBackToStep2_Click(object sender, EventArgs e)
+    {
+        MultiView1.ActiveViewIndex = 1;
+    }
+    protected void btnsubmit_Click(object sender, EventArgs e)
+    {
+        Response.Write("Form Submitted");
+	Response.Redirect("~/confirmation.aspx");
+    }
+
+----------------------------------------------------------------------------
+
+3. Wizard Control-->
+
+--> It enables creation of multi-step user interface.
+--> It provides with built-in previous/next functionality
+--> It is collection of multiple wizardSteps like multiview is collection of multiple views.
+
+--------------------------------------------------------------
+
+<asp:Wizard ID="Wizard1" runat="server">
+            <WizardSteps>
+                <asp:WizardStep runat="server" title="Step 1">
+                </asp:WizardStep>
+                <asp:WizardStep runat="server" title="Step 2">
+                </asp:WizardStep>
+            </WizardSteps>
+</asp:Wizard>
+
+--------------------------------------------------------------
+
+
+--> We have to make summary when view3 is displayed-->
+--> we will next button click event of wizard
+
+protected void Wizard1_NextButtonClick(object sender, WizardNavigationEventArgs e)
+    {
+        if (e.NextStepIndex == 2)		--> 1st view=index of 0; 2nd view=indexof 1; 3rd view=indexof2
+        {
+            Label1.Text = TextBox1.Text;
+            Label2.Text = TextBox2.Text;
+            Label3.Text = DropDownList1.SelectedItem.ToString();
+            Label4.Text = TextBox3.Text;
+            Label5.Text = TextBox4.Text;
+        }
+    }
+
+
+-------------------------------------------------------------------------------------------
+
+--> modify sidebarwizard properties-->
+
+1. SideBarStyle --> vertical align = Top
+
+------------------------------------------------------------
+
+protected void Wizard1_FinishButtonClick(object sender, WizardNavigationEventArgs e)
+{
+	Response.Redirect("~/confimation.aspx");
+}
+
+------------------------------------------------------------
+
+4. Wizard control Properties-->
+
+1. ActiveStepIndex	
+
+--> when page loads which index do you want to show starting from 0
+--> or in page-load event
+
+if(!IsPostBack)
+{
+	Wizard1.ActiveStepIndex = 1;
+}
+
+2. DisplayCancelButton
+--> Set to true
+--> Next and Cancel
+
+3. CancelDesinationPageUrl --> url when cancel button clicks
+--> url can be any page internal or external
+
+4. CancalButtonType 
+--> Link/ button/ imagebutton
+--> CancalButtonImageUrl	--> for imagebutton
+
+5. CancelButtonStyle
+--> css properties
+
+6. DisplaySideBar	
+--> false  --> to hide sidebar
+
+7. FinishCompleteButtonType
+--> Button/ image/ link
+
+8. FinishButtonButtonImageUrl
+-->url of image when clicked
+
+9. HeaderText
+--> to give header text to wizard
+
+10. HeaderStyle
+--> css prop to style header text
+
+11. Exercise to change properties at code level-->
+
+protected void Page_PreRender(object sender, EventArgs e )
+{
+	if(Wizard1.ActiveStepIndex ==1 )
+		Wizard1.HeaderText = "Contact Details";
+	else if(Wizard1.ActiveStepIndex == 2)
+		Wizard1.HeaderText = "Summary";
+}
+
+12. NavigationButtonStyle-->
+--> css style to back and next button called navigation buttons
+
+13. SideBarbuttonStyle-->
+--> css style to side bar buttons
+
+14. StartNextButtonType-->
+--> button/ link/ image
+
+15.StepNextButton and StepPreviousButton-->
+
+16. StepStyle-->
+
+--------------------------------------------------------------
+
+5. Wizard Control Events-->
+
+1. ActiveStepChanged event 
+--> Response.Write("Active Step Changed to " +(Wizard1.ActiveStepIndex+1).ToString());
+
+2. CancelButtonClick
+--> somebody clicks cancal button
+--> Cancel button --> true
+--> Response.Write("Cancel button is click");
+
+3. CancalDestinationPageUrl property
+--> type url page 
+--> naviagate to that page
+
+4. NextButtonClick
+--> fired when somebody click next button
+--> Response.Write(e.CurrentStepIndex.ToString(), e.NextStepIndex.ToString());
+--> e.Cancel = true;	--> not able to go/move to next button --> 
+
+--> if(CheckBox1.Checked)
+	e.Cancel = true
+
+or
+
+--> e.Cancel = checkBox1.Checked    --> both return boolean
+
+5.FinishButtonClick
+--> fired when somebody clicks finish button
+--> Response.Write(e.CurrentStepIndex.ToString(), e.NextStepIndex.ToString());
+
+--> if current step is final step, then currentstep = nextstep
+
+---------------------------------------------------------------------------------
+
+6. UseSubmitBehaviour Property of Button-->
+
+--> It specifies if the Button control uses the browser's built-in submit function or the ASP.NET postback mechanism
+--> By default, it is set to true
+
+--> Basically, there are two types of buttons, one of submitting and other one to apply javascript
+
+--> To apply only javascript, we can set false to inbuilt-property of submit which is UseSubmitBehaviour property
+
+--> TextBox1.Text = "";   or TextBox1.Text = string.Empty;s
+
+-----------------------------------------------------------------------
+
+--> design-->
+
+Name: TextBox1
+Clear(Btn)  Submit(Btn)
+Label1
+-----------------------------------------------------------------------
+
+clear_click event-->
+TextBox1.Text = string.Empty;		
+
+--> also set UseSubmitBehavior = false in clear button because only for applying js and not for submitting.
+
+submit_click event-->
+Label1.Text = "You have submitted your form";
+
+--------------------------------------------------------------
+
+7. Wizard Control Templates-->
+
+--> exercise --> 
+1. Set focus on first control in wizard step when the page loads
+2. Attach javascript for alert/confirmation to go to next step
+3. Set UseSubmitButton = false for previous button
+
+--> Set Focus-->
+
+on Page_PreRender event-->
+
+if(Wizard1.ActiveStepIndex == 0 )
+	TextBox1.Focus()
+else if(Wizard1.ActiveStepIndex == 1 )
+	TextBox2.Focus()
+else if(Wizard1.ActiveStepIndex == 2 )
+	TextBox3  .Focus()
+
+
+--> why on page_rerender event not on page_load event
+--> because ActiveStepIndex changes as the button clicks but page_load comes before button click event so affect no Focus method
+--> page_rerender comes after button_click event so Focus method is working
+--> page_load event loads only first time when 1st view is rendered not in all view loads, so it is good to use page_rerender event in case of wizard control
+
+----------------------------------------------------------------------------
+
+--> Generate Confirmation alert to user before going to next page-->
+
+--> can be happen in button click events
+--> but problem is button are automatically generated and we have less control over it.
+
+--> solution:
+
+--> go in desing view
+--> click wizard box
+--> click showsmarttagbutton  (">") or right click, click smart tags
+--> click convert to startnavigation template
+
+--> now, it now displays next button which is autogenerated before
+--> go in aspx file, see new html tag --> StartNavigationTemplate
+
+--> put in that tag --> OnClientClick = "return confirm('are you sure you want to go to next step')" />
+
+--> above won't work for wizard which is in middle and finish only work for start
+--> so through same process, click setNavigation template and also finishNavigation template for middle and final views template.
+------------------------------------------------------------------------
+
+--> using code now-->
+
+--> again problem is we cannot directly access property like ID StepNextButton because it is inside SetNavigationTemplate
+
+in page_load event-->
+
+Button btn = (Button)Wizard1.FindControl("StepNavigationTemplateContainerID").FindControl("StepNextButton");
+
+btn.onClientClick = "return confirm('Are you sure to want to go to next page')";
+
+--> above reference to stepnextbutton comes from page source of second view page in name attribute of 2nd view next button
+---------------------------------------------------------------------------
+
+3. It is neccessary to set useSubmitButton property to false for previous button-->
+--> because when user is in second view page, he presses enters in keyboard, to goes to previous page if useSubmitButton is true.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+8. Literal Control-->
+
+--> It is similar to Label Control
+--> difference-->
+
+Label 
+--> Puts text in span tag
+--> any style is applied to span tag
+
+
+Literal 
+--> only displays text without any tag
+--> any style is applied to text
+--> It is lightweight than label control
+
+
+--> Label1.Text = "Label Text";
+--> Literal1.Text = "<b><font color=\"Red\">Literal Text</font></b>";
+
+--> similarity-->
+
+--> Both control does not encode the text they display
+--> means hacking is possible
+--> To avoid hacking, type below code
+
+--> <asp:Label ID="Label1" runat="server" Font=Bold="true" ForeColor="Red">
+	<%=Server.HtmlEncode("<script>alert('Label Text')</script>") %>
+    </asp:Label>
+
+--> <asp:Literal ID="Literal1" runat="server" Mode="Encode" Text="<script>alert('Label Text')</script>"></asp:Literal>
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+9. Panel Control-->
+
+--> It is used as a container for other controls
+--> It is very useful for showing and hiding all the controls in group at once
+--> It is also very useful when adding controls to the webform dynamically.
+
+--> design -->
+
+DropDownList(select, adminpanel, userpanael)
+table(adminpanel or userpanel)
+
+--> code -->
+
+1. Make ddl as autopostback = true
+2. wrap respective tables under panel block.
+
+--> page_load event-->
+
+if(!IsPostBack)
+	AdminPanel.Visible = false;
+	NonAdminPanel.Visible = false;
+
+--> ddl_selectedindexChanged event-->
+
+if(DDL1.SelectedValue == "-1")
+	AdminPanel.Visible = false;
+	NonAdminPanel.Visible = false;
+else if(DDL1.SelectedValue == "Admin")
+	AdminPanel.Visible = true;
+	NonAdminPanel.Visible = false;
+else
+	AdminPanel.Visible = false;
+	NonAdminPanel.Visible = true;
+
+-----------------------------------------------------------------------------------------------------------------------
+
+10. Creating controls dynamically using panel control-->
+
+--> design
+
+Control Type: Label(CB) TextBox(CB) Button(CB) How Many (TB) Generate_Controls(BTN)
+
+LabelControls
+1 2 3
+
+TextBox Controls
+1 2 3
+
+Button Controls
+1 2 3
+
+
+--> CB = CheckBox, TB = TextBox
+--> 123 are controls and its quantity is dependent upon How many TextBox which is generated dynamically
+--> In places of 123, place empty panel control with different IDs.
+
+------------------------------------------------------------
+
+--> We will use the property of panel to add control elements in its container
+--> Panel1.Controls.Add(Control object)
+--> All control elements implements Control class
+
+--> How to make control elements-->
+--> All control elements are actually classes-->
+
+Label lbl = new Label();
+lbl.Text = "Label1";
+Panel1.Controls.Add(li);
+
+---------------------------------------------------------------------------
+
+--> code -->
+
+on GenerateButton click event-->
+
+int Count = Convert.ToInt32(TextBox1.Text);
+foreach(ListItem li in CheckBox1.Items)
+{
+	if(li.Selected)
+	{
+		if(li.Value == "Label")
+		{
+			for(int i = 1; i< Count; i++)
+			{
+				Label lbl = new Label();
+				lbl.Text = "Label - " + i.ToString();
+				Panel1.Controls.Add(lbl);
+			}
+		}
+
+		if(li.Value == "TextBox")
+		{
+			for(int i = 1; i< Count; i++)
+			{
+				TextBox tb = new TextBox();
+				tb.Text = "TextBox - " + i.ToString();
+				Panel2.Controls.Add(tb);
+			}
+		}
+
+		if(li.Value == "Button")
+		{
+			for(int i = 1; i< Count; i++)
+			{
+				Button btn = new Button();
+				btn.Text = "Button - " + i.ToString();
+				Panel3.Controls.Add(btn);
+			}
+		}
+
+	}
+}
+
+-------------------------------------------------------------------------------
+
+--> Another way of adding controls at right place without panel controls-->
+
+1. First way-->
+
+Label lbl = new Label();
+lbl.Text = "Label - " + i.ToString();
+this.Page.Controls.Add(lbl);
+
+--> above will give error that controls should be places inside form tag
+
+-----------------------------------------------------------------------------
+2. Second way--> 
+
+Label lbl = new Label();
+lbl.Text = "Label - " + i.ToString();
+this.form1.Controls.Add(lbl);
+
+--> above will place controls at below of all content at last of its tag.
+
+-------------------------------------------------------------------------------
+
+3. Third way-->
+
+<td colspan="5" id="tdLabels" runat="server"></td>
+--> place where you want to generate dynamically
+
+Label lbl = new Label();
+lbl.Text = "Label - " + i.ToString();
+tdLabels.Controls.Add(lbl);
+
+-----------------------------------------------------------------------------
+
+4. Fourth way-->
+
+<asp:Placeholder ID="phLabels" runat="server"></asp:Placeholder>
+
+Label lbl = new Label();
+lbl.Text = "Label - " + i.ToString();
+phLabels.Controls.Add(lbl);
+
+-------------------------------------------------------------------------------

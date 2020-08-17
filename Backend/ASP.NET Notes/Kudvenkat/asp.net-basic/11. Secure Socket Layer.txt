@@ -1,0 +1,264 @@
+1. Intro-->
+
+
+In this video we will discuss about 
+1. The advantage of using HTTPS over HTTP protocol
+2. How to identify, if the web application i am accessing, use HTTPS protocol
+3. How to configure HTTPS instead of HTTP for asp.net web applications
+4. What is SSL or Secure Socket Layer and how is it different from HTTPS
+5. Who issues server certificates and can't I generate test certificates
+6. What about performance when using HTTPS over HTTP
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> Advantages of using HTTPS
+
+--> HTTP stands for Hyper Text Transfer Protocol. 
+--> HTTPS, stands for Hyper Text Transfer Protocol Secure. 
+--> As the name suggests, HTTPS is more secure than HTTP. 
+
+--> When the web server and the client communicate, using HTTP, protocol, the messages that are exchanged over the internet are not encrypted. 
+--> Any one can secretly listen and see the messages that are exchanged between the client and the web server. 
+
+--> That's why, any sensitive information like passwords, financial transactions should never be done over HTTP protocol. 
+--> Most of the banking applications use HTTPS protocol. Messages exchanged between the client and web server, using the HTTPS protocol are encrypted and are very secure. 
+
+--> HTTP use port 80 and HTTPS use port 443.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> How to identify, if the web application i am accessing, use HTTPS protocol
+There are 2 ways
+1. Browser displays a LOCK symbol either in the address or status bar. Click on the lock icon, for more information like, the certificate issuing authority, encryption key length etc.
+2. In the address bar look for HTTPS instead of HTTP
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> How to configure HTTPS instead of HTTP for asp.net web applications
+
+--> IIS is the web server for asp.net web applications. so the configuration to use HTTPS, is usually done in IIS. 
+--> The encryption and decryption of  messages exchanged between the client and the server is done by server certificates. 
+--> These server certificates needs to be installed on the IIS server.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> What is Secure Socket Layer and how is it different from HTTPS
+
+--> HTTPS is HTTP (HyperText Transfer Protocol) plus SSL (Secure Socket Layer). 
+--> SSL standing for Secure Sockets Layer (SSL) is a standard security technology for establishing an encrypted link between a web server and a browser, so that the data sent over the Internet can’t be read by others. 
+
+--> When a user requests a secure Web page, the server generates an encryption key for the user’s session and then encrypts the page’s data before sending a response. --> On the client side, the browser uses that same encryption key to decrypt the requested Web page and to encrypt new requests sent from that page. 
+
+--> SSL uses server certificates for encryption and decryption. --> An SSL certificate contains a public key and certificate issuer. 
+--> Not only can clients use the certificate to communicate with a server, clients can verify that the certificate was cryptographically signed by an official Certificate Authority. 
+
+--> For example, if your browser trusts the VeriSign Certificate Authority, and VeriSign signs my SSL certificate, your browser will inherently trust my SSL certificate.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Who issues server certificates and can't I generate test certificates
+--> Server certificates are issued by an entity called certificate authority. There are several trusted certificate authorities like
+1. verisign
+2. Thawte 
+3. Geotrust
+4. Comodo 
+5. GoDaddy 
+
+-----------------------------------------------------------------------------------------------------------------------
+
+The certificate authority acts as a clearing house to verify the server’s identity over the Internet. When a browser requests a page over https, the browser also, --> Browser requests the server certificate and checks it against a list of trusted sites provided by the certificate authority. 
+--> If the server certificate does not match one of the sites already authorized by the user, or if the server certificate does not match the Web address for which it was registered, or if there are any other problems with the server certificate, a warning message is displayed. The warning message from internet explorer is shown below.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> Besides providing encryption and decryption for secure data transmission, certificate authority also provides assurance to users that a website is authentic.
+
+--> It is also possible to generate our own server certificates, using a tool called makecert.exe. 
+--> This tool comes with visual studio and can be used from visual studio command prompt. 
+--> The certificates that are generated using this tool, can only be used for testing purposes and not for production use. 
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> What about performance when using HTTPS over HTTP
+--> Extra processing time is required for HTTPS, for key negotiation. Key negotiation is also termed as SSL handshake.  The handshake allows the server to authenticate itself to the client.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+2. Implementing SSL in webApplication-->
+
+In this video we will discuss about
+1. Understand the term self-signed certificates
+2. Creating self-signed certificates
+3. Configuring an asp.net web application to use SSL, that is use HTTPS instead of HTTP
+4. Importing and exporting certificates
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> What are self signed certificates
+
+A self-signed certificate is an identity certificate that is signed by its own creator. Certificates are signed by Certificate Authority. In general self signed certificates are fine for testing purposes and not for production use.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> Creating self-signed certificates
+
+There are several ways to create self signed test certificates. Let us explore 2 of the easier options available. The easiest and simpler approach is to use IIS to create these certificates. In IIS 7.5
+1. Click on the "Server Name"
+2. Double click "Server Certificates" feature
+3. Click on "Create Self Signed Certificate" link, under "Actions"
+4. Specify a friendly name for the certificate and click OK. The friendly name is not part of the certificate itself, but is used by the server administrator to easily distinguish the certificate.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> To know the name of your machine-->
+
+--> In command prompt, type hostname
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> The generated test certificate, is also automatically installed into the certificate store.
+
+--> MakeCert.exe tool can be used as another way to generate, test certificates. 
+
+--> The following link from microsoft explains, various options that can be used with this tool. 
+--> This is a command line tool and must be run from visual studio command prompt. 
+http://msdn.microsoft.com/en-us/library/bfsktky3.aspx
+
+Makecert -r -pe -n "CN=YourComputerName" -b 01/01/2000 -e 01/01/2100 -ss my -sr localMachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12
+
+Note: Replace YourComputerName, with the name of your computer.
+
+-r	--> means we are generating SSL certificate
+-pe	--> permission for including private key in certificate
+-n 	--> name of certificate using CN
+-b	--> birth/start date
+-e	--> end date
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> Associating an asp.net web application with a specific certificate
+Add HTTPS site binding, if it is not already present
+1. Open IIS
+2. Expand the "Server Name"
+3. Expand "Sites"
+4. Select "Default Web Site"
+5. Click "Binding" under "Edit Site" in "Actions" pane.
+6. In the "Site Bindings" window, Click "Add"
+7. Select Type = "https" and the SSL Certificate and click "OK"
+8. Click "Close" on "Site Bindings" window
+
+At this point, you will be able to access your application using both HTTP and HTTPS protocol. When the site is accessed over HTTPS, you may receive a browser warning about the authenticity of the website. In a later video session we will discuss about resolving this.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> If you want to dis-allow, access over HTTP protocol there are 2 ways
+
+First Way: Remove HTTP binding at the IIS Server level. This option will prevent all the web applications, running on that server to use only HTTPS binding. 
+
+Second Way: Let both the bindings be available at the server level and configure SSL settings at an application or web site level. 
+1. Select your web application in IIS
+2. Double click "SSL Settings" from the features window
+3. Make sure "Require SSL" check box is checked.
+4. Click "Apply" under "Actions" pane
+
+Now, if you try to access the application using HTTP instead of HTTPS, you will get an error
+HTTP Error 403.4 - Forbidden
+The page you are trying to access is secured with Secure Sockets Layer (SSL)
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> Use Import and Export feature of IIS to import and export certificates
+
+1. Select Server Name is IIS
+2. Click SSL Server Certificates
+3. In Action Pane, click Export
+4. Name: Sample, Password: any
+
+--> It will be exported to C:\Windows\System32 in pfx format
+--> Same it can be imported
+
+-----------------------------------------------------------------------------------------------------------------------
+
+3. Redirect from http to https in IIS-->
+
+--> To redirect users from HTTP to HTTPS automatically, there are several ways. In this video we will discuss about using "url rewrite" module. There are 3 simple steps
+
+Step 1:
+Please download and install "URL ReWrite" module from the following link.
+http://www.iis.net/downloads/microsoft/url-rewrite
+
+Step 2:
+Uncheck "Require SSL" option from "SSL Settings" for the web application in IIS.
+
+Step 3:
+Copy and paste the following in the root web.config file of your application.
+<system.webServer>
+    <httpRedirect enabled="false" destination="" httpResponseStatus="Found" />
+    <rewrite>
+        <rules>
+            <rule name="HTTP to HTTPS Redirection" stopProcessing="true">
+                <match url="(.*)" />
+                <conditions>
+                    <add input="{HTTPS}" pattern="off" />
+                </conditions>
+                <action type="Redirect" url="https://{HTTP_HOST}{REQUEST_URI}" redirectType="Found" />
+            </rule>
+        </rules>
+    </rewrite>
+</system.webServer>
+
+--> {HTTP_HOST} is the domain name of application
+
+Now try to navigate to the application using HTTP, you will automatically be redirected to HTTPS.
+
+These rules can also be created in IIS directly using the "URL Rewrite" module
+
+-----------------------------------------------------------------------------------------------------------------------
+
+4. Redirect http to https in IIS using custom errors--> 
+
+--> Custom error pages can be set at the server level or at a specific application level in IIS. 
+--> In this demo, we will discuss about setting custom error pages at the server level. 
+
+--> There are 3 simple steps.
+
+Step 1: 
+--> Make sure "Require SSL" option from "SSL Settings" is checked for your web application in IIS. 
+--> Now, browse the web site, using HTTP, and you will receive the following error. Pay attention to HTTP error code - 403.4, which we will be using later.
+HTTP Error 403.4 - Forbidden
+--> The page you are trying to access is secured with Secure Sockets Layer (SSL).
+
+
+Step 2:
+Copy and paste the following HTML in a notepad and save it as "RedirectToHttps.htm" in "C:\inetpub".
+<html>
+<head>
+   <title>
+      Redirecting to HTTPS
+   </title>
+</head>
+<script language="JavaScript">
+function redirectHttpToHttps()
+{
+    var httpURL= window.location.hostname + window.location.pathname;
+    var httpsURL= "https://" + httpURL;
+    window.location = httpsURL;
+}
+redirectHttpToHttps();
+</script>
+<body>
+</body>
+</html>
+
+Step 3:
+1. In IIS, select the "Server Name" and double click "Error Pages" to open the feature.
+2. Click on "Add" link under "Actions" 
+3. Set Status Code = 403.4, File Path = C:\Inetpub\RedirectToHttps.htm and click "OK"
+4. Now click "Edit Feature Settings" link under "Actions"
+5. Select "Custom Error Pages" and Path = C:\inetpub\RedirectToHttps.htm
+
+Now, access the application using HTTP. You will be automatically redirected to HTTPS.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+5. 

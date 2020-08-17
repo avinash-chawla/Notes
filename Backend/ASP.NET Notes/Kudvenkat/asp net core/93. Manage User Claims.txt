@@ -1,0 +1,302 @@
+1. Intro
+
+--> In this, we will discuss, how to manage user claims i.e add or remove claims for a user in asp.net core using the identity api.
+
+--> We will discuss, what a claim is in detail in a later video. 
+
+--> For now you can think of a claim as a name value pair which can be used for making access control decisions. 
+--> For example, we want to allow a logged-in user to be able to edit employee details, only if he has "Edit Employee" claim. 
+
+--> We can use claims to make authorization checks like this. Since we are using claims to make authorization checks, this is called claims-based authorization. 
+
+--> We will discuss how to use claims to control access to resources in our next video. In this video we will discuss, how to add or remove claims for a user.
+
+---------------------------------------------------------------------------------------------
+
+2. Edit User View
+
+--> On EditUser view, when Manage Claims button is clicked, we want to redirect to ManageUserClaims action passing it the UserId
+
+<div class="card-footer">
+    <a asp-action="ManageUserClaims" asp-route-userId="@Model.Id"
+        style="width:auto" class="btn btn-primary">
+        Manage Claims
+    </a>
+</div>
+
+--> ManageUserClaims view is as shown below. 
+--> This view displays the list of all claims in our application. 
+--> If you want to add a claim to the user, check the checkbox, otherwise leave it unchecked.
+
+--> User claims are stored in AspNetUserClaims table. So, once the Update button is clicked the data should be updated in the underlying AspNetUserClaims database table.
+
+---------------------------------------------------------------------------------------------
+
+3. Claims Store
+
+--> To keep it simple, for our sample application, we are storing claims in the following ClaimsStore static class. 
+--> You could store them in a configuration file, database table or static class etc.
+
+public static class ClaimsStore
+{
+    public static List<Claim> AllClaims = new List<Claim>()
+    {
+        new Claim("Create Role", "Create Role"),
+        new Claim("Edit Role","Edit Role"),
+        new Claim("Delete Role","Delete Role")
+    };
+}
+
+--> Claim class is in System.Security.Claims namespace. The constructor expects - Claim type and value.
+
+---------------------------------------------------------------------------------------------
+
+4. UserClaimsViewModel
+
+public class UserClaimsViewModel
+{
+    public UserClaimsViewModel()
+    {
+        Cliams = new List<UserClaim>();
+    }
+
+    public string UserId { get; set; }
+    public List<UserClaim> Cliams { get; set; }
+}
+
+--> This viewmodel class carries the data from the controller action to the view and vice versa
+--> As far as this view is concerned, there is a one-to-many relationship from the user to claim.
+--> As the name implies UserId property holds the ID of the user for whom we are adding or removing a claim
+--> Claims property which is of type List<UserClaim> holds the list of claims
+
+---------------------------------------------------------------------------------------------
+
+--> The following is the UserClaim class. 
+--> IsSelected property determines if the clam is selected on the UI
+
+public class UserClaim
+{
+    public string ClaimType { get; set; }
+    public bool IsSelected { get; set; }
+}
+
+---------------------------------------------------------------------------------------------
+
+5. HttpGet ManageUserClaims Action
+
+[HttpGet]
+public async Task<IActionResult> ManageUserClaims(string userId)
+{
+    var user = await userManager.FindByIdAsync(userId);
+
+    if (user == null)
+    {
+        ViewBag.ErrorMessage = $"User with Id = {userId} cannot be found";
+        return View("NotFound");
+    }
+
+    // UserManager service GetClaimsAsync method gets all the current claims of the user
+    var existingUserClaims = await userManager.GetClaimsAsync(user);
+
+    var model = new UserClaimsViewModel
+    {
+        UserId = userId
+    };
+
+    // Loop through each claim we have in our application
+    foreach (Claim claim in ClaimsStore.AllClaims)
+    {
+        UserClaim userClaim = new UserClaim
+        {
+            ClaimType = claim.Type
+        };
+
+        // If the user has the claim, set IsSelected property to true, so the checkbox
+        // next to the claim is checked on the UI
+        if (existingUserClaims.Any(c => c.Type == claim.Type))
+        {
+            userClaim.IsSelected = true;
+        }
+
+        model.Cliams.Add(userClaim);
+    }
+
+    return View(model);
+
+}
+
+---------------------------------------------------------------------------------------------
+
+6. HttpPost ManageUserClaims Action
+
+[HttpPost]
+public async Task<IActionResult> ManageUserClaims(UserClaimsViewModel model)
+{
+    var user = await userManager.FindByIdAsync(model.UserId);
+
+    if (user == null)
+    {
+        ViewBag.ErrorMessage = $"User with Id = {model.UserId} cannot be found";
+        return View("NotFound");
+    }
+
+    // Get all the user existing claims and delete them
+    var claims = await userManager.GetClaimsAsync(user);
+    var result = await userManager.RemoveClaimsAsync(user, claims);
+
+    if (!result.Succeeded)
+    {
+        ModelState.AddModelError("", "Cannot remove user existing claims");
+        return View(model);
+    }
+
+    // Add all the claims that are selected on the UI
+    result = await userManager.AddClaimsAsync(user,
+        model.Cliams.Where(c => c.IsSelected).Select(c => new Claim(c.ClaimType, c.ClaimType)));
+
+    if (!result.Succeeded)
+    {
+        ModelState.AddModelError("", "Cannot add selected claims to user");
+        return View(model);
+    }
+
+    return RedirectToAction("EditUser", new { Id = model.UserId });
+
+}
+
+---------------------------------------------------------------------------------------------
+
+7. ManageUserClaims View
+
+@model UserClaimsViewModel
+
+<form method="post">
+    <div class="card">
+        <div class="card-header">
+            <h2>Manage User Claims</h2>
+        </div>
+        <div class="card-body">
+            @for (int i = 0; i < Model.Cliams.Count; i++)
+            {
+                <div class="form-check m-1">
+                    <input type="hidden" asp-for="@Model.Cliams[i].ClaimType" />
+                    <input asp-for="@Model.Cliams[i].IsSelected" class="form-check-input" />
+                    <label class="form-check-label" asp-for="@Model.Cliams[i].IsSelected">
+                        @Model.Cliams[i].ClaimType
+                    </label>
+                </div>
+            }
+            <div asp-validation-summary="All" class="text-danger"></div>
+        </div>
+        <div class="card-footer">
+            <input type="submit" value="Update" class="btn btn-primary"
+                   style="width:auto" />
+            <a asp-action="EditUser" asp-route-id="@Model.UserId"
+               class="btn btn-primary" style="width:auto">Cancel</a>
+        </div>
+    </div>
+</form>
+
+---------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,690 @@
+1. Creating the Pages App
+
+--> Everything is made of apps in django
+--> Benefit is you can reuse such apps in other projects
+
+# To create new app
+--> python manage.py startapp pages
+
+---------------------------------------------------------------------------------
+
+2. Content of Any App
+
+--> migrations folder
+--> admin
+--> apps
+--> models
+--> tests
+--> views
+
+1. migration
+--> Every migration file related to this domain will be included here
+
+2. admin
+--> If want to include model domains in admin page, include here
+
+3. apps
+--> This contains settings for this app
+--> This should be registered in settings.py to let manage.py know that it is an app and include in application
+
+4. models
+--> All domain properties will be included here
+
+5. views
+--> This contain all view method for this domain url
+
+---------------------------------------------------------------------------------
+
+3. Register this new app in main settings.py
+
+--> In settings.py, under installed apps array, include 'pages.apps.PagesConfig' in list
+--> By doing this, manage.py will be aware of this app
+
+---------------------------------------------------------------------------------
+
+4. urls.py
+
+--> We need urls.py file in app
+--> main urls.py will pass control to this urls.py in app if matching url is to this domain
+--> Make new file urls.py in pages app
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.index, name="index")
+]
+
+--> This is basically router
+
+---------------------------------------------------------------------------------
+
+5. Main urls.py
+
+--> This will pass control of related domain to their app
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('', include("pages.urls")),
+    path('admin/', admin.site.urls),
+]
+
+---------------------------------------------------------------------------------
+
+6. view Method
+
+--> urls.py is calling view method for handling that url match
+--> In views.py,
+
+from django.shortcuts import render
+from django.http import HttpResponse
+
+
+def index(request):
+    return HttpResponse("<h1>Hello World</h1>")
+
+
+--> We will django.http module to import HttpResponse
+
+---------------------------------------------------------------------------------
+
+7. Template folder
+
+--> To make aware of this template folder to django, we need to write in main settings.py
+
+--> In settings.py,
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],				------------> here
+	...
+]
+
+---------------------------------------------------------------------------------
+
+8. Create Templates
+
+--> Make new folder in project --> templates
+--> Create another folder inside it --> pages
+--> Make two html files inside it --> index.html and about.html
+
+--> index.html
+<h1>Home</h1>
+
+--> about.html
+<h1>About</h1>
+
+---------------------------------------------------------------------------------
+
+9. Reference template to view Method
+
+--> In urls.py of pages app,
+
+urlpatterns = [
+    path('', views.index, name="index"),
+    path('about', views.about, name="about")
+]
+
+--> In views.py of pages.app,
+
+def index(request):
+    return render(request, "pages/index.html")
+
+
+def about(request):
+    return render(request, "pages/about.html")
+
+--> Run the Server
+--> Make sure you are inside venv
+--> source ./venv/Scripts/activate(bash)   or venv/Scripts/activate.bat(powershell)
+
+---------------------------------------------------------------------------------
+
+10. Jinja Template Engine
+
+--> Django supports this jinja template engine bydefault
+--> Install extension from visual studio code --> Jinja
+
+--> Make new file --> 'base.html' inside templates folder
+--> This will be our master page
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    {% block content %}
+
+    {% endblock %}
+</body>
+
+</html>
+
+--> Those pages which extends this master page, will be rendered inside {% block content %} .. {% endblock %}
+
+---------------------------------------------------------------------------------
+
+11. Pages extending master page
+
+--> index.html of pages app
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Home</h1>
+{% endblock %}
+
+
+--> about.html of pages app
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>About</h1>
+{% endblock %}
+
+--> Run the server and view the page source
+
+---------------------------------------------------------------------------------
+
+12. Live Server with Django
+
+--> Install this django app:
+
+pip install django-livesync
+
+--> On your django settings file add something like:
+
+INSTALLED_APPS = (
+    '...',
+    'livesync',
+    'django.contrib.staticfiles',
+    '...',
+)
+
+MIDDLEWARE_CLASSES = (
+    'livesync.core.middleware.DjangoLiveSyncMiddleware',
+)
+
+--> Beware to register 'livesync' before 'django.contrib.staticfiles' if you are using it.
+--> Now, just start your development server:
+	python manage.py runserver
+
+--> Check this out for more details: https://github.com/fabiogibson/django-livesync
+
+---------------------------------------------------------------------------------
+
+13. Static files and paths
+
+--> There is different logic with Django
+--> Django will look for all static folder inside apps
+--> And paste in root static folder
+
+---------------------------------------------------------------------------------
+
+--> Make new folder in MagicVilla_Django folder --> static
+--> Place all static files like css, js and img from brad resources
+https://github.com/bradtraversy/btre_project
+--> And place in that folder
+
+---------------------------------------------------------------------------------
+
+--> In settings.py,
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'MagicVilla_Django/static')
+]
+
+--> static_root is the root folder for all static files
+--> staticfile_dirs is the path of app static folder
+
+---------------------------------------------------------------------------------
+
+--> Run the command
+--> python manage.py collectstatic
+--> Django will look for all static folder inside apps and paste in root static folder
+
+---------------------------------------------------------------------------------
+
+--> Note: 
+
+--> Do not do spelling mistake
+--> python manage.py runserver will automatically serve static files to browser, but not suitable for production, refer documentation for different approach
+--> In .gitignore file,
+static/
+media/
+
+---------------------------------------------------------------------------------
+
+14. Bootstrap Layout Markup
+
+--> Mostly, we are provided theme for developing project
+--> Include links of static file in base.html file
+
+{% load static %}				------> Load static
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/all.css' %}">				---------> This is the way we include static files
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <!-- Custom -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <!-- Lightbox -->
+    <link rel="stylesheet" href="{% static 'css/lightbox.min.css' %}">
+    <title>Document</title>
+</head>
+
+<body>
+
+{% block content %}
+
+    {% endblock %}
+
+    <script src="{% static 'js/jquery-3.3.1.min.js' %} "></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %} "></script>
+    <script src="{% static 'js/lightbox.min.js' %} "></script>
+    <script src="{% static 'js/main.js' %} "></script>
+
+</body>
+</html>
+
+---------------------------------------------------------------------------------
+
+15. Navbar and Footer
+
+--> Copy Topbar and Footer from theme 'index.html' provided in brad resources in 3rd section of lecture series.
+--> And paste in base.html
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/all.css' %}">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <!-- Custom -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <!-- Lightbox -->
+    <link rel="stylesheet" href="{% static 'css/lightbox.min.css' %}">
+    <title>Document</title>
+</head>
+
+<body>
+    <section id="top-bar" class="p-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <i class="fas fa-phone"></i> (617)-555-5555
+                </div>
+                <div class="col-md-4">
+                    <i class="fas fa-envelope-open"></i> contact@btrealestate.co
+                </div>
+                <div class="col-md-4">
+                    <div class="social text-right">
+                        <a href="#">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#">
+                            <i class="fab fa-pinterest"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="assets/img/logo.png" class="logo" alt="">
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <ul class="navbar-nav">
+                    <li class="nav-item active mr-3">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item mr-3">
+                        <a class="nav-link" href="about.html">About</a>
+                    </li>
+                    <li class="nav-item mr-3">
+                        <a class="nav-link" href="listings.html">Featured Listings</a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item mr-3">
+                        <a class="nav-link" href="register.html">
+                            <i class="fas fa-user-plus"></i> Register</a>
+                    </li>
+                    <li class="nav-item mr-3">
+                        <a class="nav-link" href="login.html">
+                            <i class="fas fa-sign-in-alt"></i>
+
+                            Login</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}
+
+    {% endblock %}
+
+    <footer id="main-footer" class="py-4 bg-primary text-white text-center">
+        Copyright &copy;
+        <span class="year"></span> BT Real Estate
+    </footer>
+
+    <script src="{% static 'js/jquery-3.3.1.min.js' %} "></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %} "></script>
+    <script src="{% static 'js/lightbox.min.js' %} "></script>
+    <script src="{% static 'js/main.js' %} "></script>
+</body>
+
+</html>
+
+---------------------------------------------------------------------------------
+
+16. Making partial views
+
+--> Make new folder inside templates folder --> partial
+--> Make 3 files --> _footer.html, _navbar.html, _topbar.html
+
+--> Place relevant contents from base.html to them
+--> In base.html,
+
+<body>
+    {% include 'partial/_topbar.html'%}
+    {% include 'partial/_navbar.html'%}
+
+    {% block content %} {% endblock %}
+
+    {% include 'partial/_footer.html'%}
+
+--> In _navbar.html, you have to include static path for logo
+
+{% load static %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+    ...
+    <img src="{% static 'img/logo.png' %}" class="logo" alt="">
+
+---------------------------------------------------------------------------------
+
+17. Making index and about page from theme
+
+--> In theme resources, in index.html, copy required portion and paste in project index.html of pages app
+--> Same for about.html
+--> Leave topbar, navbar and footer in all common html files inside theme.
+--> load static in about.html for image
+
+---------------------------------------------------------------------------------
+
+--> _navbar.html
+--> Normal a href link won't work
+--> Replace with,
+
+<a class="nav-link" href="{% url 'index' %}">Home</a>
+<a class="nav-link" href="{% url 'about' %}">About</a>
+
+--> Similary in bread_crump in about.html
+
+<a href="{% url 'index' %}">
+
+--> This name 'index' 'about' is getting from name property which is provided during url setting in urls.py
+--> path('', views.index, name="index")
+
+---------------------------------------------------------------------------------
+
+--> To dynamic active links for navbar on clicking, in _navbar.html,
+
+<ul class="navbar-nav">
+                <li 
+                {% if '/' == request.path %} 
+                    class="nav-item active mr-3" 
+                {% else %} 
+                    class="nav-item active mr-3"
+                {% endif %}>
+                    <a class="nav-link" href="{% url 'index' %}">Home</a>
+                </li>
+                <li 
+                {% if 'about' in request.path %} 
+                    class="nav-item active mr-3" 
+                {% else %} 
+                    class="nav-item active mr-3"
+                {% endif %}>
+                    <a class="nav-link" href="{% url 'about' %}">About</a>
+                </li>
+                <li class="nav-item mr-3">
+                    <a class="nav-link" href="{% url 'index' %}">Featured Listings</a>
+                </li>
+            </ul>
+
+--> We used request.path to compare with path.
+
+---------------------------------------------------------------------------------
+
+18. Showcase Image was not loading
+
+--> Reason:
+--> There is mistake in theme background shorthand syntax css property
+--> Mistake: 
+#showcase {
+  background: url(../img/showcase.jpg) no-repeat top center fixed/cover;
+
+--> Correction:
+#showcase {
+  background-image: url("../img/showcase.jpg"); 
+  background-repeat:  no-repeat; 
+  background-position:top center; 
+  background-attachment: fixed;
+  background-size: cover;
+
+--> After modifying in local static folder, delete style.css from main static folder
+--> Then do, python manage.py collectstatic
+--> python manage.py runserver
+
+---------------------------------------------------------------------------------
+
+--> Another browser saves cache of old style.css
+--> Even if you delete your main static folder, browser will use all styles from cache
+
+--> Solution:
+
+--> Simple way of appraches you can do:
+1. Refresh tab by pressing (Ctrl + F5) instead of only using F5
+2. Open private window or incognito window and run the website
+3. Clear browser cache
+4. Try to use different browser (prefer a browser which wasn't used to open the site or having cache of the site)
+5. Disable Cache while developer tools are open
+
+--> Mostly disable the cache to see the effect of static folder
+
+--> Thus Solved
+
+---------------------------------------------------------------------------------
+
+19. The way to use background-image in css files with Django
+
+--> You either use a relative path to where the CSS file resides (using ../ to go up), or a relative path to domain root (starting with /), or an absolute path (including domain name). 
+
+1. #third{
+     background: url("/static/img/sample.jpeg") 50% 0 no-repeat fixed;
+}
+
+2. #third {
+  background: url('../main/img/sample.jpeg'); 
+}
+
+---------------------------------------------------------------------------------
+
+20. Change default port for Django
+
+--> python manage.py runserver 127.0.0.1:7000
+
+--> python manage.py runserver 7000
+
+--> python manage.py runserver 0:7000
+
+---------------------------------------------------------------------------------
+
+21. Create two new apps
+
+--> python manage.py startapp listings
+--> python manage.py startapp realtors
+
+---------------------------------------------------------------------------------
+
+22. Listings urls.py
+
+--> Make new file urls.py in listings app
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.index, name = "listings"),
+    path('<int:listing_id>', views.listing, name="listing"),
+    path('search', views.search, name = "search")
+]
+
+--> We have included additional parameter in url
+
+---------------------------------------------------------------------------------
+
+23. Main urls.py
+
+--> Include following path,
+
+path('listings/', include("listings.urls")),
+
+--> Also include in settings.py, in installed apps,
+
+INSTALLED_APPS = [
+    'pages.apps.PagesConfig',
+    'listings.apps.ListingsConfig',
+    'realtors.apps.RealtorsConfig',
+
+---------------------------------------------------------------------------------
+
+24. Listings views.py,
+
+from django.shortcuts import render
+
+def index(request):
+    return render(request, "listings/listings.html")
+
+def listing(request):
+    return render(request, 'listings/listing.html')
+
+def search(request):
+    return render(request, 'listings/search.html')
+
+---------------------------------------------------------------------------------
+
+25. Listings templates
+
+--> Make new folder 'listings' inside templates folder 
+--> Inside it, make 3 html files, listings.html, listing.html, search.html 
+
+---------------------------------------------------------------------------------
+
+26. listings.html
+
+--> Include base.html by {% extends 'base.html' %}  {% block content %} .. {% endblock %}
+--> From theme, copy and paste the listings.html content
+
+--> In breadcrumb of listings,
+
+--> Replace home url to <a href="{% static 'index' %}">
+
+--> _navbar partial view,
+
+	<li 
+                {% if 'listings' in request.path %} 
+                    class="nav-item active mr-3" 
+                {% else %} 
+                    class="nav-item mr-3"
+                {% endif %}>
+                    <a class="nav-link" href="{% url 'listings' %}">Featured Listings</a>
+        </li>
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

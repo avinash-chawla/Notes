@@ -1,0 +1,301 @@
+in this section, topics are-->
+1. Pass data to components
+2. raise custom events
+3. apply styles
+4. shadow dom
+5. view encapsulation
+
+------------------------------------------------------------------------
+1. Passing input to components and components raising events as outputs-->
+
+--> Passing data from parent component to child component
+--> Child component behaves like api which takes input from parent component, do its function and output(pass) the data to parent component
+--> Example: Pagination component takes length of object, pageSize from parent, do sorting and pass resulted data to parent component
+
+--> inputs is something to element based on its value, it will perform its action
+--> one example of it can be isFavorite=true/false	--> first click= turn to true and highlight star --> second click turn to false and create empty star
+--> second example of it can be inputformat='lowercase'	--> in this with help of custom decorator, it will convert to lowercase or uppercase based on input
+
+few things-->
+--> data is provided by parent component 						--> eg. post = { title: 'title', isFavorite: true }
+--> child component is mentioned in parent component 					--> eg. <favorite></favorite>
+--> Function is done by child component							--> <i class="fas fa-heart"> in favorite.component.html
+--> input and output property to this component is defined in child component 		--> favorite.component.ts
+
+-------------------------------------------------------------------------------------------------------
+--> parent component
+app.component.ts-->
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  post = {
+    title: "Title",
+    isFavorite: true
+  }
+
+  onFavoriteChanged() {
+    console.log("Favorite changed")
+
+  }
+}
+
+
+--> data about favorite component is here and selector is still is app-root
+
+---------------------------------------------------------------------------------------------------------
+
+app.component.html-->
+
+<favorite [isFavorite]="post.isFavorite" (change)="onFavoriteChanged()"></favorite>		---> passed data to child component 
+
+--> custom component is added in app.component.html
+--> here input is [isFavorite] and output is (change)
+--> everything is custom here--> tags, attributes, event emitter
+---------------------------------------------------------------------------------------------------------
+
+favorite.component.html-->
+
+<span class="gyphicon" [class.glyphicon-star]="isFavorite" [class.glyphicon-star-empty]="!isFavorite"
+    (click)="onClick()"></span>
+
+--> favorite template is here
+--------------------------------------------------------------------------------------------------------
+
+
+favorite.component.ts-->
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+
+@Component({
+  selector: 'favorite',
+  templateUrl: './favorite.component.html',
+  styleUrls: ['./favorite.component.css']
+})
+export class FavoriteComponent {
+  @Input('isFavorite') isFavorite: boolean;
+  @Output() change = new EventEmitter();	---> change is inbuilt event emitter not dom event object
+  onClick() {
+    this.isFavorite = !this.isFavorite;
+    this.change.emit();
+  }
+
+}
+
+--> 
+-----------------------------------------------------------------------------------------------------------
+
+app.component.html-->
+<favorite [isFavorite]="post.isFavorite" (change)="onFavoriteChange()"></favorite>
+
+
+now to pass input to custom components we use input property of angular
+similarly to raise events from components, we use output property of angular
+above code is not possible bec. isFavorite and change are custom inputs and outputs
+so we need to mention that they are custom elements, tags, attributes, events as input and output
+
+-----------------------------------------------------------------------------
+
+2. input and output properties-->
+
+--> Child component takes input from parent and generates output to parent
+
+--> 1st way--> mentioning input decorator-->
+
+import { Component, Input } from '@angular/core';
+
+@Component({
+	selector: 'favorite',
+})
+export class FavoriteComponent{
+	@Input() isFavorite:boolean;
+}
+
+-------------------------------------------------------------------------
+2nd way--> adding inputs property in component meta data-->
+
+import { Component } from '@angular/core';
+
+@Component({
+	selector: 'favorite',
+	inputs: ['isFavorite']
+})
+export class FavoriteComponent{
+	isFavorite:boolean;
+}
+------------------------------------------------------------------------
+
+3. giving alias to input decorator-->
+
+favorite.component.ts-->
+export class FavoriteComponent{
+	@Input('isFavorite') isSelected:boolean;
+}
+
+app.component.html-->
+<favorite [isFavorite]="post.isFavorite"></favorite>
+
+-------------------------------------------------------------------------------
+
+4. output property and passing data in custom events-->
+
+--> child component
+favorite.component.ts-->
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+export class FavoriteComponent {
+  @Input('isFavorite') isFavorite: boolean;
+  @Output() change = new EventEmitter();
+  onClick() {
+    this.isFavorite = !this.isFavorite;
+    this.change.emit(this.isFavorite);			----> this emitter is emitting boolean
+  }
+}
+
+app.component.ts-->
+onFavoriteChanged(isFavorite) {				----> this event listener is listening isFavorite on changing something like click event
+    console.log("Favorite changed", isFavorite)
+  }
+
+app.component.html-->
+<favorite [isFavorite]="post.isFavorite" (change)="onFavoriteChanged($event)"></favorite>	--> this $event is not dom $event object, it is custom obj here
+
+------------------------------------------------------------------------------------------------------
+passing object instead of only boolean-->
+
+
+favorite.component.ts-->
+onClick() {
+    this.isFavorite = !this.isFavorite;
+    this.change.emit({newValue: this.isFavorite });			----> this emitter is now emitting object
+  }
+
+
+app.component.ts-->
+onFavoriteChanged(eventArgs){				----> this event listener is listening object on changing something like click event
+    console.log("Favorite changed", eventArgs)
+  }
+
+------------------------------------------------------------------------------------------------------
+--> to define shape of object, we use interface or type annotation
+--> this is done only to get benefit of intellisense
+
+app.component.ts-->
+onFavoriteChanged(eventArgs: { newValue: boolean ){			
+    console.log("Favorite changed", eventArgs)
+  }
+
+or
+
+
+interface FavouriteChangedEventArgs{
+	newValue: boolean
+}
+
+app.component.ts-->
+onFavoriteChanged(eventArgs: FavouriteChangedEventArgs){				
+    console.log("Favorite changed", eventArgs)
+  }
+
+--> and this interface should be defined in favorite.component.ts and it is imported in app.component.ts
+
+------------------------------------------------------------------------------------------------------
+
+5. Output alias-->
+
+--> this input and output property is called component api
+--> all typescript file is compiled in main.bundle.js and it can be opened in browser--> network --> main.bundle.js --> response
+@Output('change') change = new EventEmitter();
+
+------------------------------------------------------------------------------------------------------
+
+6. View Encapsulation-->
+
+--> h1 style defined in one component does not leak to h1 style of another component
+--> this is concept of shadow-dom-> allow us to apply scoped styles to elements without bleeding out to the outer world
+--> it is defined only in chrome
+
+favorite.component.ts-->
+
+import { ViewEncapsulation } from '@angular/core';
+@Component({
+	encapsulation: ViewEncapsulation.Emulated
+	encapsulation: ViewEncapsulation.Native
+	encapsulation: ViewEncapsulation.None
+});
+
+Emulated means angular automatically create extra (_ngcontent-c0) attribute to both element and style 
+emulated is default.
+
+Native means it uses concept of shadow box which is not supported by browsers (only supported by safari)
+
+None means it will leak styling to all components
+
+------------------------------------------------------------------------------------------------------
+
+7. ngContent-->
+
+--> It is somewhat replacing input properties to pass data from parent to child component
+--> normally when we use child component, data is provided through parent component 
+--> child component: {{ title }}
+--> parent component: <child [title]="title"></child>  and parent class: title: string = "Avinash"
+
+----------------------------------------------------------------------------------
+
+--> But we can also provide data without using parent component class, with only using parent html
+--> using ngContent in child component, which is inbuilt custom element in angular
+
+child component-->
+panel.component.html-->
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+	<ng-content select=".heading"></ng-content>	--> injection point
+  </div>
+  <div class="panel-body">
+	<ng-content select=".body"></ng-content>	--> select is identifier
+  </div>							
+</div>
+
+--> At placeholder, where we want data from parent component, we place ng-content tag.
+--> There are two ng-content tags, so we use css selector
+
+
+------------------------------------------------------------------
+
+--> parent component
+app.component.html-->
+<bootstrap-panel>
+	<div class="heading">Heading</div>
+	<div class="body>
+		<h2>Body</h2>
+		<p>Some content here...</p>
+	</div>
+</bootstrap-panel>
+
+--> data is provided inbetween tags of custom component
+--> <div class="heading">Heading</div> is replacing 
+<ng-content select=".heading"></ng-content> internally
+
+--> remember ng-content is injection point
+
+------------------------------------------------------------------------
+
+8. ngContainer-->
+
+--> ng-content is making new div element in dom tree with class heading --> <div class="heading">Heading</div>
+--> instead of div, we can use ngContainer (inbuilt element)
+
+app.component.html
+
+<bootstrap-panel>
+	<ng-container class="heading">Heading</ng-container>
+	<div class="body>
+		<h2>Body</h2>
+		<p>Some content here...</p>
+	</div>
+</bootstrap-panel>
+

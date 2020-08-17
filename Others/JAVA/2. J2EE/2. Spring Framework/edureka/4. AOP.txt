@@ -1,0 +1,8 @@
+1. Spring AOP
+
+--> It enables Aspect Oriented Programming in Spring Applications
+--> Aspects enable modularization of concerns
+--> Adds cross cutting concern before, after around the actual logic
+--> Easy to maintain code in the present and future.
+
+--> It provides the pluggable way to dynamically add the additional concern before, after or around the actual logic.

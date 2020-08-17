@@ -1,0 +1,524 @@
+1. TextBox properties-->
+
+TextMode	--> single, multiline, password
+Text	
+MaxLength
+ReadOnly
+ToolTip
+Columns
+Height
+Width
+AutoPostBack
+
+--> auto focus method-->
+
+protected void Page_Load(object sender, EventArgs e)
+{
+	TextBox1.Focus();
+}
+
+--> properties and events(lightbulb) can be seen by clicking on control or right click properties.
+----------------------------------------------------------------------------------------
+
+2. Radio Button-->
+
+Checked
+Text
+TextAlign	--> where you want text left or right of radio button
+AutoPostBack
+GroupName
+
+events-->
+CheckedChanged	--> this is cached event can be converted to postback event by autopostback to true
+
+---------------------------------------------------------------------------------------------
+
+3. CheckBox-->
+
+Checked
+Text
+TextAlign
+AutoPostBack
+
+methods--> Focus()
+events --> CheckedChanged 
+
+StringBuilder sbUserChoices = new StringBuilder();
+sbUserChoices.Append(CheckBox1.Text);
+
+---------------------------------------------------------------------------------------
+
+4. Hyperlink-->
+
+--> it is link to another webpage
+
+Text		--> either use text property or provide text inbetween tags
+NavigateUrl
+ImageURL	--> instead of text property, put ImageUrl and that will become link
+Target		--> provide attribute -> Target="_blank"
+
+--> if both text and imageurl is specified, imageurl has higher precedence
+
+methods --> Focus()
+events  --> no events
+
+
+---------------------------------------------------------------------------------------
+
+5. Button, LinkButton, ImageButtom-->
+
+--> These buttons are used to post a page to the server.
+--> all 3 buttons are same, work as name specifies
+
+CommandName
+CommandArgument
+CausesValidation
+ValidationGroup
+PostBackURL
+
+protected void Button1_Click(object sender, EventArgs e)
+{
+	Response.Write("Submit Button Clicked");
+}
+
+--> getting confirmation from user for submitting data using OnClientClick property of button
+
+<asp:Button 
+	OnClientClick="alert('You are about to submit the form')"		onclick="Button1_Click">Submit</asp:Button>
+
+<asp:Button 
+	OnClientClick="return confirm('Are you sure you want to delete?')"		onclick="Button1_Click">Submit</asp:Button>
+
+--> above is inbuilt javascript code that will run
+--> in confirm function, if it return false, Button1_Click event will not take place
+
+---------------------------------------------------------------------------------------
+
+6. Command Event of button-->
+
+--> button exposes 2 events --> click and command
+--> when button is clicked, both events raised, first click, then command event
+
+--> eventhandlers can be associated to the events of a control in 2 ways->
+1. Declaratively at design time in html
+2. Programmatically using delegates.
+
+--> command event makes it possible to have a single event handler method responding to the click event of multiple buttons
+
+--> commandName and commandArgument properties are extremely useful when working with data-bound controls like Repeater, GridView, DataList.
+
+-----------------------------------------------------------------------------------------
+1. Declaratively at design time in html-->
+
+<asp:Button ID="Button1" runat="server" OnClick="Button1_Click1" OnCommand="Button1_Command" Text="Button" />
+
+--> command event is generated, go to event properties, double click command property
+--> Do same for buttons like print, delete, top10, bottom10 --> choose command property name in event list besides properties
+
+2. Programmatically using delegates.-->
+
+protected void Page_Load(object sender, EventArgs e)
+{
+	Button1.Click += new EventHandler(Button1_Click);
+	Button1.Command += new CommandEventHandler(Button1_Command);
+}
+
+--> above, we are using delegates and appending eventlisteners on button onto their property.
+	
+---------------------------------------------------------------------------
+--> using command event -->
+
+<asp:Button ID="PrintButton" runat="server" Text="Print" oncommand="CommandButton_Click" CommandName="Print" />
+
+<asp:Button ID="DeleteButton" runat="server" Text="Print" oncommand="CommandButton_Click" CommandName="Delete" />
+
+<asp:Button ID="Top10Button" runat="server" Text="Print" oncommand="CommandButton_Click" CommandName="Show" CommandArgument="Top10" />
+
+<asp:Button ID="Bottom10Button" runat="server" Text="Print" oncommand="CommandButton_Click" CommandName="Show" CommandArgument="Bottom10"  />
+
+--> All buttons have same function when clicked
+---------------------------------------------------------------------------
+.cs file-->
+
+protected void CommandButton_Click(object sender, CommandEventArgs e)
+{
+	switch(e.CommandName)							---> using event object 
+	{
+		case "Print":
+			OutputLabel.Text = "You clicked Print Button";
+			break;
+		case "Delete":
+			OutputLabel.Text = "You clicked Delete Button";
+			break;		
+		case "Show":
+			if( e.CommandArgument.ToString() == "Top10")
+				OutputLabel.Text = "You clicked Top10 Button";
+			else
+				OutputLabel.Text = "You clicked Bottom10 Button";
+			break;
+		default: 
+			OutputLabel.Text = "we dont know which button is clicked";
+			break;
+	}
+}
+
+
+--> e is an object which is raised when button gets clicked, it adds commandName attribute to its property, just like in javascript
+--> EventArgs for click event and CommandEventArgs for command event
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+7. Dropdownlist--> 
+
+--> dropdownlist is a collection of ListItem objects.
+--> ListItem has properties like Enables, Selected, Text, Value
+
+<asp:ListItem Value="1" Text="Male"></asp:ListItem>
+<asp:ListItem Value="1" Selected="True">Female</asp:ListItem>
+<asp:ListItem Value="1" Enabled="false">Other</asp:ListItem>	--> does not show in ddl
+
+ListItem male = new ListItem("Male", "1");
+ListItem female = new ListItem(Female", "2");
+
+DropDownList1.Items.Add(male);			Items is collection property in ddl
+DropDownList1.Items.Add(female);
+
+--> Enabled property - false in checkbox --> make it hidden
+--> Enabled property - false in radio --> make it disabled
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+8. Data bind dropdownlist with data from database-->
+
+--------------------------------------------------------------------------------------
+
+--> make table in sql server-->
+
+create table tblCity
+(
+CityId int identity(101, 1) primary key,
+CityName nvarchar(50),
+Country nvarchar(20)
+)
+
+insert into tblCity values ('Delhi', 'India')
+insert into tblCity values ('London', 'Uk')
+insert into tblCity values ('New York', 'US')
+insert into tblCity values ('Tokyo', 'Japan')
+
+select * from tblCity
+
+--------------------------------------------------------------------------------------
+
+--> code -->
+--> in Paga Load event
+
+using(SqlConnection con = new SqlConnection(CS))
+        {
+            SqlCommand cmd = new SqlCommand("Select CityId, CityName from tblCity", con);
+            con.Open();
+            DropDownList1.DataSource = cmd.ExecuteReader();
+
+            DropDownList1.DataTextField = "CityName";			--> Display to User
+            DropDownList1.DataValueField = "CityId";			--> Take as Value
+
+            DropDownList1.DataBind();
+
+        }
+
+--------------------------------------------------------------------------------------
+
+--> DataTextField and DataValueField can be set in html code also-->
+
+<asp:DropDownList ID="DropDownList1" DataTextField = "CityName" DataValueField = "CityId" runat="server"></asp:DropDownList>
+
+---------------------------------------------------------------------------------------
+
+--> To increase efficiency of code-->
+
+mask above code under if(!Page.IsPostBack){}
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+9. Getting Data in ddl from xml file-->
+
+--> Make xml file in project folder--> Countries.xml
+
+<?xml version="1.0" encoding="utf-8" ?>
+<Countries>
+  <Country>
+    <CountryId>101</CountryId>
+    <CountryName>India</CountryName>
+  </Country>
+  <Country>
+    <CountryId>102</CountryId>
+    <CountryName>UK</CountryName>
+  </Country>
+  <Country>
+    <CountryId>103</CountryId>
+    <CountryName>Australia</CountryName>
+  </Country>
+  <Country>
+    <CountryId>104</CountryId>
+    <CountryName>US</CountryName>
+  </Country>
+</Countries>
+
+--------------------------------------------------------------------
+
+--> We can get data from xml using dataset and binding that in ddl
+--> in page_load event
+
+DataSet ds = new DataSet();
+        ds.ReadXml(Server.MapPath("~/Countries.xml"));
+
+        DropDownList1.DataSource = ds;
+
+        DropDownList1.DataTextField = "CountryName";
+        DropDownList1.DataValueField = "CountryId";
+
+        DropDownList1.DataBind();
+
+--> We are using Server.MapPath --> because be default, server will try to find xml file in physical path and not in virtual path.
+--> So converting virtual path to physical path;
+--------------------------------------------------------------------
+
+--> Insert Select option in ddl in above xml example -->
+
+ListItem li = new ListItem("Select", -1);
+DropDownList1.Items.Insert(0, li);
+
+
+DropDownList1.Items.Add(li);			---> we can't use this for specific index position
+----------------------------------------------------------------------------------------------------------------------------------------
+
+
+9. Mapping virtual path to physical path using Server.MapPath() method--->
+
+--> Server.MapPath() returns physical path: c:/.. from virtual path: https://localhost:16324/PageInRootDirectory.aspx
+
+--> Response.Write(Server.MapPath(".") + "</ br>");	--> current directory of that page
+--> Response.Write(Server.MapPath("..") + "</ br>");    --> parent directory of that page
+--> Response.Write(Server.MapPath("~") + "</ br>");	--> root directory of page
+
+--> All returns physical path.
+
+--> Response.Write(Server.MapPath("../..") + "</ br>");	--> parent of parent directory of that page.
+
+--> if ("../..") is undefined will give error. --> above root directory
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+10. Retrieving selected item from ddl-->
+
+--> Inserting item into ddl-->
+
+1. From database
+2. From xml file
+3. html code-->
+
+<asp:ListItem Text="Asia" Value="1"></asp:ListItem>
+
+------------------------------------------------------------------
+
+Retrieving Item from ddl-->
+
+--> Text --> display
+--> Value --> value for server
+--> Index --> index number of that listitem
+
+--> DropDownList1.SelectedItem.Text --> display text of selected item
+--> DropDownList1.SelectedItem.Value --> display value of selected item
+--> DropDownList1.SelectedItem.Index --> display index of selected item
+
+--> DropDownList1.SelectedValue = "1";    --> by default, set value to 1 in server if not selected 
+
+-------------------------------------------------------------------------
+
+in button click event
+
+if(DropDownList1.SelectedValue == "-1")
+	Response.Write("Please Select a Continent");
+else
+	Resone.Write(DropDownList1.SelectedItem.Text + "<br />");
+	Resone.Write(DropDownList1.SelectedItem.Value + "<br />");
+	Resone.Write(DropDownList1.SelectedItem.Index + "<br />");
+
+-------------------------------------------------------------------------
+--> if not selected by user, selecting default value-->
+--> in page_load event-->
+
+if(!IsPostBack)
+	DropDownList1.SelectedValue = "1";
+
+or
+
+if(!IsPostBack)
+	DropDownList1.SelectedIndex = 1;
+
+
+
+--> why get method is applied here, because we have take value which user has selected not which is written in IsPostBack by default
+--> ispostback means value is send after clicking submit button
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+11. Cascading DDL-->
+
+--> One ddl is dependent on another
+
+----------------------------------------------------
+
+--> design-->
+
+DropDownList1	--> Continents
+DropDownList2	--> Countries
+DropDownList3	--> Cities
+
+
+-------------------------------------------------------------
+
+--> sql server -->
+
+tblContinents --> ContinentId, ContinentName
+tblCountries  --> CountryId, CountryName, ContinentId		--> set ContinentId as FK
+tblCities     --> CityId, CityName, CountryId			--> set CountryId as FK
+
+---------------------------------------
+
+create stored procedures-->
+
+create proc spGetContinents
+as 
+begin
+	select ContinentId, ContinentName from tblContinents
+end
+
+---------------------------------------
+
+create proc spGetCountriesByContinentId 
+@ContinentId int
+as
+begin
+	select CountryId, CountryName from tblCountries where ContinentId = @ContinentId
+end
+
+---------------------------------------
+
+create proc spGetCitiesByCountryId 
+@CountryId int
+as
+begin
+	select CityId, CityName from tblCities where CountryId = @CountryId
+end
+
+------------------------------------------------------------------------------
+
+--> We have made 3 sp for 3 dropdown list
+--> So we make one function to retrieve sp from database and return DataSet corresponding to that ddl and use it in all 3 ddl
+
+private DataSet GetData(string SPName, SqlParameter SPParameter)
+{
+	string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+        SqlConnection con = new SqlConnection(CS);
+	
+	SqlDataAdapter da = new SqlDataAdapter(SPName, con);
+	ds.SelectCommand.CommandType = CommandType.Stored.Procedure;
+
+	if(SPParameter != null)
+		da.SelectCommand.Parameters.Add(SPParameter);
+	
+	DataSet ds = new DataSet();
+	da.Fill(ds)
+	
+	return ds;
+}
+
+
+------------------------------------------------------------------------------
+
+--> populating first ddl -->
+
+on page_load event-->
+
+
+if(!IsPostBack){
+
+ddlContinents.DataSource = GetData("spGetContinents", null);
+ddlContinents.DataBind();			
+
+--> please set DataTextField and DataValueField in html code to "ContinentName" and "ContinentId" 
+--> same for Countries and Cities ddl
+--> please make autopostback property of all 3 ddl to true
+
+ListItem liContinent = new ListItem("Select", "-1");
+ddlContinents.Items.Insert(0, liContinent);
+
+ListItem liCountry = new ListItem("Select", "-1");
+ddlCountries.Items.Insert(0, liCountry);
+
+ListItem liCity = new ListItem("Select", "-1");
+ddlCities.Items.Insert(0, liCity);
+
+ddlCountries.Enabled = false;
+ddlCities.Enabled = false;
+
+}
+
+
+------------------------------------------------------------------------------
+
+--> populating second ddl -->
+
+--> on ddlContinents_SelectedIndexChanged event--> (double click ddl1)
+
+if(ddlContinents.SelectedIndex == 0)
+{
+	ddlCountries.SelectedIndex = 0;
+	ddlCountries.Enabled = false;
+
+	ddlCities.SelectedIndex = 0;
+	ddlCities.Enabled = false;
+}
+else
+{
+ddlCountries.Enabled = true;
+SqlParameter parameter = new SqlParameter("@ContinentId", ddlContinents.SelectedValue);
+DataSet ds = GetData("spGetCountriesByContinentId", parameter);
+
+ddlCountries.DataSource = ds;
+ddlCountries.DataBind();
+
+ListItem liCountry = new ListItem("Select", -1);
+ddlCountries.Items.Insert(0, liCountry);
+
+ddlCities.SelectedIndex = 0;
+ddlCities.Enabled = false;
+}
+
+
+--> SqlParameter takes name and value in constructor
+--> parameter becomes input for GetData function
+
+---------------------------------------------------------------------------------------
+
+--> similarly populating ddl3 -->
+
+if(ddlCountries.SelectedIndex == 0)
+{
+	ddlCities.SelectedIndex = 0;
+	ddlCities.Enabled = false;
+}
+else
+{
+ddlCities.Enabled = true;
+SqlParameter parameter = new SqlParameter("@CountryId", ddlCountry.SelectedValue);
+DataSet ds = GetData("spGetCitiesByCountryId", parameter);
+
+ddlCities.DataSource = ds;
+ddlCities.DataBind();
+
+ListItem liCity = new ListItem("Select", -1);
+ddlCities.Items.Insert(0, City);
+}

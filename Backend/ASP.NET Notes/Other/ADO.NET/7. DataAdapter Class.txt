@@ -1,0 +1,150 @@
+1. Intro
+
+--> The DataAdapter works as a bridge between a DataSet and a data source to retrieve data. 
+--> DataAdapter is a class that represents a set of SQL commands and a database connection. 
+--> It can be used to fill the DataSet and update the data source.
+
+---------------------------------------------------------------------------------
+
+2. DataAdapter Class Signature
+
+public class DataAdapter : System.ComponentModel.Component, System.Data.IDataAdapte
+
+---------------------------------------------------------------------------------
+
+3. DataAdapter Methods
+
+--> The DataAdapter works as a bridge between a DataSet and a data source to retrieve data. 
+--> DataAdapter is a class that represents a set of SQL commands and a database connection. 
+--> It can be used to fill the DataSet and update the data source.
+
+CloneInternals()		It is used to create a copy of this instance of DataAdapter.
+Dispose(Boolean)		It is used to release the unmanaged resources used by the DataAdapter.
+Fill(DataSet)			It is used to add rows in the DataSet to match those in the data source.
+FillSchema(DataSet, SchemaType, String, IDataReader)	It is used to add a DataTable to the specified DataSet.
+GetFillParameters()		It is used to get the parameters set by the user when executing an SQL SELECT statement.
+ResetFillLoadOption()		It is used to reset FillLoadOption to its default state.
+ShouldSerializeAcceptChangesDuringFill()	It determines whether the AcceptChangesDuringFill property should be persisted or not.
+ShouldSerializeFillLoadOption()	It determines whether the FillLoadOption property should be persisted or not.
+ShouldSerializeTableMappings()	It determines whether one or more DataTableMapping objects exist or not.
+Update(DataSet)			It is used to call the respective INSERT, UPDATE, or DELETE statements.
+
+---------------------------------------------------------------------------------
+
+4. Code Demo
+
+using System.Data.SqlClient;  
+using System.Data;  
+namespace DataSetExample  
+{  
+    public partial class DataSetDemo : System.Web.UI.Page  
+    {  
+        protected void Page_Load(object sender, EventArgs e)  
+        {  
+            using (SqlConnection con = new SqlConnection("data source=.; database=student; integrated security=SSPI"))  
+            {  
+                SqlDataAdapter sde = new SqlDataAdapter("Select * from student", con);  
+                DataSet ds = new DataSet();  
+                sde.Fill(ds);  
+                GridView1.DataSource = ds;  
+                GridView1.DataBind();  
+            }  
+        }  
+    }  
+}  
+
+---------------------------------------------------------------------------------
+
+5. Code Demo with multiple Tables
+
+SqlConnection sqlConnection = new SqlConnection("Data Source=DESKTOP-AKRLGCH;Initial Catalog=CTMDB1;Integrated Security=true;");                SqlCommand sqlCommand = new SqlCommand();                
+
+SqlDataAdapter adapter = new SqlDataAdapter();                
+DataSet ds = new DataSet();                
+
+sqlCommand.CommandText = "Select * from Employees; Select * from Departments";                
+sqlCommand.Connection = sqlConnection;                
+
+adapter.SelectCommand = sqlCommand;                
+
+adapter.Fill(ds);                
+
+for (int i = 0; i <= ds.Tables[0].Rows.Count - 1; i++)                
+{                   
+	Console.WriteLine(ds.Tables[0].Rows[i].ItemArray[0] + " -- " + ds.Tables[1].Rows[i].ItemArray[1]);  
+}       
+for (int i = 0; i <= ds.Tables[1].Rows.Count - 1; i++)                
+{                   
+	Console.WriteLine(ds.Tables[1].Rows[i].ItemArray[0] + " -- " + ds.Tables[1].Rows[i].ItemArray[1]);  
+}                    
+
+Console.ReadKey();            
+
+}  
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

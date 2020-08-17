@@ -1,0 +1,99 @@
+1. Simple Authorization
+
+--> When the Authorize attribute is used in it's simplest form, without any parameters, it only checks if the user is authenticated. This is also called simple authorization. 
+
+[Authorize]
+public class SomeController : Controller
+{
+}
+
+----------------------------------------------------------------------------------
+
+2. Role Based Authorization
+
+--> Only those users who are members of the Administrator role can access the actions in the AdministrationController
+
+[Authorize(Roles = "Administrator")]
+public class AdministrationController : Controller
+{
+}
+
+----------------------------------------------------------------------------------
+
+3. Multiple Roles Example
+
+--> Multiple roles can be specified by separating them with a comma. The actions in this controller are accessible only to those users who are members of either Administrator or User role.
+
+[Authorize(Roles = "Administrator,User")]
+public class AdministrationController : Controller
+{
+}
+
+----------------------------------------------------------------------------------
+
+4. Multiple Instances of Authorize Attribute
+
+--> To be able to access the actions in this controller, users have to be members of both - the Administrator role and the User role.
+
+[Authorize(Roles = "Administrator")]
+[Authorize(Roles = "User")]
+public class AdministrationController : Controller
+{
+}
+
+----------------------------------------------------------------------------------
+
+5. Role Based Authorization Check on a Controller Action
+
+--> Members of the Administrator role or the User role can access the controller and the ABC action, but only members of the Administrator role can access the XYZ action. 
+--> The action Anyone() can be accessed by anyone including the anonymous users as it is decorated with AllowAnonymous attribute.
+
+--> Attribute on actionMethod will override Attribute on Controller
+
+----------------------------------------------------------------------------------
+
+[Authorize(Roles = "Administrator, User")]
+public class AdministrationController : Controller
+{
+    public ActionResult ABC()
+    {
+    }
+
+    [Authorize(Roles = "Administrator")]
+    public ActionResult XYZ()
+    {
+    }
+
+    [AllowAnonymous]
+    public ActionResult Anyone()
+    {
+    }
+}
+
+----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

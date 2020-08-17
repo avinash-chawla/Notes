@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Document</title>
+</head>
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#btn2").click(function () {
+                var fruits = "<li>" + $("#text").val() + "<button class='R' onclick='remove(this)'>Remove</button>" + "</li>";
+
+                $("#li").append(fruits);
+            });
+        });
+
+        function remove(e) {
+            $(e).parent().remove();
+        }
+
+    </script>
+</head>
+
+<body>
+
+    <textarea id="text"></textarea>
+    <ol id="li">
+        <li>Orange</li><button class='R'>Remove</button>
+        <li>Papaya</li><button class='R'>Remove</button>
+        <li>Kiwi</li><button class='R'>Remove</button>
+    </ol>
+
+
+    <button id="btn2">Append list items</button>
+
+</body>
+
+</html>

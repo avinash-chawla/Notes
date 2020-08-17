@@ -1,0 +1,1476 @@
+7. Forms Authentication-->
+
+--> User which are not part of domain-based network to access the application but still can access some content will come under form authentication.
+--> It is mostly used for internet applications that require login and registration like online banking, ticket booking, amazon, facebook, etc.
+
+-------------------------------------------------------------------
+
+--> Login.aspx-->
+
+Login Form (Heading)
+Username: TextBox1
+Password: TextBox2
+Remember Me: CheckBox1
+Log In: (Button)
+Click here to register: Link to Register.aspx
+----------------------------------------------------------
+
+--> To provide webapplication login authentication-->
+
+<authentication mode="Forms">
+	<forms loginUrl="Login.aspx" >
+		<credentials passwordFormat="Clear">
+			<user name="Venkat" password="Venkat"/>
+			<user name="Pragim" password="Pragim"/>
+		</credentials>
+	</forms>
+</authentication>
+
+<authorization>
+	<deny users="?"/>	---> denying anonymous users
+</authorization>
+
+--> Normally username and password are stored in database.
+--> Upper code is only providing demo that username and password can also be saved in web.config file, not used practically.
+
+--------------------------------------------------------------------------
+
+--> Checking credentials of textboxes- username and password on button_click event-->
+--> If correct, then navigate to contect page that is Welcome.aspx
+
+using System.Web.Security;
+
+if(FormsAuthentication.Authenticate(TextBox1.Text, TextBox2.Text)) --> returns boolean
+{
+	FormsAuthentication.RedirectFromLoginPage(TextBox1.Text, false);
+}
+else
+{
+	lblMessage.Text = "Invalid User Name and/or Password";
+}
+
+
+--> RedirectFromLoginPage takes two parameters, 
+first is username, 
+second is boolean --> bool createPersistentCookie
+--> is To Store Cookie on browser to remember password
+
+------------------------------------------------------------------------------
+
+--> After Login button click, user should be navigated to other page-->
+
+
+--> Web.config file-->
+<authentication mode="Forms">
+	<forms loginUrl="Login.aspx" defaultUrl="Welcome.aspx">	---> defaultUrl
+		<credentials passwordFormat="Clear">
+			<user name="Venkat" password="Venkat"/>
+			<user name="Pragim" password="Pragim"/>
+		</credentials>
+	</forms>
+</authentication>
+
+--> Application starts with login page only
+--> Login page will only direct to other defaultUrl
+-----------------------------------------------------------------------
+
+--> CheckBox for storing cookie
+
+--> on Button click of login.aspx-->
+
+if(FormsAuthentication.Authenticate(txtUserName.Text, txtPassword.Text))
+            {
+                FormsAuthentication.RedirectFromLoginPage(txtUserName.Text, CheckBox1.Checked);		--> using checkbox to save cookie
+            }
+else
+            {
+                Label1.Text = "Invalid username or password";
+            }
+
+---------------------------------------------------------------------
+--> Giving timeout to cookie when needed-->
+
+<authentication mode="Forms">
+	<forms loginUrl="Login.aspx" defaultUrl="Welcome.aspx" timeout="20">	---> defaultUrl
+		<credentials passwordFormat="Clear">
+--------------------------------------------------------------------
+
+--> Giving Encryption to login_form, byDefault this attribute is applied-->
+
+<authentication mode="Forms">
+	<forms loginUrl="Login.aspx" defaultUrl="Welcome.aspx" protection="All">
+
+--> protection="All" | Encryption | Validation | None
+
+---------------------------------------------------------------------
+
+8. Forms Authentication and User Registration-->
+
+--> root project web.config file-->
+
+<authentication mode="Forms">
+	<forms loginUrl="Login.aspx" defaultUrl="Welcome.aspx">
+		<credentials passwordFormat="Clear">
+			<user name="Venkat" password="Venkat"/>
+			<user name="Pragim" password="Pragim"/>
+		</credentials>
+	</forms>
+</authentication>
+
+<authorization>
+	<deny users="?"/>
+</authorization>
+
+<connectionStrings>
+    <add name="DBCS" connectionString="data source=LENOVOLAPTOP; database=Sample1; Trusted_Connection=True;" providerName="Sql.Data.SqlClient"/>
+</connectionStrings>
+
+--> Trusted_Connection is used instead of integrated security bec. .net framework automatically uses defaultApplicationPool instead of useraccount
+--> Either we can enable forms authentication in IIS server and changes identity of defaultPool to LocalSystem or use Trusted Connection attribute
+
+----------------------------------------------------
+
+Project --> Registration folder--> Register.aspx and web.config file
+
+--> Registration web.config file-->
+
+<authorization>
+	<allow users="*"/>	---> Allowing anonymous users to register first
+</authorization>
+
+--> Two pages are now accessible to anonymous user --> Login and Register page
+--> When anonymous user access domain name --> Login page will opened --> if not registered then link is there to register
+
+--------------------------------------------------------------------------------
+
+--> Register.aspx-->
+
+Username: TextBox1
+Password: TextBox2
+Confirm Password: TextBox3
+Email: TextBox4
+Register: Button
+
+
+--> Validation controls are applied here.
+
+------------------------------------------------------------
+
+--> Database Setup-->
+
+create table tblUsers
+(
+	[Id] int identity primary key,
+	[UserName] nvarchar(100),
+	[Password] nvarchar(200),
+	[Email] nvarchar(200)
+)
+
+select * from tblUsers
+
+create proc spRegisterUser
+@UserName nvarchar(100),
+@Password nvarchar(200),
+@Email nvarchar(200)
+as
+Begin
+	Declare @Count int
+	Declare @ReturnCode int
+	
+	Select @Count = COUNT(UserName)
+	from tblUsers where UserName = @UserName
+	if @Count > 0
+	Begin 
+		set @ReturnCode = -1
+	end
+	else
+	begin
+		set @ReturnCode = 1
+		Insert into tblUsers values
+		(@UserName, @Password, @Email)
+	end
+	select @ReturnCode as ReturnValue
+end
+--------------------------------------------------------------------
+
+Register.cs-->
+
+if(Page.IsValid)		---> validating fields on server side
+{
+	string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+	using(SqlConnection con = new SqlConnection(CS))
+	{
+
+SqlCommand cmd = new SqlCommand("spRegisterUser", con);
+cmd.CommandType = CommandType.StoredProcedure;
+
+SqlParameter username = new SqlParameter("@UserName", txtUserName.Text);
+SqlParameter password = new SqlParameter("@Password", txtPassword.Text);
+SqlParameter email = new SqlParameter("@Email", txtEmail.Text);
+
+cmd.Parameters.Add(username);
+cmd.Parameters.Add(password);
+cmd.Parameters.Add(email);
+
+con.Open();
+int ReturnCode = (int)cmd.ExecuteScalar();
+if(ReturnCode == -1)
+{
+	lblMessage.Text = "Username is already in use";
+}
+else
+{
+	Response.Redirect("~/Login.aspx");
+}
+
+-------------------------------------------------------------------------------
+
+9. Storing Encrypted password in database-->
+
+--> In Register.cs 
+--> on button click event-->
+
+using System.Web.Security;
+
+string EncryptedPassword = FormsAuthentication.HashPasswordForStoringInConfigFile(TextBox6.Text, "SHA1");
+
+SqlParameter username = new SqlParameter("@UserName", TextBox5.Text);
+SqlParameter password = new SqlParameter("@Password", EncryptedPassword);
+SqlParameter email = new SqlParameter("@Email", TextBox8.Text);
+
+--> "SHA1" is password format 
+--> It is encryption pattern eg. SHA1, MD5, etc.
+
+-------------------------------------------------------------------------------------------------------------------
+
+10. Forms authentication against users in database table-->
+
+--> Sql setting-->
+
+create proc spAuthenticateUser
+@UserName nvarchar(100),
+@Password nvarchar(100)
+as 
+begin 
+	Declare @Count int
+	select @Count = Count(UserName)
+	from tblUsers
+	where [UserName] = @UserName and [Password] = @Password
+
+	if (@Count = 1)
+	begin 
+		select 1 as ReturnCode
+	end
+	else
+	begin 
+		select -1 as ReturnCode
+	end
+end
+
+
+-------------------------------------------------------------------
+
+--> Login.cs-->
+
+protected void btnLogin_Click(object sender, EventArgs e)
+        {
+            if (AuthenticateUser(txtUserName.Text, txtPassword.Text))
+            {
+                FormsAuthentication.RedirectFromLoginPage(txtUserName.Text, false);
+            }
+            else
+            {
+                Label1.Text = "Invalid username or password";
+            }
+        }
+
+        private bool AuthenticateUser(string UserName, string Password)
+        {
+            string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+            using(SqlConnection con = new SqlConnection(CS))
+            {
+                SqlCommand cmd = new SqlCommand("spAuthenticateUser", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                string encryptedPassword = FormsAuthentication.HashPasswordForStoringInConfigFile(Password, "SHA1");
+                SqlParameter username = new SqlParameter("@UserName", UserName);
+                SqlParameter password = new SqlParameter("@Password", encryptedPassword);
+
+                cmd.Parameters.Add(username);
+                cmd.Parameters.Add(password);
+
+                con.Open();
+                int ReturnCode = (int)cmd.ExecuteScalar();
+                return ReturnCode == 1;
+            }
+
+        }
+
+
+----------------------------------------------------------------------------
+
+11. Forms Authentication And Locking User accounts-->
+
+--> When any hacker tries dictionary attach, after 3 unsuccessfull trials, account is blocked.
+
+--> sql setting-->
+
+create table tblUsers
+(
+	[Id] int identity primary key,
+	[UserName] nvarchar(100),	
+	[Password] nvarchar(200),
+	[Email] nvarchar(100),
+	[RetryAttempts] int,
+	[IsLocked] bit,
+	[LockedDateTime] datetime
+)
+
+----------------------------------------------------------------------------------------------------------
+
+--> modifying stored procedure for authenticating user against username and password-->
+
+Alter proc spAuthenticateUser
+@UserName nvarchar(100),
+@Password nvarchar(200)
+as
+Begin
+ Declare @AccountLocked bit
+ Declare @Count int
+ Declare @RetryCount int
+ 
+ Select @AccountLocked = IsLocked
+ from tblUsers where UserName = @UserName
+  
+ --If the account is already locked
+ if(@AccountLocked = 1)
+ Begin
+  Select 1 as AccountLocked, 0 as Authenticated, 0 as RetryAttempts
+ End
+ Else
+ Begin
+  -- Check if the username and password match
+  Select @Count = COUNT(UserName) from tblUsers
+  where [UserName] = @UserName and [Password] = @Password
+  
+  -- If match found
+  if(@Count = 1)
+  Begin
+   -- Reset RetryAttempts 
+   Update tblUsers set RetryAttempts = 0
+   where UserName = @UserName
+       
+   Select 0 as AccountLocked, 1 as Authenticated, 0 as RetryAttempts
+  End
+  Else
+  Begin
+   -- If a match is not found
+   Select @RetryCount = IsNULL(RetryAttempts, 0)
+   from tblUsers
+   where UserName = @UserName
+   
+   Set @RetryCount = @RetryCount + 1
+   
+   if(@RetryCount <= 3)
+   Begin
+    -- If re-try attempts are not completed
+    Update tblUsers set RetryAttempts = @RetryCount
+    where UserName = @UserName 
+    
+    Select 0 as AccountLocked, 0 as Authenticated, @RetryCount as RetryAttempts
+   End
+   Else
+   Begin
+    -- If re-try attempts are completed
+    Update tblUsers set RetryAttempts = @RetryCount,
+    IsLocked = 1, LockedDateTime = GETDATE()
+    where UserName = @UserName
+
+    Select 1 as AccountLocked, 0 as Authenticated, 0 as RetryAttempts
+   End
+  End
+ End
+End
+
+---------------------------------------------------------------------------------------------------------
+
+--> Modifying spRegisterUser stored procedure also-->
+
+Alter proc spRegisterUser  
+@UserName nvarchar(100),  
+@Password nvarchar 200),  
+@Email nvarchar 200)  
+as  
+Begin  
+ Declare @Count int  
+ Declare @ReturnCode int  
+   
+ Select @Count = COUNT(UserName)   
+ from tblUsers where UserName = @UserName  
+ If @Count > 0  
+ Begin  
+  Set @ReturnCode = -1  
+ End  
+ Else  
+ Begin  
+  Set @ReturnCode = 1  
+  --Change: Column list specified while inserting
+  Insert into tblUsers([UserName], [Password], [Email]) 
+  values  (@UserName, @Password, @Email)  
+ End  
+ Select @ReturnCode as ReturnValue  
+End  
+
+------------------------------------------------------------------------------------------------------------------------
+
+--> Login.cs-->
+
+protected void btnLogin_Click(object sender, EventArgs e)
+        {
+            AuthenticateUser(txtUserName.Text, txtPassword.Text);
+        }
+
+private void AuthenticateUser(string username, string password)
+        {
+            // ConfigurationManager class is in System.Configuration namespace
+            string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+
+
+
+            // SqlConnection is in System.Data.SqlClient namespace
+            using (SqlConnection con = new SqlConnection(CS))
+            {
+                SqlCommand cmd = new SqlCommand("spAuthenticateUser", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                //Formsauthentication is in system.web.security
+                string encryptedpassword = FormsAuthentication.HashPasswordForStoringInConfigFile(password, "SHA1");
+
+                //sqlparameter is in System.Data namespace
+                SqlParameter paramUsername = new SqlParameter("@UserName", username);
+                SqlParameter paramPassword = new SqlParameter("@Password", encryptedpassword);
+
+                cmd.Parameters.Add(paramUsername);
+                cmd.Parameters.Add(paramPassword);
+
+                con.Open();
+                SqlDataReader rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    int RetryAttempts = Convert.ToInt32(rdr["RetryAttempts"]);
+                    if (Convert.ToBoolean(rdr["AccountLocked"]))
+                    {
+                        Label1.Text = "Account locked. Please contact administrator";
+                    }
+                    else if (RetryAttempts > 0)
+                    {
+                        int AttemptsLeft = (4 - RetryAttempts);
+                        Label1.Text = "Invalid user name and/or password. " +
+                            AttemptsLeft.ToString() + "attempt(s) left";
+                    }
+                    else if (Convert.ToBoolean(rdr["Authenticated"]))
+                    {
+                        FormsAuthentication.RedirectFromLoginPage(txtUserName.Text, CheckBox1.Checked);
+                    }
+                }
+            }
+        }
+
+
+------------------------------------------------------------------------------------------------------------------------
+
+
+12. Above is one problem-->
+
+--> When user inputs wrong username which is not in database, then also attempts count down starts and account is blocked which is never existed.
+--> solution
+--> some additions in stored procedure for authenticating users-->
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+IF THE USER DOES NOT HAVE ACCOUNT AND ENTERED NAME, WHICH DOES NOT EXIST IN DATABASE THEN .. WHAT WILL HAPPEN ?
+
+In this case the following message will appear:
+
+"Account locked. Please contact administrator"
+
+The reason is because
+Select @AccountLocked = IsLocked
+from tblUsers where UserName = @UserName
+does not match in this case.
+
+You can alter the procedure
+by asking first:
+
+select @count = COUNT(UserName)
+from tblUsers
+where Username = @UserName
+
+if (@count = 0)
+Begin
+Select 0 as AccountLocked, 0 as Authenticated, 0 as RetryAttempts
+End
+else
+.... (the rest of procedure)
+
+In the Programm login.aspx.cs
+you add an else-condition:
+
+if (Convert.ToBoolean(rdr["AccountLocked"]))
+{
+...
+}
+else
+{
+lblMessage.Text = "User does not exist! Please register first!";
+}
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+13. Unlocking user accounts in asp.net--->
+
+There are several ways to unlock the user accounts.
+--> Approach 1: 
+
+--> The end user calls the technical help desk. The authorised person can issue a simple update query to remove the lock.
+
+Update tblUsers 
+set RetryAttempts = null, IsLocked = 0, LockedDateTime = null
+where username='CallersUserName'
+
+--> However, running UPDATE queries manually against a production database is not recommended, as it is error prone and we may un-intentionally modify other rows that we do not intend to update.
+
+-------------------------------------------------------------------------------
+
+--> Approach 2: 
+
+--> Another approach would be to provide a web page that lists all the locked user accounts. From this page, the helpdesk agent, can unlock the account by clicking a button. This is not as dangerous as running a manual update query, but still a manual process and may be in-efficient. If you know how to write basic ADO.NET code, this approach should not be very difficult to achieve. If you are new to ADO.NET, Click here for a video series that I have recorded on ADO.NET
+
+-------------------------------------------------------------------------------
+
+Approach 3: Another approach would be, to create a SQL Server job. This job checks tblUsers table for locked accounts periodically and then unlocks them. The frequency at which the job should run is configurable. 
+
+update query to unlock the user accounts-->
+
+Update tblUsers 
+set RetryAttempts = null, IsLocked = 0, LockedDateTime = null
+where IsLocked = 1
+and datediff(HOUR,LockedDateTime,GETDATE()) > 24
+
+--------------------------------------------------------------------------------------------------------------------
+
+Let us now, schedule this update query to run every 30 minutes, every day.
+1. Open sql serevr management studio
+2. In the object explorer, check if "SQL Server Agent" is running.
+3. If "SQL Server Agent" is not running, right click and select "Start".
+4. Click on the "+" sign, next to "SQL Server Agent" to expand.
+5. Right click on "Jobs" folder and select "New Job".
+
+6. In the "New Job" dialog box, provide a meaningful name. Let us call it, "Unlock user accounts job".
+7. Fill in Owner, Category and Description fields accordingly. Make sure the Enabled checkbox is selected.
+8. Select "Steps" tab, and click "New" button
+9. In the "New Job Step" dialog box, give a meaningful step name. Let us call it "Execute Update Query"
+10. Select Transact-SQL Script as "Type"
+
+11. Select the respective Database.
+12. In the "Command" text box, copy and paste the UPDATE query, and click OK
+13. In the "New Job" dialog box, select "Schedules" and click "New" button
+14. In the "New Job Schedule" dialog box, give a meaningful name to the schedule. Let us call it "Run Every 30 Minutes Daily"
+15. Choose "Recurring" as "Schedule type"
+
+16. Under "Frequency", set "Occurs" = "Daily" and "Recurs every" = "1" Days.
+17. Under "Daily Frequency", set "Occurs every" = "30" Minutes.
+18. Finally fill in the schedule start and end dates, under "Duration"
+19. Click OK, twice and you are done.
+
+This job, will run every 30 minutes daily, and unlocks the accounts that has been locked for more than 24 hours.
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+14. Implementing Reset Password Link--->
+
+--> There are 3 webforms in Registration folder -->
+1. ResetPassword WebForm
+2. ChangePassword WebForm
+3. Register WebForm
+
+--> All 3 webforms are provided with anonymous authorization
+
+--------------------------------------------------------
+--> ResetPassword.aspx
+
+Username: TextBox1
+Reset (Button)
+Label
+
+--------------------------------------------------------
+
+Step 1:
+--> The first step is to design a page, that allows the user to enter their user name, for requesting, the reset of the password. 
+--> Add a webform , with name "ResetPassword.aspx" to the "Registration" folder. 
+--> The web.config file in this folder, allows anonymous access to all the pages without having the need to login. 
+
+--------------------------------------------------------
+
+Step 2:
+Copy and paste the following HTML on "ResetPassword.aspx" page.
+<div style="font-family:Arial">
+    <table style="border: 1px solid black; width:300px">
+        <tr>
+            <td colspan="2">
+                <b>Reset my password</b>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                User Name
+            </td>    
+            <td>
+                <asp:TextBox ID="txtUserName" Width="150px" runat="server">
+                </asp:TextBox>
+            </td>    
+        </tr>
+        <tr>
+            <td>
+                    
+            </td>    
+            <td>
+                <asp:Button ID="btnResetPassword" runat="server" 
+                Width="150px" Text="Reset Password" onclick="btnResetPassword_Click" />
+            </td>    
+        </tr>
+        <tr>
+            <td colspan="2">
+                <asp:Label ID="lblMessage" runat="server"></asp:Label>
+            </td>    
+        </tr>
+    </table>
+</div>
+
+--------------------------------------------------------
+
+Step 3:
+Create a table "tblResetPasswordRequests" in sql server. This table is going to store a unique GUID (Globally Unique Identifier) along with the user id, each time a user requests a password recovery. This GUID will then be passed as part of the querystring in the link to the password reset page. This link will then be emailed to the email address that is associated with the user id. When a user clicks on the link the page will look up the GUID in "tblResetPasswordRequests" table and get the user id from there allowing the user to change their password. I didn't use, UserId, as the querystring parameter, because it maybe open to abuse.
+
+Create table tblResetPasswordRequests
+(
+ Id UniqueIdentifier Primary key,
+ UserId int Foreign key references tblUsers(Id),
+ ResetRequestDateTime DateTime
+)
+
+--------------------------------------------------------
+
+Step 4:
+Create a stored procedure to check if the username exists, and to insert a row into "tblResetPasswordRequests" table.
+Create proc spResetPassword
+@UserName nvarchar(100)
+as
+Begin
+ Declare @UserId int
+ Declare @Email nvarchar(100)
+ 
+ Select @UserId = Id, @Email = Email 
+ from tblUsers
+ where UserName = @UserName
+ 
+ if(@UserId IS NOT NULL)
+ Begin
+  --If username exists
+  Declare @GUID UniqueIdentifier
+  Set @GUID = NEWID()
+  
+  Insert into tblResetPasswordRequests
+  (Id, UserId, ResetRequestDateTime)
+  Values(@GUID, @UserId, GETDATE())
+  
+  Select 1 as ReturnCode, @GUID as UniqueId, @Email as Email
+ End
+ Else
+ Begin
+  --If username does not exist
+  SELECT 0 as ReturnCode, NULL as UniqueId, NULL as Email
+ End
+End
+
+--------------------------------------------------------
+
+Step 5:
+Invoke the stored procedure and email the link, to the email address that is registered against the username. Copy and paste the following code in ResetPassword.aspx.cs page.
+
+protected void btnResetPassword_Click(object sender, EventArgs e)
+{
+    string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+    using (SqlConnection con = new SqlConnection(CS))
+    {
+        SqlCommand cmd = new SqlCommand("spResetPassword", con);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        SqlParameter paramUsername = new SqlParameter("@UserName", txtUserName.Text);
+
+        cmd.Parameters.Add(paramUsername);
+
+        con.Open();
+        SqlDataReader rdr = cmd.ExecuteReader();
+        while (rdr.Read())
+        {
+            if (Convert.ToBoolean(rdr["ReturnCode"]))
+            {
+                SendPasswordResetEmail(rdr["Email"].ToString(), txtUserName.Text, rdr["UniqueId"].ToString());
+                lblMessage.Text = "An email with instructions to reset your password is sent to your registered email";
+            }
+            else 
+            {
+                lblMessage.ForeColor = System.Drawing.Color.Red;
+                lblMessage.Text = "Username not found!";
+            }
+        }
+    }
+}
+
+--------------------------------------------------------
+
+private void SendPasswordResetEmail(string ToEmail, string UserName, string UniqueId)
+{
+    // MailMessage class is present is System.Net.Mail namespace
+    MailMessage mailMessage = new MailMessage("YourEmail@gmail.com", ToEmail);
+
+ 
+
+            
+            
+    // StringBuilder class is present in System.Text namespace
+    StringBuilder sbEmailBody = new StringBuilder();
+    sbEmailBody.Append("Dear " + UserName + ",<br/><br/>");
+    sbEmailBody.Append("Please click on the following link to reset your password");
+    sbEmailBody.Append("<br/>");      sbEmailBody.Append("http://localhost/WebApplication1/Registration/ChangePassword.aspx?uid=" + UniqueId);
+    sbEmailBody.Append("<br/><br/>");
+    sbEmailBody.Append("<b>Pragim Technologies</b>");
+
+    mailMessage.IsBodyHtml = true;
+
+    mailMessage.Body = sbEmailBody.ToString();
+    mailMessage.Subject = "Reset Your Password";
+    SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587);
+
+    smtpClient.Credentials = new System.Net.NetworkCredential()
+    {
+        UserName = "YourEmail@gmail.com",
+        Password = "YourPassword"
+    };
+            
+    smtpClient.EnableSsl = true;
+    smtpClient.Send(mailMessage);
+}
+
+--------------------------------------------------------
+
+Step 6:
+Add a webform with name, "ChangePassword.aspx", to "Registration" folder. Copy and paste the following HTML in the aspx page. In the next video session we will implement ChangePassword page.
+<h1>Change Password Page</h1>
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+15. Implementing ChangePassword Page-->
+
+--> When the user clicks on password reset link on gmail, the user lands on ChangePassword.aspx page
+http://localhost/WebApplication1/Registration/ChangePassword.aspx?uid=c19b3a4a-7fd2-47dc-9c2a-be541daed8fa
+
+
+Notice that, ChangePassword.aspx page has a query string "uid". This GUID(Globally unique identifier), is used to look up UserID, for whom the password needs to be changed. After updating the password, delete the row from "tblResetPasswordRequests", so the link becomes invalid after the user has changed his/her password. Since, user id's are integers, they may be open for abuse as it is very easy to use random integers as query string values, to change other users password. 
+
+----------------------------------------------------------------------------------------------------
+ 
+--> Stored Procedure to check, if the password reset link, is a valid link.
+
+Create Proc spIsPasswordResetLinkValid 
+@GUID uniqueidentifier
+as
+Begin
+ Declare @UserId int
+ 
+ If(Exists(Select UserId from tblResetPasswordRequests where Id = @GUID))
+ Begin
+  Select 1 as IsValidPasswordResetLink
+ End
+ Else
+ Begin
+  Select 0 as IsValidPasswordResetLink
+ End
+End
+
+------------------------------------------------------------------------------
+
+--> Stored Procedure to change password
+
+Create Proc spChangePassword
+@GUID uniqueidentifier,
+@Password nvarchar(100)
+as
+Begin
+ Declare @UserId int
+ 
+ Select @UserId = UserId 
+ from tblResetPasswordRequests
+ where Id= @GUID
+ 
+ if(@UserId is null)
+ Begin
+  -- If UserId does not exist
+  Select 0 as IsPasswordChanged
+ End
+ Else
+ Begin
+  -- If UserId exists, Update with new password
+  Update tblUsers set
+  [Password] = @Password
+  where Id = @UserId
+  
+  -- Delete the password reset request row 
+  Delete from tblResetPasswordRequests
+  where Id = @GUID
+  
+  Select 1 as IsPasswordChanged
+ End
+End
+
+------------------------------------------------------------------------------
+
+--> ChangePassword.aspx.cs page code
+
+<div style="font-family: Arial">
+<table style="border: 1px solid black">
+    <tr>
+        <td colspan="2">
+            <b>Change Password</b>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            New Password
+        </td>
+        <td>
+            :<asp:TextBox ID="txtNewPassword" TextMode="Password" 
+            runat="server"></asp:TextBox>
+            <asp:RequiredFieldValidator ID="RequiredFieldValidatorNewPassword" 
+                runat="server" ErrorMessage="New Password required"
+
+ 
+
+                Text="*" ControlToValidate="txtNewPassword" ForeColor="Red">
+            </asp:RequiredFieldValidator>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Confirm New Password
+        </td>
+        <td>
+            :<asp:TextBox ID="txtConfirmNewPassword" TextMode="Password" runat="server">
+            </asp:TextBox>
+            <asp:RequiredFieldValidator ID="RequiredFieldValidatorConfirmNewPassword" 
+                runat="server" ErrorMessage="Confirm New Password required" Text="*" 
+                ControlToValidate="txtConfirmNewPassword"
+                ForeColor="Red" Display="Dynamic"></asp:RequiredFieldValidator>
+            <asp:CompareValidator ID="CompareValidatorPassword" runat="server" 
+                ErrorMessage="New Password and Confirm New Password must match"
+                ControlToValidate="txtConfirmNewPassword" ForeColor="Red" 
+                ControlToCompare="txtNewPassword"
+                Display="Dynamic" Type="String" Operator="Equal" Text="*">
+            </asp:CompareValidator>
+        </td>
+    </tr>
+    <tr>
+        <td>
+                    
+        </td>
+        <td>
+            &nbsp;<asp:Button ID="btnSave" runat="server" 
+            Text="Save" onclick="btnSave_Click" Width="70px" />
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <asp:Label ID="lblMessage" runat="server">
+            </asp:Label>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <asp:ValidationSummary ID="ValidationSummary1" 
+            ForeColor="Red" runat="server" />
+        </td>
+    </tr>
+</table>
+</div>
+
+------------------------------------------------------------------------------
+
+--> ChangePassword.aspx.cs page code
+
+protected void Page_Load(object sender, EventArgs e)
+{
+    if (!IsPostBack)
+    {
+        if (!IsPasswordResetLinkValid())				---> This method is calling IsPasswordResetLinkValid method
+        {
+            lblMessage.ForeColor = System.Drawing.Color.Red;
+            lblMessage.Text = "Password Reset link has expired or is invalid";
+        }
+    }
+}
+
+protected void btnSave_Click(object sender, EventArgs e)		---> On Button Click method
+{
+    if (ChangeUserPassword())
+    {
+        lblMessage.Text = "Password Changed Successfully!";
+    }
+    else
+    {
+        lblMessage.ForeColor = System.Drawing.Color.Red;
+        lblMessage.Text = "Password Reset link has expired or is invalid";
+    }
+}
+
+private bool ExecuteSP(string SPName, List<SqlParameter> SPParameters)			---> Return Boolean based on return value of Stored Procedure
+{
+    string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+    using (SqlConnection con = new SqlConnection(CS))
+    {
+        SqlCommand cmd = new SqlCommand(SPName, con);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        foreach (SqlParameter parameter in SPParameters)
+        {
+            cmd.Parameters.Add(parameter);
+        }
+
+        con.Open();
+        return Convert.ToBoolean(cmd.ExecuteScalar());
+    }
+}
+
+private bool IsPasswordResetLinkValid()					---> Passing QueryString to ExecuteSP method
+{
+    List<SqlParameter> paramList = new List<SqlParameter>()
+    {
+        new SqlParameter()
+        {
+            ParameterName = "@GUID",
+            Value = Request.QueryString["uid"]
+        }
+    };
+
+    return ExecuteSP("spIsPasswordResetLinkValid", paramList);
+}
+
+private bool ChangeUserPassword()					---> Verifying QueryString
+{
+    List<SqlParameter> paramList = new List<SqlParameter>()
+    {
+        new SqlParameter()
+        {
+            ParameterName = "@GUID",
+            Value = Request.QueryString["uid"]
+        },
+        new SqlParameter()
+        {
+            ParameterName = "@Password",
+            Value = FormsAuthentication.HashPasswordForStoringInConfigFile(txtNewPassword.Text, "SHA1")
+        }
+    };
+
+    return ExecuteSP("spChangePassword", paramList);
+}
+
+
+------------------------------------------------------------------------------
+
+16. Changing Password by providing current Password-->
+
+--> In real time, users can change their password any time, by providing their current password.
+
+------------------------------------------------------------------------------
+
+--> Stored procedure to change password, using their current password
+
+Create Proc spChangePasswordUsingCurrentPassword
+@UserName nvarchar(100),
+@CurrentPassword nvarchar(100),
+@NewPassword nvarchar(100)
+as
+Begin
+ if(Exists(Select Id from tblUsers 
+     where UserName = @UserName
+     and [Password] = @CurrentPassword))
+ Begin
+  Update tblUsers
+  Set [Password] = @NewPassword
+  where UserName = @UserName
+  
+  Select 1 as IsPasswordChanged
+ End
+ Else
+ Begin
+  Select 0 as IsPasswordChanged
+ End
+End
+
+------------------------------------------------------------------------------
+
+--> ChangePassword.aspx HTML
+
+<div style="font-family: Arial">
+<table style="border: 1px solid black">
+    <tr>
+        <td colspan="2">
+            <b>Change Password</b>
+        </td>
+    </tr>
+    <tr id="trCurrentPassword" runat="server">
+        <td>
+            Current Password
+        </td>
+        <td>
+            :<asp:TextBox ID="txtCurrentPassword" TextMode="Password" 
+            runat="server"></asp:TextBox>
+            <asp:RequiredFieldValidator ID="RequiredFieldValidatorCurrentPassword" 
+                runat="server" ErrorMessage="Current Password required"
+                Text="*" ControlToValidate="txtCurrentPassword" ForeColor="Red">
+            </asp:RequiredFieldValidator>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            New Password
+        </td>
+        <td>
+            :<asp:TextBox ID="txtNewPassword" TextMode="Password" 
+            runat="server"></asp:TextBox>
+            <asp:RequiredFieldValidator ID="RequiredFieldValidatorNewPassword" 
+                runat="server" ErrorMessage="New Password required"
+                Text="*" ControlToValidate="txtNewPassword" ForeColor="Red">
+            </asp:RequiredFieldValidator>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Confirm New Password
+        </td>
+        <td>
+            :<asp:TextBox ID="txtConfirmNewPassword" TextMode="Password" runat="server">
+            </asp:TextBox>
+            <asp:RequiredFieldValidator ID="RequiredFieldValidatorConfirmNewPassword" 
+                runat="server" ErrorMessage="Confirm New Password required" Text="*" 
+                ControlToValidate="txtConfirmNewPassword"
+                ForeColor="Red" Display="Dynamic"></asp:RequiredFieldValidator>
+            <asp:CompareValidator ID="CompareValidatorPassword" runat="server" 
+                ErrorMessage="New Password and Confirm New Password must match"
+                ControlToValidate="txtConfirmNewPassword" ForeColor="Red" 
+                ControlToCompare="txtNewPassword"
+                Display="Dynamic" Type="String" Operator="Equal" Text="*">
+            </asp:CompareValidator>
+        </td>
+    </tr>
+    <tr>
+        <td>
+                    
+        </td>
+        <td>
+            &nbsp;<asp:Button ID="btnSave" runat="server" 
+            Text="Save" onclick="btnSave_Click" Width="70px" />
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <asp:Label ID="lblMessage" runat="server">
+            </asp:Label>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <asp:ValidationSummary ID="ValidationSummary1" 
+            ForeColor="Red" runat="server" />
+        </td>
+    </tr>
+</table>
+</div>
+
+------------------------------------------------------------------------------
+
+-->ChangePassword.aspx.cs code:
+
+protected void Page_Load(object sender, EventArgs e)
+{
+    if (Request.QueryString["uid"] == null && User.Identity.Name == "")		---> User.Identity.Name == "" means anonymouse user (not logged in)
+    {
+        Response.Redirect("~/Login.aspx");
+    }
+    if (!IsPostBack)
+    {
+        if (Request.QueryString["uid"] != null)					---> means come through link
+        {
+            if (!IsPasswordResetLinkValid())					---> check for uid number
+            {
+                lblMessage.ForeColor = System.Drawing.Color.Red;
+                lblMessage.Text = "Password Reset link has expired or is invalid";
+            }
+            trCurrentPassword.Visible = false;
+        }
+        else if (User.Identity.Name != "")					---> already logged in user
+        {
+            trCurrentPassword.Visible = true;	---> This textbox (Current Password txtbox) is displayed dynamically, if user is logged in, then it is displayed.
+        }
+    }
+}
+
+protected void btnSave_Click(object sender, EventArgs e)
+{
+    if ((Request.QueryString["uid"] != null && ChangeUserPassword()) || 
+        (User.Identity.Name != "" && ChangeUserPasswordUsingCurrentPassword()))
+    {
+        lblMessage.Text = "Password Changed Successfully!";
+    }
+    else
+    {
+        lblMessage.ForeColor = System.Drawing.Color.Red;
+        if (trCurrentPassword.Visible)
+        {
+            lblMessage.Text = "Invalid Current Password!";
+        }
+        else
+        {
+            lblMessage.Text = "Password Reset link has expired or is invalid";
+        }
+    }
+}
+
+private bool ExecuteSP(string SPName, List<SqlParameter> SPParameters)
+{
+    string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+    using (SqlConnection con = new SqlConnection(CS))
+    {
+        SqlCommand cmd = new SqlCommand(SPName, con);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        foreach (SqlParameter parameter in SPParameters)
+        {
+            cmd.Parameters.Add(parameter);
+        }
+
+        con.Open();
+        return Convert.ToBoolean(cmd.ExecuteScalar());
+    }
+}
+
+private bool IsPasswordResetLinkValid()
+{
+    List<SqlParameter> paramList = new List<SqlParameter>()
+    {
+        new SqlParameter()
+        {
+            ParameterName = "@GUID",
+            Value = Request.QueryString["uid"]
+        }
+    };
+
+    return ExecuteSP("spIsPasswordResetLinkValid", paramList);
+}
+
+private bool ChangeUserPassword()
+{
+    List<SqlParameter> paramList = new List<SqlParameter>()
+    {
+        new SqlParameter()
+        {
+            ParameterName = "@GUID",
+            Value = Request.QueryString["uid"]
+        },
+        new SqlParameter()
+        {
+            ParameterName = "@Password",
+            Value = FormsAuthentication.HashPasswordForStoringInConfigFile(txtNewPassword.Text, "SHA1")
+        }
+    };
+
+    return ExecuteSP("spChangePassword", paramList);
+}
+
+private bool ChangeUserPasswordUsingCurrentPassword()
+{
+    List<SqlParameter> paramList = new List<SqlParameter>()
+    {
+        new SqlParameter()
+        {
+            ParameterName = "@UserName",
+            Value = User.Identity.Name
+        },
+        new SqlParameter()
+        {
+            ParameterName = "@CurrentPassword",
+            Value = FormsAuthentication.HashPasswordForStoringInConfigFile(txtCurrentPassword.Text, "SHA1")
+        },
+        new SqlParameter()
+        {
+            ParameterName = "@NewPassword",
+            Value = FormsAuthentication.HashPasswordForStoringInConfigFile(txtNewPassword.Text, "SHA1")
+        }
+    };
+
+    return ExecuteSP("spChangePasswordUsingCurrentPassword", paramList);
+}
+
+------------------------------------------------------------------------------
+
+--> In Welcome.aspx-->
+
+<div>
+        <a href="Registration/ChangePassword.aspx">Change Password</a><br /><br />
+        <h2>Welcome Page</h2>
+</div>
+
+------------------------------------------------------------------------------
+
+17. Unlocking the locked user accounts using a web page-->
+
+--> If a user repeatedly enters the wrong password. The accounts are locked to prevent hackers from guessing passwords and making dictionary attacks. 
+--> In Part 94, of this video series we have discussed about un-locking user accounts, using a SQL Server agent job.  
+
+In this video, we will discuss about unlocking the locked user accounts, using a web page that lists all the locked user accounts. From this page, the help desk agent, can unlock the account by clicking a button. This is not as dangerous as running a manual update query, but still a manual process and may be in-efficient.
+
+------------------------------------------------------------------------------
+
+--> Stored procedure to get the information about, all the locked user accounts.
+
+Create proc spGetAllLocakedUserAccounts
+as
+Begin
+ Select UserName, Email, LockedDateTime,
+ DATEDIFF(hour, LockedDateTime, GETDATE()) as HoursElapsed
+ from tblUsers
+ where IsLocked = 1
+End
+
+------------------------------------------------------------------------------
+
+--> Add a webform, with name "AccessDenied.aspx".
+
+<div style="font-family:Arial;">
+    <h1 style="color:Red">Access Denied</h1>
+</div>
+
+------------------------------------------------------------------------------
+
+--> Add a webform, with name "LockedAccounts.aspx". Copy and paste the following HTML on this page.
+
+--> Add GridView
+--> Edit Columns
+--> Select Avalaible fields as Bound fields
+--> Add
+--> HeaderText: User Name, DataFields: UserName
+--> Similarly for Email, LockedDateTime and HoursElapsed
+
+--> Select Template fieds in Available fields for displaying button
+--> HeaderText: Enable
+--> Uncheck auto-generate columns(fields)
+
+--> Now on pressing that arrow again in gridview, editTemplate option is visible
+--> place button in that in next step --> name it Enable
+--> arrow --> end Template editing
+
+-----------------------------------------------------------
+
+<div style="font-family:Arial">
+    <asp:GridView ID="gvLockedAccounts" runat="server" AutoGenerateColumns="False">
+        <Columns>
+            <asp:BoundField DataField="UserName" HeaderText="User Name" />
+            <asp:BoundField DataField="Email" HeaderText="Email" />
+            <asp:BoundField DataField="LockedDateTime" 
+                HeaderText="Locked Date &amp; Time" />
+            <asp:BoundField DataField="HoursElapsed" HeaderText="Hours Elapsed" >
+            <ItemStyle HorizontalAlign="Center" />
+            </asp:BoundField>
+            <asp:TemplateField HeaderText="Enable">
+                <ItemTemplate>
+                    <asp:Button ID="btnEnable" runat="server" Text="Enable" 
+                    Enabled='<%#Convert.ToInt32(Eval("HoursElapsed")) > 24%>'/>	--> We have used data binding here for enabling button only whose hrs exceed 24 hrs
+                </ItemTemplate>
+            </asp:TemplateField>
+        </Columns>
+    </asp:GridView>
+</div>
+
+-----------------------------------------------------------
+
+--> "LockedAccounts.aspx.cs" code
+
+--> This LockedAccounts page should only be accessible to admin
+--> Two ways to do that-->
+1. Make Admin folder in project, give authorization to only admin
+2. Below method, directly checking
+
+protected void Page_Load(object sender, EventArgs e)
+{
+    if (User.Identity.Name.ToLower() == "test")		---> Only accessible to admin, in this case, test
+    {
+        if (!IsPostBack)
+        {
+            GetData();
+        }
+    }
+    else
+    {
+        Response.Redirect("~/AccessDenied.aspx");
+    }
+}
+
+private void GetData()
+{
+    string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+    using (SqlConnection con = new SqlConnection(CS))
+    {
+        SqlCommand cmd = new SqlCommand("spGetAllLocakedUserAccounts", con);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        con.Open();
+        gvLockedAccounts.DataSource = cmd.ExecuteReader();
+        gvLockedAccounts.DataBind();
+    }
+}
+
+-----------------------------------------------------------
+
+18. Implementing Enable button to unlock user accounts-->
+
+--> Right click enable button --> properties --> --> click <div>, select last option --> events --> double click row command
+
+-----------------------------------------------------------
+
+To implement, the "Enable" button, make the following changes to the gridview control.
+
+-----------------------------------------------------------
+
+First Change: Specify the CommandArgument attribute of the Button control in the Template column.
+<asp:TemplateField HeaderText="Enable">
+    <ItemTemplate>
+        <asp:Button ID="btnEnable" runat="server" CommandArgument='<%# Eval("UserName") %>' 
+        Text="Enable" Enabled='<%#Convert.ToInt32(Eval("HoursElapsed")) > 24%>'/>
+    </ItemTemplate>
+</asp:TemplateField>
+
+-----------------------------------------------------------
+
+
+Second Change: Generate the "RowCommand" event handler for the GridView control.
+1. Right Click on the GridView Control and Select properties.
+2. In the "Properties Window", click on events icon.
+3. In the events windows, double click on the text box next to "Row Command" event.
+
+-----------------------------------------------------------
+
+--> With these 2 changes the HTML of the "LockedAccounts.aspx" should look as shown below.
+
+<div style="font-family: Arial">
+<asp:GridView ID="gvLockedAccounts" runat="server" AutoGenerateColumns="False" 
+    OnRowCommand="gvLockedAccounts_RowCommand">
+    <Columns>
+        <asp:BoundField DataField="UserName" HeaderText="User Name" />
+        <asp:BoundField DataField="Email" HeaderText="Email" />
+        <asp:BoundField DataField="LockedDateTime" HeaderText="Locked Date &amp; Time" />
+        <asp:BoundField DataField="HoursElapsed" HeaderText="Hours Elapsed">
+            <ItemStyle HorizontalAlign="Center" />
+        </asp:BoundField>
+        <asp:TemplateField HeaderText="Enable">
+            <ItemTemplate>
+                <asp:Button ID="btnEnable" CommandArgument='<%# Eval("UserName") %>' runat="server"
+                    Text="Enable" Enabled='<%#Convert.ToInt32(Eval("HoursElapsed")) > 24%>' />
+            </ItemTemplate>
+        </asp:TemplateField>
+    </Columns>
+</asp:GridView>
+</div>
+
+-----------------------------------------------------------
+
+--> Stored Procedure for Enabling / Unlocking User Account
+
+Create proc spEnableUserAccount
+@UserName nvarchar(100)
+as
+Begin
+update tblUsers
+set RetryAttempts=0, IsLocked=NULL, LockedDateTime=NULL
+Where UserName = @UserName
+end
+
+-----------------------------------------------------------
+
+--> Copy and paste the following private method in "LockedAccounts.aspx.cs" page.
+
+private void EnableUserAccount(string UserName)
+{
+    string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+    using (SqlConnection con = new SqlConnection(CS))
+    {
+        SqlCommand cmd = new SqlCommand("spEnableUserAccount", con);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        SqlParameter paramUserName = new SqlParameter()
+        {
+            ParameterName = "@UserName",
+            Value = UserName
+        };
+
+        cmd.Parameters.Add(paramUserName);
+
+        con.Open();
+        cmd.ExecuteNonQuery();
+    }
+}
+
+-----------------------------------------------------------
+
+Invoke EnableUserAccount() method, in RowCommand() event handler as shown below.
+
+protected void gvLockedAccounts_RowCommand(object sender, GridViewCommandEventArgs e)
+{
+    EnableUserAccount(e.CommandArgument.ToString());
+    GetData();
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Create proc spEnableUserAccount
+@UserName nvarchar(100)
+as
+Begin
+update tblUsers
+set RetryAttempts=0, IsLocked=NULL, LockedDateTime=NULL
+Where UserName = @UserName
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

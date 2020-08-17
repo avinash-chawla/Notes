@@ -1,0 +1,57 @@
+--> Resource with Given Id is not found
+
+1. 2 types of 404 errors
+
+--> Type 1 : Resource with the specified ID does not exit
+--> Type 2 : The URL does not match any route
+
+------------------------------------------------------------------------------
+
+2. Details actionMethod
+
+--> Checking for object with given Id
+--> If not found, will raise 404 not found page
+
+public ViewResult Details(int? id)
+        {
+            Employee employee = _employeeRepository.GetEmployee(id.Value);
+
+            if (employee == null)
+            {
+                Response.StatusCode = 404;
+                return View("EmployeeNotFound", id.Value);
+            };
+
+            HomeDetailsViewModel viewModel = new HomeDetailsViewModel()
+            {
+                Employee = employee,
+                PageTitle = "Employee Details"
+            };
+
+            return View(viewModel);
+        }
+
+------------------------------------------------------------------------------
+
+3. 404 Not Found View Code
+
+--> Make new view in home folder inside Views folder --> EmployeeNotFound
+
+@model int
+
+@{
+    ViewBag.Title = "404 Error";
+}
+
+<div class="alert alert-danger mt-1 mb-1">
+    <h4>404 Not Found Error :</h4>
+    <hr />
+    <h5>
+        Employee with ID = @Model cannot be found
+    </h5>
+</div>
+
+<a asp-controller="home" asp-action="index" class="btn btn-outline-success"
+   style="width:auto">Click here to see the list of all employees</a>
+
+------------------------------------------------------------------------------

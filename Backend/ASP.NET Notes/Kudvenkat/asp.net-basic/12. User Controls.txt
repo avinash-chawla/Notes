@@ -1,0 +1,192 @@
+1. Intro-->
+
+--> Web user controls combine one or more server or HTML controls on a Web user control page, which can, in turn, be used on a Web form as a single control. 
+--> For example, to capture dates from the end user on a webform, we need a TextBox, ImageButton and, a Calendar control. 
+--> A web form to capture date of birth is shown below in the image.
+
+To select the date
+1. User clicks on the calendar image.
+2. The Calendar control becomes visible.
+3. User selects a date from the calendar.
+4. Textbox control is automatically populated with the selected date and the calendar becomes invisible.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+--> To achieve this functionality, considerable amount of code needs to be written in the webform.
+
+--> If, I am capturing dates, on multiple web forms, rather than repeating the same HTML mark up and code, on each and every web form, we can encapsulate everything into a single web user control, which in turn, can be used on multiple web forms. 
+--> This way we are reusing the same code, which saves a lot of time in terms of development and testing. 
+--> So in short, user controls, increase re-usability of code, implement encapsulation and reduce development and maintenance time.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+--> Designing and implementing web user controls is very similar to web forms.
+--> Web forms, have the extension of .aspx, where as web user controls have the extension of .ascx. 
+--> Webforms begin with @Page directive and can have <html>, <head>, and <body> elements, where as a web user controls begin with @Control directive and cannot have html, head, and body elements. 
+--> Just, like webforms, user controls also have code behind files.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+--> In this demo, we will create a custom calendar user control, that can be reused on multiple webforms. To create a user control
+
+1. Right click on the web application project in solution explorer
+2. Select Add >> New Item
+3. From the "Add New Item" dialog box, select "Web User Control"
+4. Set Name = CalendarUserControl
+5. Click on "Add"
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+--> Notice that, CalendarUserControl.ascx page is created. Copy and paste the following HTML.
+--> ascx = Active Server Control Extension
+--> aspx = Active Server Page Extension
+
+<asp:TextBox ID="txtDate" runat="server" Width="115px"></asp:TextBox>
+<asp:ImageButton ID="ImgBtn" runat="server" 
+    ImageUrl="~/Images/Calendar.png" onclick="ImgBtn_Click" />
+<asp:Calendar ID="Calendar1" runat="server" onselectionchanged="Calendar1_SelectionChanged">
+</asp:Calendar>
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+--> CalendarUserControl.ascx.cs code
+
+public partial class CalendarUserControl : System.Web.UI.UserControl
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            Calendar1.Visible = false;
+        }
+    }
+
+    protected void ImgBtn_Click(object sender, ImageClickEventArgs e)
+    {
+        if (Calendar1.Visible)
+        {
+            Calendar1.Visible = false;
+        }
+        else
+        {
+            Calendar1.Visible = true;
+        }
+    }
+
+    protected void Calendar1_SelectionChanged(object sender, EventArgs e)
+    {
+        txtDate.Text = Calendar1.SelectedDate.ToShortDateString();
+        Calendar1.Visible = false;
+    }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+2. Adding User Controls on WebForm-->
+
+--> In this section, we will discuss about 
+1. Adding and using user controls on a webform
+2. Adding properties to the user control
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+--> Adding and using user controls on a webform
+
+--> Adding user controls to a web page is very straight forward. 
+--> Simply drag the user control from solution explorer and drop it on the web page. 
+--> Make sure, the "Design" view of the webform is selected before dragging and dropping the user control on the webform. This will automatically, 
+1. Add a "Register" directive for the user control and 
+2. The control declaration
+
+
+---------------------------------------------------------------------------------------------------------------------------------------
+--> By drag and dropping, two things inserted in aspx page-->
+
+1. "Register" directive for the CalendarUserControl
+<%@ Register src="CalendarUserControl.ascx" tagname="CalendarUserControl" tagprefix="uc1" %>
+
+2. Control declaration for the CalendarUserControl
+<uc1:CalendarUserControl ID="CalendarUserControl1" runat="server" />
+
+--> Notice, the "tagprefix" and "tagname" in the "Register" directive. 
+--> These are used in the control declaration. 
+--> For asp.net controls, <asp:Button Id="Button1" runat="server" />, the "tagprefix" is "asp" and "tagname" is "Button".
+--> tagprefix name can be changed.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+--> If you intend to add the user control on multiple web forms, rather than including the "Register" directive on each and every web form, every time, the control can be registered once in web.config file and can be used on any number of web forms, without the "Register" directive.
+
+<system.web>
+  <pages>
+    <controls>
+      <add src="~/CalendarUserControl.ascx" tagName="CalendarUserControl" tagPrefix="uc1"/>
+    </controls>
+  </pages>
+</system.web>
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+--> At this point, you get the following error, if both, the user control and the webform are in the same directory. This limitation is by design due to an internal design consideration for performance.
+The page '/WebForm2.aspx' cannot use the user control '/CalendarUserControl.ascx', because it is registered in web.config and lives in the same directory as the page.
+
+--> To solve this error move the user control to a different folder, and update the "src" attribute of the "Register" directive in web.config file accordingly.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+--> Adding properties to the user control:
+
+--> A user control is a combination of different server controls and used as a single control in webform.
+--> If we want specific control usage in webForm which is under user control, we set that specific control as property of user control.
+
+--> A user control can also have it's own properties and methods. 
+--> At the moment, CalendarUserControl does not expose any property that returns the selected date. 
+
+--> For example, drag and drop a button control on the same webform. when I click this button in webForm, we want to print the selected date, which is in TextBox control in user Control.
+--> To do this let's, add the followingSelectedDate property for the CalendarUserControl (UserControl) cs file:
+
+public string SelectedDate
+{
+    get
+    {
+        return txtDate.Text;
+    }
+    set
+    {
+        txtDate.Text = value;
+    }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+--> On the webform, in the button click event, I should now be able to retrieve, the selected date using "SelectedDate" property of the "CalendarUserControl" as shown below.
+
+protected void Button1_Click(object sender, EventArgs e)
+{
+    Response.Write(CalendarUserControl1.SelectedDate);
+}
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+--> You can also set this property declaratively in the HTML at design time as shown below. When this webform, loads, it shows the date, that we have set.
+<uc1:CalendarUserControl SelectedDate="01/01/2013" ID="CalendarUserControl1" runat="server" />
+
+--> But one limitation, here with the user control, is that the design time value is not shown in the control at design time. 
+--> This is by design, and there are 2 ways to solve this issue.
+1. Create a custom control instead of user control.
+2. Compile the user control into a DLL.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+3. Raising custom events from user controls-->
+
+--> Events like TextChangedEvent, Click Event, CheckBoxList_Changed Event.
+--> We can also raise custom events like events raised on CalenderVisibilityChanged event.
+
+--> Step1: Create CalenderVisibilityChangedEventArgs class
+--> Step2: Inside class, make event data
+
+Events Data are boolean properties
+1. If visible, return true otherwise false
+
+--> 

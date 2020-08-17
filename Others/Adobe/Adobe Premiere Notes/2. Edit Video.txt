@@ -1,0 +1,220 @@
+1. TimeLine-->
+
+--> Zoom Options
+--> + and - keys to zoom out and zoom in
+--> Alt + mouse scroll for zoom out and zoom in
+
+--> Creating Sequence
+1. Drag video to new item
+2. Click new item --> Select Sequence
+3. File --> New --> Sequence
+
+--> Making New Tracks
+--> Drag Video/Audio in timeline to above empty space 
+
+-------------------------------------------------------------------------
+
+2. Add Clips to the timeline-->
+
+--> Either add end of first footage or on next track
+
+--> Cropping Clip
+--> Drag video to Source Panel or double click video
+--> Drag timer using (arrow keys) or (mouse_click) or (shift+arrow key)
+--> Click on Mark in for start and mark out for end
+--> Then drag video to timeline
+
+--> Inserting and Overwriting Clip over another clip
+--> Set timer in timeline where you want to insert inbetween video1 timeline sequence and click on insert in source panel
+--> Overright cuts and replaces it
+--> While insert displaces video1 scene
+ -------------------------------------------------------------------------
+
+1. Editing-->
+
+--> See Space in audio by waveform
+--> Drag sizer below A1
+
+--> Crop clip in Timeline only seeing waveform
+--> Drag video using crop red brackets
+--> To get precise location of brackets, first place timer, then drag bracket.
+--> It is not permanently deleting, just drag out same way
+
+--> Razor Tool
+--> Select Razor Tool 
+--> Click on start and end of video to crop clip
+--> Select Move tool
+--> Select clip ahead and behind of video and press delete button
+
+--> Lower the Resolution to Quarter
+
+----------------------------------------------------------------------
+
+2. B-roll-->
+
+--> Fixing or hiding bad video footage
+--> Replacing Video with other Footage video but audio remains same
+--> That footage can be visuallary things to display like product, scenario
+
+--> Unlink Audio and Video
+--> Right click video --> Unlink
+--> Delete Video
+
+--> Just Load Video track
+--> In Source Panel, Select Video only
+--> Now drag this video from source panel to timeline
+
+--> Scaling Video
+--> Displaying only specific section of video screen
+--> Click clip in timeline
+--> Go to Effect Controls
+--> Expand Motion arrow
+--> Set Scale and Position
+
+----------------------------------------------------------------------
+
+3. Transitions-->
+
+--> This is Transition between 2 clips
+
+--> Transition options
+--> Under Effects Tab, Under Video Transitions --> Dissolve
+
+--> Use Transition
+--> Drag any effect to inbetween two clips in timeline
+
+--> Change Speed of Transition
+--> Use Brackets to reduce or extend Transition span in timeline
+
+--> Best Transition Effect
+--> Dip Black and Dip White
+
+----------------------------------------------------------------------
+
+4. Adjusting Loudness of Audio-->
+
+--> Loudness should be between -6 and -12
+--> Can be checked in Audio Meter
+--> to see numbers of db, just expand audio meter
+
+--> Increase Loudness
+--> Right click Audio
+--> click on Audio Gain
+--> Adjust Gain by: ___ (try something, here 8)
+--> Undo Audio Gain, if selected number didnt work
+--> Not overwrite it
+
+--> To Increase loudness of portion of clip
+--> hold Ctrl key + make two keyframes on Audio drag line
+--> Drag to above where you want high loudness in that portion
+--> You can make 4 keyframes, 2 for gradually inc and dec and 2 for stable inbetween clip
+
+----------------------------------------------------------------------
+
+5. Synching Audio and Video-->
+
+--> This option is used when Camera Video and Mic Audio are at different 
+location 
+--> I am not learning now.
+
+----------------------------------------------------------------------
+
+6. How to fix color - add a vignette-->
+
+--> Opening Panel
+--> click Footage in timeline
+--> Windows menu --> Lumetri color
+
+--> Basic Correction
+--> Basic darkness and lightness
+--> Do some try on adjusting different selectors like contrast
+
+--> Vignette
+--> Add like Shadow from borders
+--> Lower the Amount
+
+--> copy this style to other clips
+--> Select clip, ctrl + C
+--> Select another clip, edit menu --> paste attribute --> select required style to copy --> Ok
+
+----------------------------------------------------------------------
+
+7. Adding Logo animation-->
+
+--> Creating playroom for logo animation
+--> Select all Clips
+--> Drag them to behing at once
+
+--> Creating Solid Background
+--> File --> New --> Color Matte
+--> choose color
+
+--> Dragging to timeline
+--> Drag this matte to timeline in Video track
+--> In different tracks, make this on lowest video track
+--> Logo.ai should be above video track
+--> Can change timeline of matte using red bracket
+
+--> Creating Animation to Logo - Fade in
+--> Select Logo track
+--> Under Effect Controls, Under Opacity
+--> Start Timer, make keyframes
+--> at 0 frame, make opacity 0%
+--> At 22 frame, make opacity 100%
+
+--> Creating Fade out
+--> At ending of logo video track, set timer
+--> Click on Add/Remote keyframe for 100% opacity
+--> AFter some frame, make it to 0% opacity
+--> 0% 100% 100% 0%
+
+--> Slide In effect
+--> Select Logo footage
+--> Start Position timer at 0sec and make position out of frame
+--> Play it, stop it where you want, make position at middle or required position
+--> Drag keyframe position on timeline
+--> Do not worry about timing in timeline of animation logo
+
+--> Ease in and Ease out
+--> Basically it is liner animation throughout
+--> Right click keyframe, under Temporation interpolation
+--> You have to make each keyframe individually
+--> Make first Ease out and second Ease in
+
+--> Change graph of Ease in and Ease out
+--> Expand arrow key beside Position
+--> Press + key on keyboard to zoom
+--> Adjust Graph
+
+--> Scaling Effect from 0 to 100
+--> same way
+
+----------------------------------------------------------------------
+
+8. Adding Text over Video-->
+
+--> window menu --> Essential Graphics --> Lower Thirds
+--> Drag and drop on timeline on video track
+--> Select Text tool
+--> Select Text on Program Panel and edit it
+--> You can edit anything, bold, size, opacity, font
+
+--> To keep Box behind Text
+--> Click on new layer, make sure Text is selected in video Footage
+--> Drag using Selection Tool
+--> Change its opacity, fill
+--> Make this layer below Text which is seen in Essential Graphics
+--> Make Black box with lower opacity
+--> Drag Dissole Video Transition from Effect Panel
+
+----------------------------------------------------------------------
+
+9. Exporting-->
+
+--> Select Timeline Panel
+--> File menu --> Export --> Media 
+--> Select Format: H.264 (mp4 file)
+
+----------------------------------------------------------------------
+
+

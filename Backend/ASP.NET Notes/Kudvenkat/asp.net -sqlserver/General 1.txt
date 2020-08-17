@@ -1,0 +1,142 @@
+1. database
+
+--> create database Sample1
+--> drop database Sample1
+--> alter database Sample modify name = Sample2
+
+-----------------------------------------------------------------------------
+
+2. Creating table
+
+Use Sample1
+Create Table tblGender
+(
+ID int NOT NULL Primary Key identity,
+Gender nvarchar(50) NOT NULL
+)
+
+-----------------------------------------------------------------------------
+
+3. Inserting into table
+
+Insert into tblPerson (Name, Email) Values ('Richi', r@r.com)
+
+-----------------------------------------------------------------------------
+
+4. Linking foreign key
+
+Alter table tblPerson 
+add constraint tblPerson_GenderId_FK
+Foreign key (GenderId) references tblGender(ID)
+
+-----------------------------------------------------------------------------
+
+5. Adding Default Value
+
+Alter Table tblPerson
+Add Constraint DF_tblPerson_GenderId	
+Default 3 For GenderId	
+
+-----------------------------------------------------------------------------
+
+6. Adding new column to table with default value
+
+ALTER TABLE tblPerson
+ADD Address nvarchar(100) NULL
+CONSTRAINT DF_tblPerson_Address DEFAULT null
+
+-----------------------------------------------------------------------------
+
+7. Dropping Contraint
+
+ALTER TABLE tblPerson
+DROP CONSTRAINT DF_tblPerson_Address
+
+-----------------------------------------------------------------------------
+
+8. Range Constraint
+
+Alter Table tblPerson
+Add Constraint CK_tblPerson_Age Check (Age>0 AND Age<150)
+
+-----------------------------------------------------------------------------
+
+9. AutoIncrement Identity
+
+SET IDENTITY_INSERT tblPerson1 ON
+SET IDENTITY_INSERT tblPerson1 OFF
+
+Delete from tblPerson1 where PersonId = 1
+SET IDENTITY_INSERT tblPerson1 ON
+Insert Into tblPerson1 Values (1, 'Jane')
+SET IDENTITY_INSERT tblPerson1 OFF
+
+-----------------------------------------------------------------------------
+
+10. DBCC - Database Consistency Check Command
+
+--> Delete from dbo.tblPerson1				--> will delete all records
+--> DBCC CHECKIDENT('tblPerson', RESEED, 0)		--> make identity start from 1
+--> Insert into dbo.tblPerson1 values('Martin')
+
+-----------------------------------------------------------------------------
+
+11. Return last column number
+
+scope_identity()		--> same session and the same scope
+@@identity()			--> same session and across any scope
+ident_current('tableName')	--> specific to given table
+
+-----------------------------------------------------------------------------
+
+12. Unique Column
+
+Alter Table tblPerson
+Add Constraint UQ_tblPerson_Email Unique(Email)
+
+-----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

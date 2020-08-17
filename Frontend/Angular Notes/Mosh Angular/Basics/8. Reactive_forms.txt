@@ -1,0 +1,354 @@
+0. Reactive Forms in Angular
+
+--> There are no inbuilt form-control and form-group objects 
+--> Implement custom validation
+--> Implement asynchronous validation ( for unique username )
+--> Build forms that include an array of objects
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+1. Creating controls-->
+
+--> normally when we use FormControl directive, instance of it is created internally in template-driven forms
+--> But in reactive forms, we have to make objects externally in class
+
+import { FormGroup, FormControl } from '@angular/forms';	--> FormGroup and FormControl are defined under AbstractControl class
+
+@Component({
+  selector: 'signup-form',
+  templateUrl: './signup-form.component.html',
+  styleUrls: ['./signup-form.component.css']
+})
+
+export class SignupFormComponent {
+  form = new FormGroup({		---> instance is created exterternally
+    username: new FormControl(),
+    password: new FormControl()
+  })
+}
+
+--------------------------------------------------------------------------------------------------
+
+signup-form.html-->
+
+<form [formGroup]="form">									--> property binding
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input formControlName="username" id="username" type="text" class="form-control">
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input formControlName="password" id="password" type="text" class="form-control">
+    </div>
+    <button class="btn btn-primary" type="submit">Sign Up</button>
+</form>
+
+--> formControlName is directive in input element to link with username object which is created in component class
+--> also formGroup property in form tag is associated with form object in class
+
+--------------------------------------------------------------------------------------------------
+
+--> app.ts
+imports: [
+    FormsModule,
+    BrowserModule,
+    ReactiveFormsModule		--> import from '@angular/forms'
+]
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+2. Adding Validation-->
+
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+form = new FormGroup({
+    username: new FormControl('', Validators.required),
+    password: new FormControl('', Validators.required)
+  })
+
+--> Validators is static class used in formcontrol obj to provide validation
+--> first parameter is '', which is used to initialize formcontrol with, so empty
+--> second parameter is function for validation, there are some inbuilt functions also for validation, some of which are-->
+only ref to provide-->
+
+Validators.required, 
+Validators.email,
+Validators.maxlength,
+Validators.pattern
+
+--------------------------------------------------------------------------------------------------
+
+--> In template view:
+--> To access username property under form object, we use get method
+
+<div *ngIf="form.get('username').touched && form.get('username').invalid" class="alert alert-danger">Username is required</div>
+
+--> form.get('username') will give access to formControl object to use its properties
+--> We can also use getter method instead of typing form.get('usernam'), only using username
+
+--> In class
+get username() {
+    return this.form.get('username');
+  }
+
+--> In template
+<div *ngIf="username.touched && username.invalid" class="alert alert-danger">Username is required</div>
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+3. Multiple validation in one field--->
+
+form = new FormGroup({
+    username: new FormControl('', [
+      Validators.required,
+      Validators.minLength(3)
+    ]),
+    password: new FormControl('', Validators.required)
+  })
+
+<div *ngIf="username.touched && username.invalid" class="alert alert-danger">
+            <div *ngIf="username.errors.required">Username is required</div>
+            <div *ngIf="username.errors.minlength">Username should be {{username.errors.minlength.requiredLength}}
+                characters long</div>
+        </div>
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+4. Using custom Validators function-->
+
+--> to use custom validator functions, we need to implement validator function interface just like object interface
+--> interface ValidatorFn {					---> from documentation
+	( c: AbstractControl) : ValidationErrors| null
+    }
+
+--> this is available in "ValidatorFn interface" in docs
+
+-----------------------------------------------------------------------------------
+
+--> Make new file in signup-form folder
+--> username.validators.ts-->
+
+import { AbstractControl, ValidationErrors } from "@angular/forms";
+
+export class UsernameValidators {
+    static cannotContainSpace(control: AbstractControl): ValidationErrors | null {
+        if ((control.value as string).indexOf(' ') >= 0) {
+            return { cannotContainSpace: true }
+        }
+        return null;
+    }
+}
+
+--> static means no need to create object
+--> method takes parameter as control obj and method returns ValidationErrors which is inbuilt
+--> we are returning object which is key-value pairs
+--> In key, we specify custom property so that template can use it --> username.required(inbuilt), username.cannotContainSpace(custom)
+--> if, 'if' condition gets true, error will show alert-danger box
+
+-----------------------------------------------------------------------------------
+
+--> another obj for minlength can be-->
+
+export class UsernameValidators {
+    static cannotContainSpace(control: AbstractControl): ValidationErrors | null {
+        if ((control.value as string).indexOf(' ') >= 0) {
+            return { minlength : {
+	    			requiredLength: 10,
+	    			actualLength: control.value.length
+				 }
+		   }
+	}
+        return null;
+    }
+}
+
+--> this is same object as template-driven forms ngModel --> errors object
+
+form = new FormGroup({
+    username: new FormControl('', [
+      Validators.required,
+      Validators.minLength(3),
+      UsernameValidators.cannotContainSpace		--> function reference
+    ]),
+    password: new FormControl('', Validators.required)
+  })
+
+<div *ngIf="username.errors.cannotContainSpace">Username should not contain space</div>
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+5. Asynchronous Validators functions-->
+
+static shouldBeUnique(control: AbstractControl): Promise<ValidationErrors | null> {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                if (control.value === 'mosh') {
+                    resolve({ shouldBeUnique: true });
+                } else {
+                    resolve(null);
+                }
+            }, 2000)
+        });
+    }
+
+--> here it is created scenario where mosh is already username in server and it is asynchronous process so promise is used
+
+
+form = new FormGroup({
+    username: new FormControl('', [
+      Validators.required,
+      Validators.minLength(3),
+      UsernameValidators.cannotContainSpace
+      ],
+
+      UsernameValidators.shouldBeUnique),
+    password: new FormControl('', Validators.required)
+  })
+
+--> asynchronous function is passed as 3rd parameter
+<div *ngIf="username.errors.shouldBeUnique">Username is already taken</div>
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+6. Showing a Loader Image-->
+
+<div *ngIf="username.pending">Checking for uniqueness...</div>
+
+--> It is another async validation
+--> inserted after input
+--> username is associated with formControl object 
+--> it has a property "pending" which is true when any asynchronous operation is running in background 
+--> in above, gif icon is shown normally
+--------------------------------------------------------------------------------------------------------------------------------
+
+7. Validating the form input upon submit-->
+
+--> Validation happens after submitting whole form for checking credentials of login form
+--> We will have authService to talk with server
+--> form-group object- form has an method setErrors to raise custom validation errors
+--> This is placed in class only, not in username.validators.ts
+
+login() {
+	let isValid = authService.login(this.form.value);		this.forms.value contains json data of whole form
+	if(!isValid){
+		this.form.setErrors({
+		   	invalidLogin: true
+		})
+	}
+}
+
+--> We aren't have authServices yet, so make it simple for demo 
+
+login() {
+		this.form.setErrors({
+		   	invalidLogin: true
+		})
+	}
+
+-----------------------------------------------------------------------------------------------'
+--> ngSubmit is an event raised by inbuilt form-group object (under the hood)
+
+<form [formGroup]="form" (ngSubmit)="login()">
+    <div *ngIf="form.errors" class="alert alert-danger">Username or Password is invalid</div>
+
+--> ngSubmit	--> it is inbuilt form event
+--> We have only one error object so only forms.error
+--> You can also use "form.errors.invalidLogin"
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+8. Nested FormGroups-->
+
+form = new FormGroup({
+	account: new FormGroup({
+		username: new FormControl(''),
+		password: new FormControl('')
+	})
+});
+
+get username() {
+	return this.form.get('account.username');
+}
+
+--> this is sub-group used for binding specific elements in complex form
+
+signup-form.html-->
+
+<div formGroupName="account">
+	<div class="form-group">...</div>	--> for username
+	<div class="form-group">...</div>	--> for password
+</div>
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+9. FormArray-->
+
+--> It is array only for storing form controls object values
+--> Iterator for form-control objects
+
+<form>
+	<input type="text" class="form-control"	(keyup.enter)="addTopic(topic)" #topic>
+	<ul class="list-group">
+		<li
+			*ngFor="let topic of form.get('topics').controls"
+			(click)="removeTopic(topic)"
+			class="list-group-item">	
+			{{ topic.value }}
+		</li>
+	</ul>
+</form>
+
+
+form = new FormGroup({
+	topics: new FormArray([])		--> creates new empty array
+});
+
+addTopic(topic: HTMLInputElement) {								--> this class represents that it is obj of html input tag
+	(this.form.get('topics') as FormArray).push(new FormControl(topic.value));		--> push is only defined if type is formArray
+	topic.value = '';									--> empty the field after array
+}
+
+removeTopic(topic: FormControl){
+	let index = this.topics.controls.indexOf(topic);
+	this.topics.removeAt(index);
+}
+
+get topics() {
+	return this.form.get('topics') as FormArray;				--> replace all this.form.get('topics') with onlyy topics
+}
+
+form.component.html-->
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+10. FormBuilder-->
+
+--> this class contains three methods --> array, control, group
+--> it basically converts three seperate class in one
+
+form = new FormGroup({
+	name: new FormControl(),
+	contact: new FormGroup({
+		email: new FormControl(),
+		phone: new FormControl()
+	}),
+	topics: new FormArray([])
+  });
+
+
+to-->
+
+  constructor(fb: FormBuilder){
+	this.form = fb.group({
+		name: ['', Validators.required],
+		contact: fb.group({
+			email: [],
+			phone: []
+		}),	
+		topics: fb.array([])
+	});
+  }

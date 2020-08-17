@@ -1,0 +1,102 @@
+1. Intro
+
+--> Model in MVC contains a set of classes that represent data and the logic to manage that data.
+--> For data, we will use Employee class
+--> For retrieving and saving data, we will use MockEmployeeRepository class
+
+
+--> In addition to the Employee class that represent the data, model also contains the class that manages the model data.
+
+-----------------------------------------------------------------------------------
+
+2. Employee Class
+
+--> Make new folder in project  : Models 
+--> Make new file in that  	: Employee.cs
+
+public class Employee
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Email { get; set; }
+    public string Department { get; set; }
+}
+
+-----------------------------------------------------------------------------------
+
+3. Interface for manage model class
+
+--> To manage the data i.e to retrieve and save employee data we are going to use the following IEmployeeRepository service.
+--> Make new interface in Models folder --> IEmployeeRepository.cs
+--> This interface will be useful in dependency injection
+
+
+public interface IEmployeeRepository
+{
+    Employee GetEmployee(int Id);
+}
+
+-----------------------------------------------------------------------------------
+
+4. MockEmployeeRepository
+
+--> This is the class which stores functions for retrieving data, posting data, updating data, deleting data.
+--> All crud operations for model class will be done by this class
+--> This class implements Interface to provide this class to other classes as dependency injection, not as creating objects.
+
+
+--> Dependency injection makes our application flexible and easily unit testable
+
+-----------------------------------------------------------------------------------
+
+public class MockEmployeeRepository : IEmployeeRepository
+{
+    private List<Employee> _employeeList;
+
+    public MockEmployeeRepository()
+    {
+        _employeeList = new List<Employee>()
+        {
+            new Employee() { Id = 1, Name = "Mary", Department = "HR", Email = "mary@pragimtech.com" },
+            new Employee() { Id = 2, Name = "John", Department = "IT", Email = "john@pragimtech.com" },
+            new Employee() { Id = 3, Name = "Sam", Department = "IT", Email = "sam@pragimtech.com" },
+        };
+    }
+
+    public Employee GetEmployee(int Id)
+    {
+        return this._employeeList.FirstOrDefault(e => e.Id == Id);
+    }
+}
+
+-----------------------------------------------------------------------------------
+
+5. Controller Class
+
+public class HomeController : Controller
+    {
+        public IEmployeeRepository _employeeRepository { get; set; }
+
+        public HomeController(IEmployeeRepository employeeRepository)
+        {
+            _employeeRepository = employeeRepository;
+        }
+
+        public string index()
+        {
+            return _employeeRepository.GetEmployee(1).Name;
+        }
+    } 
+
+
+--> Above code will give error because we need to register dependency injection in startup file.
+
+-----------------------------------------------------------------------------------
+
+6. Summary
+
+1. Model		--> describes data
+2. ModelRepository	--> gives functions for retrieving, creating, updating and 			    deleting data
+3. Interface		--> Give option for dependency injection
+
+-----------------------------------------------------------------------------------

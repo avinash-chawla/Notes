@@ -1,0 +1,439 @@
+1. Preparing For Deployment
+
+--> Before deploying application to server, we have to do necessary changes
+--> First, node_modules folder should be excluded
+--> And such node_modules is installed on server rather than transfering to server.
+
+--> Optimization Techniques
+1. Minification				--> Remove all white spaces
+2. Uglication				--> Make variable and function names short
+3. Bundling				--> Make bundles for all js and css files 
+4. Dead code elimination		--> Those functions or classes which are not used, should be removed
+5. Ahead-of-time(AOT) compilation	--> Sending precompiled files to server for faster loading
+
+--> All such techniques are automatically done by angular cli command --> ng build -prod
+
+
+---------------------------------------------------------------------------
+
+2. JIT vs AOT Compilation
+
+--> AOT	--> Ahead of Time Compilation
+--> JIT --> Just in Time Compilation
+
+--> Angular Compiler converts angular_js code to plain_js code
+--> Means Angular compiler renders data in html from class component and convert to plain js code
+
+--> In Angular, regular code looks like {{ firstName }}
+--> Plain js looks like const div = document.createElement('div');
+
+----------------------------------------------------------------------
+--> JIT Compilation
+
+--> If this compilation happens in runtime, then it is called Just-in-time compilation
+--> There are some disadvantages:
+1. Inefficient for production		--> time comsuming in compiling in run time
+2. Happens for every user		--> more time taken by server to compile, so less request is handled
+3. More components, slower
+4. We have to ship Angular compiler	--> This compiler is bundled under vendor.bundle.js	--> which is large in size
+
+---------------------------------------------------------------------
+
+--> AOT Compilation
+
+--> It is compiled ahead of time that is precompiled to plain js code and send it to server
+--> Means no transfer of angular compiler to server
+
+1. Faster startup
+2. Smaller bundle size
+3. Catch template errors earlier
+4. Better security	--> No Injection attacks
+
+---------------------------------------------------------------------
+
+3. Angular Compilar in Action
+
+--> run command: node_modules/.bin/ngc		--> In Git Bash
+--> This will compile every component of angular and generate compiled file
+--> If there is any error, it will let you know --> This is advantage of AOT
+
+---------------------------------------------------------------------
+
+4. Now Build the Application
+
+--> ng build --prod
+--> It will do all optimization techiniques to become ready for server
+--> It will create a new folder 'dist' stands for distribute 
+--> Such files in dist folder are transfered to server
+--> All bundle files are now in compact form.
+
+---------------------------------------------------------------------
+
+5. Environments
+
+--> There are 3 environments in project- development, testing, production
+
+--> Depending on environments, we modify some code
+--> Sometimes by mistake, we modify prod instead of development
+
+--> We can use Angular command to see production application and development application
+--> ng serve 		--> development mode
+--> ng serve --prod	--> production mode
+
+--> There are two files under environment 
+1. environment.ts
+2. environment.prod.ts
+
+--> Depend on environment, such files actions take place
+--> We define properties in these files specific related to dev or prod.
+
+--> In environment.ts
+export const environment = {
+  production: false,
+  navBarBackgroundColor: 'blue'
+};
+
+--> environment.prod.ts
+export const environment = {
+  production: true,
+  navBarBackgroundColor: 'white'
+};
+
+----------------------------------------------------
+
+--> In navbar component
+
+--> ts
+  backgroundColor = environment.navBarBackgroundColor;
+
+--> Html
+<nav [style.backgroundColor]="backgroundColor"
+
+
+
+--> Make sure that path is:
+import { environment } from './../../../dist/out-tsc/src/environments/environment';
+
+--> Not like this:
+environment.prod'; 	--> at end
+
+----------------------------------------------------
+
+--> Now run following commands
+
+1. ng serve
+2. ng serve --prod	
+
+--> You will change in navbar color
+--> You will know in which environment you are changing code
+--> And also see changes in size of bundles while running application
+
+----------------------------------------------------
+
+6. Adding Custom Environments
+
+--> Make new file inside environments folder --> environment.test.ts
+export const environment = {
+  production: false,
+  navBarBackgroundColor: 'green'
+};
+
+--> You need to register this in angular.json file
+--> This method is changed from mosh, so refer solution on online 
+
+--> Now run, ng serve --environment=test
+or
+--> ng build --environment=test
+
+----------------------------------------------------
+
+7. Linting with Angular Cli
+
+--> Code should have higher degree readability and maintainability
+--> TSLint is a program which will do analysis on all files codes and according to set of rules will notify you
+--> Such rules can be tab_space, single/double quotes, etc
+--> Angular already downloaded this package as tslint
+--> Such rules are present in tslint.json
+--> Example: 
+
+    "quotemark": [
+      true,
+      "single"
+    ],
+
+-------------------------------------------------
+
+--> Use Angular cli tool for running tslint
+--> ng lint
+
+--> This will generate all errors with short details
+--> To fix all erros in one go:
+--> ng lint --fix
+
+--> This will fix all errors which are short ones
+
+-------------------------------------------------
+
+8. Linting in VSCode
+
+--> Download this extension: TSLint
+--> This will analysis of code while typing
+--> This will show red mark where error is generated
+--> To solve error, ctrl+.  --> to display error message
+--> To solve errors in file in one go --> open command pallete (ctrl+shift+p) --> type tslint --> fix all errors
+
+-------------------------------------------------
+
+9. Deployment Options
+
+1. Github Pages
+
+--> They are available at github.io 
+--> They only serve front end that is html, css, javascript
+--> Do not provide to serve backend
+
+2. Firebase (Google)
+
+--> It has its own language
+--> Really helpful for serving backend applications like api
+
+3. Heroku
+--> It supports user custom backend that can be asp.net, express, django
+
+4. Azure
+--> Suitable for large organizations bec. it gives sophisticated features
+
+-------------------------------------------------
+
+10. Deploying application to Github
+
+--> Go to : https://pages.github.com/
+--> Application is directly deployed from github repositories
+--> They only host static front-end and not backend
+
+--> First create Repository of your angular application
+--> Angular cli already initialised empty git repository
+--> git remote origin <link>
+--> git push origin master
+
+--> To deploy on github.io pages
+--> You need to install npm package
+1. npm i -g angular-cli-ghpages
+2. ng build --prod --base-href="https://avinashchawla96.github.io/AngularPractice/"
+
+--> https://username.github.io/repositoryName/
+
+3. angular-cli-ghpages
+or
+3. ngh --no-silent
+
+--> It will deploy to hosting server
+
+------------------------------------------------------------------------
+
+--> To make this command in one go
+--> Visit: package.json
+--> "scripts" {
+	"deploy:gh": "ng build --prod --base-href='https://avinashchawla96.github.io/AngularPractice/' && sudo ngh"
+    }
+
+--> npm run build:gh
+
+-------------------------------------------------
+
+11. Deploying to Firebase
+
+--> It is provided by Google
+--> Used for building backend of web/mobile apps
+--> Real-time, fast and scalable database
+--> Cloud messaging
+--> Hosting
+
+-------------------------------------------------
+
+--> Head over to: https://console.firebase.google.com
+--> Create new Project: followers-app
+
+--> We need firebase packages from npm
+--> npm i -g firebase -tools
+--> firebase login
+--> firebase init	 
+--> Select hosting options from given options
+--> Select your project name: followers-app
+--> Two files are generated: firebase.json and *
+--> Open firebase.json
+
+{
+  "hosting": {
+    "public": "dist"
+  }
+}
+
+--> Rebuild the application: ng build --prod
+--> firebase deploy
+
+
+-------------------------------------------------
+
+
+--> Now this application does not support routing, it supports only index.html
+--> To fix this, in firebase-json
+--> {
+	"hosting": {
+	   "public" : "dist",
+	   "rewrites" : [
+		{
+			"source" : "**",
+			"destination" : "/index.html"
+	        }
+	}
+    }
+
+--> firebase deploy
+--> Also adding this command in package.json
+--> "scripts" : {
+	"deploy:firebase" : "ng build --prod && firebase deploy"
+--> npm run deploy:firebase
+
+-------------------------------------------------
+
+12. Heroku
+
+--> It is Clour Platform as a service(PaaS) that lets you build, monitor and scale your apps
+
+--> download heroku cli from chrome
+--> heroku --version
+--> heroku login
+--> heroku create <name_of_project>	--> but must be unique
+--> heroku create			--> create name by own
+--> heroku open
+--> We have to replace content of heroku with our application
+
+--> Open package.json file
+--> Move 3 dependencies from dev-dependencies to dependencies
+--> This is required dependencies to install on heroku remote server
+
+--> "dependencies": {
+    	"@angular/animations": "~9.1.9",
+    	"@angular/cli": "~9.1.7",
+        "typescript": "~3.8.3",
+
+--> With building application, we need postinstall tag in scripts to build application along with installing all packages
+
+--> "scripts" : [
+	    "postinstall": "ng build --prod",
+    ]
+
+------------------------------------------------------------------
+
+13. Making node server
+
+--> You need server backend too
+--> Make new file in project --> server.js
+
+const express = require('express');
+const app = express();
+
+app.use(express.static(_dirname + '/dist');
+
+app.all('*', (req, res) => {
+	res.send(200).sendFile(_dirname + '/dist/index.html')
+});
+
+app.listen(process.env.PORT || 8080);
+	
+--> npm i express
+
+-------------------------------------------------------------------
+
+14. Node Server in package.json
+
+--> Now in package.json
+--> "scripts" : {
+	"start" : "node server.js"
+    }
+
+--> Nodejs is web server
+--> The job of this node server is to host our static content and expose any api endpoints.
+
+-------------------------------------------------------------------
+
+15. Committing to Github
+
+--> git add .
+--> git commit -m "Prepare for heroku"
+--> heroku create
+
+--> heroku registers a remote for this git repository
+--> git remote		--> 1. heroku, 2. origin
+--> git push heroku master
+--> git open
+
+--> What it does is:
+1. Check out latest code from repository
+2. Install the dependencies
+3. Build the application
+4. Run the node server
+
+-------------------------------------------------------------------
+
+16. Engines
+
+--> If you want exact same version of node and npm in heroku server
+--> Add property in package.json
+
+"engines" : {
+	"node" : "6.10.3",
+	"npm"  : "5.3.0"
+}
+
+-------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

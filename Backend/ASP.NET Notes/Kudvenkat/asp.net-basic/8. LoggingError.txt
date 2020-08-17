@@ -1,0 +1,806 @@
+1. Window Event Viewer-->
+
+--> To log exception, either database or window event is used.
+--> To open windows event viewer
+
+1. Run program --> eventvwr
+2. go to programs --> right click computer --> manage --> open computer management --> click event viewer
+
+--> expand eventViewer --> expand windows logs --> click Application 
+--> right click application --> filter current logs --> select only errors and warning.
+
+--> Exceptions can be logged to the event viewer.
+--> Under windows logs, there are different logs-->
+1. Application --> Log information from application like MS office, Sql server, visual studio
+2. Security --> Log information related to security like user sign-ons, access checks
+3. System --> Log information related to driver, system service failures
+
+--> Event source is the name of the appllication that logged the event like sql server, visual studio
+
+--------------------------------------------------------------------------------------
+
+2. Making custom event viewer for our own application-->
+
+--> There is a namespace in asp.net which provides this facility to add custom event viewer.
+--> create new windows form application and we would class there.
+
+--------------------------------------------------------------------------
+
+--> design-->
+
+1Label 1TextBox
+1Label 1TextBox
+Button
+
+Event Log Source  _____________________
+Event Log Name    _____________________
+Create Custom event viewer
+
+--------------------------------------------------------
+--> code -->
+--> on button_click event-->
+
+private void CreateEventLogButton_Click(object sender, EventArgs e)
+        {
+            if(EventLogNameTextBox.Text != string.Empty && EventLogSourceTextBox.Text != string.Empty)
+            {
+                System.Diagnostics.EventLog.CreateEventSource(EventLogSourceTextBox.Text, EventLogSourceTextBox.Text);
+                MessageBox.Show("Event Log and Source Created!");
+            }
+            else
+            {
+                MessageBox.Show("Event Log and Source are required!");
+            }
+        } 
+
+-----------------------------------------------------------------------------
+--> Run the application 
+--> if any exception is raised in running, make sure to run visual studio as administration
+
+--> Name: PragimTech
+--> Source : PragimTech.com
+--> click button 
+
+--> Now that custom viewer is created in event viewer window under Application and services logs
+
+---------------------------------------------------------------------------
+
+--> To delete custom event viewer-->
+--> same code, same application, only difference is below-->
+
+System.Diagnostics.EventLog.Delete(EventLogSourceTextBox.Text, EventLogSourceTextBox.Text);
+
+---------------------------------------------------------------------------------
+
+3. Logging exception to the event viewer-->
+
+--> First make webform which will raise an exception.
+--> design-->
+
+gridview
+label
+
+---------------------------------------------------------------
+
+--> code -->
+--> in page_load event-->
+
+using System.Data;
+
+DataSet ds = new DataSet();
+ds.ReadXml(Server.MapPath("~/Countries.xml"));
+
+GridView1.DataSource = ds;
+GridView1.DataBind();
+
+
+--> Now Countries.xml is not available, so application will throw System.IO.FileNotFoundException
+
+---------------------------------------------------------------------------
+
+--> To Log exception in event viewer, we make Logger class-->
+
+using System.Text;
+using System.Diagnostics;
+
+public class Logger
+{
+    public static void Log(Exception exception)							-----------> Log method is static, means no need to create instance
+    {
+
+        StringBuilder sbExceptionMessage = new StringBuilder();					-----------> stringBuilder is mutable
+        sbExceptionMessage.Append("Exception Type" + Environment.NewLine);			-----------> Environment.NewLine is same as  "\n"  --> new line
+ 
+        sbExceptionMessage.Append(exception.GetType().Name);					-------> exception type --> in this case "error"
+
+        sbExceptionMessage.Append(Environment.NewLine + Environment.NewLine);
+        sbExceptionMessage.Append("Message" + Environment.NewLine);
+  
+        sbExceptionMessage.Append(exception.Message + Environment.NewLine + Environment.NewLine);
+        sbExceptionMessage.Append("Stack Trace" + Environment.NewLine);
+  
+        sbExceptionMessage.Append(exception.StackTrace + Environment.NewLine + Environment.NewLine);	------> print exception stackTrace
+
+
+        Exception innerException = exception.InnerException;				--->  There can be inner exception to main exception 
+									--> eg. Like FileNotFound comes under HttpUnhandledException if defined in global.asax
+        while (innerException != null)
+        {
+            sbExceptionMessage.Append("Exception Type" + Environment.NewLine);
+            sbExceptionMessage.Append(innerException.GetType().Name);
+
+ 
+
+            sbExceptionMessage.Append(Environment.NewLine + Environment.NewLine);
+            sbExceptionMessage.Append("Message" + Environment.NewLine);
+            sbExceptionMessage.Append(innerException.Message + Environment.NewLine + Environment.NewLine);
+            sbExceptionMessage.Append("Stack Trace" + Environment.NewLine);
+            sbExceptionMessage.Append(innerException.StackTrace + Environment.NewLine + Environment.NewLine);
+
+
+            innerException = innerException.InnerException;		--> making loop until all innerexceptions are printed
+        }
+
+        // If the Event log source exists
+        if (EventLog.SourceExists("PragimTech.com"))			--> EventLog is method in system.diagnostics namespace to log in eventviewer
+        {
+            // Create an instance of the eventlog
+            EventLog log = new EventLog("PragimTech");
+            // set the source for the eventlog
+            log.Source = "PragimTech.com";
+            // Write the exception details to the event log as an error
+            log.WriteEntry(sbExceptionMessage.ToString(), EventLogEntryType.Error);		----> Make entry to eventViewer and using error type in event log
+        }
+    }
+}
+
+---------------------------------------------------------------------------
+
+--> To catch exception at application level, we use Application_Text in global.asax-->
+--> in application_error event-->
+
+Exception ex = Server.GetLastError();
+if(ex != null)
+{
+	Logger.log(ex);
+	Server.CloseError();
+	Server.Transfer("~/ErrorMessage.aspx");
+}
+
+--> User will be redirected to ErrorMessage page and exception is recorded in event viewer.
+--------------------------------------------------------------------------
+
+--> Making ErrorMessage webpage-->
+--> design
+
+<h2>Application Error</h2>
+<h4>An unknown error has occured.Sorry for the inconvinience caused.</h4>
+
+--------------------------------------------------------------------------
+
+--> Rather than in application mode error, we can log in page level-->
+
+	try
+        {
+            DataSet ds = new DataSet();
+            ds.ReadXml(Server.MapPath("~/Countries.xml"));
+
+            GridView1.DataSource = ds;
+            GridView1.DataBind();
+        }
+
+        catch (Exception ex)
+        {
+            Logger.Log(ex);
+        }
+
+-------------------------------------------------------------------------
+
+4. Logging exceptions as information type in event viewer-->
+
+--> giving information type as exception in parameter only
+
+---------------------------------------------------------------------------
+--> design-->
+
+Enter first Number (TextBox1)
+Enter Second Number(TextBox2)
+Divide(Button)
+Label
+
+-----------------------------------------------------------------------------
+--> code --> 
+
+    protected void Page_Load(object sender, EventArgs e)
+    {
+
+    }
+    protected void Button1_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            int firstNumber = Int32.Parse(TextBox1.Text);
+            int secondNumber = Int32.Parse(TextBox2.Text);
+
+            int Result = firstNumber / secondNumber;
+            Label1.Text = Result.ToString();
+        }
+        catch (FormatException ex )
+        {
+            Logger.Log(ex, EventLogEntryType.Information);			----> giving second parameter in Log method
+            Label1.ForeColor = System.Drawing.Color.Red;
+            Label1.Text = "Only Numbers are allowed";
+        }
+        catch (OverflowException ex)
+        {
+            Logger.Log(ex, EventLogEntryType.Information);			----> giving second parameter in Log method
+            Label1.ForeColor = System.Drawing.Color.Red;
+            Label1.Text = "Numbers must be between " + Int32.MinValue.ToString() + " and " + Int32.MaxValue.ToString() ;
+        }
+        catch (DivideByZeroException ex)
+        {
+            Logger.Log(ex);
+            Label1.ForeColor = System.Drawing.Color.Red;
+            Label1.Text = "Denominator cannot be zero";
+
+
+        }
+        catch(Exception ex)
+        {
+            Logger.Log(ex);
+            Label1.ForeColor = System.Drawing.Color.Red;
+            Label1.Text = "An unknown problem has occured. Please Try later";
+        }
+    }
+
+
+-------------------------------------------------------------------------------------------------
+
+--> Logger Class-->
+
+public static void Log(Exception exception)
+    {
+        Log(exception, EventLogEntryType.Error);
+    }
+    public static void Log(Exception exception, EventLogEntryType eventLogEntryType)		-----> defining second parameter
+    {
+        StringBuilder sbExceptionMessage = new StringBuilder();
+        
+        do
+        {
+            sbExceptionMessage.Append("Exception Type" + Environment.NewLine);
+            sbExceptionMessage.Append(exception.GetType().Name);
+            sbExceptionMessage.Append(Environment.NewLine + Environment.NewLine);
+            sbExceptionMessage.Append("Message" + Environment.NewLine);
+            sbExceptionMessage.Append(exception.Message + Environment.NewLine + Environment.NewLine);
+            sbExceptionMessage.Append("Stack Trace" + Environment.NewLine);
+            sbExceptionMessage.Append(exception.StackTrace + Environment.NewLine + Environment.NewLine);
+
+            exception = exception.InnerException;
+        } while (exception != null);
+
+        if (EventLog.SourceExists("AvinashTech.com"))
+        {
+            EventLog log = new EventLog("AvinashTech");
+            log.Source = "AvinashTech.com";
+            log.WriteEntry(sbExceptionMessage.ToString(), eventLogEntryType);			-------> using second parameter
+        }
+    }
+
+--------------------------------------------------------------------------------------------------
+
+5. Logging exceptions to database-->
+
+--> code -->
+
+protected void Page_Load(object sender, EventArgs e)
+    {
+        
+            DataSet ds = new DataSet();
+            ds.ReadXml(Server.MapPath("~/Countries.xml"));		----> There is no such file so raise FileNotFoundException
+
+            GridView1.DataSource = ds;
+            GridView1.DataBind();
+    }
+
+--------------------------------------------------------------------
+--> sql server-->
+
+--> making table for Log-->
+
+create table tblLog
+(
+[Id] int primary key identity(1,1),
+[Date] DateTime,
+[ExceptionMessage] nvarchar(max)
+)
+
+--> making stored procedures-->
+
+create procedure spInsertLog
+@ExceptionMessage nvarchar(max)
+as
+begin
+	insert into tblLog([Date], [ExceptionMessage])
+	values (Getdate(), @ExceptionMessage)
+end
+
+
+---------------------------------------------------------------
+
+--> Logger class-->
+
+public class Logger
+{
+    public static void Log(Exception exception)
+    {
+        Log(exception, EventLogEntryType.Error);
+    }
+    public static void Log(Exception exception, EventLogEntryType eventLogEntryType)
+    {
+        StringBuilder sbExceptionMessage = new StringBuilder();
+        
+        do
+        {
+            sbExceptionMessage.Append("Exception Type" + Environment.NewLine);
+            sbExceptionMessage.Append(exception.GetType().Name);
+            sbExceptionMessage.Append(Environment.NewLine + Environment.NewLine);
+            sbExceptionMessage.Append("Message" + Environment.NewLine);
+            sbExceptionMessage.Append(exception.Message + Environment.NewLine + Environment.NewLine);
+            sbExceptionMessage.Append("Stack Trace" + Environment.NewLine);
+            sbExceptionMessage.Append(exception.StackTrace + Environment.NewLine + Environment.NewLine);
+
+            exception = exception.InnerException;
+        } while (exception != null);
+
+        string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+        SqlConnection con = new SqlConnection(CS);
+        SqlCommand cmd = new SqlCommand("spInsertLog", con);
+        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+        SqlParameter param = new SqlParameter("@ExceptionMessage", sbExceptionMessage.ToString());
+        cmd.Parameters.Add(param);
+
+        con.Open();
+        cmd.ExecuteNonQuery();
+        con.Close();
+    }
+}
+
+------------------------------------------------------------------
+--> global.asax-->
+
+void Application_Error(object sender, EventArgs e) 
+    {
+        Exception ex = Server.GetLastError();
+        if (ex != null)
+        {
+            Server.ClearError();
+            Logger.Log(ex);
+        }
+    }
+
+----------------------------------------------------------------
+
+--> Calling Logger at page level-->
+
+try
+        {
+            DataSet ds = new DataSet();
+            ds.ReadXml(Server.MapPath("~/Countries.xml"));
+
+            GridView1.DataSource = ds;
+            GridView1.DataBind();
+        }
+catch(Exception ex)
+{
+	Logger.Log(ex);
+	if(ex is System.IO.FileNotFoundException)
+	{
+		Label1.Text = "Countries.xml is not found";
+	}
+	else
+	{
+		Label1.Text = "An unknown problem has occured, please contact the administration";
+	}
+}
+
+----------------------------------------------------------------------------------------------------------------------------
+
+6. Customizing exception logging-->
+
+--> Creating a switch between event viewer and database in web.config file
+--> config file -->
+
+<configuration>
+  <appSettings>
+    <add key="LogProvider" value="eventviewer"/>
+  </appSettings>
+
+--------------------------------------------------------------
+
+--> Logger class-->
+
+public static void Log(Exception exception)
+    {
+        Log(exception, EventLogEntryType.Error);
+    }
+    public static void Log(Exception exception, EventLogEntryType eventLogEntryType)
+    {
+        StringBuilder sbExceptionMessage = new StringBuilder();
+        
+        do
+        {
+            sbExceptionMessage.Append("Exception Type" + Environment.NewLine);
+            sbExceptionMessage.Append(exception.GetType().Name);
+            sbExceptionMessage.Append(Environment.NewLine + Environment.NewLine);
+            sbExceptionMessage.Append("Message" + Environment.NewLine);
+            sbExceptionMessage.Append(exception.Message + Environment.NewLine + Environment.NewLine);
+            sbExceptionMessage.Append("Stack Trace" + Environment.NewLine);
+            sbExceptionMessage.Append(exception.StackTrace + Environment.NewLine + Environment.NewLine);
+
+            exception = exception.InnerException;
+        } while (exception != null);
+
+        string logProvider = ConfigurationManager.AppSettings["logProvider"];
+        if(logProvider.ToLower() == "database")
+            LogToDB(sbExceptionMessage.ToString());
+        else if(logProvider.ToLower() == "eventviewer")
+            LogToEventViewer(sbExceptionMessage.ToString());
+        else if(logProvider.ToLower() == "both")
+            LogToDB(sbExceptionMessage.ToString());
+            LogToEventViewer(sbExceptionMessage.ToString());
+
+    }
+
+    private static void LogToDB(string log)
+    {
+        string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+        SqlConnection con = new SqlConnection(CS);
+        SqlCommand cmd = new SqlCommand("spInsertLog", con);
+        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+        SqlParameter param = new SqlParameter("@ExceptionMessage", log);
+        cmd.Parameters.Add(param);
+
+        con.Open();
+        cmd.ExecuteNonQuery();
+        con.Close();
+    }
+
+    private static void LogToEventViewer(string log)
+    {
+        if (EventLog.SourceExists("AvinashTech.com"))
+        {
+            EventLog eventLog = new EventLog("AvinashTech");
+            eventLog.Source = "AvinashTech.com";
+            eventLog.WriteEntry(log, EventLogEntryType.Error);			
+        }
+    }
+
+
+----------------------------------------------------------
+
+7. Sending Emails-->
+
+--> We need service which helps in sending mails called smtp --> simple mail transfer protocol. 
+--> Different organizations use different smtp like google mails
+--> We will use google smtp server for sending emails
+
+
+--> Logger class -->
+
+using System.Net.Mail;
+
+public static void Log(Exception exception, EventLogEntryType eventLogEntryType)
+{
+...
+...
+
+string sendEmail = ConfigurationManager.AppSettings["SendEmail"];
+if(sendEmail.ToLower() == "true")
+     SendEmail(sbExceptionMessage.ToString());
+}
+
+private static void SendEmail(string emailBody)
+    {
+        MailMessage mailMessage = new MailMessage("avinashchawla1996@gmail.com", "dhruviben47@gmail.com");
+        mailMessage.Subject = "Exception";
+        mailMessage.Body = emailBody;
+
+        SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587);
+        smtpClient.Credentials = new System.Net.NetworkCredential()
+        {
+            UserName = "avinashchawla1996@gmail.com",
+            Password = "Katrina@3"
+        };
+        smtpClient.EnableSsl = true;			-----> bec. gmail is https --> secured protocol
+        smtpClient.Send(mailMessage);
+    }
+
+------------------------------------------------------------------------------
+
+--> web.config file-->
+
+<configuration>
+  <appSettings>
+    <add key="LogProvider" value="eventviewer"/>
+    <add key="SendEmail" value="true"/>
+  </appSettings>
+
+----------------------------------------------------------------
+
+8. Sending emails from web config file-->
+
+under <configuration> tag-->  
+  <system.net>
+    <mailSettings>
+      <smtp deliveryMethod="Network">
+        <network host="smtp.gmail.com" enableSsl="true" port="587" userName="avinashchawla1996@gmail.com" password="Katrina@3"/>
+      </smtp>
+    </mailSettings>
+  </system.net>
+
+
+------------------------------------------------------------------
+
+--> Logger class-->
+
+private static void SendEmail(string emailBody)
+    {
+        MailMessage mailMessage = new MailMessage("avinashchawla1996@gmail.com", "dhruviben47@gmail.com");
+        mailMessage.Subject = "Exception";
+        mailMessage.Body = emailBody;
+
+        SmtpClient smtpClient = new SmtpClient();
+        smtpClient.Send(mailMessage);
+    }
+
+--> Automatically detect settings for smtp server from web.config file.
+------------------------------------------------------------------------------------
+
+9. Tracing in ASP.NET-->
+
+--> Tracing enables us to view diagnostic information about a request and is very useful when debugging application problems
+--> Tracing can be done for one page or whole application.
+--> Tracing information is automatically written in trace.axd file.
+
+-----------------------------------------------------------------
+
+--> For whole application-->
+--> in web.config, under system.web-->
+<trace enabled="true" localOnly="false" pageOutput="true" RequestLimit="10" mostRecent="true" />
+
+--> localOnly --> accessible via remote pc. By default, it is only accessible to local (true). So make it false to also accessible for remote pc.
+--> pageOutput --> To append trace messages at the end of the page.
+--> RequestLimit --> limit of no. of request to trace
+--> mostRecent --> only add new entries latest 10(RequestLimit) and delete old entries 
+
+-----------------------------------------------------------------
+
+--> At Page level-->
+--> in page decorator-->
+Trace="false"
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+10. Writing custom tracing messages-->
+
+--> Two methods are used-->
+1. Trace.Warn()		---> displayed in red color
+2. Trace.Write()
+
+--> Mostly written in catch block-->
+
+if(Trace.IsEnabled)
+{
+	Trace.Warn(divideByZeroException.Message);
+}
+
+--> Tracing can be disabled from web.config to increase performance of app.
+
+------------------------------------------------------------------------
+
+11. Tracing- A real time example-->
+
+--> If the page loading is slow, What will you do to make it fast?
+--> We cannot use debug tool in production server
+
+--> Step1-->
+
+--> First Checkout which is slow, is it the application or the database
+
+1. Sql-->
+--> If any query or sp is used in application, check in sql profiler how much time are such queries are taking
+--> If not taking much time, problem is in application.
+--> It queries taking time, its time to optimise some queries-->
+1. Check if there are indexes to help the query
+2. Select only the required columns, avoid Select *
+3. Check if there is possibility to reduce the no. of joins
+4. If possible use NO LOCK on your select statements
+5. Check if there are cursors and if you can replace them with joins
+
+---------------------------------------------------------------------------------
+
+2. Problem in application-->
+
+--> Make tracing enabled in that particular page event
+--> By enabling, information is generated in page end or in trace.axd file.
+--> Identify which operation is taking much time
+--> Mostly, Page end load event takes much time
+
+--> in page load event, wrap each function with Trace.Warn(functionName)
+--> again check for which function is taking most time
+
+-->in one function example-->
+
+if(spname == "spGetEmployessByGender")
+{
+	System.Threading.Thread.Sleep(7000);
+}
+return ds;
+
+--> So we find problem in application
+
+-----------------------------------------------------------------------------------
+
+12. Application pools in IIS-->
+
+--> To open IIS manager, go to start --> control panel --> system and security --> administrative tools --> iis manager
+
+--> or in run command, type inetmgr
+
+------------------------------------------------------------------------
+--> By default, visual studio uses inbuilt IIS server which is visual studio development server-->
+
+--> right click project --> properties --> go to web tab --> click on Use Local IIS WEb server --> To use windows IIS instead of visual studio server
+
+--> Project url: http://localhost/App1  --> create virtual directory --> now check in iis manager
+
+--> go to sites --> default web site --> you will see App1
+
+----------------------------------------------------------------------
+--> To set above same server settings using iis manager-->
+
+--> right click default website --> add applications --> alias = App1 ; physical path= project folder under solution folder
+
+--------------------------------------------------------------------
+
+--> What are application pools in IIS-->
+
+--> An application pools is something like process under which an application runs.
+--> Or application pools is a collection of applications.
+
+--> Can be seen in IIS manager tab
+--> Each Application pool can contain one or more web applications. 
+--> In IIS, it is possible to create one or more application pools.
+
+--> Application in different application pools, runs in its own worker process(w3wp.exe).
+--> Errors in one application pool will not affect the application running in other application pools
+--> For eg. if an application pool is recycled, only the applications in that pool are affected and others will stay safe.
+
+
+--> Deploying applications to diff application pools enables us to achieve the degree of application isolation that we need, in terms of availability and security.
+--> For example, applications that require high security can be present in one application pool and the other applications in different application pool
+
+---------------------------------------------------------------------------------
+
+Application pool identities-->
+
+--> They are inbuilt user accounts associated with each worker process eg. localService, localSystem, NetworkService, ApplicationPoopIdentity, etc.
+--> They have different privilages in running applications.
+--> Each application pool has unique worker process called w3wp.exe.
+--> The applications are executed by worker process, using a windows identity that is in-built accounts only. 
+--> The application pool identity, which can be any of the following built in accounts
+
+1. LocalService 
+2. LocalSystem
+3. NetworkService
+4. ApplicationPoolIdentity (default)
+5. Make custom account by specifying username and password
+
+--> By default, an application uses ApplicationPoolIdentity
+
+--> right click any application pool --> advanced settings --> application pool identity
+
+--> to create new application pool --> right click application pool --> make new application pool --> name it App1
+--> make an application --> set to IIS server instead of default 
+--> right click application --> manage application --> Advanced setting --> link to newly created application pool
+--> by default, this application will use ApplicationPoolIdentity account 
+
+--------------------------------------------------------------------------
+
+--> Privilages given to each identity -->
+
+1. LocalSystem 
+--> Admin level
+--> Completely trusted account
+--> It has very high privilages 
+--> It can access network resources
+
+2. Network Service
+--> Restricted or limited service account
+--> It can access network resources
+
+3. Local Service
+--> Restricted or limited service account
+--> It can not access network resources
+
+4. ApplicationPoolIdentity
+--> When a new application pool is created, IIS creates a virtual account with the name of the new application pool and run the applications pools worker processes under this account.
+--> It has also least privilaged account
+
+---------------------------------------------------------------------------
+
+--> Demo -->
+--> An application uses new application pool(App1) which we have created-->
+
+--> in page load event-->
+Response.Write(System.Security.Principal.WindowsIdentity.GetCurrent().Name);
+
+
+--> This will display which application pool is this application is using
+-------------------------------------------------------------------------
+
+13. Application Isolation using application pools in IIS -->
+
+--> make two applications and link both in same custom application pool
+--> store session variables inproc method in both web applications
+--> As both are linked to IIS server now, it is possible to run multiple application using same w3wp.exe bec. they are linked to same application pool, so run both in seperate browser.
+
+--> recycle w3wp.exe in tast manager
+--> both applications will lost their session variable bec. inproc method, session variables are stored in w3wp.exe so lost, 
+
+--> so, solution is isolation by providing different application pool instead of same
+
+----------------------------------------------------------------------------------
+
+14. Application pools in IIS Security-->
+
+--> Only needed in web-hosting server
+
+--> make one xml file
+--> There are two web applications, application1 and application2
+--> Both applications has file upload button
+
+--> Now this file should only be accessible by application1 and not any other application
+--> If application2 is trying to read that xml file, it has no authorise to use that file, and system should throw UnauthorizedAccessException
+
+-------------------------------------------------------------------
+
+--> right click xml file
+--> properties
+--> security (tab)
+--> Edit
+--> Add
+--> Paste the account name (ApplicationPoolName) which is used by application2 and it can be displayed from system.security.principal...
+
+--> CheckNames
+--> select that username
+--> OK
+--> in permissions section --> deny all permissions   
+
+--------------------------------------------------------------------
+
+--> WebApplication1-->
+
+if(FileUpload1.HasFile)
+{
+	try
+	{
+		DataSet ds = new DataSet();
+		ds.ReadXml("C:\\Data\\"+FileUpload1.FileName);
+		
+		GridView1.DataSource = ds;
+		GridView1.DataBind();
+		Label1.Text = "";
+	}
+	catch(System.UnauthorizedAccessException)
+		Label1.Text = "You do not have access to this file";
+	catch(Exception)
+		Label1.Text = "An unexpected error has occured";
+}
+else
+	Label1.Text = "Please select a file first";
+
+-------------------------------------------------------------------------------

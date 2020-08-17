@@ -1,0 +1,109 @@
+1. What is Middleware
+
+--> All actions goes through a pipeline before reaching rootReducer
+--> We can perform different logics on these action methods and that pipeline is called middleware
+
+--> Middleware can be used for:
+1. Calling APIs
+2. Error reporting
+3. Analytic
+4. Authorization
+
+------------------------------------------------------------------------------------
+
+2. Creating Middleware
+
+--> Make new folder --> middleware
+--> Make new file   --> logger.js
+
+const logger = (state, next, action) => {
+    console.log("state", state);
+    console.log("next", next);
+    console.log("action", action);
+}
+
+export default logger;
+
+------------------------------------------------------------------------------------
+
+--> Actually syntax of middleware function is different using currying 
+
+const logger = state => next => action => {
+    console.log("state", state);
+    console.log("next", next);
+    console.log("action", action);
+}
+
+export default logger;
+
+--> This middleware takes 3 parameters - state, next, action
+--> Every action passes through this middleware now.
+--> store object is different from actual redux store object
+--> next is middleware pass control to next middleware or rootReducer
+--> action contains action object including type and payload
+--> In this, we are logging each action on console and respected state before action
+
+------------------------------------------------------------------------------------
+
+--> To make this work middleware
+
+1. If store is created using @reduxjs/toolkit
+
+import logger from './middleware/logger';
+const state = configureStore({ reducer, middleware: [logger] });
+
+2. If store is created using createStore using 'redux' library
+
+import { createStore, applyMiddleware } from 'redux';
+import logger from './middleware/logger';
+const state = createStore(reducer, middleware(logger));
+
+------------------------------------------------------------------------------------
+
+3. Parameterizing Middleware
+
+--> We can pass extra parameters to middleware that to focus on specific actions or
+log only in development server
+
+const state = createStore(reducer, middleware(logger("console"));
+
+--> We passed argument to this middleware as a paremeter
+
+--> In logger.js middleware
+
+const logger = param => state => next => action => {
+    console.log("params", param);
+
+}
+
+export default logger;
+
+--> You can pass javascript object also
+const state = createStore(reducer, middleware(logger({ description: "console"}));
+
+------------------------------------------------------------------------------------
+
+4. Dispatching Functions
+
+--> Now, action is now dispatching plain javascript object
+--> But what if we want to dispatch function
+
+--> Reason is We can call api endpoint in this function
+
+--> store.dispatch(() => {
+	console.log("Function dispatched");
+    }
+
+--> Make new file in middleware folder --> func.js
+
+--> const func = (state) => (next) => (action) => {
+	if(typeof action === 'function')
+	   action()
+    	else
+	   next(action);
+    }
+
+    export default func;
+
+------------------------------------------------------------------------------------
+

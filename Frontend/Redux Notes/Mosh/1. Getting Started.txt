@@ -1,0 +1,80 @@
+1. Intro
+
+--> A state management library for Javscript apps
+--> When you have a complex web application and there is a large data flow in complex way, redux makes it easy for you to handle data
+
+--> When there are hundreds of components and all invoking some actions, changing some data in dom, other components need to be aware of that and do necessary changes after that.
+
+--> To manage this complex state which is divided between components, we make a central place, where all application data will be saved.
+
+--> Facebook solves this issue in its React framework using flux architectural pattern
+
+--> Redux inspires by facebook and take it further and make it simple state management by using 3 principles.
+
+--> Other than Redux, there is MobX.
+
+--> With Redux store, we could know how/ why/ when/ where data changes
+--> With Redux,
+1. Centralizes applications state
+2. Makes data flow transparent and predictable
+
+--------------------------------------------------------------------------
+
+2. Pros and Cons of Redux
+
+--> Let it understand with an example
+--> There is Andy's kitchen website
+--> There is component 'filter' for filtering menu's item in category
+--> There is component 'menus' for displaying each item in that filter listed
+--> There is component for adding and subtracting number of items
+--> There is component for adding total items in list
+--> There is component for calculating payment based on items selected
+--> There is component for updating UI
+--> There is one component for authentication of user
+--> There is one component for user history of items in past
+
+--> All these components are sharing same state and at any place, one changes the state, others should get updated.
+
+--> And these states are not simple one, it can be complex javascript object
+
+--------------------------------------------------------------------------
+
+--> Benefits:
+
+--> Redux can do time travel to bring any previous state by reversing that action. (Note: use Redux chrome extension tools)
+
+--> Redux can also do catching and preserve state data in clients browser. There is no need to check application using api.
+
+--> Pros:
+
+1. Predictable state changes
+2. Centralized state
+3. Easy debugging
+4. Preserve page state
+5. Undo/redo
+6. Ecosystem of add-ons
+
+--> Cons:
+1. Complexity
+2. Verbosity ( difficult boiler plate)
+ 
+--------------------------------------------------------------------------
+
+3. When Not to use Redux
+
+1. Tight Budget
+2. Small to medium-size apps
+3. Simple UI/data flow
+4. Static data
+
+
+--> Every problem is different, have different constrainst and have to provide optimal solution to that problem
+--> Be an active problem solver and not be an auto-pilot developer where to solve each problem, you use same tools bec. you just know them.
+
+--------------------------------------------------------------------------
+
+4. Setting up the development Environment
+
+--> Download the project in resourses
+--> It contains dependencies of webpack (module bundler)
+--> What will it do is that it looks at configuration file

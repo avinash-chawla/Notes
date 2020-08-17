@@ -1,0 +1,110 @@
+
+
+7. Levels-->
+
+--> Select Layer image
+--> Click on Adjestments
+--> If not shown, Windows --> Adjustments
+--> Click on Levels
+
+--> The graph between shows the spread of color( horizontal shows which color and vertical shows proportion of that color in image like background will have maximum proportion
+--> Drag black and white pointer to their first bump of graph
+
+--> It has the power to adjust brightness, contrast and tonal range by specifying the location of complete black, complete white and midtones in a histogram
+
+--> Midtones --> Colors between complete white and black
+--> Tonal range --> It represents the amount of contrast
+
+--------------------------------------------------------------------
+
+8. Vibrance-->
+
+--> It enhances photos colors, makes colors pop up
+--> Select Layer image
+--> Click on Vibrance in adjustments
+--> Vibrance and Saturation are like similar
+
+--> Vibrance only make color pop up which require saturation
+--> Sometimes View like real 
+
+--> Saturation make color enhances whole image
+--> Sometimes View like virtual
+
+
+--> Hue is the color in the image
+--> Saturation or Vibrance  is the intensity or richness of color
+--> Lightness is Brightness value (just like light or dark color)
+
+-------------------------------------------------------------------
+
+9. How to change the color of something using Hue-->
+
+--> Select Layer image
+--> Click hue in Adjustments
+--> Select appropriate color
+
+--> Change Master to different color to change that specific colors
+--> Selective objects color changing, we do later using mask tool
+
+------------------------------------------------------------------
+
+10. How to add a gradient to an image and text-->
+
+--> Select Image in Layer
+
+--> Paste Text ( T in left panel) 
+--> size: 80pts, color: White, font: Any
+
+--> Unlock Background Image
+--> Click Effects, choose gradient
+
+--> www.grabient.com is a good website to choose diff gradients
+--> #FBDA61 and #FF5ACD combination is good
+
+--> Select Blend mode except Normal and try different styles
+--> I Select Lighten
+--> Style Linear, angle: 90, Opacity: 90%
+
+--> Select any effect and you can drag it to dustbin below right bottom corner.
+
+--> Similarly, apply gradient to textbox.
+---------------------------------------------------------------------
+
+11. Black and White-->
+
+--> Select Image in Layer
+--> From Adjustments, choose Black and White
+--> Change intensity by red, yellow, cyan in original image
+
+--> Change color using Tint, tick it and change color
+
+------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

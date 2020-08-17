@@ -1,0 +1,252 @@
+1. Intro-->
+
+--> Authentication is the process of identifying users.
+--> Authorization is the process of granting access to those users based on identity.
+
+--> Authentication - Who is the User?
+--> Authoriazation - What rights the user has? What resources the user can access?
+
+-----------------------------------------------------------------------------------
+
+2. Anonymous User -->
+
+--> Most of the public websites, does not ask the user to enter any username and password. But still, we will be able to access the content of these websites.
+--> asp.net web applications provide anonymous access to resources on the server.
+
+------------------------------------------------------------------------------------
+
+--> IIS 7.0 uses IUSR account for providing anonymous access.
+--> In page_load event-->
+
+Response.Write("Application Code executed using: "+System.Security.Principal.WindowsIdentity.GetCurrent().Name + "<br/>");
+Response.Write("Is user authenticated: " + User.Identity.IsAuthenticated.ToString() + "<br/>");
+Response.Write("User authentication type: " + User.Identity.AuthenticationType + "<br/>");
+Response.Write("User Login account: " + User.Identity.Name + "<br/>");
+
+
+--> DefaultAppPool, False, null, null   --> For anonymous user
+-----------------------------------------------------------------------------------
+
+--> All auth controls are done in IIS server, not on visual studio default server.
+--> Register application in IIS server
+--> click application, you will see features section and IIS section
+
+--> click authenticate in IIS section
+--> Anonymous authentication is enabled by default.
+--> on right side, under actions, click edit
+
+--> IUSR username is by default selected and is inbuilt, we can change by clicking on set and provide avi, game or nilu account or you can also select Application pool identity for Anonymous user identity.
+
+--> run the WebForm1
+--> so WebForm1 is a resource of application, and even if user on browser is anonymous, we are able to see its content
+
+
+--> Now disable Anonymous authentication
+--> WebForm1 won't show in web browser, user should be authenticated first
+
+--------------------------------------------------------------------------------------
+--> second way of disabling anonymous authentication from web.config file-->
+
+--> Under system.web tag-->
+<authorization>
+	<deny users="?" />		---> ? means anonymous user
+	<allow users="*" />		---> * means all other users except anonymous
+</authorization>
+
+
+--> order of deny and allow tag matters here
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+3. Anonymous Authentication and Impersonation-->
+
+--> to set application pool for application --> right click application in IIS server, manage application, advanced settings 
+
+---------------------------------------------------
+
+--> There are other inbuilt-accounts other than user account
+--> These accounts are used to host application on internet.
+--> Eg. IUSR, Application Pool Identifier, etc.
+
+--> IUSR is default for all applications for anonymous authentication and it can not provide isolations between different applications means content is sharable between two applications
+
+-------------------------------------------------------------------------------
+
+--> IIS provides anonymous access to resources using IUSR account
+--> Once the request is handed over to asp.net, asp.net changes account internally to Application Pool Identifer, and the application code is executed using the application pool identity.
+
+--> If Impersonation is enabled, asp.net does not changes to application pool identifier internally.
+--------------------------------------------------------------------------------
+
+--> To enable impersonation-->
+--> in web.config file and under system.web tag-->
+<identity impersonate="true" />
+
+--> second way to enable impersonation-->
+--> in iis server --> in application --> authentication --> enable impersonation
+
+----------------------------------------------------------------------------
+
+--> Above will only work if Integrated managed pipeline mode of application pool(DefaultAppPool) of application should be classic instead of Integrated which is in basic settings
+--> So make it classic
+
+--> Run the application
+
+Application Code executed using: LENOVOLAPTOP\AVI
+Is user authenticated: True
+User authentication type: Negotiate
+User Login account: LENOVOLAPTOP\AVI
+
+--> Application Code executed using:
+--> IIS APPPOOL\DefaultAppPool if impersonate="false"
+--> NT AUTHORITY\IUSR if impersonate="true"
+---------------------------------------------------------------------------------
+
+--> When to use Application Pool Identity account and IUSR account-->
+
+--> Application Pool Identity account provides better isolation between different applications while IUSR account not
+
+-----------------------------------------------------------------------------------
+
+4. Windows Authentication-->
+
+--> If the websites contains private information or performs tasks such as booking tickets, placing orders, etc. then the users need to be authenticated and authorised.
+
+--> Windows authentication, identifies and authorizes users based on the server's user list. Access to resources on the server is then granted or denied based on the users accounts privileges.
+
+--> Such authentication is best suited for Intranet web applications. Because it checks for username as windows OS logIn not from database.
+
+--> Advantage --> Web application can have the same security scheme that applies to your corporate network. Username, passwords, and permissions are the same for network resources and web applications.
+
+-------------------------------------------------------------------------------
+
+--> Two ways to enable Windows authentication-->
+
+1. IIS server --> click application --> authentication --> enable windows auth
+2. in web.config, disable anonymous auth,  <authorization><deny users="?"/></authorization>
+
+
+--> If both anonymous and windows auth are enabled, web application takes anonymous auth by default
+--> In such case, disable anonymous auth.make impersonate="true"
+
+--> run the application-->
+
+Application Code executed using: LENOVOLAPTOP\AVI
+Is user authenticated: True
+User authentication type: Negotiate
+User Login account: LENOVOLAPTOP\AVI
+
+-------------------------------------------------------------------
+
+--> ASP.NET internally changes account to applicationPool, to change account to windows OS login account, make impersonate="true"
+
+<identity impersonate="true"/>
+
+Application Code executed using: LENOVOLAPTOP\AVI
+Is user authenticated: True
+User authentication type: Negotiate
+User Login account: LENOVOLAPTOP\AVI
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+5. Windows Authentication and plus authorization --->
+
+--> using web.config file-->
+<authorization>
+	<allow users="Prasad-PC\Venkat, Prasad-PC\Pragim"/>
+	<deny users="*"/>
+</authorization>
+
+--> only type user account name
+
+-----------------------------------------------------------------------------------
+
+--> There are two categories in accounts -> users and groups
+--> groups is a collection of user account just like container for giving correct privilages
+--> eg. Administrator, users, guests
+
+--> Each user account is member of group account
+-------------------------------------------------------------------------------------
+--> To see user account is member of which group? -->
+
+--> go to computer management --> local users and groups --> double click any user account --> see member of in tab
+
+------------------------------------------------------------------------------------
+
+--> Allowing access to groups instead of individual user accounts -->
+
+<authorization>
+	<allow roles="Administrators"/>
+	<deny users="*"/>
+</authorization>
+
+--> There can be 500 administrators in an organization
+
+-------------------------------------------------------------------------------
+
+--> method to give privilages-->
+
+if(User.IsInRole("Administrators"))
+{
+	read xml file
+}
+else
+{
+	Label1.Text = "You are not an admin";
+}
+----------------------------------------------------------------------------------
+
+6. Windows authentication and folder level authorization-->
+
+--> Only administrators should be able to access the pages in Admin Folder.
+
+--> Project structure-->
+
+WebApplication1-->
+WebForm1.aspx
+web.config
+Admin folder--> AdminPage.aspx
+		web.config
+
+------------------------------------------------------------------------------
+
+--> Admin Folder web.config
+
+<authorization>
+	<allow roles="Administrators"/>		--> only allowing administrators
+	<deny users="*"/>
+</authorization>
+
+------------------------------------------------------------
+
+--> Application root level web.config file-->
+
+<authorization>
+	<deny users="?"/>	---> denying anonymous users
+</authorization>
+
+-------------------------------------------------------------------------------------
+
+--> Impersonate in folder level authorization-->
+
+--> if you want to execute the application code, using the logged in administrator account, then enable impersonation in web.config file of admin folder
+
+<identity impersonate="true"/>
+
+--> From above, webApplication will not convert internally account to default application pool
+
+------------------------------------------------------------------------
+
+--> If user has logged in administrator but the code will be executed using mentioned "user" account only.
+
+<authorization>
+	<allow roles="Administrators"/>		--> only allowing administrators
+	<deny users="*"/>
+</authorization>
+<identity impersonate="true" userName="Venkat" password="test"/>
+
+
+--> What is the function of impersonate?
+--> It changes account as we want, changing the default behaviour
+
+------------------------------------------------------------------------------------
+

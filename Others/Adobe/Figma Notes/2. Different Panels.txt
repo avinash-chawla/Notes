@@ -1,0 +1,155 @@
+1. Layers-->
+
+--> Figma works with Layers
+
+--> To import fig file
+--> Go to Recents, click on Import icon
+
+--> To scroll using mouse
+--> shift + scroll 	--> horizontally
+--> scroll		--> vertically
+
+--> To Reach out Layers which are behind
+--> Select that particular layer
+--> Then drag with mouse
+
+--> Pages
+--> One Page can contain many artboards
+--> To Create New Page, click Page1 on above of layers
+--> Right click any Layer --> Move to Page --> Select It
+
+---------------------------------------------------------------------
+
+2. Components Panel-->
+
+--> Create Component
+--> Select Object
+--> Right click it, create Component
+--> or from objects menu, create Component
+
+--> Duplicate component
+--> Now in assets, these components created
+--> You can drag them and make new
+
+--> Changing Master component
+--> Any change in Master component, make changes in child component
+
+--> To use these components in other project
+--> Click on Publish Library in assets
+
+--> Delete Master Component
+--> Means You will delete component from assets
+--> Means any change now will not affect
+
+--> Go to Master Component
+--> Select child component 
+--> In sidebar, click on Go to Master Component
+--> Or right click, Go to Master component
+
+---------------------------------------------------------------------
+
+3. Design Panel-->
+
+--> It is Panel shown at sidebar
+--> Different Properties are displayed if object is selected and nothing is selected.
+
+1. When nothing is selected
+--> It is background for artboard
+
+--> Change Background Color
+--> Select anywhere at background of artboard 
+--> In SideBar, Change Background color
+--> Can Change Opacity also
+--> Can display Pixel Preview or Pixel Grid
+
+2. When Object is selected
+
+--> Position: x and y
+--> It shows reference of object from upper left top of main frame
+
+--> Width and Height
+--> When ratio is locked, it is proper scalable
+
+--> Change Rotation
+
+--> Such operations can also be performed using Mouse
+--> Hold ctrl + Mouse 	--> For Rotation
+--> hold shift + Mouse	--> For Scaling in ratio
+--> Drag with mouse	--> To change location
+
+-------------------------------------------------------
+
+--> Constraints
+--> When you resize main frame, some icons needs to be proper location
+
+--> Scale
+--> While resizing main window, icons also resize
+
+--> Top and Right
+--> Nav Texts remain on right and top
+
+--> Top and Left
+--> company logo on top and left
+
+-------------------------------------------------------
+
+--> Layer Section
+--> Different Blending options along with opacity
+
+--> Fill Color
+--> Select any color
+--> There are different options: Linear, Radial, Angular, Solid, Image
+
+--> Linear Option
+--> Drag the Gradient Line to adjust proportion of color
+
+--> Multiple Fill Color
+--> Click on Plus icon
+
+--> Stroke Option
+--> Color, Opacity, Weight, Align(outside, inside, center)
+--> In 3 dots, there are different styles of strokes like 
+dashes, caps, miter angle, joins
+--> 2,2 in dashes means 2 px dash, 2px gap
+
+--> One Object, Multile fills
+--> 1. Image Fill
+--> 2. Black Color with opacity 20% --> to darken image
+--> 3. Linear Gradient --> To create shadow on navbar
+
+--> Image Fill Options
+--> Exposure, Contrast, Saturation, Temperature, Tint, Highlights
+
+--> Align Options
+--> Select multiple objects and make them align
+
+--> Text Options
+--> Displays when selecting Text
+--> To open Advanced features of Text, click on 3 dots button
+
+--> Export Options
+--> Click on Plus to send same image with different resolution or different extensions
+
+----------------------------------------------------------------------
+
+4. The Prototype Panel-->
+
+--> Click on Prototype Panel
+--> Click on Play button on above that
+
+--> Choose background for Presentation
+--> In prototype Panel
+
+--> Make Selections for Presentation
+--> click either layer or double click button
+--> A white dot will appear, drag to that layer which will get displayed when clicked
+
+----------------------------------------------------------------------
+
+5. The Code Panel-->
+--> Click any item in Layers - Text, Icon, Box, Shape
+--> It will display css properties like absolute position and for text, font properties also s
+
+----------------------------------------------------------------------
+
+

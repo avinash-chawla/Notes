@@ -1,0 +1,80 @@
+1. Client Side Validation
+
+--> There are 2 approaches that you could take to implement client side validation in asp.net core.
+
+--> Approach 1 : Write your own custom JavaScript code to implement client-side validation which is obviously tedious and time consuming.
+--> Approach 2 : Use the unobtrusive client-side validation libraries provided by asp.net core.
+
+----------------------------------------------------------------------------
+
+2. Library Manager
+
+jquery.js
+jquery.validate.js
+jquery.validate.unobtrusive.js
+
+----------------------------------------------------------------------------
+
+3. Include them in _Layout.cshtml
+
+<script src="~/lib/jquery/jquery.js"></script>
+<script src="~/lib/jquery-validate/jquery.validate.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js">
+
+----------------------------------------------------------------------------
+
+4. What does "Unobtrusive Validation" Mean
+
+--> Unobtrusive Validation allows us to take the already-existing server side validation attributes and use them to implement client-side validation. 
+--> We do not have to write a single line of custom JavaScript code. 
+--> All we need is the above 3 script files in the order specified.
+
+--> The unobtrusive validation is done using the jquery.validate.unobtrusive.js library. 
+--> This library is built on top of jquery.validate.js library, which in turns uses jQuery. 
+--> This is the reason we need to import these 3 libraries in the order specified.
+
+----------------------------------------------------------------------------
+
+5. How does client side validation work in ASP.NET Core
+
+--> The Email property is decorated with [Required] attribute. To generate input field for Email, we use asp.net core input tag helper
+
+<input asp-for="Email"/>
+
+--> ASP.NET Core tag helpers work in combination with the model validation attributes and generate the following HTML. Notice in the generated HTML we have data-* attributes.
+
+<input id="Email" name="Email" type="email" data-val="true" data-val-required="The Email field is required." />
+
+--> The data-* attributes allow us to add extra information to an HTML element. 
+--> These data-* attributes carry all the information required to perform the client-side validation. 
+--> It is the unobtrusive library (i.e jquery.validate.unobtrusive.js) that reads these data-val attributes and performs the client side validation.
+
+----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

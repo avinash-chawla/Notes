@@ -1,0 +1,158 @@
+1. Everything Is Online
+
+--> We spend a significant amount of our time online, often plugged in through more than 1 device.
+--> As technology gets better, there has been an increase in devices too.
+--> Most of us access our home WiFi from both our laptops and phones. Then we have tablets, smart TVs, etc.
+--> All these devices are interacting with the Internet constantly.
+
+----------------------------------------------------------------------------------
+
+2. Data Is Everywhere
+
+--> All these devices connected together over the Internet, generate around 2.5 quintillion Bytes of data each day. (Translating to a LOT!!)
+--> This generation of data happens by default as a part of the functioning of these devices.
+--> Other than this, individuals all over the world are constantly creating data through social media, GPS and using various online services like Uber.
+--> All of this data makes up the term Big Data.
+
+----------------------------------------------------------------------------------
+
+3. 4Vs Of Big Data
+
+--> Big Data is recognizable instantly by the Vs. The 4Vs are the characteristics to look out for:
+--> Volume: Scale of Data
+--> Variety: Different forms of Data
+--> Velocity: Analysis of streaming Data
+--> Veracity: Uncertainty of Data
+
+----------------------------------------------------------------------------------
+
+4. Big Data is the Baddest Wolf Around
+
+--> More than the amount of data we produce, what blew people’s minds is, what we could do with all this data.
+--> This explosively large data phenomenon is called Big Data.
+--> This intriguing, elusive and sometimes frustrating Big Data has changed our lives forever.
+
+----------------------------------------------------------------------------------
+
+5. Netflix as an Example
+
+--> A Simple example, is that of Netflix.
+--> Netflix record all the interactions that its users have with the application. It then analyses it to answer questions like
+--> What kind of content are users liking most?
+--> What genre is popular with each gender?
+--> What is the perfect mix for the perfect show?
+
+Answers to these questions are implemented on the application, resulting in users going back again and again giving more revenue to Netflix.
+
+----------------------------------------------------------------------------------
+
+6. Google and Uber Examples
+
+--> Google undertook an exercise with the U.S. Centre for Disease Control, providing the regions where Flu topics were searched most, helping to predict where an epidemic may break out next.
+--> Companies like Uber have models built on big data where they use locations of customers along with that of drivers to provide their services .
+
+----------------------------------------------------------------------------------
+
+7. Amazon Example
+
+--> Another simple example is that of online marketplaces like Amazon.com
+--> They alter process of the products on a real time scale based on the demand for them.
+--> Many Retailers combine data from their loyalty program with online behaviour of their customers to target more offers to them.
+
+----------------------------------------------------------------------------------
+
+8.nBig Data is Daunting
+
+--> Big Data is clearly something that companies must sink their teeth into.
+--> So why is it that many of them have not?
+--> Big Data is daunting for the uninitiated.
+
+----------------------------------------------------------------------------------
+
+9. Challenges
+
+--> Big Data poses 3 major challenges:
+--> Storage: Since the quantity of data is large, huge servers are required to store it.
+--> Various sources:. The data that is collected in various formats needs to be unified for a comparative analysis.
+--> Not just space, the data transfer speed needs to be ramped up. If it isn’t, the system will remain slow and ineffective.
+
+----------------------------------------------------------------------------------
+
+--> The solution to this is Hadoop. This is a framework that allows parallel storage and analysis. At the same time, it can accept various formats and structures of data and all this, in large volumes.
+
+----------------------------------------------------------------------------------
+
+10. Artificial Intelligence
+
+--> Artificial Intelligence is the intelligent behaviour of software that can take decisions and improve over time by learning from experience.
+--> Examples of its application are software like Alexa and Cortana.
+--> Uber is teaming up with Mercedes Benz to create a self-driving Mercedes.
+--> Complex Big Data applications also, are examples of artificial intelligence
+
+----------------------------------------------------------------------------------
+
+11. BlockChain
+
+--> The Blockchain, can be simply described as a complete list of transactions.
+--> Consider the below steps in the case of a Bitcoin transaction:
+--> Thus it is difficult to forge or perform fraudulent transactions, since the network is private and each transaction public to all the members of that network.
+
+--> Consider the below steps in case of a Bitcoin transaction:
+A user requests a transaction.
+The request is broadcasted across the network.
+The network validates the user’s status and authenticity.
+Once verified, a fresh entry is made in the list of transactions, i.e a new block is added.
+The transaction is complete.
+Each block or entry is permanent and unalterable.
+
+----------------------------------------------------------------------------------
+
+12. Serverless Architecture
+
+--> This is a service offered by technological service providers like Amazon, Google, Microsoft, etc.
+--> It provides a way for software developers to create their code without having to maintain servers.
+--> They can change usage from one server to multiple, within minutes.
+--> They only need to pay for as much as they use. This is much more convenient than buying servers and risking underutilization.
+
+----------------------------------------------------------------------------------
+
+13. Mobile First
+
+--> This one is pretty simple.
+--> It refers to the trend of increasing usage of cellphones to perform all functions of a laptop or desktop computer.
+
+----------------------------------------------------------------------------------
+
+Mobile phones nowadays are very powerful and using them for transactions like online shopping, banking, etc. has become a norm.
+Being Mobile First, means that a company must make sure that their websites and applications are compatible with laptops, desktops and mobiles alike, in order to grow their business.
+
+----------------------------------------------------------------------------------
+
+14. Dark Data
+
+--> Have you ever been in a meeting, taken your own notes for ‘later’ and never looked at them again?
+--> That ‘Later’ is not likely to come, but you still hold on to them.
+--> Companies do this with data too!
+--> Data of customers that was useful years ago, or just about every kind of data about the customer, may not be helpful today, but is still stored taking up valuable company resources.
+--> This comparatively useless data is called Dark Data.
+--> Dark Data must be eliminated, for the company to control costs and run an efficient data center.
+
+----------------------------------------------------------------------------------
+
+15. Internet Of Things
+
+--> With the Internet of Things, the physical world will become one big information system.
+--> Multiple devices today are connected to the Internet and can communicate with other devices such as your phone, or amongst each other.
+--> These include mobile devices, wearables, consumer and home electronic devices, automotive and environmental devices.
+--> The new focus of technology will be to design a user experience out of a network of such devices, creating an Internet connected form of reality.
+--> A wonderful application of this is shown in the movie ‘Her’ directed by Spike Jonze.
+
+----------------------------------------------------------------------------------
+
+16. Actionable/Self Service Analytics
+
+--> Much of the analysis of data in the past has been retrospective.
+--> Data was collected, say, during the summer of 2007, analysed and then the outcomes were implemented in the summer of 2008.
+--> Now the business need is to collect data, and analyse it instantly, so that insights from it can be used instantly.
+
+----------------------------------------------------------------------------------

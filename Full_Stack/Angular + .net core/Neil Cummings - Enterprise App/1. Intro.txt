@@ -1,0 +1,256 @@
+1. Intro
+
+--> Source code: https://github.com/trycatchlearn/skinet
+
+-----------------------------------------------------------------------------------------
+
+2. Creating the new api Project
+
+--> mkdir skinet
+--> cd skinet
+--> dotnet new sln
+--> dotnet new webapi -o API
+--> dotnet sln add API
+--> dotnet run
+--> go to: https://localhost:5001/WeatherForecast
+
+-----------------------------------------------------------------------------------------
+
+3. Adding our first API Controller
+
+using Microsoft.AspNetCore.Mvc;
+
+namespace API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ProductsController : ControllerBase
+    {
+        [HttpGet]
+        public string GetProducts()
+        {
+            return "List of Products";
+        }
+
+        [HttpGet("{id}")]
+        public string GetProduct(int id)
+        {
+            return "Single Product";
+        }
+    }
+}
+
+--> Key Points:
+
+1. ControllerBase
+2. [ApiController]
+3. [Route("api/[controller]"]
+4. [HttpGet("{id}")]
+
+-----------------------------------------------------------------------------------------
+
+4. Adding a Entity class - Product.cs
+
+public int Id { get; set; }
+public string Name { get; set; }
+
+--> I am not showing actual operation from now onwards. You can view code step by step in github.
+
+-----------------------------------------------------------------------------------------
+
+5. Setting up Entity Framework Core
+
+--> Open nuget package manager 
+--> Microsoft.EntityFrameworkCore
+--> To choose version, it should match with version of .net core
+--> dotnet --info	--> show version of .net core
+--> Three packages: Microsoft.EntityFrameworkCore, Microsoft.EntityFrameworkCore.Sqlite and Microsoft.EntityFrameworkCore.design
+--> dotnet restore
+
+-----------------------------------------------------------------------------------------
+
+using API.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace API.Data
+{
+    public class StoreContext : DbContext
+    {
+        public StoreContext(DbContextOptions<StoreContext> options) : base(options){}
+        
+        public DbSet<Product> Products { get; set; }
+    }
+}
+
+--> Autogenerate Constructor
+--> ctrl + . on DbContext --> Generate options parameter constructor
+
+
+-----------------------------------------------------------------------------------------
+
+6. Adding a Connection String
+
+  "ConnectionStrings":{
+    "DefaultConnection": "Data source=skinet.db"
+  }
+
+services.AddDbContext<StoreContext>(x => 
+                    x.UseSqlite(_config.GetConnectionString("DefaultConnection")));
+
+-----------------------------------------------------------------------------------------
+
+7. Doing Migrations
+
+--> dotnet tool install --global dotnet-ef --version 3.1.6
+--> dotnet ef migrations add InitialCreate -o Data/Migrations
+
+-----------------------------------------------------------------------------------------
+
+8. Updating the Database
+
+--> dotnet ef database update 
+--> download extension --> sqlite
+--> Open command pallette --> type sqlite --> Open database
+--> A new explorer --> Sqlite created in vscode, open it
+--> Right click Products --> Insert Data
+
+-- SQLite
+INSERT INTO `Products` (Id, Name)
+VALUES (1, 'Product one'), (2, 'Product two'), (3, 'Product three');
+
+--> Select whole query --> run query
+--> Right click Products table, show table
+--> Otherwise install dbBrowser for sqlite
+
+-----------------------------------------------------------------------------------------
+
+9. Reading Data from Database
+
+--> First assign StoreContext object in constructor parameter
+--> Synchronous
+
+        [HttpGet]
+        public ActionResult<List<Product>> GetProducts()
+        {
+            var products = _context.Products.ToList();
+            return Ok(products);
+        }
+
+--> Asynchronous
+
+        [HttpGet]
+        public async Task<ActionResult<List<Product>>> GetProducts()
+        {
+            var products = await _context.Products.ToListAsync();
+            return Ok(products);
+        }
+
+--> FindAsync(id) for single Product
+
+-----------------------------------------------------------------------------------------
+
+10. Creating the additional Projects
+
+--> cd skinet
+--> dotnet new classlib -o Core
+--> dotnet new classlib -o Infrastructure
+--> dotnet sln add Core
+--> dotnet sln add Infrastructure
+
+--> cd API
+--> dotnet add reference ../Infrastructure
+
+--> cd skinet
+--> cd Infrastructure
+--> dotnet add reference ../Core
+
+--> cd skinet
+--> dotnet restore
+
+--> Move Data folder to Infrastructure
+--> Move Entities folder to Core
+
+-----------------------------------------------------------------------------------------
+
+11. .gitignore
+
+obj
+bin
+appsettings.json
+*.db
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

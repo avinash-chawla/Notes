@@ -1,0 +1,716 @@
+--------------------------------------------------------------------------------
+
+1. A better Project Structure
+
+--> There should be following folders in src folder
+--> components, containers, assets
+--> containers will contain all smart components
+--> components will contain all stateless components
+--> assets will contain static files
+
+--> Second change:
+--> App should contain single components
+--> Now, it contains bunch of person components with map operator
+--> We will create Persons component which will contain list of all Person components using map operator.
+
+--------------------------------------------------------------------------------
+
+2. Splitting an App into Components
+
+--> In components folder, make two new components folder --> Persons and Cockpits 
+--> And make necessary js files in that folder --> Persons.js and Cockpits.js
+
+--------------------------------------------------------------------------------
+
+--> App.js
+--> We will use Persons and Cockpit component and pass state information as props
+
+import React, { Component } from 'react';
+import classes from './App.css';
+import Persons from '../components/Persons/Persons';
+import Cockpit from '../components/Cockpit/Cockpit';
+
+class App extends Component {
+  state = {
+    persons : [
+      { id: '1', name: "Max", age: 23 },
+      { id: '2', name: "Manu", age: 24 },
+      { id: '3', name: "Stepanie", age: 20 }
+    ],
+    showPersons: false
+  }
+
+  switchNameHandler = (newName) => {...};
+
+  nameChangedHandler = (event, id) => {...}
+
+  togglePersonsHandler = () => {...}
+
+  deletePersonHandler = (personIndex) => {...} 
+
+  render() {
+    let persons = null;
+    if(this.state.showPersons)
+    {
+      persons = (
+          <div>
+            <Persons
+              persons={this.state.persons}
+              clicked={this.deletePersonHandler}
+              changed={this.nameChangedHandler} />
+          </div>
+      )
+    }
+
+    return (
+        <div className={classes.App}>
+          <Cockpit 
+            persons={this.state.persons}
+            showPersons={this.state.showPersons} 
+            clicked={this.togglePersonsHandler} />
+          {persons}
+        </div>
+      
+    );
+  }
+}
+
+export default App;
+
+
+--------------------------------------------------------------------------------
+
+--> Cockpit.js
+--> This will handle heading and button
+
+import React from 'react';
+import classes from './Cockpit.css';
+
+const cockpit = (props) => {
+
+    const assignedClasses = [];
+    let btnClass = '';
+    if(props.showPersons){
+        btnClass = classes.Red;
+    }
+    if(props.persons.length <=2)
+    {
+      assignedClasses.push('red');
+    }
+    if(props.persons.length <= 1)
+    {
+      assignedClasses.push('bold');
+    }
+
+    return (
+        <div>
+            <h1>Hello, I am a React App</h1>
+            <p className={assignedClasses.join(' ')}>It is really Working</p>
+            <button className={btnClass} onClick={props.clicked}>Toggle Persons</button>
+        </div>
+
+    );
+}
+
+export default cockpit;
+
+--------------------------------------------------------------------------------
+
+--> Cockpit.css
+
+.red{
+    color: red;
+  }
+  
+  .bold{
+    font-family: bold;
+  }
+  
+  .Cockpit button{
+    background-color: green;
+    color: white;
+    border: 1px solid blue;
+    font: inherit;
+    padding: 8px;
+    cursor:pointer;
+  }
+  
+  .Cockpit button:hover{
+    background-color: lightgreen;
+    color: black
+  }
+  
+  .Cockpit button.Red{
+    background: red;
+  }
+  
+  .Cockpit button.Red:hover{
+    background-color: salmon;
+  }
+
+--------------------------------------------------------------------------------
+
+--> Persons.js
+
+import React from 'react';
+import Person from './Person/Person';
+
+const persons = (props) => persons.map((person, index) => {    
+    return <Person 
+                click ={() => props.clicked(index)}
+                name={person.name} 
+                age={person.age} 
+                key = {person.id}
+                changed={(event) => props.changed(event, person.id)}/>
+  })
+
+export default persons;
+
+--------------------------------------------------------------------------------
+
+3. Class-based or Functional Components
+
+--> Class based components has access to State or LifeCycle Hooks
+--> Functional based components has access to State via useState and not to Lifecycle Hooks
+
+--------------------------------------------------------------------------------
+
+4. Component Creation Lifecycle Hooks
+
+--> These are methods which automatically run by React app during different times.
+--> Following is the Component Creation Lifecycle hooks run one after one:
+
+1. constructor(props)
+2. getDerivedStateFromProps(props, state)
+3. render()
+4. Render Child Components
+5. componentDidMount()
+
+--> componentDidMount() runs after component is rendered.
+
+--------------------------------------------------------------------------------
+
+5. LifeCycle in Action
+
+--> In App.js
+
+class App extends Component {
+  constructor(props){
+    super(props);
+    console.log('[App.js] Constructor');
+    this.state = {
+      persons : [
+        { id: '1', name: "Max", age: 23 },
+        { id: '2', name: "Manu", age: 24 },
+        { id: '3', name: "Stepanie", age: 20 }
+      ],
+      showPersons: false
+    }
+  }
+
+  static getDerivedStateFromProps(props, state){
+    console.log('[App.js] getDerivedStateFromProps', props)
+    return state;
+  }
+
+  componentDidMount(){
+    console.log('[App.js] componentDidMount');
+  }
+
+  render() {
+    console.log('[App.js] render');
+
+--------------------------------------------------------------------------------
+
+--> In Persons.js
+
+const persons = (props) => props.persons.map((person, index) => {
+    console.log('[Persons.js] rendering...')
+
+--------------------------------------------------------------------------------
+
+--> In Person.js
+
+const person = (props) => {
+    console.log('[Person.js] rendering');
+
+--------------------------------------------------------------------------------
+
+--> Output:
+
+[App.js] Constructor
+[App.js] getDerivedStateFromProps {}
+
+[App.js] render
+
+[App.js] componentDidMount
+
+[App.js] getDerivedStateFromProps {}
+
+[App.js] render
+3 
+[Persons.js] rendering...
+3 
+[Person.js] rendering...3
+
+
+--> We use state property in class directly
+--> Internally, a constructor is called and assign to it --> as it is shown above for constructor.
+
+--------------------------------------------------------------------------------
+
+6. Component Updation Lifecycle Hooks
+
+--> Following are Life cycle Hooks which run while updating props or state:
+
+1. getDerivedStateFromProps(props, state)
+
+2. shouldComponentUpdate(nextProps, nextState)
+--> We can place condition, on whether to update the state and prop, if some event changes it.
+--> Decide whether to Continue or Not.
+
+3. render()	--> Prepare and Structure your JSX code.
+
+4. Update Child Component Props
+
+5. getSnapshotBeforeUpdate(prevProps, prevState)
+--> Not much used
+--> If any event by user failed, we redirect user to previousState from where event occurs.
+--> It will not update itself, it will take only snapshot and pass this snapshot of code to componentDidUpdate which can rerender DOM like redirecting to scrolling where user left.
+
+6. componentDidUpdate()
+--> This is event after update takes place in render and last hook in updating component.
+--> This is more used async task like http request.
+
+--> Http Requests are done in following hooks:
+1. componentDidMount()
+2. componentDidUpdate()
+
+--------------------------------------------------------------------------------
+
+7. Using useEffect() in Functional Component
+
+--> As lifecycle hooks are not available for functional components, useEffect can be used.
+--> It is not lifecycle hook, it is react hook
+--> This methods runs for every render cycle.
+--> This method combines componentDidUpdate and componentDidMount feature.
+
+--> In Cockpit.js
+
+import React, { useEffect} from 'react';
+
+const cockpit = (props) => {
+
+   useEffect(() => { 
+	console.log('[cockpit.js] useEffect');
+   	// Http request...
+	setTimeout(() => {
+		alert('Saved data to cloud');
+	}, 1000);
+   });
+ 
+   return (...);
+
+--> setTimeout is for fake http request.
+--> This method will invoke alert after 1 sec.
+--> Means this method can be used as componentDidMount or componentDidUpdate.
+
+--------------------------------------------------------------------------------
+
+8. Controlling the useEffect() Behaviour
+
+--> We want to run this useEffect method only on some conditions.
+--> eg. Rerendering means comparing virtual dom and real dom, apply necessary changes
+--> We want to invoke this method when rerendering of persons data/object only.
+
+--------------------------------------------------------------------------------
+
+--> useEffect(() => {
+	console.log(..);
+	setTimeout(() => {
+		alert('Saved data to cloud');
+	}, 1000);
+    }, [props.person]);
+
+--> This method has a dependency on "props.person" data
+--> This will bind the method to only run after props.person is changed or rerendering is done, otherwise not.
+
+--------------------------------------------------------------------------------
+
+--> useEffect(() => {
+	console.log(..);
+	setTimeout(() => {
+		alert('Saved data to cloud');
+	}, 1000);
+    }, []);
+
+--> This tells this method that there are zero dependencies.
+--> Second argument is an empty array.
+--> This will bind this method to run only once when component is rendered initially.
+
+--------------------------------------------------------------------------------
+
+9. Cleaning up with Lifecycle Hooks and useEffects
+
+--> When component is about to get destroyed, this method is invoked
+--> May be we want to remove event listeners to improve performance.
+
+--------------------------------------------------------------------------------
+
+--> Lifecycle Hook:
+
+componentWillUnmount(){
+   console.log('[Persons.js] componentWillUnmount');
+}
+
+--> This will run just before componentDidUpdate()
+
+--------------------------------------------------------------------------------
+
+--> useEffect(() => {
+	console.log(..);
+	setTimeout(() => {
+		alert('Saved data to cloud');
+	}, 1000);
+	return () => {
+ 	   	console.log('[Cockpit.js] cleanup work in useEffect');
+	};
+    }, [] );
+
+--> This method will use setTimeout while rendering this component
+--> This method will use callback function of cleanUpWork when component is get destroyed
+
+--------------------------------------------------------------------------------
+
+10. Cleanup work with useEffect
+
+--> Earlier, we use setTimeout in useEffect method, it will run even when component is destroyed.
+--> How to prevent it:
+
+--> useEffect(() => {
+	console.log(..);
+	const timer = setTimeout(() => {
+		alert('Saved data to cloud');
+	}, 1000);
+	return () => {
+		clearTimeout(timer);
+ 	   	console.log('[Cockpit.js] cleanup work in useEffect');
+	};
+    }, [] );
+
+--------------------------------------------------------------------------------
+
+11. using shouldComponentUpdate for optimization
+
+--> There are two child components of App component --> Persons and Cockpit
+--> When Cockpit changes, App component is rerendered
+--> Also, Persons component is also rerendered, which was not needed at all.
+
+--> We will use shouldComponentUpdate on Persons component.
+
+shouldComponentUpdate(nextProps, nextState) {
+   console.log('[Persons.js] shouldComponentUpdate');
+   if(nextProps.persons !== this.props.persons){
+	return true;	
+   } else {
+	return false;
+   }
+
+--> true means allow to rerender
+--> They are actually comparing pointers of an array above
+--> In each setState method, we are making new persons array object
+--> If that method handler is not called, then pointer will remain same.
+
+--------------------------------------------------------------------------------
+
+12. Optimizing Functional Components with React.memo()
+
+--> We do not haveshouldComponentUpdate for functional components.
+--> We will React.memo() for that
+
+--> Cockpit component is independent of Persons component
+--> Cockpit should not be rerendered when Persons components changes its state.
+
+--> export default React.memo(cockpit);
+
+--> This will make sure that if state of cockpit is not changing, it will not rerender this Cockpit component.
+
+--------------------------------------------------------------------------------
+
+13. PureComponents instead of shouldComponentUpdate
+
+shouldComponentUpdate(nextProps, nextState) {
+   console.log('[Persons.js] shouldComponentUpdate');
+   if(nextProps.persons !== this.props.persons ||
+      nextProps.clicked !== this.props.clicked ||
+      nextProps.changed !== this.props.changed 	
+   ){
+	return true;	
+   } else {
+	return false;
+   }
+
+
+--> When you compare all props in shouldComponentUpdate, there is an alternative approach
+--> Pure Components
+
+import React, { PureComponent } from 'react';
+
+class Persons extends PureComponent
+
+--> Now there is no need of shouldComponentUpdate lifecycle hook.
+
+--------------------------------------------------------------------------------
+
+14. How React Updates the DOM
+
+--> React uses concept of virtual DOM
+--> It has two doms --> old virtual dom and re-rendered virtual dom
+--> render() will create virtual DOM, not directly render actual dom
+--> This "virtual DOM" is faster than "real dom"
+
+--> Bec. real dom operations is costly
+
+--------------------------------------------------------------------------------
+
+15. Rendering Adjacent JSX Elements
+
+--> render() {
+	return [
+	   <p key="i1"> ... </p>,
+	   <p key="i2"> ... </p>,
+	   <input key="i3"... />
+	]
+
+--------------------------------------------------------------------------------
+
+--> Second Way
+
+--> Make new folder --> hoc (higher order components)
+--> Make new file --> auxiliary.js
+
+const auxiliary = props => props.children;
+
+export default auxiliary
+
+--> In Persons.js
+
+render() {
+	return (
+	  <Aux>
+	   <p key="i1"> ... </p>
+	   <p key="i2"> ... </p>
+	   <input key="i3"... />
+ 	  </Aux>
+	);
+
+--------------------------------------------------------------------------------
+
+16. Using React.Fragment
+
+--> We have already Aux Higher order Component as a wrapper
+--> React has its own hoc component for this purpose
+
+<React.Fragment>
+   ...
+</React.Fragment>
+
+--------------------------------------------------------------------------------
+
+17. Higher Order Components (HOC)
+
+--> Such components adds only new functionality to existing component.
+--> Below example will only add css style class to App.
+--> Make new file in hoc folder --> WithClass.js
+
+import React from 'react';
+
+const withClass = props => {
+   <div className={props.classes}>{props.children}</div>
+);
+
+export default withClass;
+
+--> In App.js
+
+<WithClass classes={classes.App}>
+   ...
+</WithClass>
+
+
+--------------------------------------------------------------------------------
+
+18. Another form of HOCs
+
+import React from 'react';
+
+const withClass = (WrappedComponent, className) => {
+   return props => {
+	<div className={className}>
+	   <WrappedComponent />
+ 	</div>
+   );
+};
+
+export default withClass;
+
+--> In App.js
+
+import withClass from '../hoc/withClass';
+
+export default withClass(App, classes.App);
+
+--------------------------------------------------------------------------------
+
+--> This withClass is normal javascript function which returns component
+--> This will first parameter as WrappedComponent to which we need to wrap component to add additional functionality.
+--> Here is App.js
+--> Other parameters is optional parameters depends on logic
+--> Here we are adding css class so it takes parameter as className
+
+--> How do we use that
+--> Not by wrapping entire jsx template, by wrapping App.js while exporting
+
+export default withClass(App, classes.App);
+
+
+--> Additional functionality can be css styles, html elements or javascript logic.
+
+--> Earlier, we were returning component wrapper which returns props.children
+--> In this, we are returning javascript method which takes components in paramter and returns that component only with additional functionality attached.
+
+--------------------------------------------------------------------------------
+
+19. Passing Unknown Props
+
+--> When you apply same withClass wrapper around Person.js, it will not work as expected
+--> props are not being passed from withClass wrapper
+--> Why:
+--> Because:
+
+--> withClass takes component and returns that component as <WrappedComponent /> without props.
+--> And this new component <Person /> is passed to jsx without props
+
+--> Solution:
+
+import React from 'react';
+
+const withClass = (WrappedComponent, className) => {
+   return props => {
+	<div className={className}>
+	   <WrappedComponent {...props} />			----------> Here
+ 	</div>
+   );
+};
+
+export default withClass;
+
+--> Here {...props} will return as {name:"Maximilian", age: 28}
+--> Now it will works fine.
+
+--------------------------------------------------------------------------------
+
+20. 
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

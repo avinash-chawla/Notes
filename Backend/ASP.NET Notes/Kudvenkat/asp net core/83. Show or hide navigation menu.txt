@@ -1,0 +1,120 @@
+1. Show or hide navigation menu based on logged-in user role
+
+--> Navigation menu is in the laylout view (_Layout.cshtml). 
+--> Inject SignInManager service into the layout view using @inject directive
+--> Use the SignInManager service, IsSignedIn() method and IsInRole() method to check if the user is signed in and if the user is in the Admin role
+
+-------------------------------------------------------------------------------
+
+<ul class="navbar-nav">
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="home" asp-action="index">List</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="home" asp-action="create">Create</a>
+    </li>
+    @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+    {
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Administration" asp-action="ListRoles">
+                Manage Roles
+            </a>
+        </li>
+    }
+</ul>
+
+-------------------------------------------------------------------------------
+
+2. What if the user types the URL in address bar
+
+--> The URL associated with Manage Roles navigation menu item is /Administration/ListRoles. 
+--> What if the user types this URL directly in the address bar.
+
+--> The Authorize attribute on the AdministrationController protects from the unauthorised access. 
+--> If the logged-in user is not in Admin role, asp.net core automatically redirects the user to /Account/AccessDenied
+
+-------------------------------------------------------------------------------
+
+3. AccessDenied action in AccountController
+
+--> Make new actionMethod in AdministrationController,
+
+public class AccountController : Controller
+{
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
+
+    // Other actions
+}
+
+-------------------------------------------------------------------------------
+
+4. AccessDenied View
+
+<div class="text-center">
+    <h1 class="text-danger">Access Denied</h1>
+    <h6 class="text-danger">You do not have persmission to view this resource</h6>
+    <img src="~/images/noaccess.png" style="height:300px; width:300px" />
+</div>
+
+-------------------------------------------------------------------------------
+
+5. Note:
+
+--> AdministrationController stands for Admin Role
+
+-------------------------------------------------------------------------------
+
+6. Note:
+
+--> No Error, but Error
+--> [Authorize does not authorize me]
+--> It is always redirecting me to Login Page
+
+--> Solution:
+
+--> use app.UseStatusCodePagesWithReExecute("/Error/{0}");
+--> Instead of app.UseStatusCodePagesWithRedirect("/Error/{0}");
+
+-->  app.UseAuthentication();
+     app.UseAuthorization();
+
+--> UseAuthorization should come after UseAuthentication
+
+
+--> I have done reverse.
+--> There is no solution to this problem on github.
+
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

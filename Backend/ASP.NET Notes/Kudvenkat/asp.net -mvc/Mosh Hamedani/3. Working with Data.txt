@@ -1,0 +1,354 @@
+1. Entity Framework-->
+
+--> It is a tool to access a database.
+--> It is also called Object/Relational Mapper (ORM) bec. it maps database in a relational database into objects of our application.
+
+--> It replaces need of opening of sql connection, closing, reading data, executing command, storing in datagrid, binding with datasource, etc.
+
+--> DbContect class talks with database, 
+--> which has a property DbSet which talks with table (pronouce DbSet as DataSet
+
+--> We use Linq to query this dataset
+--> Entity framework will translate these queries from DbSet to Database
+--> Entity framework will retrieve data from database, convert it to objects and pass it to DbSet
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+2. Two WorkFlow Process to work with entity framework-->
+
+1. DbFirst Workflow
+--> DataBase --> Entity Framework --> Domain Classes
+
+2. CodeFirst Workflow
+--> Domain Classes --> Entity Framework --> DataBase
+
+--> Advantages of Code First Workflow
+1. Increased productivity
+2. Full versioning of database	(application work independent of sql server version)
+3. Much easier to build an integration test db
+
+--> Disadvantages of Code First
+1. For greenfield projects  (only for new projects)
+
+------------------------------------------------------------------------------
+
+3. Code First Migrations
+
+--> This migrations is same as django
+--> This binds model data objects with database
+--> We talk with database using LINQ queries and getting proper data and submit it to view
+
+---------------------------------------------
+
+--> First, we need to enable migrations option in visual studio
+--> Package-manage console --> "enable-migrations"
+--> A new folder is created in project -> migrations
+--> All migrations files will be saved here
+
+---------------------------------------------
+
+--> To create migration file for converting datamodel objects to database
+--> add-migration <name>
+--> add-migration InitialModel
+--> A new file created in migrations model
+--> Check it different codes are automatically generated to create table
+--> Some tables are automatically provided by project
+
+---------------------------------------------
+
+--> Now this file does not create Customer table or Movie table
+--> To do that, we need to register as property in IdentityModels.cs in Models folder
+--> public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    {
+        public DbSet<Customer> Customers { get; set; }
+	public DbSet<Movie> Movies { get; set; }
+	...
+    }
+--> This is ApplicationDbContext class, which is linked to one or more Database sets as DbContext objects
+--> To link model data with tables, we need to create property of DbSet objects
+
+---------------------------------------------
+
+--> To update the same migration file
+--> in package console, "add-migration InitialModel -force
+--> Now check Customer table in migration file
+
+---------------------------------------------
+
+--> To update the database with migration file
+--> package-console--> "update-database"
+
+---------------------------------------------
+
+--> Open Server Explorer
+--> In Data connections, you can see all tables
+
+
+------------------------------------------------------------------------------
+
+4. Error while opening data connections in server explorer
+
+--> Could not load file or assembly 
+'Microsoft.SqlServer.Management.Sdkc.Sfc, Version=11.0.0.0, 
+Culture=neutral, PublicKey Token = 89845dcd8080cc91' or one of its
+dependencies. The system cannot find the file specified.
+
+--> Solution:
+
+Accepted Answer
+Note: x86 or x64 depending on OS Structure
+Step 1: Visit the below url and then click on Download option. http://www.microsoft.com/en-us/download/details.aspx?id=35580
+
+Step 2: select the file name:ENU\ x64 \SQLSysClrTypes.msi and then click on Next. This will shown an option to run this msi file. Please run this msi file and finish the installation.
+
+Step 3: Again visit the above link and click on Download option. this time you need to select the file name:ENU\ x64 \SharedManagementObjects.msi and then click on Next. This will shown an option to run this msi file. Please run this msi file and finish the installation.
+
+Step 4: Once above 2 files are downloaded and installed. Close the Visual Studio and reopen it. Now you should be able to create the database through server explorer without any errors.
+
+------------------------------------------------------------------------------
+
+5. Changing the Model
+
+--> Always do little migrations before updating all
+--> Add new class in Models --> MembershipType.cs
+--> public class MembershipType
+    	{
+        	public byte Id { get; set; }
+	        public short SignUpFee { get; set; }
+        	public byte DurationInMonths { get; set; }
+	        public byte DiscountRate { get; set; }
+        }
+
+--> Entity framework need Id as Property in Models to link as Primary Key of that table
+--> If not provided Id Property, by convention, it will make one by itself
+--> Customer will make foreign key to this Membership class
+--> Customer.cs
+
+public class Customer
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public bool IsSubscribedToNewsletter { get; set; }
+        public MembershipType MembershipType { get; set; }		--> This is only Navigation Property
+        public byte MembershipTypeId { get; set; }
+    }
+
+--> To create foreign key to that table, first we need navigation property to that table
+--> Then we link MembershipId to Customer Table
+--> add-migration AddMembershipType (compile first before add-migration)
+--> update-database
+
+------------------------------------------------------------------------------
+
+6. Seeding the Database
+
+--> add-migration PopulateMembershipTypes
+--> In up method -->
+
+public override void Up()
+        {
+            Sql("Insert into MembershipTypes (Id, SignUpFee, DurationInMonths, DiscountRate) Values (1, 0, 0, 0)");
+            Sql("Insert into MembershipTypes (Id, SignUpFee, DurationInMonths, DiscountRate) Values (2, 30, 1, 10)"); 
+            Sql("Insert into MembershipTypes (Id, SignUpFee, DurationInMonths, DiscountRate) Values (3, 90, 3, 15)"); 
+            Sql("Insert into MembershipTypes (Id, SignUpFee, DurationInMonths, DiscountRate) Values (4, 300, 12, 20)");
+        }
+
+--> update-database
+--> This way of populating database using migrations will be consistant
+--> When we deploy our application to production server, it will all migrations and apply to database
+--> Thus database will be created and populated with migrations
+
+--> Populating Customer table with migrations won't be beneficial 
+--> bec. we dont want data to be consisted from development to production, bec. data  is not actual data in development server
+
+------------------------------------------------------------------------------
+
+7. Overriding Conventions
+
+--> By default, entity framework applies field as nullable and nvarchar(max)
+--> We use Data Annotations or Attribute above that property
+--> Customer.cs
+
+--> using System.ComponentModel.DataAnnotations;
+    [Required]
+    [StringLength(255)]
+    public string Name { get; set; }
+
+--> You can see in properties of that field in ServerExplorer
+
+------------------------------------------------------------------------------
+
+8. Querying Objects--> 
+
+--> We need Querying object which can talk with database while running and give data from database.
+--> CustomersController.cs
+
+public class CustomersController : Controller
+    {
+        private ApplicationDbContext _context;			--> Querying object which talk with database
+
+        public CustomersController()
+        {
+            _context = new ApplicationDbContext();		--> Initialised in constructor of CustomerController class
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            _context.Dispose();					--> After completion of task, object will be disposed off.
+        }
+
+        public ViewResult Index()
+        {
+            var customers = _context.Customers;			--> _context represents database, under which there is Customer class
+            return View(customers);
+        }
+
+        public ActionResult Details(int id)
+        {
+            var customer = _context.Customers.SingleOrDefault(c => c.Id == id);
+
+            if (customer == null)
+                return HttpNotFound();
+
+            return View(customer);
+        }
+
+
+--> Insert data into Customer table using SSMS
+--> Check by running server and go to Customers\Index url
+--> snippet for generating constructor of class --> ctor[TAB] 
+------------------------------------------------------------------------------
+
+9. Eager Loading
+
+--> One Table is linked to Other Table through Foreign key
+--> While displaying other table data, null reference exception is generated
+--> Eg. Customer List is trying to Discount Rate from Membership Table in Index action method.
+--> View.cshtml
+
+<table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Discount Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in Model)
+            {
+                <tr>
+                    <td>@Html.ActionLink(customer.Name, "Details", "Customers", new { id = customer.Id }, null)</td>
+                    <td>@customer.MembershipType.DiscountRate</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+--> CustomersController.cs
+
+--> using System.Data.Entity;
+--> public ViewResult Index()
+        {
+            var customers = _context.Customers.Include(c => c.MembershipType).ToList();
+            return View(customers);
+        }
+
+--> Include method is used to connect to Membership Table using Foreign key
+--> This is called Eager Loading.
+
+------------------------------------------------------------------------------
+
+10. Creating custom keyboard shortcut
+
+--> Tools menu --> options --> under environment --> keyboard --> search "packagemanagerconsole" --> keyboard shortcut --> "Alt+/+." --> Assign --> OK
+
+------------------------------------------------------------------------------
+
+11. Exercise1
+
+--> Add Name field in MembershipType.cs in Models
+--> public class MembershipType
+    {
+        public byte Id { get; set; }
+	[Required]
+        public string Name { get; set; }
+	..
+    }
+
+--> add-migration AddNameToMembershipTypes
+--> update-database
+
+--------------------------------------------------------
+
+--> add-migration SetNameToMembershipTypes
+--> In migration file-->
+
+public override void Up()
+        {
+            Sql("Update MembershipTypes set Name='Pay as You go' where Id = 1");
+            Sql("Update MembershipTypes set Name='Monthly' where Id = 2");
+            Sql("Update MembershipTypes set Name='Quarterly' where Id = 3");
+            Sql("Update MembershipTypes set Name='Annual' where Id = 4");
+
+        }
+
+--> update-database
+
+--------------------------------------------------------
+
+--> In View of Customer --> Index.cshtml
+
+<table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Membership Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in Model)
+            {
+                <tr>
+                    <td>@Html.ActionLink(customer.Name, "Details", "Customers", new { id = customer.Id }, null)</td>
+                    <td>@customer.MembershipType.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+--------------------------------------------------------
+
+12. Exercise2
+
+--> CustomersController.cs
+
+public ActionResult Details(int id)
+        {
+            var customer = _context.Customers.Include(c => c.MembershipType).SingleOrDefault(c => c.Id == id);
+
+--------------------------------------------------------
+
+--> Customer.cs
+
+--> Add BirthDate Field in Customer.cs in Models
+--> public DateTime? Birthdate { get; set; }
+
+--> add-migration AddBirthDateToCustomer
+--> update-database
+
+--------------------------------------------------------
+
+--> Seeding data into Birthdate field from SSMS
+UPDATE dbo.Customers SET Birthdate = CAST('1996-09-03' AS DATETIME) WHERE Id = 1
+UPDATE dbo.Customers SET Birthdate = CAST('1998-11-16' AS DATETIME) WHERE Id = 2
+
+--------------------------------------------------------
+
+--> In details.cshtml View of Customer
+
+<ul>
+    <li>Membership Type: @Model.MembershipType.Name</li>
+    @if (Model.Birthdate.HasValue)
+    {
+        <li>Birthdate: @Model.Birthdate.Value.ToShortDateString()</li>

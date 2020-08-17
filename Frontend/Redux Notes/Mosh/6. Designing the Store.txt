@@ -1,0 +1,194 @@
+1. Redux State vs Local State
+
+1. Local State
+--> Easy to implement
+
+2. Redux State
+--> Unified data access
+--> Cacheability
+--> Easier debugging
+--> More testable code
+
+------------------------------------------------------------------------------
+
+2. Structuring a Redux Store
+
+--> Instead of array store, object is better
+--> array is doing loop methods to find specific id using findIndex method
+--> While javascript object is doing [index] to find specific id.
+
+------------------------------------------------------------------------------
+
+3. Combining Reducers
+
+--> We want store like that,
+store = {
+    entities: {
+	bugs: {},
+	projects: {}
+    },
+    UI: {}, 
+    auth: {}
+}
+
+------------------------------------------------------------------------------
+
+--> Make new file --> entities.js
+
+import { combineReducers } from 'redux';
+import bugsReducer from './bugs'
+import projectsReducer from './projects';
+
+export default combineReducers({
+    bugs: bugsReducer,
+    projects: projectsReducer
+})
+
+------------------------------------------------------------------------------
+
+--> Make new file --> rootReducer.js
+
+import { combineReducers } from 'redux';
+import entitiesReducer from './entities';
+
+export default combineReducers({
+    entities: entitiesReducer
+})
+
+------------------------------------------------------------------------------
+
+--> In store.js
+
+import reducer from './rootReducer';
+const state = configureStore({ reducer });
+	
+------------------------------------------------------------------------------
+
+4. Normalization
+
+--> If you have duplicate data, then you have to modify at two places
+--> It is the process of change data at one place, and add the reference to it.			
+[
+   {
+	id: 1, 
+	description: "",
+	project: { id: 1, name: "a" }
+   },
+]
+
+to
+
+[
+   { 
+	id: 1, 
+	description: "",
+	projectId: 1
+   }
+]
+
+and 
+
+store = {
+    entities: {
+	projects: {
+	   id: 1, 
+	   name: "project1"
+	} 
+    }
+}
+
+------------------------------------------------------------------------------
+
+5. Selectors
+
+--> When you want to query store object based on some condition
+--> No action will run that, bec. there is no modification of data.
+
+--> In bugsReducer.js
+
+export const getUnresolvedBugs = state => 
+   state.entities.bugs.filter(bug => !bug.resolved);
+
+------------------------------------------------------------------------------
+
+--> In Index.js
+
+import { getUnresolvedBugs } from './bugsReducers';
+const unresolved = getUnresolvedBugs(store.getState());
+console.log(unresolved)	
+
+------------------------------------------------------------------------------
+
+--> const x = getUnresolvedBugs(store.getState());
+--> const y = getUnresolvedBugs(store.getState());
+--> console.log(x === y);
+
+--> output: false
+--> Why this happens
+--> Bec. on calling first function state gets modified in looping, so components subscribe to it also renderenderd with same data. So false result is shown, both functions happens in different dom in rerendering.
+
+------------------------------------------------------------------------------
+
+6. Memoiazation
+
+--> Save result of selector in cache 
+--> Whenever that query Selector runs again and if state related to that domain does not change, it brings data from cache data
+
+--> Problem is this calling of selector function is expensive (nearly 0.5 s to execute)
+--> To save this time, we call selector function result from cache data if input to selector function does not change.
+
+--> { input:1, output:2}       --> If input does not change, output will always be 1
+
+--> if bugs array does not change, we bring unresolved bugs from the cache
+--> so memory contains array of bugs
+
+--> npm i reselect
+
+------------------------------------------------------------------------------
+
+--> In bugsReducer.js
+
+import { createSelector } from 'reselect';
+
+export const getUnresolvedBugs = createSelector(
+    state => state.entites.bug,						--> selector function
+    bugs => bugs.filter(bug => !bug.resolved)				--> result function
+)
+
+--> result of selector function that is list of bugs array will be the input for result function
+--> As soon as list of bugs does not change in state, output of this function always get from cache. Bec. operation on state can be expensive.
+
+--> First time, this function will execute and returns data 
+--> Second time, this data comes from cache if bugs store data does not change.
+
+------------------------------------------------------------------------------
+
+--> We can cache multiple arrays
+export const getUnresolvedBugs = createSelector(
+    state => state.entites.bug,	
+    projects => state.entities.projects,					
+    (bugs, projects) => bugs.filter(bug => !bug.resolved)				
+
+------------------------------------------------------------------------------
+
+6. Exercise
+
+--> Add the ability to
+1. assign a bug to a team member
+2. get the list of bugs assigned to a team member
+
+------------------------------------------------------------------------------
+
+7. Solution
+
+--> Steps
+
+1. Create a slice for users { id, name }
+2. Create an action for adding a user
+3. Create an action for assigning a bug to a user
+4. Create a selector for getting bugs by a user.
+
+
+------------------------------------------------------------------------------
+
+

@@ -1,0 +1,2193 @@
+1. Basic Structure of C# Program
+
+class Pragim
+{
+    public static void Main()
+    {
+        // Write to console
+        Console.WriteLine ("Welcome to PRAGIM Technologies!"); 
+    }
+}
+
+--> Purpose of Main() method - Main method is the entry point into your application.
+
+--------------------------------------------------------------------------
+
+2. Reading and Writing to a console 
+
+using System;
+class Program
+{
+    static void Main()
+    {
+        // Prompt the user for his name
+        Console.WriteLine("Please enter your name");
+
+        // Read the name from console
+        string UserName = Console.ReadLine();
+
+        // Concatenate name with hello word and print
+        Console.WriteLine("Hello " + UserName);
+
+        //Placeholder syntax to print name with hello word 
+        //Console.WriteLine("Hello {0}", UserName);
+    }
+}
+
+-------------------------------------------------------------------------
+
+3. Built-in types in C#
+
+1. Boolean type – Only true or false 
+2. Integral Types - sbyte, byte, short, ushort, int, uint, long, ulong, char
+3. Floating Types – float and double
+4. Decimal Types 
+5. String Type 
+
+
+--> Verbatim String
+1. Without Verbatim Literal : “C:\\Pragim\\DotNet\\Training\\Csharp” – Less Readable
+2. With Verbatim Literal : @“C:\Pragim\DotNet\Training\Csharp” – Better Readable
+
+-------------------------------------------------------------------------
+
+4. Common Operators
+
+Assignment Operator 		=
+Arithmetic Operators like 	+,-,*,/,% 
+Comparison Operators like 	==, !=,>, >=, <, <= 
+Conditional Operators like 	&&, ||
+Ternary Operator 		?:
+Null Coalescing Operator 	?? 
+
+--> Ternary Operator
+bool isNumber10 = number == 10 ? true : false;
+
+-------------------------------------------------------------------------
+
+5. Nullable Types
+
+--> In C# types  are divided into 2 broad categories.
+1. Value Types  - int, float, double, structs, enums etc
+2. Reference Types – Interface, Class, delegates, arrays etc
+
+--> By default value types are non nullable. To make them nullable use ?
+--> int i = 0 (i is non nullable, so "i" cannot be set to null, i = null will generate compiler error)
+
+
+-------------------------------------------------------------------------
+
+--> int? j = 0 (j is nullable int, so j=null is legal)
+
+Nullable types bridge the differences between C# types and Database types
+
+-------------------------------------------------------------------------
+
+6.  NULL coalescing operator
+
+	int AvailableTickets;
+        int? TicketsOnSale = null;
+
+        if (TicketsOnSale == null)
+        {
+            AvailableTickets = 0;
+        }
+        else
+        {
+            AvailableTickets = (int)TicketsOnSale;
+        }
+
+--> Rewritten code with Null coalescing
+
+	int? TicketsOnSale = null;
+
+        //Using null coalesce operator ??
+        AvailableTickets = TicketsOnSale ?? 0;
+
+-------------------------------------------------------------------------
+
+7. Datatype conversions 
+
+--> 3 ways 
+
+1. Implicit conversions
+2. Explicit Conversions
+3. Difference between Parse() and TryParse()
+
+1. Implicit conversion is done by the compiler:
+--> When there is no loss of information if the conversion is done
+--> If there is no possibility of throwing exceptions during the conversion
+-->  int i = 100;
+     float f = i;
+
+
+2. Explicit Conversion
+
+ float f = 100.25F;
+ int i = (int)f;
+
+3. Difference between Parse and TryParse
+--> If the number is in a string format you have 2 options - Parse() and TryParse() 
+--> Parse() method throws an exception if it cannot parse the value, whereas TryParse() returns a bool indicating whether it succeeded or failed.
+
+-------------------------------------------------------------------------
+
+8. Arrays
+
+--> An array is a collection of similar data types.
+
+        int[] EvenNumbers = new int[3];
+        EvenNumbers[0] = 0;
+        EvenNumbers[1] = 2;
+        EvenNumbers[2] = 4;
+
+--> Advantages: Arrays are strongly typed.
+--> Disadvantages: Arrays cannot grow in size once initialized. Have to rely on integral indices to store or retrieve items from the array.
+
+-------------------------------------------------------------------------
+
+9. foreach loops
+
+--> foreach (int i in number)
+{
+	...
+}
+
+
+-------------------------------------------------------------------------
+
+10. Methods
+
+--> They are also called functions.
+--> Methods are extremely useful because they allow you to define your logic once and use it at many places
+--> Methods make the maintainance of your application easier.
+
+
+--> Syntax:
+
+access-modifier return-type methodName (parameters)
+{
+	Method body
+}
+
+
+-------------------------------------------------------------------------
+
+11. Static Vs Instance Methods
+
+--> When a method declaration includes a static modifier, that method is said to be a static method
+--> Without static modifier, is said to be instance method
+
+--> Static methods are invoked using class names
+--> Instance methods is invoked using instance of a class
+
+--> When the method is instance, multiple instances of a class can be created (or instantiated) and each instancec has its own separate methods.
+
+--> When the method is static, there are no instances are created and you can invoke only that one definition of the static method
+
+-------------------------------------------------------------------------
+
+12. Method parameters
+
+--> The 4 types of method parameters
+
+1. Value Parameters
+2. Reference Parameters
+3. Out Parameters
+4. Parameter Arrays
+
+-------------------------------------------------------------------------
+
+1. Value Parameters 
+--> Creates a copy of the parameter passed, so modification does not affect each other
+--> i and j are pointing to different memory locations. Operations on one variable will not affect the other variable
+
+2. Reference Parameters
+--> The ref method parameter keyword on a method parameter causes a method to refer to the same variable that was passes into the method.
+--> Any changes made to the parameter in the method will be reflected in that variable when control passes back to calling method
+--> i and j are pointing to the same memory location.
+
+3. Out Parameters
+--> Use when you want a method to return more than one value
+
+4. Parameter Arrays
+--> The params keyword lets you specify a method parameter that takes a variable number of arguments.
+--> You can send a comma-seperated list of arguments, or an array, or no arguments.
+--> Params keyword should be the last one in a method declaration and only one params keyword is permitted in a method declaration.
+
+-------------------------------------------------------------------------
+
+13. Namespaces
+
+--> They are used to organize your programs
+--> They also provide assistance in avoiding name clashes.
+
+--> They don't correspond to file, directory or assembly names
+--> They could written in seperate files/ seperate assemblies, and still belong to the same namespace
+--> NamespaceA.ClassA.Print();
+    NamespaceB.ClassB.Print();
+
+
+-------------------------------------------------------------------------
+
+--> Giving alias to namespace
+--> using PTA = ProjectA.TeamA;
+--> using PTB = ProjectA.TeamB;
+--> PTA.ClassA.Print()
+
+-------------------------------------------------------------------------
+
+--> A namespace can contain
+1. Another namespace
+2. Class
+3. Interface
+4. struct
+5. enum
+6. delegate
+
+-------------------------------------------------------------------------
+
+14. Class
+
+--> So far, we have seen simple data types like int, float, double, etc.
+--> If you want to create complex custom types, then we can make use of classes.
+
+--> A class consists of data and behoviour. 
+--> Class data is represented by its fields and behavior is represented by its methods
+
+
+-------------------------------------------------------------------------
+
+15. Class Contructor
+
+--> The purpose of it is to initialize class fields.
+--> It is automatically called when an instance of a class is created.
+--> Constructors do not return values and always have the same name as the class
+--> If we do not provide a constructor, a default parameter less constructor is automatically provided.
+--> Constructors can be overloaded by the number and type of parameters.
+
+-------------------------------------------------------------------------
+
+16. Class Destructors
+
+--> Destructors have the same name as the class with ~ symbol in front of them
+--> They don't take any parameters and do not return a value
+--> They are places where you could put code to release any resources your clss was holding during its lifetime
+
+--> They are normally called when the C# garbage collector decides to clean your object in memory.
+
+-------------------------------------------------------------------------
+
+17. Static and Instance class members
+
+--> An instance member belongs to specific instance(object) of a class.
+--> If I create 3 objects of a class, I will have 3 sets of instance members in the memory, where as there will ever be only one copy of a static member, no matter how many instances of a class are created.
+
+--> Class members
+1. fields
+2. methods
+3. Properties
+4. events
+5. indexers
+6. constructor
+
+
+-------------------------------------------------------------------------
+
+18. Static constructor
+
+--> They are used to initialize static fields in a class
+--> You declare a static constructor by using the keyword static in front of thhe constructor name
+--> Static constructor is called only once, no matter how many instances you create
+--> They are called before instance constructors
+
+
+-------------------------------------------------------------------------
+
+19. Inheritance
+
+--> Pillars of OOP
+1. Inheritance
+2. Encapsulation
+3. Abstraction
+4. Polymorphism
+
+
+--> If a lot of code between two classes is duplicated, then use inheritance
+--> It allows code reuse
+--> Code reuse can reduce time and errors.
+
+
+public class ParentClass{}
+public class ChildClass : ParentClass{}
+
+
+--> C# supports only single class inheritance.
+--> C# supports multiple interface inheritance
+--> Base class are automatically instantiated before derived classes
+--> Base/parent class constructors executes before Child/derived class constructor
+
+-------------------------------------------------------------------------
+
+20. Method Hiding
+
+-------------------------------------------------------------------------
+
+21. Polymorphism
+
+--> It is one of the primary pillars of object-oriented programming
+--> It allows you to invoke derived class methods through a base class reference during runtime
+
+--> In the base class, the method is declared virtual and in the derived class, we override the same method
+--> The virtual keyword indicates, the method can be overridden in any derived class.
+
+-------------------------------------------------------------------------
+
+22. Method Overriding Vs Method Hiding
+
+-------------------------------------------------------------------------
+
+23. Method overloading
+
+--> It allows a class to have multiple methods with the same name, but, with a different signature.
+--> Signature based on the number, type and king(value, ref or out) of parameters.
+--> Signature does not include the return type and the params modifier.
+
+-------------------------------------------------------------------------
+
+24. Properties
+
+--> Making the class fields public and exposing to the external world is bad, as you will not have control over what gets assigned and returned.
+--> Eg. 
+
+public class Studend
+{
+	public int Id;
+	public string Name;
+	public int PassMark;
+}
+
+public class Program
+{
+	public static void Main()
+	{
+		Student C1 = new Student();
+		C1.Id = -100;
+		C1.Name = null;
+		C1.PassMark = -100;
+	}
+}
+
+--> Problems with public fields
+1. Id should always be non-negative
+2. Name cannot be set NULL
+3. If Student Name is missing, no name should be returned
+4. PassMarks should be read-only.
+
+--> To have better control over properties, we use getter and setters
+--> eg.
+
+public class Studend
+{
+	private int _id;
+	public string _name;
+	public int _passMark;
+
+	public void SetId(int Id){
+		if(Id <= 0)
+			throw new Exception("..");
+		this._id = Id;
+	}
+
+	public int GetId()
+		return this._id;
+}
+
+public class Program
+{
+	public static void Main()
+	{
+		Student C1 = new Student();
+		C1.SetId(101);
+	}
+}
+
+--> In this example, we use the SetId(int id) and GetId() methods to encapsulate _id class fields.
+--> Encapsulation is one of the primary pillars of object oriented programming.
+
+
+-------------------------------------------------------------------------
+
+25. Structs
+
+--> Just like classes, structs can have
+1. Private fields 
+2. Public fields
+3. Constructors
+4. Methods
+
+public struct Customer
+{
+	private int _id;
+	private string _name;
+	
+	public Customer(int Id, string Name)
+	{
+		this._id = Id;
+		this._name = Name;
+	}
+
+	public int ID
+	{
+		get { return this._id }
+		set { this._id = value; }
+	}
+
+	public int Name
+	{
+		get { return this._name }
+		set { this._name = value; }
+	}
+}
+
+--> Difference:
+
+--> A struct is a value type where as a class is a reference type
+
+--> All the differences that are applicable to value types and reference types are also applicable to classes and structs.
+
+1. Structs are stored on stack, where as classes are stored on the heap
+
+2. Value types hold their value in memory where they are declared but reference types hold a reference to an object in memory
+
+3. Value types are destroyed immediately after the scope is lost, where as for reference types only the reference variable is destroyed after thhe scope is lost. The object is later destroyed by garbage collector.
+
+4. When you copy a struct into another struct, a new copy of that struct gets created and modifications on one struct will not affect the values contained by another struct
+
+5. When you copy a class into another class, we only get a copy of the refernce variable. Both the refernce variables point to the same object on the heap. So operations on one variable will affect the values contained by another reference variable.
+
+6. Structs can't have destructors, but classes can have destructors
+
+7. Structs cannot have explicit parameter less constructor where as a class can.
+
+8. Struct can't herit from another class where as a class can, Both structs and classes can inherit from an interface.
+
+--> Examples of Structs are - int(System.Int32), double(System.Double)
+
+9. A class or a struct cannot inherit from another struct. Struct are sealed type
+
+--> Stack vs	 Heap
+
+    i=10	 Id = 101, Name = Mark
+    j=20
+    C1(obj) referencing to heap memory
+
+-------------------------------------------------------------------------
+
+26. Interfaces
+
+--> We create interfaces using interface keyword. Just like classes interfaces also contains properties, methods, delegates or events, but only declarations and no implementations. 
+
+--> It is a compile time error to provide implementations f or any interface member. 
+
+--> Interface members are public by default, and they don't allow explicit access modifiers. 
+
+--> Interfaces cannot contain field. 
+
+--> If a class or a struct inherits from an interface, it must provide implementation for all interface members. Otherwise, we get a compiler error. 
+
+--> A class or a struct inherits from more than one interface at the same time, but where as, a class cannot inherit from more than one class at the same time. 
+
+--> Interfaces can inherit from other interfaces. A class that inherits this interface must provide implementation for all interface members in the entire interface inheritance chain. 
+
+--> We cannot create an instance of an interface, but an interface reference variable can point to a derived class object.
+
+--> InterfaceNamingConvention: Interface names are prefixed with capital I
+
+-------------------------------------------------------------------------
+
+27. Explicit interface implementation
+
+--> Question: A class inherits from 2 interfaces and both the interfaces have the same method name. How should the class implement the method for both the interfaces?
+--> Answer: Explicit interface implementation solve this problem
+
+--> When a class explicityly implements, an interface member, the interface member can no longer be accessed through class reference variable, but only through the interface reference variable
+
+--> demo:
+
+interface I1{ void InterfaceMethod(); }
+interface I2{ void InterfaceMethod(); }
+
+class Program : I1, I2
+{
+	static void Main()
+	{
+		Program P = new Program();
+		((I1) P).InterfaceMethod();
+		((I2) P).InterfaceMethod();
+	}
+
+	void I1.InterfaceMethod() { Console.WriteLine(".."); }
+	void I2.InterfaceMethod() { Console.WriteLine(".."); }
+}
+
+
+--> If you want to make one of the interface method, the default, then implement that method normally and the other interface method explicitly.
+--> This makes the default methhod to be accessible through class instance.
+
+	static void Main()
+	{
+		Program P = new Program();
+		P.InterfaceMethod();
+		((I2) P).InterfaceMethod();
+	}
+
+-------------------------------------------------------------------------
+
+28. Abstract classes
+
+--> The abstract keyword is used to create abstract classes. 
+--> An abstract class is incomplete and hence cannot be instantiated. 
+--> An abstract class can only be used as base class. 
+--> An abstract class cannot be sealed. 
+
+
+--> An abstract class may contain abstract members(methods, properties, indexers, and events), but not mandatory. 
+--> A non-abstract class derived from an abstract class must provide implementations for all inherited abstract members. 
+--> If a class inherits an abstract class. There are 2 options available for that class 
+--> Option 1: Provide Implementation for all the abstract members inherited from the base abstract class. 
+--> Option 2: If the class does not wish to provide Implementation for all the abstract members inherited from the abstract class, then the class has to be marked as abstract 
+
+-------------------------------------------------------------------------
+
+29. Difference between Abstract class and Interface
+
+--> Abstract classes can have implementations for some of its members (Methods), but the interface can't have implementation  for any of its members. 
+--> Interfaces cannot have fields where as an abstract class can have fields. 
+--> An interface can inherit from another interface only and cannot inherit from an abstract class, whereas an abstract class can inherit from another abstract class or another interface. 
+--> A class can inherit from multiple interfaces at the same time, where as a class can not inherit from multiple classes at the same time. 
+--> Abstract class members can have access modifiers where as interface members cannot have access modifiers.  
+
+
+-------------------------------------------------------------------------
+
+30. Multiple Class Inheritance Problem
+
+1. Class B and Class C inherit from Class A. 
+2. Class D inherits from both B and C. 
+3. If a method in D calls a method defined in A (and does not override the method), and B and C have overridden that method differently, then from which class does it inherit: B, or C? 
+--> This ambiguity is called as Diamond problem 
+
+
+
+-------------------------------------------------------------------------
+
+31. Multiple Class Inheritance using interfaces 
+
+
+Interface IA {
+void AMethod(); 
+}
+	
+class A : IA {
+public void AMethod() 
+	Console.WriteLine("A"); 
+}
+
+
+Interface IB {
+void BMethod(); 
+}
+
+class B : IB {
+public void BMethod() 
+	Console.WriteLine("B"); 
+}
+
+ 
+class AB : IA, IB {
+	A a = new A(); 
+	B b= new B(); 
+	public void AMethod() 
+		a.AMethod(); 
+
+	public void BMethod() 
+		b.BMethod(); 
+}
+
+class Program {
+
+public static void Main() {
+	AB b = new AB(); 
+	ab.AMethod(); 
+	ab.BMethod(); 
+}
+
+
+-------------------------------------------------------------------------
+
+32. Delegates
+
+--> A delegate is a type safe function pointer.
+--> That is, they hold reference(Pointer) to a function. 
+
+--> public void Hello(string Msg){
+	Console.WriteLine(Msg);
+    }
+
+--> eg. del(Hello)
+--> del will call Hello function
+
+--> Now the question is why did we need delegate, if we directly can call function, I will answer that question later.
+--> This is used when you want your function to be more type safe = "same return type and same parameter"
+--> This is more used in developing reusable class which will used in developing framework and library.
+
+-------------------------------------------------------------------------
+
+using System;
+
+
+public delegate void HelloFunctionDelegate(string Message);
+
+
+class Pragim
+{
+    public static void Main()
+    {
+
+        HelloFunctionDelegate del = new HelloFunctionDelegate(Hello);
+        // Invoke the delegate, which will invoke the method
+        del("Hello from Delegte");
+    }
+
+
+    public static void Hello(string strMessge)
+    {
+        Console.WriteLine(strMessge);
+    }
+}
+
+
+--> delegate is similar to any class or struct but it is defined like any other method
+--> public delegate void HelloFunctionDelegate(string Message);
+
+--> Now any function whose return type is 'void' and single parameter is 'string' can only use this delegate.
+--> To use delegate, we need to create instance of delegate and in parameter of constructor, we pass the reference to function which will be invoked by calling this instance delegate.
+--> In instance delegate parameter, we need to pass 'string'.
+
+-------------------------------------------------------------------------
+
+33. Delegate Example
+
+--> Without Delegate
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            List<Employee> empList = new List<Employee>();
+            empList.Add(new Employee(){Id=1, Name="Mike", Experience=5, Salary=5000});
+            empList.Add(new Employee(){Id=2, Name="John", Experience=4, Salary=4000});
+            empList.Add(new Employee(){Id=3, Name="Mary", Experience=6, Salary=6000});
+            empList.Add(new Employee(){ Id = 4, Name = "Julie", Experience = 3, Salary = 3000 });
+
+            Employee.PromoteEmployee(empList);
+        }
+    }
+
+    class Employee
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int Salary { get; set; }
+        public int Experience { get; set; }
+
+        public static void PromoteEmployee(List<Employee> empList)
+        {
+            foreach (Employee employee in empList)
+            {
+                if (employee.Experience >= 5)
+                {
+                    Console.WriteLine(employee.Name);
+                }
+            }
+        }
+    }
+
+--> This class is not reusable in the sense of PromoteEmployee Logic
+--> Make the user want to apply the logic of PromoteEmpoyee
+--> We would use delegate here
+
+-------------------------------------------------------------------------
+
+--> With Delegate:
+
+class Program
+    {
+        static void Main(string[] args)
+        {
+            List<Employee> empList = new List<Employee>();
+            empList.Add(new Employee(){Id=1, Name="Mike", Experience=5, Salary=5000});
+            empList.Add(new Employee(){Id=2, Name="John", Experience=4, Salary=4000});
+            empList.Add(new Employee(){Id=3, Name="Mary", Experience=6, Salary=6000});
+            empList.Add(new Employee(){ Id = 4, Name = "Julie", Experience = 3, Salary = 3000 });
+
+            IsPromotable isPromotable = new IsPromotable(Promote);
+
+            Employee.PromoteEmployee(empList, isPromotable);
+	   
+	    // Employee.PromoteEmployee(empList, emp => emp.experience > 5);	--> No need to create seperate function.
+
+        }
+
+        public static bool Promote(Employee emp)
+        {
+            if (emp.Experience > 5)
+                return true;
+            else
+                return false;
+        }
+    }
+
+    public delegate bool IsPromotable(Employee emp);
+
+    class Employee
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int Salary { get; set; }
+        public int Experience { get; set; }
+
+        public static void PromoteEmployee(List<Employee> empList, IsPromotable isEligibleToPromote)
+        {
+            foreach (Employee employee in empList)
+            {
+                if (isEligibleToPromote(employee))
+                {
+                    Console.WriteLine(employee.Name);
+                }
+            }
+        }
+    }
+
+-------------------------------------------------------------------------
+
+34. Multicast Delegates
+
+--> A Multicast delegate is a delegate that has references to more than one function. 
+--> When you invoke a multicast delegate, all the functions the delegate is pointing to, are invoked.
+
+-------------------------------------------------------------------------
+
+--> There are 2 approaches to create a multicast delegate.
+
+--> Approach 1: 
+using System;
+namespace Sample
+{
+    public delegate void SampleDelegate();
+    
+    public class Sample
+    {
+        static void Main()
+        {
+            SampleDelegate del1 = new SampleDelegate(SampleMethodOne);
+            SampleDelegate del2 = new SampleDelegate(SampleMethodTwo);
+            SampleDelegate del3 = new SampleDelegate(SampleMethodThree);
+            // In this example del4 is a multicast delegate. You use +(plus) 
+            // operator to chain delegates together and -(minus) operator to remove.
+            SampleDelegate del4 = del1 + del2 + del3 - del2;
+            
+            del4();
+        }
+
+
+        public static void SampleMethodOne()
+        {
+            Console.WriteLine("SampleMethodOne Invoked");
+        }
+
+
+        public static void SampleMethodTwo()
+        {
+            Console.WriteLine("SampleMethodTwo Invoked");
+        }
+
+
+        public static void SampleMethodThree()
+        {
+            Console.WriteLine("SampleMethodThree Invoked");
+        }
+    }
+}
+
+ 
+-------------------------------------------------------------------------
+
+Approach 2:
+using System;
+namespace Sample
+{
+    public delegate void SampleDelegate();
+    
+    public class Sample
+    {
+        static void Main()
+        {
+            // In this example del is a multicast delegate. You use += operator 
+            // to chain delegates together and -= operator to remove.
+
+ 
+
+            SampleDelegate del = new SampleDelegate(SampleMethodOne);
+            del += SampleMethodTwo;
+            del += SampleMethodThree;
+            del -= SampleMethodTwo;
+            
+            del();
+        }
+
+
+        public static void SampleMethodOne()
+        {
+            Console.WriteLine("SampleMethodOne Invoked");
+        }
+
+
+        public static void SampleMethodTwo()
+        {
+            Console.WriteLine("SampleMethodTwo Invoked");
+        }
+
+
+        public static void SampleMethodThree()
+        {
+            Console.WriteLine("SampleMethodThree Invoked");
+        }
+    }
+}
+
+
+Note: A multicast delegate, invokes the methods in the invocation list, in the same order in which they are added.
+
+-------------------------------------------------------------------------
+
+35. Multicast Delegates with return type
+
+--> If the delegate has a return type other than void and if the delegate is a multicast delegate, only the value of the last invoked method will be returned. 
+
+--> Along the same lines, if the delegate has an out parameter, the value of the output parameter, will be the value assigned by the last method.
+
+-------------------------------------------------------------------------
+
+Example: Multicast delegate with an int return type
+using System;
+namespace Sample
+{
+    // Deletegate's return type is int
+    public delegate int SampleDelegate();
+    
+    public class Sample
+    {
+        static void Main()
+        {
+            SampleDelegate del = new SampleDelegate(SampleMethodOne);
+            del += SampleMethodTwo;
+
+
+            // The ValueReturnedByDelegate will be 2, returned by the SampleMethodTwo(),
+            // as it is the last method in the invocation list.
+            int ValueReturnedByDelegate = del();
+
+
+            Console.WriteLine("Returned Value = {0}", ValueReturnedByDelegate);
+        }
+
+
+        // This method returns one
+        public static int SampleMethodOne()
+        {
+            return 1;            
+        }
+
+
+        // This method returns two
+        public static int SampleMethodTwo()
+        {
+            return 2;
+        }
+    }
+}
+
+-------------------------------------------------------------------------
+
+
+Example: Multicast delegate with an integer output parameter.
+using System;
+namespace Sample
+{
+    // Deletegate has an int output parameter
+    public delegate void SampleDelegate(out int Integer);
+    
+    public class Sample
+    {
+        static void Main()
+        {
+            SampleDelegate del = new SampleDelegate(SampleMethodOne);
+            del += SampleMethodTwo;
+
+
+            // The ValueFromOutPutParameter will be 2, initialized by SampleMethodTwo(),
+            // as it is the last method in the invocation list.
+            int ValueFromOutPutParameter = -1;
+            del(out ValueFromOutPutParameter);
+
+
+            Console.WriteLine("Returned Value = {0}", ValueFromOutPutParameter);
+        }
+
+
+        // This method sets ouput parameter Number to 1
+        public static void SampleMethodOne(out int Number)
+        {
+            Number = 1;
+        }
+
+
+        // This method sets ouput parameter Number to 2
+        public static void SampleMethodTwo(out int Number)
+        {
+            Number = 2;
+        }
+    }
+}
+
+-------------------------------------------------------------------------
+
+
+Where do you use multicast delegates? This is a very common interview question.
+Answer: Multicast delegate makes implementation of observer design pattern very simple. Observer pattern is also called as publish/subscribe pattern.
+
+-------------------------------------------------------------------------
+
+36. Exception Handling
+
+--> An exception is an unforeseen error that occurs when a program is running. 
+--> Examples:
+1. Trying to read from a file that does not exist, throws FileNotFoundException.
+2. Trying to read from a database table that does not exist, throws a SqlException.
+
+-------------------------------------------------------------------------
+
+--> Program without exception handling
+
+
+using System;
+using System.IO;
+class ExceptionHandling
+{
+    public static void Main()
+    {
+        //
+        StreamReader streamReader = new StreamReader("C:\\NonExistingFile.txt");
+        Console.WriteLine(streamReader.ReadToEnd());
+        //Closes the underlying stream and releases the system resources.
+        //If there is an exception before this line, the below line will never
+ //be executed and the resources are not relased
+        streamReader.Close();
+    }
+}
+
+--> new StreamReader("C:\\NonExistingFile.txt") line will throw FileNotFoundException
+
+-------------------------------------------------------------------------
+
+--> Program with exception handling
+
+using System;
+using System.IO;
+class ExceptionHandling
+{
+    public static void Main()
+    {
+        StreamReader streamReader = null;
+        try
+        {
+            // This line will throw FileNotFoundException
+            streamReader = new StreamReader("C:\\NonExistingFile.txt");
+            Console.WriteLine(streamReader.ReadToEnd());
+        }
+        // This catch block handles only FileNotFoundException
+        catch (FileNotFoundException fileNotFoundException)
+        {
+            // Log or email the exception
+            // Code to log or email exception details
+
+
+            // Display meaningful error message to the end user
+            Console.WriteLine("Please check if the file \"{0}\" is present", fileNotFoundException.FileName);
+        }
+        // This catch block handles all the other exceptions
+        catch (Exception exception)
+        {
+            Console.WriteLine(exception.Message);
+        }
+        finally
+        {
+            if (streamReader != null)
+            {
+                streamReader.Close();
+            }
+        }
+    }
+}
+
+-------------------------------------------------------------------------
+
+--> An exception is actually a class that derives from System.Exception class. 
+---> The System.Exception class has several useful properties, that provide valuable information about the exception.
+--> Message: Gets a message that describes the current exception
+--> Stack Trace: Provides the call stack to the line number in the method where the exception occurred.
+
+-------------------------------------------------------------------------
+
+--> try - The code that can possibly cause an exception will be in the try block.
+--> catch - Handles the exception.
+--> finally - Clean and free resources that the class was holding onto during the program execution.
+
+
+--> Specific exceptions will be caught before the base general exception, so specific exception blocks should always be on top of the base exception block. Otherwise, you will encounter a compiler error.
+
+
+--> Note: It is a good practice to always release resources in the finally block, because finally block is guarenteed to execute, irrespective of whether there is an exception or not.
+
+-------------------------------------------------------------------------
+
+37. Inner Exceptions
+
+using System;
+using System.IO;
+class ExceptionHandling
+{
+    public static void Main()
+    {
+        try
+        {
+            try
+            {
+                Console.WriteLine("Enter First Number");
+                int FN = Convert.ToInt32(Console.ReadLine());
+
+
+                Console.WriteLine("Enter Second Number");
+                int SN = Convert.ToInt32(Console.ReadLine());
+
+
+                int Result = FN / SN;
+                Console.WriteLine("Result = {0}", Result);
+            }
+            catch (Exception ex)
+            {
+                string filePath = @"C:\Sample Files\Log.txt";
+                if (File.Exists(filePath))
+                {
+                    StreamWriter sw = new StreamWriter(filePath);
+                    sw.Write(ex.GetType().Name + ex.Message + ex.StackTrace);
+                    sw.Close();
+                    Console.WriteLine("There is a problem! Plese try later");
+                }
+                else
+                {
+                    //To retain the original exception pass it as a parameter
+                    //to the constructor, of the current exception
+                    throw new FileNotFoundException(filePath + " Does not Exist", ex);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            //ex.Message will give the current exception message
+            Console.WriteLine("Current or Outer Exception = " + ex.Message);
+
+ 
+
+
+
+            //Check if inner exception is not null before accessing Message property
+            //else, you may get Null Reference Excception
+            if(ex.InnerException != null)
+            {
+                Console.WriteLine("Inner Exception = ", ex.InnerException.Message);
+            }
+        }
+    }
+}
+
+-------------------------------------------------------------------------
+
+38. Custom Exceptions 
+
+--> Use Case:
+Consider that
+1. I have an asp.net web application.
+2. The application should allow the user to have only one logged in session.
+3. If the user is already logged in, and if he opens another browser window and tries to login again, the application should throw an error stating he is already logged in another browser window.
+
+-------------------------------------------------------------------------
+ 
+We know that an exception is a class. So to create a Custom exception, 
+1. Create a class that derives from System.Exception class. As a convention, end the class name with Exception suffix. All .NET exceptions end with,  exception suffix. If you don't do so, you won't get a compiler error, but you will be deviating from the guidelines for creating custom exceptions.
+public class UserAlreadyLoggedInException : Exception
+{
+}
+
+
+2. Provide a public constructor, that takes in a string parameter. This constructor simply passes the string parameter, to the base exception class constructor.
+public UserAlreadyLoggedInException(string message)
+        : base(message)
+{
+}
+
+
+3. Using InnerExceptions, you can also track back the original exception. If you want to provide this capability for your custom exception class, then overload the constructor as shown below. If you are new to Constructor Overloading, please watch this video.
+public UserAlreadyLoggedInException(string message, Exception innerException)
+    : base(message, innerException)
+{
+}
+
+
+4. If you want your Exception class object to work across application domains, then the object must be serializable. To make your exception class serializable mark it with Serializable attribute and provide a constructor that invokes the base Exception class constructor that takes in SerializationInfo and StreamingContext objects as parameters.
+[Serializable]
+public class UserAlreadyLoggedInException : Exception
+{
+    public UserAlreadyLoggedInException(SerializationInfo info, StreamingContext context)
+        : base(info, context)
+    {
+    }
+}
+
+
+-------------------------------------------------------------------------
+ 
+--> Complete Example of creating a custom exception:
+
+using System;
+using System.Runtime.Serialization;
+
+public class CustomExceptions
+{
+    public static void Main()
+    {
+        try
+        {
+            throw new UserAlreadyLoggedInException("User Already logged in");
+        }
+        catch (UserAlreadyLoggedInException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}
+
+
+[Serializable]
+public class UserAlreadyLoggedInException : Exception
+{
+    public UserAlreadyLoggedInException(string message)
+        : base(message)
+    {
+    }
+
+
+    public UserAlreadyLoggedInException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+    
+    public UserAlreadyLoggedInException(SerializationInfo info, StreamingContext context)
+        : base(info, context)
+    {
+    }
+}
+
+-------------------------------------------------------------------------
+
+39. Exception Handling abuse
+
+--> Use if else statements to handle errors that can happen instead of calling exception class
+
+-------------------------------------------------------------------------
+
+public class ExceptionHandlingAbuse
+{
+    public static void Main()
+    {
+        try
+        {
+            Console.WriteLine("Please enter Numerator");
+            int Numerator = Convert.ToInt32(Console.ReadLine());
+
+
+            Console.WriteLine("Please enter Denominator");
+            //Convert.ToInt32() can throw FormatException, if the entered value
+            //cannot be converted to integer. So use int.TryParse() instead
+            int Denominator = Convert.ToInt32(Console.ReadLine());
+
+
+            int Result = Numerator / Denominator;
+
+
+            Console.WriteLine("Result = {0}", Result);
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("Only numbers are allowed!");
+        }
+        catch (OverflowException)
+        {
+            Console.WriteLine("Only numbers between {0} & {1} are allowed",
+                Int32.MinValue, Int32.MaxValue);
+
+
+        }
+        catch (DivideByZeroException)
+        {
+            Console.WriteLine("Denominator cannot be zero");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}
+
+-------------------------------------------------------------------------
+
+public class ExceptionHandlingAbuse
+{
+    public static void Main()
+    {
+        try
+        {
+            Console.WriteLine("Please enter Numerator");
+            int Numerator;
+            //int.TryParse() will not throw an exception, instead returns false
+            //if the entered value cannot be converted to integer
+
+ 
+
+            bool isValidNumerator = int.TryParse(Console.ReadLine(), out Numerator);
+
+
+            if (isValidNumerator)
+            {
+                Console.WriteLine("Please enter Denominator");
+                int Denominator;
+                bool isValidDenominator = int.TryParse(Console.ReadLine(), out Denominator);
+
+
+                if (isValidDenominator && Denominator != 0)
+                {
+                    int Result = Numerator / Denominator;
+                    Console.WriteLine("Result = {0}", Result);
+                }
+                else
+                {
+                    //Check if the denominator is zero and print a friendly error
+                    //message instead of allowing DivideByZeroException exception 
+                    //to be thrown and then printing error message to the user.
+                    if (isValidDenominator && Denominator == 0)
+                    {
+                        Console.WriteLine("Denominator cannot be zero");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Only numbers between {0} && {1} are allowed",
+                            Int32.MinValue, Int32.MaxValue);
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("Only numbers between {0} && {1} are allowed",
+                            Int32.MinValue, Int32.MaxValue);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}
+
+-------------------------------------------------------------------------
+
+40. Enums 
+
+--> Enums are strongly typed constants. 
+--> Let's understand enums with an example. 
+--> I have a customer class with Name and Gender properties. Gender is an integer. 
+0 is an Unknown gender
+1 is Male
+2 is Female
+
+--> This program is less readable and maintainable, as it operates on integrals instead of using enums.
+
+public static void Main()
+    {
+        Customer[] customers = new Customer[3];
+        customers[0] = new Customer()
+        {
+            Name = "Mark",
+            Gender = 1
+        };
+        customers[1] = new Customer()
+        {
+            Name = "Mary",
+            Gender = 2
+        };
+        customers[2] = new Customer()
+        {
+            Name = "Sam",
+            Gender = 0
+        };
+        foreach (Customer customer in customers)
+        {
+            Console.WriteLine("Name = {0} && Gender = {1}", customer.Name, GetGender(customer.Gender));
+        }
+    }
+
+
+    public static string GetGender(int gender)
+    {
+        // The swicth here is less readable because of these integral numbers
+        switch (gender)
+        {
+            case 0:
+                return "Unknown";
+            case 1:
+                return "Male";
+            case 2:
+                return "Female";
+            default:
+                return "Invalid Data for Gender";
+        }
+    }
+
+    public class Customer
+    {
+    	public string Name { get; set; }
+    	public int Gender { get; set; }
+    }
+
+-------------------------------------------------------------------------
+
+--> With enums
+
+using System;
+public class Enums
+{
+    public static void Main()
+    {
+        Customer[] customers = new Customer[3];
+        customers[0] = new Customer()
+        {
+            Name = "Mark",
+            Gender = Gender.Male
+        };
+        customers[1] = new Customer()
+        {
+            Name = "Mary",
+            Gender = Gender.Female
+        };
+        customers[2] = new Customer()
+        {
+            Name = "Sam",
+            Gender = Gender.Unknown
+        };
+        foreach (Customer customer in customers)
+        {
+            Console.WriteLine("Name = {0} && Gender = {1}", customer.Name, GetGender(customer.Gender));
+        }
+    }
+
+
+    public static string GetGender(Gender gender)
+    {
+        // The swicth here is now more readable and maintainable because 
+        // of replacing the integral numbers with Gender enum
+        switch (gender)
+        {
+            case Gender.Unknown:
+                return "Unknown";
+            case Gender.Male:
+                return "Male";
+            case Gender.Female:
+                return "Female";
+            default:
+                return "Invalid Data for Gender";
+        }
+    }
+}
+
+
+public enum Gender
+{
+    Unknown = 0,
+    Male = 1,
+    Female = 2
+}
+
+
+-------------------------------------------------------------------------
+
+41. Enums in more detail
+
+1. Enums are enumerations.
+2. Enums are strongly typed constants. Hence, an explicit cast is needed to convert from enum type to an integral type and vice versa. Also, an enum of one type cannot be implicitly assigned to an enum of another type even though the underlying value of their members are the same.
+3. The default underlying type of an enum is int.
+4. The default value for first element is ZERO and gets incremented by 1.
+5. It is possible to customize the underlying type and values.
+6. Enums are value types.
+7. Enum keyowrd (all small letteres) is used to create enumerations, where as Enum class, contains static GetValues() and GetNames() methods which can be used to list Enum underlying type values and Names.
+
+-------------------------------------------------------------------------
+ 
+// Default underlying type is int and the value starts at ZERO
+public enum Gender
+{
+    Unknown,
+    Male,
+    Female
+}
+
+-------------------------------------------------------------------------
+
+
+// Gender enum underlying type is now short and the value starts at ONE
+public enum Gender : short
+{
+    Unknown = 1,
+    Male = 2,
+    Female = 3
+}
+
+
+-------------------------------------------------------------------------
+
+// Enum values need not be in sequential order. Any valid underlying type value is allowed 
+public enum Gender : short
+{
+    Unknown = 10,
+    Male = 22,
+    Female = 35
+}
+
+
+-------------------------------------------------------------------------
+
+// This enum will not compile, bcos the maximum value allowed for short data type is 32767. 
+public enum Gender : short
+{
+    Unknown = 10,
+    Male = 32768,
+    Female = 35
+} 
+
+
+Note: Use short.MaxValue to find out the maximum value that a short data type can hold
+
+-------------------------------------------------------------------------
+
+
+An explicit cast is needed to convert from enum type to an integral type and vice versa.
+int i = Gender.Male;
+The above line will not compile. A compiler error will be generated stating:
+Cannot implicitly convert type 'Gender' to 'int'. An explicit conversion exists (are you missing a cast?)
+
+
+Gender female = 2; 
+The above line will also not compile. A slightly different compiler error will be generated stating
+Cannot implicitly convert type 'int' to 'Gender'. An explicit conversion exists (are you missing a cast?)
+
+ 
+
+-------------------------------------------------------------------------
+
+
+Enum of one type cannot be implicitly assigned to an enum of another type even though the underlying value of their members are the same. An explicit cast is required as shown below.
+
+using System;
+public class Enums
+{
+    public static void Main()
+    {
+        // This line will not compile. Cannot implicitly convert type 'Season' to 'Gender'. 
+        // An explicit conversion is required.
+        // Gender gender = Season.Winter;
+
+
+        // This line comiples as we have an explicit cast
+        Gender gender = (Gender)Season.Winter;
+    }
+}
+public enum Gender : int
+{
+    Unknown = 1,
+    Male = 2,
+    Female = 3
+}
+public enum Season : int
+{
+    Winter = 1,
+    Spring = 2,
+    Summer = 3
+}
+
+
+-------------------------------------------------------------------------
+
+enum keyowrd (all small letteres) is used to create enumerations, where as Enum class, contains  static GetValues() and GetNames() methods which can be used to list Enum underlying type values and Names.
+
+
+Sample Program listing all enum member values and Names
+using System;
+public class Enums
+{
+    public static void Main()
+    {
+        int[] Values = (int[])Enum.GetValues(typeof(Gender));
+        Console.WriteLine("Gender Enum Values");
+        foreach (int value in Values)
+        {
+            Console.WriteLine(value);
+        }
+        
+        Console.WriteLine();
+        string[] Names = Enum.GetNames(typeof(Gender));
+        Console.WriteLine("Gender Enum Names");
+        foreach (string Name in Names)
+        {
+            Console.WriteLine(Name);
+        }
+    }
+}
+public enum Gender : int
+{
+    Unknown = 1,
+    Male = 2,
+    Female = 3
+}
+
+-------------------------------------------------------------------------
+
+42.  Difference between Types and Type Members
+
+In the example below Customer is the Type and private fields(_id, _firstName, _lastName), Properties(Id, FirstName, LastName) and GetFullName() method are type members.
+
+public class Customer
+{
+    #region Private Fields
+    private int _id;
+    private string _firstName;
+    private string _lastName;
+    #endregion
+
+    #region Properties
+    public int Id
+    {
+        get { return _id; }
+        set { _id = value; }
+    }
+    public string FirstName
+    {
+        get { return _firstName; }
+        set { _firstName = value; }
+    }
+    public string LastName
+    {
+        get { return _lastName; }
+        set { _lastName = value; }
+    }
+    #endregion
+
+    #region Methods
+    public string GetFullName()
+    {
+        return this._firstName + " " + this._lastName;
+    }
+    #endregion
+}
+
+ 
+-------------------------------------------------------------------------
+
+--> So, in general classes, structs, enums, interfaces, delegates are called as types and fields, properties, constructors, methods etc., that normally reside in a type are called as type members.
+
+
+In C# there are 5 different access modifiers.
+1. Private
+2. Protected
+3. Internal
+4. Protected Internal
+5. Public
+
+--> Type members can have all the access modifiers, where as types can have only 2 (internal, public) of the 5 access modifiers
+
+-------------------------------------------------------------------------
+
+--> Regions
+
+Customer class makes use of regions. Using regions you can expand and collapse sections of your code either manually, or using visual studio Edit -> Outlining -> Toggle All Outlining
+
+-------------------------------------------------------------------------
+
+43. Access Modifiers
+
+There are 5 different access modifiers in c#.
+1. Private
+2. Protected
+3. Internal
+4. Protected Internal
+5. Public
+
+
+Private members are available only with in the containing type, where as public members are available any where. There is no restriction.
+
+-------------------------------------------------------------------------
+
+In the example below, _id is private, so this member is only available with in the Customer class (Containing Type). It is a compile time error to access _id outside of the Customer Class.
+
+The following line in the MainClass will generate a compiler error stating, 'Customer._id' is inaccessible due to its protection level.
+CustomerInstance._id = 101;
+
+
+On the other hand, since Id is a public member, you can access this member any where, even outside of the Customer class. Infact, we invoke the Id property of the Customer class, in the Main() method as shown below.
+CustomerInstance.Id = 101;
+
+
+Example for Private and Public Members:
+public class Customer
+{
+    private int _id;
+
+
+    public int Id
+    {
+        get
+        {
+            return _id;
+        }
+        set
+        {
+            _id = value;
+        }
+    }
+}
+
+
+public class MainClass
+{
+    private static void Main()
+    {
+        Customer CustomerInstance = new Customer();
+        CustomerInstance.Id = 101;
+        
+        // Compiler Error : 'Customer._id' is inaccessible due to its protection level
+        // CustomerInstance._id = 101;
+    }
+}
+
+
+-------------------------------------------------------------------------
+
+44. Protected Members
+
+Protected Members are available, with in the containing type and to the types that derive from the containing type. Let me explain with an example. 
+
+using System;
+public class Customer
+{
+    protected int ID = 101;
+
+
+    public void PrintID()
+    {
+        //Protected member ID is accessible with in Customer class
+        Console.WriteLine(this.ID);
+    }
+}
+public class CorporateCustomer : Customer
+{
+    public void PrintCustomerID()
+    {
+        CorporateCustomer corporateCustomerInstance = new CorporateCustomer();
+        // Can access the base class protected instance member using the derived class object
+        Console.WriteLine(corporateCustomerInstance.ID);
+        // Can access the base class protected instance member using this or base keyword
+        Console.WriteLine(this.ID);
+        Console.WriteLine(base.ID);
+    }
+}
+public class RetailCustomer
+{
+    public void PrintCustomerID()
+    {
+        RetailCustomer retailCustomerInstance = new RetailCustomer();
+        //RetailCustomer class is not deriving from Customer class, hence it is an error
+
+ 
+
+        //to access Customer class protected ID member, using the retailCustomerInstance
+        //Console.WriteLine(retailCustomerInstance.ID); //Error
+        
+        //Both these below lines also produce the same Error
+        //Console.WriteLine(this.ID); // Error
+        //Console.WriteLine(base.ID); // Error
+    }
+}
+
+
+Customer class defines a protecetd member ID. CorporateCustomer class derives from the Customer class, so protected ID member is accessible in the Customer class (Containg Type) and also from the CorporateCustomer class (Derived Type). 
+
+
+With in the PrintID() method in the Customer class, Protected member ID is accessible.
+Console.WriteLine(this.ID);
+
+
+There are 3 ways to access, the base class protected member in the derived class as shown below.
+1. Using the derived class object.
+Console.WriteLine(corporateCustomerInstance.ID);
+2. Using the this keyword
+Console.WriteLine(this.ID);
+3. Using the base keyword
+Console.WriteLine(base.ID);
+
+
+On the other hand, RetailCustomer class is not deriving from Customer class, hence it's a compile time error to access Customer class protected ID member.
+
+-------------------------------------------------------------------------
+
+45. Internal and Protected Internal Access Modifiers
+
+
+--> Internal:A member with internal access modifier is available any where with in the containing assembly. 
+--> It's a compile time error to access, an internal member from outside the containing assembly.
+
+--> To understand internal access modifier, we need 2 assemblies. To generate, the 2 assemblies we need follow these steps.
+1. Open Solution Explorer (From the View menu, select Solution Explorer)
+2. From the Solution Explorer, right click on the project and select Add -> New Project
+3. In the Add New Project Dialog Box, Select Visual C# from the Installed Templates section, and select Class Library from the center pane, and then enter AssemblyOne for the Name of the project and click OK.
+4. Follow steps 2 & 3, to create AssemblyTwo project.
+5. If you have followed these steps correctly, you should now see three projects in the soultion explorer.
+ 
+-------------------------------------------------------------------------
+
+--> Now, if we build the solution we should have 3 assemblies generated. Two dll's and one exe. To locate the physical assembly follow these steps.
+1. Right click on AssemblyOne project, in solution explorer and select Open Folder in Windows Explorer.
+2. Open bin folder
+3. Now open Debug folder
+4. In the Debug folder you should see AssemblyOne.dll, which is the physical assembly.
+
+-------------------------------------------------------------------------
+
+--> Copy and paste the following code in class1.cs file of AssemblyOne project 
+
+using System;
+namespace AssemblyOne
+{
+    public class AssemblyOneClassI
+    {
+        internal int ID = 999;
+    }
+    public class AssemblyOneClassII
+    {
+        public void Test()
+        {
+            AssemblyOneClassI instance = new AssemblyOneClassI();
+            // Can access internal member ID, AssemblyOneClassII and AssemblyOneClassI
+            // are present in the same assembly           
+            Console.WriteLine(instance.ID);
+        }
+    }
+}
+
+--> In this example, AssemblyOneClassI has an internal member ID. We can access ID member from AssemblyOneClassII, because this class is also present in the same assembly as AssemblyOneClassI.
+
+-------------------------------------------------------------------------
+
+--> Now, Copy and Paste the following code, in Class1.cs of AssemblyTwo project.using System;
+
+using AssemblyOne;
+namespace AssemblyTwo
+{
+    public class AssemblyTwoClassI
+    {
+        public void Test()
+        {
+            AssemblyOneClassI instance = new AssemblyOneClassI();
+            //Console.WriteLine(instance.ID);       
+        }
+    }
+}
+
+Note: You will get 3 compiler errors at this point. To solve this we need to add an assembly reference. Follow these steps.
+1. Expand References folder under AssemblyTwo project, from Solution Explorer.
+2. Right Click on References folder and select Add Reference
+3. From the Add Reference dialog box, select Projects tab
+4. From the list, select AssemblyOne project and click OK.
+At, this point all the compiler errors should have gone.
+
+ 
+
+Uncomment the following line from Class1.cs file from AssemblyTwo project and rebuild the solution.
+Console.WriteLine(instance.ID);
+
+Now, you will get a compiler error stating 'AssemblyOne.AssemblyOneClassI' does not contain a definition for 'ID' and no extension method 'ID' accepting a first argument of type 'AssemblyOne.AssemblyOneClassI' could be found (are you missing a using directive or an assembly reference?).
+
+This is because, AssemblyTwoClassI is not present in AssemblyOne assembly and hence cannot access the internal ID member defined in AssemblyOne assembly. This proves that internal members are only accessible with in the same assembly. Code outside of the containing assembly cannot access internal members.
+
+Protected Internal:Protected Internal members can be accessed by any code in the assembly in which it is declared, or from within a derived class in another assembly. It is a combination of protected and internal. If you have understood protected and internal, this should be very easy to follow.
+
+Now, change the access modifier from internal to protected internal for ID member in AssemblyOneClassI of class1.cs file in AssemblyOne project.
+internal int ID = 999; to protected internal int ID = 999;
+
+Finally modify the code in Class1.cs file in AssemblyTwo project as shown below.using System;
+using AssemblyOne;
+namespace AssemblyTwo
+{
+    // Make AssemblyTwoClassI inherit from AssemblyOneClassI   
+    public class AssemblyTwoClassI : AssemblyOneClassI
+    {
+        public void Test()
+        {
+            AssemblyOneClassI instance = new AssemblyOneClassI();
+            // Access the base class member using the base keyword           
+            Console.WriteLine(base.ID);
+        }
+    }
+}
+
+ 
+
+So, this shows protected internal ID member, defined in AssemblyOne is accessible in AssemblyTwo.
+
+-------------------------------------------------------------------------
+
+46.
+
+Private 		--> Only with in the containing class 
+Public 			--> Anywhere, No Restrictions 
+Protect  		--> With in the containing types and the types derived from the containing type. 
+Internal 		--> Anywhere with in the containing assembly 
+Protected Internal 	--> Anywhere with in the containing assembly, and from within a derived class in any another assembly 
+
+
+-------------------------------------------------------------------------
+
+47. Access Modifiers for types 
+
+--> You can use all the 5 access modifiers with type members, but types allows only internal and public access modifiers. It is a compile time error to use private, protected and protected internal access modifiers with types. 
+
+
+--> The following code will generate a compiler error stating Elements defined in a namespace cannot be explicitly declared as private, protected, or protected internal
+using System;
+namespace Pragim
+{
+    //Error: Cannot mark types with private, protected and protected internal access modifiers
+    private class MainClass
+    {
+        public static void Main()
+        {
+            Console.WriteLine("This code will not compile");            
+        }
+    }
+}
+
+
+Add 2 class library projects to the solution with names AssemblyOne and AssemblyTwo. If you want to learn to do this, please check Part 50 - Access Modifiers - Internal and Protected Internal.
+
+
+Copy and paste the following code in Class1.cs file of AssemblyOne project.
+using System;
+namespace AssemblyOne
+{
+    //Class is marked internal. This class is available only with in AssemblyOne
+    internal class AssemblyOneClass
+    {
+        public void Print()
+        {
+            Console.WriteLine("Hello");
+        }
+    }
+}
+
+
+Copy and paste the following code in Class1.cs file of AssemblyTwo project.
+using System;
+using AssemblyOne;
+namespace AssemblyTwo
+{
+    //Class is marked public. This class is available in any assembly
+    public class AssemblyTwoClass
+    {
+        public void Print()
+        {
+            AssemblyOneClass instance = new AssemblyOneClass();
+            instance.Print();
+        }
+    }
+}
+
+
+Add a reference to AssemblyOne project, from AssemblyTwo project. Please check the previous session, to learn about adding project references.
+
+
+Now build the solution. You will notice the following 4 compiler errors.
+
+ 
+
+1. 'AssemblyOne.AssemblyOneClass' is inaccessible due to its protection level
+2. The type 'AssemblyOne.AssemblyOneClass' has no constructors defined
+3. 'AssemblyOne.AssemblyOneClass' is inaccessible due to its protection level 
+4. 'AssemblyOne.AssemblyOneClass' does not contain a definition for 'Print' and no extension method 'Print' accepting a first argument of type 'AssemblyOne.AssemblyOneClass' could be found (are you missing a using directive or an assembly reference?)
+
+
+All these errors are in AssemblyTwo project, and are related to AssemblyOne.AssemblyOneClass being inaccessible due to its protection level. 
+
+
+Now convert the access modifier of AssemblyOneClass from internal to public and rebuild the solution. Now we get no errors. This shows that internal types are accessible only with in the containing assembly.
+
+
+Now just remove the public access modifier from AssemblyOneClass and rebuild the solution. You now again get the same 4 errors that we got before. This is because, if you don't specify an access modifier for a type, then by default the access modifier will be internal.
+
+So if you don't specify an access modifier, then for Types the default is internal and for type members it is private.
+
+-------------------------------------------------------------------------
+
+48. Attributes
+
+--> Purpose: Attributes allow you to add declarative information to your programs. 
+--> This information can then be queried at runtime using reflection.
+
+--> There are several Pre-defined Attributes provided by .NET. 
+--> It is also possible to create your own Custom Attributes. 
+--> Creating custom attributes is beyond the scope of this article.
+
+-------------------------------------------------------------------------
+
+
+--> A few pre-defined attributes with in the .NET framework.
+1. Obsolete - Marks types and type members outdated
+2. WebMethod - To expose a method as an XML Web service method
+3. Serializable - Indicates that a class can be serialized
+
+
+-------------------------------------------------------------------------
+
+
+--> Obsolete attribute can be used with types or type members that are obsolete (Outdated). 
+--> If a developer uses a type or a type member that is decorated with obsolete attribute, the compiler issues a warning or an error depending on how the attribute is configured.
+
+
+--> In this sample program, Add(int FirstNumber, int SecondNumber) method is decorated with [Obsolete] attribute. 
+--> If you compile this program, in the output window you will see a warning message (Compile complete -- 0 errors, 1 warnings). 
+--> Also, visual studio, shows a green squiggly line under the  Add(int FirstNumber, int SecondNumber) method. 
+--> If you hover the mouse over the squiggly line, you should see the warning message.
+
+
+Note: If you don't see the warning message (Compile complete -- 0 errors, 1 warnings), rebuild the soultion.
+
+-------------------------------------------------------------------------
+
+
+using System;
+using System.Collections.Generic;
+public class MainClass
+{
+    private static void Main()
+    {
+        Calculator.Add(10, 15);
+    }
+}
+
+
+public class Calculator
+{
+    [Obsolete]
+    public static int Add(int FirstNumber, int SecondNumber)
+    {
+        return FirstNumber + SecondNumber;
+    }
+    public static int Add(List<int> Numbers)
+    {
+        int Sum = 0;
+        foreach (int Number in Numbers)
+        {
+            Sum = Sum + Number;
+        }
+        return Sum;
+    }
+}
+
+
+-------------------------------------------------------------------------
+
+--> The warning message says 'Calculator.Add(int, int)' is obsolete. 
+--> However, this message is not completely useful, because it says 'Calculator.Add(int, int)' is obsolete, but not tell us which other method should we be using instead. So this is when we can customize, the warning message using attribute parameters.
+
+-------------------------------------------------------------------------
+
+
+--> The intention of the developer of Calculator class is that, he wanted us to use Add(List<int> Numbers), instead of int Add(int FirstNumber, int SecondNumber). 
+--> To communicate this message we can customize the warning message using attribute parameters as shown below. 
+--> With this customization we are not only communicating that Add(int FirstNumber, int SecondNumber) method is obsolete, we are also telling to use the alternative method that is available.
+
+[Obsolete("Use Add(List<int> Numbers) instead")]
+public static int Add(int FirstNumber, int SecondNumber)
+
+-------------------------------------------------------------------------
+
+
+If you want to generate a compiler error instead of warning, pass true for the bool error parameter of the Obsolete attribute as shown below. Now, we can't even compile the program.
+[Obsolete("Use Add(List<int> Numbers) instead", true)]
+public static int Add(int FirstNumber, int SecondNumber)
+
+
+Finally, If you right click on Obsolete attribute and select Go To Definition, you will see that, an attribute is nothing but a class that inherits from System.Attribute base class.
+
+-------------------------------------------------------------------------
+
+49. Reflection
+
+--> When we build our application, two files are generated - one assembly file which contains intermediate code and other assembly-meta file which contains information about all types and typemembers.
+
+--> Reflection is the ability of inspecting an assemblie's metadata at runtime.  
+--> It is used to find all types in an assembly and/or dynamically invoke methods in an assembly. 
+--> This includes information about the type, properties, methods, and events of an object. 
+--> With Reflection, we can dynamically create an instance of a type, bind the type to an existing object, or get the type from an existing object and invoke its methods or access its fields and properties.
+--> There are several uses of reflection.
+
+-------------------------------------------------------------------------
+
+1. When you drag and drop a button on a win forms or an asp.net application. The properties window uses reflection to show all the properties of the Button class. So,reflection is extensivley used by IDE or a UI designers.
+
+2. Late binding can be achieved by using reflection. You can use reflection to dynamically create an instance of a type, about which we don't have any information at compile time. So, reflection enables you to use code that is not available at compile time.
+
+eg. Customer customer = new Customer();		
+--> This is early Binding
+--> At compile time, we know which class to invoke.
+--> Sometimes, we do not know which class to invoke and on run time, we know information
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+-------------------------------------------------------------------------
+
+34.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

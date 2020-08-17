@@ -1,0 +1,170 @@
+1. Intro 
+
+--> We will discuss how to delete IdentityRole from the AspNetRoles database table using the identity api.
+
+--> When the Delete button is clicked, the respective role must be deleted from the AspNetRoles table
+
+------------------------------------------------------------------------------
+
+2. ListRoles View
+
+<form asp-action="DeleteRole" asp-route-id="@role.Id" method="post">
+    <span id="confirmDeleteSpan_@role.Id" style="display:none">
+        <span>Are you sure you want to delete?</span>
+        <button type="submit" class="btn btn-danger">Yes</button>
+        <a href="#" class="btn btn-primary"
+            onclick="confirmDelete('@role.Id', false)">No</a>
+    </span>
+
+    <span id="deleteSpan_@role.Id">
+        <a href="#" class="btn btn-danger"
+            onclick="confirmDelete('@role.Id', true)">Delete</a>
+    </span>
+</form>
+@section Scripts {
+    <script src="~/js/CustomScript.js"></script>
+}
+
+------------------------------------------------------------------------------
+
+--> Delete button type is set to submit
+--> It is placed inside the form element and the method attribute is set to post
+--> So when the Delete button is clicked a POST request is issued to DeleteRole() action passing it the ID of the role to delete
+--> The span elements that surround the Delete, Yes and No buttons will be dynamically generated for every role on the list page.
+--> If you have more than one role on the page there will be more than one span element
+--> To ensure these span elements have unique ID's we are appending Role.Id which is a Guid and guaranteed to be unique
+
+------------------------------------------------------------------------------
+
+3. ConfirmDelete JavaScript function
+
+function confirmDelete(uniqueId, isTrue) {
+
+    var deleteSpan = 'deleteSpan_' + uniqueId;
+    var confirmDeleteSpan = 'confirmDeleteSpan_' + uniqueId;
+
+    if (isTrue) {
+        $('#' + deleteSpan).hide();
+        $('#' + confirmDeleteSpan).show();
+    } else {
+        $('#' + deleteSpan).show();
+        $('#' + confirmDeleteSpan).hide();
+    }
+}
+
+------------------------------------------------------------------------------
+
+4. DeleteRole Action in the Controller
+
+--> Use the RoleManager service DeleteAsync() method to delete the role
+
+public class AdministrationController : Controller
+{
+    private readonly RoleManager<IdentityRole> roleManager;
+
+    public AdministrationController(RoleManager<IdentityRole> roleManager)
+    {
+        this.roleManager = roleManager;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteRole(string id)
+    {
+        var role = await roleManager.FindByIdAsync(id);
+
+        if (role == null)
+        {
+            ViewBag.ErrorMessage = $"Role with Id = {id} cannot be found";
+            return View("NotFound");
+        }
+        else
+        {
+            var result = await roleManager.DeleteAsync(role);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("ListRoles");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
+            return View("ListRoles");
+        }
+    }
+}
+
+------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

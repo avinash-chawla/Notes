@@ -1,0 +1,26 @@
+1. View 
+
+--> Contains the logic to display the Model data provided to it by the Controller.
+--> A view is an HTML template with embedded Razor markup.
+--> A view file has .cshtml extension if the programming language is C#.
+
+-------------------------------------------------------------------------------
+
+2. View folder
+
+--> Make new folder in project  --> Views
+--> Make new folder inside it   --> Home
+--> Make new file inside it	--> Details.cshtml
+
+<html>
+    <head>
+        <title></title>
+    </head>
+    <body>
+        <h1>Details Page</h1>
+    </body>
+</html>
+
+--> By default, it looks in this folder
+
+-------------------------------------------------------------------------------

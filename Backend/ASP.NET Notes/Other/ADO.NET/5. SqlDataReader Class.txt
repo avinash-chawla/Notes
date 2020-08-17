@@ -1,0 +1,149 @@
+1. Intro
+
+--> This class is used to read data from SQL Server database. 
+--> It reads data in forward-only stream of rows from a SQL Server database. 
+--> It is sealed class so that cannot be inherited. 
+--> It inherits DbDataReader class and implements IDisposable interface.
+
+--------------------------------------------------------------------------------
+
+2. SqlDataReader Signature
+
+public sealed class SqlDataReader : System.Data.Common.DbDataReader, IDisposable  
+
+--------------------------------------------------------------------------------
+
+3. SqlDataReader Properties
+
+Connection		It is used to get the SqlConnection associated with the SqlDataReader.
+Depth			It is used to get a value that indicates the depth of nesting for the current row.
+FieldCount		It is used to get the number of columns in the current row.
+HasRows			It is used to get a value that indicates whether the SqlDataReader contains one or more rows.
+IsClosed		It is used to retrieve a boolean value that indicates whether the specified SqlDataReader instance has been closed.
+Item[String]		It is used to get the value of the specified column in its native format given the column name.
+Item[Int32]		It is used to get the value of the specified column in its native format given the column ordinal.
+RecordsAffected		It is used to get the number of rows changed, inserted or deleted by execution of the Transact-SQL statement.
+VisibleFieldCount	It is used to get the number of fields in the SqlDataReader that are not hidden.
+
+--------------------------------------------------------------------------------
+
+4. Methods
+
+Close()			It is used to closes the SqlDataReader object.
+GetBoolean(Int32)	It is used to get the value of the specified column as a Boolean.
+GetByte(Int32)		It is used to get the value of the specified column as a byte.
+GetChar(Int32)		It is used to get the value of the specified column as a single character.
+GetDateTime(Int32)	It is used to get the value of the specified column as a DateTime object.
+GetDecimal(Int32)	It is used to get the value of the specified column as a Decimal object.
+GetDouble(Int32)	It is used to get the value of the specified column as a double-precision floating point number.
+GetFloat(Int32)		It is used to get the value of the specified column as a single-precision floating point number.
+GetName(Int32)		It is used to get the name of the specified column.
+GetSchemaTable()	It is used to get a DataTable that describes the column metadata of the SqlDataReader.
+GetValue(Int32)		It is used to get the value of the specified column in its native format.
+GetValues(Object[])	It is used to populate an array of objects with the column values of the current row.
+NextResult()		It is used to get the next result, when reading the results of SQL statements.
+Read()			It is used to read record from the SQL Server database.
+
+--------------------------------------------------------------------------------
+
+5. Code Demo
+
+using System;  
+using System.Data.SqlClient;  
+namespace AdoNetConsoleApplication  
+{  
+    class Program  
+    {  
+        static void Main(string[] args)  
+        {  
+            new Program().GetData();  
+        }  
+        public void GetData()  
+        {  
+            SqlConnection con = null;  
+            try  
+            {  
+                // Creating Connection  
+                con = new SqlConnection("data source=.; database=student; integrated security=SSPI");  
+                // writing sql query  
+                SqlCommand cm = new SqlCommand("select * from student", con);  
+                // Opening Connection  
+                con.Open();  
+                // Executing the SQL query  
+                SqlDataReader sdr = cm.ExecuteReader();  
+                while (sdr.Read())  
+                {  
+                    Console.WriteLine(sdr["name"]+" "+ sdr["email"]);  
+                }  
+            }  
+            catch (Exception e)  
+            {  
+                Console.WriteLine("OOPs, something went wrong." + e);  
+            }  
+            // Closing the connection  
+            finally  
+            {  
+                con.Close();  
+            }  
+        }  
+    }  
+}  
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

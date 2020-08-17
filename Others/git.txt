@@ -1,0 +1,193 @@
+1. Intro
+
+--> It is version control software
+--> It takes snapshots of files in repository when we commit
+
+-------------------------------------------------------------------------------
+
+2. Pull and Push
+
+--> When working in team, first you have to pull repository
+--> Apply some changes
+--> Push to repository (global)
+
+--> Again pull repository for changes (bec. it might occur repository is changed by some one.
+
+-------------------------------------------------------------------------------
+
+3. Getting help
+
+--> git help
+--> git help <commandName>
+
+-------------------------------------------------------------------------------
+
+4. Git Configuration
+
+--> git config --global user.name "avinashchawla96"
+--> git config --global user.email "avinashchawla96@gmail.com"
+--> git config --global --list
+
+--> To exit: Press q
+
+-------------------------------------------------------------------------------
+
+5. The First Commit
+
+--> git init
+--> git status 				(tracking status)
+--> git add .				(staging area)
+--> git commit -m "Initial commit" 	(Repo area)
+
+-------------------------------------------------------------------------------
+
+6. Commit history
+
+--> git log --oneline --graph --decorate --color
+
+-------------------------------------------------------------------------------
+
+7. Remove from staging area
+
+--> git rm --cached index.html
+
+-------------------------------------------------------------------------------
+
+8. .gitignore
+
+--> log.txt	(file)
+--> /dir1	(folder)
+
+-------------------------------------------------------------------------------
+
+9. Branches
+
+--> Branches are needed when you want to work other than master branch.
+--> After your work, you can merge your branch with master
+
+--> If not, suppose if you are working in master branch
+--> If someone changes something in master branch
+--> Then you commit in master branch, then that something will get deleted as a snapshot history.
+
+--> git branch login
+--> git checkout login
+
+--> git merge login -m "Added login functionality"
+
+-------------------------------------------------------------------------------
+
+10. Push to global repository
+
+--> git add .
+--> git commit -m "All Done"
+--> git remote
+--> git remote add origin "GithubAddress"
+--> git push origin master
+
+-------------------------------------------------------------------------------
+
+1. repository 				--> git init --> track changes in this repo container
+2. commit stages 			--> modified, staging , commit
+
+-------------------------------------------------------------------------------
+
+3. git status 				--> delect modified vs staging
+4. git add . 				--> add file in staging
+5. git rm --cached filename 		--> remove from staging
+6. git commit -m "commit message" 	--> save screenshot just like gta game
+
+-------------------------------------------------------------------------------
+
+7. git log --oneline 			--> show all git commits history
+
+-------------------------------------------------------------------------------
+
+8. git checkout commitId 		--> show specific commit
+9. git checkout master 			--> get head to master 
+
+-------------------------------------------------------------------------------
+
+10. git revert commitId 		--> undo that commit and save in new commit
+
+-------------------------------------------------------------------------------
+
+11. git reset commitId 			--> get head to that commit and make it master head and delete everything
+
+-------------------------------------------------------------------------------
+
+--> master branch is running production stable branch
+
+12. git branch feature-1  		--> creates new branch
+13. git branch -a 			--> shows all branch
+14. git checkout master 		--> switch to master branch
+15. git checkout feature-1 		--> switches to feature-1 branch --> now we can add commits to this branch without affecting master branch
+
+16. git branch -D feature-1		--> Delete a branch
+
+-------------------------------------------------------------------------------
+
+17. git checkout -b feature-2 		--> making and shifting to branch
+
+-------------------------------------------------------------------------------
+
+18. first shift to master branch
+19. git merge feature-1 		--> added to master branch 
+
+-------------------------------------------------------------------------------
+
+--> sometimes conflicks may happen when master branch is changed from before and adding feature-1 to it with same file
+
+--> fast-forward 	--> master branch is not changed
+--> recursive 		--> master branch is changed now 
+--> conflict 		--> master branch and feature-1 changing on same file differently--> in this, just keep commit
+
+---------------------------------------------------------------------------------------------------------------------
+
+--> adding in github
+
+20. git push github_url master 			--> also add commits history
+21. git remote add origin github_url 		--> adding origin for global repo
+22. git push origin master  			--> after adding commits
+23. git pull origin master
+
+-------------------------------------------------------------------------------
+
+--> creating commits in existing project
+23. git clone github_url
+23. git remote -v
+24. git push origin master 			--> after adding commits
+
+-------------------------------------------------------------------------------
+
+--> making pull requests
+
+25. git pull origin master --> if someone had made changes
+26. git checkout -b add-images
+27. git add .
+28. git commit -m "added images"
+29. git push origin add-images
+30. create pull request
+31. other will review it and then merge 	--> do not directly merge in master branch
+
+-------------------------------------------------------------------------------
+
+--> forking and contributing to open source projects
+32. fork it
+33. clone it and make changes in it
+34. push it
+35. make pull request
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+--> General Steps
+
+
+--> git init
+--> git add .
+--> git commit -m "Initial Commit"
+--> git config --global user.name "your username"
+--> git config --global user.password "your password"
+--> git remote add origin https://github.com/avinashchawla1996/PragimApp.git
+--> git push -u origin master
+https://github.com/avinashchawla96
+------------------------------------------------------------------------------------------------------------------------------------

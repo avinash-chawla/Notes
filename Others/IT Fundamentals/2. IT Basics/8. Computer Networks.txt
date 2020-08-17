@@ -1,0 +1,169 @@
+1. Intro
+
+--> What We Know So Far
+--> To track our progress along our journey, we now know a lot about what a computer is, what it is made up of and how it works.
+--> In the last unit we saw that computers do exactly what people tell them to, workloads are eased and everything moves along just fine.
+
+--------------------------------------------------------------------------------
+
+2. Resource Sharing
+--> As computers became more compact, they were produced in large numbers and gradually they became cheaper in the market.
+--> Pretty soon companies and workspaces had multiple computing devices. It then became useful to share data and resources amongst a network of machines.
+--> It was cheaper to have a large, shared storage drive and have one common printer among multiple computer systems.
+
+--------------------------------------------------------------------------------
+
+3.Connecting People
+
+--> This is how the first Computer Networks came into existence around the 1960s.
+--> During that time, they existed mainly to allow the sharing of data and resources within a single workspace.
+--> A Computer network, basically is a group of two or more computing devices, connected using a telecommunications network, allowing them to share data and resources.
+--> Just like telephone networks, the central idea is to connect people to one another.
+
+--------------------------------------------------------------------------------
+
+4. LAN
+
+--> A small network of computers, geographically close together is called a Local Area Network or LAN.
+--> A LAN could mean a few computers in a room or a university campus with thousands of computers connected together.
+--> One of the first examples of a sizeable network was the Semi-Automatic Ground Environment (SAGE) network, set up by the Military in North America.
+
+--------------------------------------------------------------------------------
+
+5. Ethernet
+
+--> The most successful technology created for networks was the Ethernet,
+--> The Ethernet LAN setup had multiple computers connected via a common Ethernet cable.
+--> Whenever a computer had to share data with another computer, it would write the message onto the cable.
+--> The messages sent from one computer to another were visible to all computers.
+--> Hence they were appended with a unique name so that only the computer that the message was meant for, would process it. (Kind of like the chits we used to pass in class!)
+--> This unique name was actually an address, called the Media Access Control (MAC) Address.
+
+--------------------------------------------------------------------------------
+
+6. How Does An Ethernet Connection Work?
+
+--> A computer wanting to send a message to another, over an Ethernet connection, needs to check if the line is free, and then begin to transmit.
+--> This works well if the network is small and there is less traffic.
+--> As more computers across the network attempt to talk to each other more frequently, the chances of the line being occupied at any given time, are higher.
+
+--------------------------------------------------------------------------------
+
+7. Network Collision
+
+--> If 2 or more machines attempt to transmit across the same line simultaneously, the messages get corrupted.
+--> This is called collision. In the case of the collision of multiple messages, the network detects it and discards all the messages.
+
+--------------------------------------------------------------------------------
+
+8. Wait Time Over A Network
+
+--> So, a method was developed to avoid this.
+--> It was decided that a computer would first check if the line was free and only then transmit. Otherwise it would wait until the line was free.
+--> But again, if many computers waited and then as soon as they found the line free, they jumped in to transmit, then it would again cause a collision.
+
+--------------------------------------------------------------------------------
+
+9. Example
+
+--> So, to solve this doozy, it was decided that each computer that found the line was busy would wait for a different amount of time that would increment.
+
+Example Continued
+--> Consider that computers A and B both want to transmit data along the shared line.
+--> If A finds the line busy, it will wait for 2 seconds and try again
+--> On the second try if the line is still busy, it will wait for 4 seconds.
+--> If busy after 4 seconds, it will wait for 8 and so on.
+--> Computer B’s waiting intervals are 1.5 seconds.
+--> So if both computers find the line busy, B will check at the 1.5th second, find it free and begin to transmit.
+--> If B is done transmitting in half a second, computer A which checks at the 2nd second can proceed, or else it will wait for 4 seconds and try again.
+
+--> This frees up the network and helps to avoid collisions. This increasing wait time is called Exponential Backoff.
+
+--------------------------------------------------------------------------------
+
+--> That solution evolved further.
+--> Small clusters of computers would share a wire, and then clusters would collectively share a wire.
+
+--> If A had to send a message to B, C or D it would not need to occupy the whole main cable. It could do so within its own section. Only if messages needed to be seen between such clusters would the main shared resource be occupied.
+
+--------------------------------------------------------------------------------
+
+10. Network Topologies
+
+--> Further evolutions of the idea created different tried and tested network topologies for different types, and sizes, of networks.
+
+--------------------------------------------------------------------------------
+
+11. Bus topology:
+
+--> This is the simplest and the original one.
+--> There is one main cable and each computer is connected to it.
+
+--------------------------------------------------------------------------------
+
+12. Star Topology
+
+--> In this, the computers are connected to one central system which is responsible for transmitting data among them
+--> A lot depends on this star!
+
+--------------------------------------------------------------------------------
+
+13. Ring Topology:
+
+--> As the name suggests, the computers are connected in a continuous circuit, with each computer connected to the next.
+
+--------------------------------------------------------------------------------
+
+14. Tree Topology
+
+--> Mostly, combinations of a few types of arrangements were used to set up networks.
+
+--------------------------------------------------------------------------------
+
+15. LAN, MAN, WAN
+
+--> All the networks we have discussed so far have been LAN networks.
+There are 2 others called Metropolitan Area Network (MAN) and Wide Area Network(WAN).
+
+--> A MAN is larger than a LAN and can cover an entire city.
+--> A WAN is the largest and is used to set up a network over large geographic distances
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

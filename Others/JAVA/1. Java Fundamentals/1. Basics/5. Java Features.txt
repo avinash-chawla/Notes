@@ -1,0 +1,84 @@
+1. Features
+
+--> A list of most important features of Java language is given below.
+
+--> Java Features
+--> Simple
+--> Object-Oriented
+--> Portable
+--> Platform independent
+--> Secured
+--> Robust
+--> Architecture neutral
+--> Interpreted
+--> High Performance
+--> Multithreaded
+--> Distributed
+--> Dynamic
+
+----------------------------------------------------------------------------------
+
+2. Simple
+
+--> Java is very easy to learn, and its syntax is simple, clean and easy to understand
+
+----------------------------------------------------------------------------------
+
+3. Object-oriented
+
+--> Java is an object-oriented programming language. Everything in Java is an object. Object-oriented means we organize our software as a combination of different types of objects that incorporates both data and behavior.
+
+--> Object-oriented programming (OOPs) is a methodology that simplifies software development and maintenance by providing some rules.
+
+--> Basic concepts of OOPs are:
+
+Object
+Class
+Inheritance
+Polymorphism
+Abstraction
+Encapsulation
+
+----------------------------------------------------------------------------------
+
+4. Robust
+
+--> Robust simply means strong. Java is robust because:
+
+--> It uses strong memory management.
+--> There is a lack of pointers that avoids security problems.
+--> There is automatic garbage collection in java which runs on the Java Virtual Machine to get rid of objects which are not being used by a Java application anymore.
+--> There are exception handling and the type checking mechanism in Java. All these points make Java robust.
+
+
+----------------------------------------------------------------------------------
+
+5. Multi-threaded
+
+--> A thread is like a separate program, executing concurrently. We can write Java programs that deal with many tasks at once by defining multiple threads. 
+--> The main advantage of multi-threading is that it doesn't occupy memory for each thread. It shares a common memory area. 
+--> Threads are important for multi-media, Web applications, etc.
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------

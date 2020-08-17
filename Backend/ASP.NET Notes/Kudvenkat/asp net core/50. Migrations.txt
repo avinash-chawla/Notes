@@ -1,0 +1,48 @@
+1. What is a migration in entity framework core 
+
+--> Migration is an entity framework core feature that keeps the database schema and our application model classes (also called entity class) in sync.
+
+--> You need to install this package from nuget to enable migration
+--> Microsoft.EntityFrameworkCore.Tools
+
+---------------------------------------------------------------------------------
+
+2. Commands
+
+get-help about_entityframeworkcore	Provides entity framework core help
+
+get-help 				
+Add-Migration provides help for Add-Migration command.
+
+Add-Migration				Adds a new migration
+
+Update-Database				
+Updates the database to a specified migration
+
+---------------------------------------------------------------------------------
+
+3. Creating a Migration
+
+Add-Migration InitialCreate
+
+
+--> you will see a file in the "Migrations" folder that contains the name InitialCreate.cs. 
+--> This file has the code required to create the respective database tables.
+
+---------------------------------------------------------------------------------
+
+4. Update-Database
+
+--> We need to execute the migration code to create the tables. 
+--> If the database does not exist already, it creates the database and then the database tables. 
+
+---------------------------------------------------------------------------------
+
+5. SQL Server Object Explorer
+
+--> View tab --> SQL Server Object Explorer
+--> You can see all databases of sql server (local express and developer versions both)
+--> After migration and updating database, you can see tables there.
+--> Right click Table, View Data.
+
+---------------------------------------------------------------------------------

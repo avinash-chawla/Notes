@@ -1,0 +1,405 @@
+1. Java Framework
+
+--> Java Frameworks provides readymade architectural pattern.
+--> It also gives all configuration settings available 
+--> It also provides all dependencies for project and also manage them.
+
+--> Frameworks are large bodies( usally many classes) of predefined code to which we can add to our own code to solve a problem in a specific domain
+
+--> Steps:
+1. Large bodies of predefined code 
+--> Also called API
+--> Have collections library of compiled class (in java byte)
+
+2. Added to our own code to that
+3. Solves a problem in a specific domain
+
+-------------------------------------------------------------------------------
+
+2. Advantages of Java Framework
+
+1. Efficiency
+2. Security
+3. Less expense
+4. Readily available
+5. Support
+
+-------------------------------------------------------------------------------
+
+3. Disadvantages of Java Framework
+
+1. Restriction
+--> You can not modify builtin classes of frameworks in your own way
+
+2. Code is public
+--> If you use this api in your application, you are opening security holes as hacker would know which security feature you are using in your project
+--> Consider api as set of compiled classes containing bunch of useful which is plug and use
+--> eg. Console.WriteLine
+--> Console class is api
+
+3. Custom Built Features
+--> Public does not expose internal details of project in any way.
+
+-------------------------------------------------------------------------------
+
+4. Situation
+
+--> Head:
+--> Team, We got one request from the client to develop an application but the challenge is that we have got very little time frame to complete this Project
+
+--> Riya:
+--> We can use Spring framework
+--> It provides more flexibility as Spring MVC is entirely based on interfaces unlike Struts or hibernate so we can easily make required changes in implementation without affecting the client side.
+--> Spring framework libraries are already optimised in code which gives faster experience and take less time for development and also increases efficiency.
+
+-------------------------------------------------------------------------------
+
+5. Different Frameworks of Java
+
+1. Spring
+2. Hibernate
+3. play
+4. Struts
+5. Maven
+6. JSF
+
+-------------------------------------------------------------------------------
+
+6. Problems with J2EE Standards
+
+--> Too complex
+--> Loop-up problem
+--> Heavy weighted components
+
+-------------------------------------------------------------------------------
+
+7. What is Spring Framework?
+
+--> It is a complete and a modular framework for developing enterprise applications in java
+--> It can be used for all layer implementations for a real time application eg. mvc
+--> It was developed by Rod Johnson.
+
+-------------------------------------------------------------------------------
+
+8. Features of Spring
+
+--> Open Source
+--> Comprehensive Tools
+--> Light Weight
+--> Solves Problems
+--> Framework of Frameworks (eg. spring + hibernate) (you can combine any framework with spring framework)
+--> Avails array of resources
+
+-------------------------------------------------------------------------------
+
+9. Why Spring is so popular?
+
+1. Simplicity
+2. Testability
+3. Loose Coupling
+4. Application Framework
+5. Layered Architecture
+6. Light Weighted
+7. Tag library
+8. Easy Integration with ORM technologies
+9. Easy Integration with client-side technologies
+
+--> Distinct division between JavaBean Models, Controllers and Views
+--> Spring's Mvc is very flexible as it makes use of interfaces
+--> Spring's MVC web tiers are easier to test
+--> Well defined interface to business Layer
+--> Spring Controllers are configured via Ioc
+--> Offers better integration with view technologies like Angular other than JSP.
+
+-------------------------------------------------------------------------------
+
+10. POJO
+
+--> Spring Framework is simple because as it is non-invasive. It uses POJO and POJI
+--> If a java class is not coupled with any technology or any framework then that java class is called POJO (plain old Java object)
+--> If a java interface is not coupled with any technology or any framework then that java class is called POJI (plain old Java interface)
+
+-------------------------------------------------------------------------------
+
+11. IOC Principle
+
+--> Abides the Hollywood Principle that is "Don't call us, we'll call you".
+--> Also called "Inversion of flow" or "Inversion of Control"
+
+-------------------------------------------------------------------------------
+
+12. Reduce the Coupling
+
+class Rider{
+   Bike b;
+ 
+   Rider(){
+	//b = new Bike();
+   }
+
+   void setBike(Bike b){
+ 	this.b = b;
+   }
+}
+
+class Bike{}
+
+main() {
+   Rider r = new Rider(); 	// High Coupling
+   Bike b = new Bike();
+
+   r.setBike(b);		// Reduce Coupling. Low Coupling
+}
+
+--> When we create Rider object, Bike object shall be created in Rider class 
+--> This is called High Coupling
+--> Construction of Bike Object relies on Construction of Rider Object
+
+--> Solution
+--> We provide a method in Riger class setBike() 	//setter
+--> It will accept Bike object as an argument and set the Bike
+--> Result: You can insert any Bike to Rider (Loosely Coupled)
+
+-------------------------------------------------------------------------------
+
+13. Spring Framework Ecosystem
+
+--> Web Layer / spring IO Platform / foundation layer
+
+1. Spring Hateoas
+2. Spring for android
+3. Spring social
+4. Spring web services
+5. spring session
+6. Spring web flows 
+7. Spring modules
+8. Spring Security
+
+--> Common Layer / Spring Boot
+
+1. spring test
+2. spring web
+3. spring AOP
+4. spring core container
+5. spring data data access 
+6. spring messaging
+
+--> Service Layer
+
+1. Spring cloud
+2. Spring Integration
+
+--> Data Layer / Spring XD
+
+1. Spring LDAP
+2. Spring AMQP
+3. Spring Data
+4. Spring Batch
+
+-------------------------------------------------------------------------------
+
+14. Spring Architecture
+
+--> Test --> JUnit
+
+--> Core Container
+1. Beans
+2. Core
+3. Context
+4. SpEL
+
+--> AOP, Aspects, Instrumentation, Messaging
+
+--> Data Access/ Integration
+1. JDBC
+2. OXM
+3. JMS
+4. ORM
+5. Transactions
+
+--> Web 
+1. WebSocket
+2. Servlet
+3. Web
+4. Portlet
+
+-------------------------------------------------------------------------------
+
+14. Spring Modules
+
+--> Spring contains a lot of features, which are well-organised in about 20 modules
+--> They can be grouped together based on their primary features into following
+
+1. Core Container
+2. Data Access
+3. Web
+4. AOP (Aspect Oriented Programming)
+5. Instrumentation
+6. Test
+
+-------------------------------------------------------------------------------
+
+15. Core Container
+
+1. Core
+--> Provides the fundementals parts of framework
+
+2. Beans
+--> Provides BeanFactory
+--> IOC configuration
+
+3. SpEL
+--> ProvidesSpring Expression Language
+
+4. Context
+--> Implements Beans
+--> Supports internationalization(I18N), EJB, JMS, Basic Remoting
+
+-------------------------------------------------------------------------------
+
+16. Data Access 
+
+--> DataBase for Java will be Oracle
+
+1. JDBC
+--> Provides a JDBC abstraction layer
+
+2. ORM
+--> Provides integration layers
+
+3. OXM
+--> Provides an abstraction
+
+4. JMS
+--> Contains features for producing and consuming messages
+
+5. Transaction
+--> Supports programmatic and declarative transaction management
+
+-------------------------------------------------------------------------------
+
+17. Web Layer
+
+1. Web 
+--> Provides basic web-oriented integration features
+
+2. Web MVC
+--> Contains springs mvc implementation
+
+3. Web Portlet
+--> Provides MVC implementation used in a portlet environment
+
+4. Web Socket
+--> Provides support for WebSocket based, two way communication
+
+-------------------------------------------------------------------------------
+
+18. Miscellaneous Modules
+
+1. AOP
+--> Provides an aspect-oriented programming
+
+2. Instrumenting
+--> Provides class instrumentation support and class loader implementations.
+
+3. Test
+--> Supports testing with JUnit or TestNG frameworks
+
+4. Messaging
+--> Provides support for STOMP as the WebSocket sub protocol
+
+5. Aspects
+--> Provides integration with AspectJ
+
+-------------------------------------------------------------------------------
+
+19. IOC Container Features
+
+--> It is like a bagpack of objects
+--> Any class can need dependencies of anyy objects at runtime
+--> This Ioc Container will create the object and store it in bag/pool
+--> Whenever any class requires this object, IOC container will provide it as dependency injection
+
+--> This Ioc container also manages life-cycle of object which is provided.
+
+-------------------------------------------------------------------------------
+
+--> This Ioc container needs Java Pojo classes and configuration metadata in xml.
+--> There are Two types of Ioc containers in spring:
+1. BeanFactory
+2. ApplicationContext
+
+-------------------------------------------------------------------------------
+
+20. Depedency Injection
+
+--> Its work is to inject objects whenever required by classes from Ico container
+--> Spring avails two ways to inject dependency:
+
+1. By Constructor
+--> The <constructor-arg> subelement of <bean> is used for constructor injection
+
+2. By Setter method
+--> The <property> subelement of <bean> is used for setter injection
+
+-------------------------------------------------------------------------------
+ 
+21. Aspect Oriented Programming
+
+--> Providing modularity with aspect rather than class
+--> AOP breaks the program logic into distinct parts called concerns
+--> Increases modularity by cross-cutting concerns
+--> A cross-cutting concern is a concern which can affect the entire application.
+
+--> This programming can provide security
+--> You can consider it as middleware in starting of request processing pipeline.
+
+-------------------------------------------------------------------------------
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

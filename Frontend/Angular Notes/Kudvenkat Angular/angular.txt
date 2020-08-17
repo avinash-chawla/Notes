@@ -1,0 +1,2065 @@
+--> Indexes:
+1. Setting up Angular Project
+2. Class Data and View Html
+3. String Interpolation
+4. Property Binding
+5. Attribute Binding
+6. Class and Style Binding
+7. Event Binding
+8. Two way binding
+9. ngFor using trackBy, indexes
+10. Angular Pipes
+11. Container and Nested Components
+12. Input and output properties between parent and child component
+13. Interface definition to get intellisense
+14. ngOnInit lifecycle hook to initialise service object
+15. Services class
+16. Consuming services using http, Observable
+17. Routing
+18. Request Params
+
+
+0. Why Angular
+
+--> It is client side development 
+--> It is always faster because code resides in client browser
+--> Angular also handles routing thus reduces request-response cycle
+--> Angular makes dom manipulation much easier
+--> Angular is SPA means it uses ajax in back to talk with server which makes page load very fast.
+--> Angular handles dom manipulation and routing.
+--> Angular gets data from server api
+
+------------------------------------------------------------------------------------
+
+1. Angular1 vs Angular2
+
+1. Performance: Angular 2 is 5 times faster compared to AngularJS 1
+2. Mobile Support
+3. Component Based Development (code reuse)
+
+------------------------------------------------------------------------------------
+
+2. Why TypeScript
+
+--> What is Type Script : 
+--> TypeScript is a free and open-source programming language developed by Microsoft. It is a superset of JavaScript and compiles to JavaScript through a process called transpilation. 
+
+--> Benefits:
+
+1. Intellisense 
+2. Autocompletion
+3. Code navigation
+4. Advanced refactoring
+5. Strong Typing
+6. Supports ES 2015 (also called ES 6) features like classes, interfaces and inheritance.
+
+--> maintaining and refactoring applications can be an enjoyable experience.
+
+------------------------------------------------------------------------------------
+
+3. ng package
+
+--> It is used to create template for angular application
+--> npm ng -g @angular/cli
+--> ng --version
+--> ng new projectName
+--> ng start	or 	F5/ctrl+F5
+--> ng g c <componentName>		--> to create new component template
+------------------------------------------------------------------------------------
+
+4. What is Component
+
+--> A component is a class with a template and a decorator
+--> It consists of 3 parts:
+1. Template
+2. Class
+3. Decorator
+
+--> Class binds properties(data) and methods(logic)
+--> Decorator just converts class into angular component
+
+------------------------------------------------------------------------------------
+
+5. Template vs TemplateUrl
+
+--> template: `<h1>Hello {{name }}</h1>`		--> back tick character
+--> templateUrl: 'app/app.component.html'
+
+------------------------------------------------------------------------------------
+
+6. Add bootstrap to Angular
+
+--> npm i bootstrap
+--> In angular.json:
+
+"styles": [
+      "./node_modules/bootstrap/dist/css/bootstrap.css",
+      "src/styles.css"
+],
+
+"scripts": [
+      "./node_modules/jquery/dist/jquery.js",
+      "./node_modules/bootstrap/dist/js/bootstrap.js"
+]
+
+------------------------------------------------------------------------------------
+
+7. Nesting Components
+
+--> Means Combining all modules in one app.module
+--> All components have selector property, bring all that in app.component.html
+--> if selector: 'app-header'	--> <app-header></app-header>
+
+------------------------------------------------------------------------------------
+
+8. Angular interpolation
+
+--> Interpolation is all about data binding. 
+--> Only string value can be rendered through string interpolation.(not boolean) (for boolean, property binding is used)
+--> In Angular data-binding can be broadly classified into 3 categories
+
+   Data Binding			Description
+One way data-binding	From Component to View Template
+One way data-binding	From View Template to Component
+Two way data-binding	From Component to View Template & From View template to Component
+
+------------------------------------------------------------------------------------
+
+9. One way data-binding	--> From Component to View Template
+
+--> This is read-only property
+--> We use string interpolation to bind any expression - variable, function
+--> <h1>{{'Name = ' + firstName}}</h1>
+--> <h1>{{ 10 + 20 + 30 }}</h1>
+--> <h1>{{firstName ? firstName : 'No name specified'}}</h1>
+--> <img src='{{imagePath}}'/>
+--> {{'Full Name = ' + getFullName()}}
+
+------------------------------------------------------------------------------------
+
+10. Property binding
+
+--> Interpolation --> <img src='{{imagePath}}'/>
+--> Property binding --> <img [src]='imagePage' />
+
+--> Notice in Property binding, <img> element src property is in a pair of square brackets, and the component class property is in quotes.
+--> Interpolation is a special syntax that Angular converts into a property binding. 
+
+
+--> Problem arises when disabled property of element is set to boolean value in form of string from class
+--> <button disabled='{{isDisabled}}'>Click Me</button>
+--> <button [disabled]='isDisabled'>Click me</button>
+--> Both interpolation and property binding protects us from malicious content.
+
+------------------------------------------------------------------------------------
+
+11. DOM
+
+--> In simple terms you can think of the DOM as an application programming interface (API) for HTML, and we can use programming languages like JavaScript, or JavaScript frameworks like Angular to access and manipulate the HTML using their corresponding DOM objects.
+
+--> In other words DOM contains the HTML elements as objects, their properties, methods and events and it is a standard for accessing, modifying, adding or deleting HTML elements.
+
+------------------------------------------------------------------------------------
+
+
+--> <button disabled='{{isDisabled}}'>Click Me</button>
+--> <button [disabled]='isDisabled'>Click me</button>
+
+--> If you notice the above 2 examples, it looks like we are binding to the Button's disabled attribute. This is not true. 
+--> We are actually binding to the disabled property of the button object. Angular data-binding is all about binding to DOM object properties and not HTML element attributes
+
+------------------------------------------------------------------------------------
+
+
+--> What is the difference between HTML element attribute and DOM property
+1. Attributes are defined by HTML, where as properties are defined by the DOM.
+2. Attributes initialize DOM properties. Once the initialization complete, the attributes job is done.
+3. Property values can change, where as attribute values can't.|
+
+------------------------------------------------------------------------------------
+
+--> Lets prove 3rd point: 
+
+--> <input id='inputId' type='text' value='Tom'>
+
+--> At this point, run the web page and in the textbox you will see 'Tom' as the value. 
+
+--> Launch the browser developer tools.
+--> On the 'Console' tab, use the getattribute() method and value property of the input element to get the attribute and property values. 
+
+--> inputId.getattribute()	--> "Tom"
+--> inputId.value		--> "Tom"
+
+--> Notice at the moment both have the value 'Tom'
+
+--> Change the value in the textbox to Mary.
+
+--> inputId.getattribute()	--> "Mary"
+--> inputId.value		--> "Tom"
+
+--> Notice now, when we query for the attribute and property values, the attribute value is still Tom, but the property value is Mary. So this proves the point - Property values change, where as attribute values don't
+
+--> So it is important to keep in mind that, 
+1. HTML attributes and the DOM properties are different things.
+2. Angular binding works with properties and events, and not attributes.
+3. The role of attributes is to initialize element properties and their job is done.
+
+------------------------------------------------------------------------------------
+
+12. Attribute binding
+
+--> we discussed Interpolation and  Property binding that deal with binding Component class properties to HTML element properties and not Attributes. 
+
+--> However, in some situations we want to be able to bind to HTML element attributes. For example, colspan and aria attributes does not have corresponding DOM properties. So in this case we want to be able to bind to HTML element attributes. 
+
+--> To make  this happen, Angular provides attribute binding. With attribute binding we can set the value of an attribute directly. 
+--> Angular team recommends to use Property binding when possible and use attribute binding only when there is no corresponding element property to bind.
+
+
+--> If we use interpolation to bind columnSpan property of the component class to colspan attribute of the <th> element we get the error - Can't bind to 'colspan' since it isn't a known property of 'th'
+<th colspan="{{columnSpan}}">
+
+--> We get the same error if we use Property Binding
+
+--> To tell angular framework that we are setting an attribute value we have to prefix the attribute name with attr and a DOT as shown below.
+<th [attr.colspan]="columnSpan">
+
+--> The same is true when using interpolation
+<th attr.colspan="{{columnSpan}}">
+
+
+------------------------------------------------------------------------------------
+
+13. Class binding-->
+
+--> Add this styles in style.css
+
+.boldClass{
+    font-weight:bold;
+}
+
+.italicsClass{
+    font-style:italic;
+}
+
+.colorClass{
+    color:red;
+}
+
+
+1. Simple adding CSS class
+--> <button class='colorClass'>My Button</button>
+
+2. Dynamic rendering classes
+--> <button class='colorClass' [class]='classesToApply'>My Button</button>
+--> In class, classesToApply: string = 'italicsClass boldClass';
+
+3. Adding or removing a single class based on true/false
+--> use [class.<cssClassName>] = boolean_expression
+--> <button class='colorClass' [class.boldClass]='applyBoldClass'>My Button</button>
+--> applyBoldClass: boolean = true;
+or
+--> <button class='colorClass' [class.boldClass]='!applyBoldClass'>My Button</button>		--> ! (opp. of boolean)
+
+4. To add or remove multiple classes based on true/false
+--> use ngClass directive
+--> <button class='colorClass' [ngClass]='addClasses()'>My Button</button> 
+--> In class:
+    applyBoldClass: boolean = true;
+    applyItalicsClass: boolean = true;
+
+    addClasses() {
+        let classes = {
+            boldClass: this.applyBoldClass,
+            italicsClass: this.applyItalicsClass
+        }
+
+------------------------------------------------------------------------------------
+
+14. Style Binding
+
+1. Simple adding style property
+--> <button style="color:red">My Button</button>
+
+2. Adding or removing a single class based on true/false
+-->  <button style='color:red'
+                        [style.font-weight]="isBold ? 'bold' : 'normal'">My Button
+     </button>
+
+3. Some styles like font-size have a unit extension
+--> <button style='color:red'
+                        [style.font-size.px]="fontSize">My Button
+    </button>
+--> fontSize: number = 30;
+
+4. To set multiple inline styles 
+--> use NgStyle directive
+--> <button style='color:red' [ngStyle]="addStyles()">My Button</button>
+
+--> isBold: boolean = true;
+    fontSize: number = 30;
+    isItalic: boolean = true;
+
+    addStyles() {
+        let styles = {
+            'font-weight': this.isBold ? 'bold' : 'normal',
+            'font-style': this.isItalic ? 'italic' : 'normal',
+            'font-size.px': this.fontSize
+        };
+
+------------------------------------------------------------------------------------
+
+15. Event Binding
+
+--> How about flowing data in the opposite direction i.e from an HTML element to a component
+--> When a user performs any action like clicking on a button, hovering over an element, selecting from a dropdownlist, typing in a textbox etc, then the corresponding event for that action is raised.
+
+--> <button (click)="onClick()">Click me</button>
+--> onClick(): void {
+        console.log('Button Clicked');
+    }
+
+
+--> Rendering Table based on Show More Details and Hide More Details button
+--> When we click "Show Details" button, we want to display "Gender" and "Age" as well. The text on the button should be changed to "Hide Details". --> When we click "Hide Details" button, "Gender" and "Age" should be hidden and the button text should be changed to "Show Details"
+
+--> In class
+
+    columnSpan: number = 2;
+    firstName: string = 'Tom';
+    lastName: string = 'Hopkins';
+    gender: string = 'Male';
+    age: number = 20;
+    showDetails: boolean = false;				--> boolean property
+
+    toggleDetails(): void {
+        this.showDetails = !this.showDetails;			--> click event handler
+    }
+
+--> html file
+
+<table>
+    <thead>
+        <tr>
+            <th attr.colspan="{{columnSpan}}">
+                Employee Details
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>First Name</td>
+            <td>{{firstName}}</td>
+        </tr>
+        <tr>
+            <td>Last Name</td>
+            <td>{{lastName}}</td>
+        </tr>
+        <tr *ngIf='showDetails'>				--> To hide element based on condition, we use ngIf directive
+            <td>Gender</td>
+            <td>{{gender}}</td>
+        </tr>
+        <tr *ngIf='showDetails'>
+            <td>Age</td>
+            <td>{{age}}</td>
+        </tr>
+    </tbody>
+</table>
+<br />
+<button (click)='toggleDetails()'>
+    {{showDetails ? 'Hide' : 'Show'}} Details			--> Toggle button text using boolean property
+</button>
+
+--> ngIf is structural directive
+
+------------------------------------------------------------------------------------
+
+16. Two way binding
+
+@Component({
+    selector: 'my-app',
+    template: `
+                Name : <input [value]='name'>
+                <br>
+                You entered : {{name}} `              
+})
+export class AppComponent {
+    name: string = 'Tom';
+}
+
+--> Above is one-way binding
+--> Property binding only sends data from component class to View
+--> To get back data of textbox from View, we will use $event object of input
+--> It will reflect change in {{ name }}
+--> It is similar to IsPostBack property of asp.net
+
+------------------------------------------------------------------------------------
+
+Name : <input [value]='name' (input)='name = $event.target.value'>
+<br>
+You entered : {{name}}
+
+--> [value]='name' : This property binding flows data from the component class to element property 
+--> (input)='name = $event.target.value' : This event binding flows data in the opposite direction i.e from the element to component class property "name"
+--> $event - Is exposed by angular event binding, and contains the event data.
+               
+--> Now you entered value in textbox will be reflected in name interpolation  
+
+------------------------------------------------------------------------------------
+
+--> So in short, two-way data binding in Angular is a combination of both Property Binding and Event Binding. 
+--> To save a few keystrokes, we use ngModel directive.
+
+Name : <input [value]='name' (input)='name = $event.target.value'>
+Like this : Name : <input [(ngModel)]='name'>
+
+------------------------------------------------------------------------------------
+
+--> We have to import ngModel directive in app.module.ts
+--> import { FormsModule } from '@angular/forms';
+--> imports: [BrowserModule, FormsModule]
+
+------------------------------------------------------------------------------------
+
+17. ngFor directive
+
+--> It is used to loop through data
+-->  employees: any[] = [
+        {
+            code: 'emp101', name: 'Tom', gender: 'Male',
+            annualSalary: 5500, dateOfBirth: '25/6/1988'
+        },
+        {
+            code: 'emp102', name: 'Alex', gender: 'Male',
+            annualSalary: 5700.95, dateOfBirth: '9/6/1982'
+        },
+        {
+            code: 'emp103', name: 'Mike', gender: 'Male',
+            annualSalary: 5900, dateOfBirth: '12/8/1979'
+        },
+        {
+            code: 'emp104', name: 'Mary', gender: 'Female',
+            annualSalary: 6500.826, dateOfBirth: '14/10/1980'
+        },
+    ];
+
+--> view file
+
+<table class="table table-hover table-bordered container mt-5" style="width: 50%">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>Annual Salary</th>
+            <th>Date of Birth</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let employee of employees">
+            <td>{{ employee.code }}</td>
+            <td>{{ employee.name }} </td>
+            <td>{{ employee.gender }} </td>
+            <td>{{ employee.annualSalary }} </td>
+            <td>{{ employee.dateOfBirth }} </td>
+        </tr>
+        <tr *ngIf="!employees || employees.length == 0">
+            Nothing to display
+        </tr>
+    </tbody>
+
+------------------------------------------------------------------------------------
+
+18. Using trackyBy with ngFor directive 
+
+--> ngFor directive renders object
+--> When new item is added to this object, instead of rendering only one object, ngFor renders all object again
+--> ngFor needs to track of its individual object, so it knows the difference between old DOM and new DOM and apply necessage changes
+--> ngFor has a property- trackBy
+
+--> <tr *ngFor="let employee of employees; trackBy: trackByEmpCode" />		--> only referenced is passed
+--> trackByEmpCode(index: Number, employee: any): string {			--> automatically sends index and each employee object
+    return employee.code;
+  }
+
+------------------------------------------------------------------------------------
+
+19. How to get the index of an item in a collection
+
+--> ngFor has a property- index
+--> <tr *ngFor="let employee of employees; let i = index} 
+
+table>
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>Annual Salary</th>
+            <th>Date of Birth</th>
+            <th>Index</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor='let employee of employees; let i=index'>			---> index property
+            <td>{{employee.code}}</td>
+            <td>{{employee.name}}</td>
+            <td>{{employee.gender}}</td>
+            <td>{{employee.annualSalary}}</td>
+            <td>{{employee.dateOfBirth}}</td>
+            <td>{{i}}</td>							--> property value used here in new column 'index'
+        </tr>
+        <tr *ngIf="!employees || employees.length==0">
+            <td colspan="5">
+                No employees to display
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+------------------------------------------------------------------------------------
+
+20. Identifying the first and the last element in a collection
+
+--> Use the first and last properties of the ngFor directive
+--> These properties return boolean value
+
+<table>
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>Annual Salary</th>
+            <th>Date of Birth</th>
+            <th>Is First</th>
+            <th>Is Last</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor='let employee of employees; let isFirst = first; let isLast = last'>
+            <td>{{employee.code}}</td>
+            <td>{{employee.name}}</td>
+            <td>{{employee.gender}}</td>
+            <td>{{employee.annualSalary}}</td>
+            <td>{{employee.dateOfBirth}}</td>
+            <td>{{isFirst}}</td>				--> they return boolean value for each column --> for first column, true will be rendered
+            <td>{{isLast}}</td>					--> it will return true for last column and false for every other column
+        </tr>
+        <tr *ngIf="!employees || employees.length==0">
+            <td colspan="5">
+                No employees to display
+            </td>
+        </tr>
+    </tbody>
+</table>
+<br />
+<button (click)='getEmployees()'>Refresh Employees</button>
+
+------------------------------------------------------------------------------------
+
+21. Identifying even and odd element in a collection
+
+--> We use even and odd properties of ngFor directive
+
+ <tr *ngFor='let employee of employees; let isEven = even; let isOdd = odd'>
+	<td>{{isEven}}</td>				
+        <td>{{isOdd}}</td>	
+
+------------------------------------------------------------------------------------
+
+22. Pipes in Angular
+
+--> Transform data before display
+--> Built in pipes include lowercase, uppercase, decimal, date, percent, currency etc
+
+<td>{{employee.code | uppercase}}</td>
+<td>{{employee.dateOfBirth | date:'fullDate' | uppercase }}</td>
+<td>{{employee.annualSalary | currency:'USD':true:'1.3-3'}}</td>
+<td>{{employee.dateOfBirth | date:'fullDate'}}</td>
+<td>{{employee.dateOfBirth | date:'dd/MM/y'}}</td>
+
+
+Date		https://angular.io/api/common/DatePipe
+Decimal		https://angular.io/api/common/DecimalPipe
+Currency	https://angular.io/api/common/CurrencyPipe
+Percent		https://angular.io/api/common/PercentPipe
+
+--> In currency 
+
+1. The first parameter is the currencyCode
+2. The second parameter is boolean - True to display currency symbol, false to display currency code
+3. The third parameter ('1.3-3') specifies the number of integer and fractional digits
+
+------------------------------------------------------------------------------------
+
+23. Angular custom pipe
+
+--> Here is what we want to do. Depending on the gender of the employee, we want to display Mr. or Miss. prefixed to the employee name.
+--> Step1: Right click on the "employee" folder and add a new TypeScript file. Name it "employeeTitle.pipe.ts". 
+--> Paste following code: 
+
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({
+    name: 'employeeTitle'
+})
+export class EmployeeTitlePipe implements PipeTransform {
+    transform(value: string, gender: string): string {
+        if (gender.toLowerCase() == "male")
+            return "Mr." + value;
+        else
+            return "Miss." + value;
+    }
+} 
+
+1. Import Pipe decorator and PipeTransform interface from Angular core
+2. Notice "EmployeeTitlePipe" class is decorated with Pipe decorator to make it an Angular pipe
+3. name property of the pipe decorator is set to employeeTitle. This name can then be used on any HTML page where you want this pipe functionality.
+4. EmployeeTitlePipe class implements the PipeTransform interface. This interface has one method transform() which needs to be implemented.
+5. Notice the transform method has 2 parameters. value parameter will receive the name of the employee and gender parameter receives the gender of 
+the employee. The method returns a string i.e Mr. or Miss. prefixed to the name of the employee depending on their gender.
+
+
+--> Step2: Register "EmployeeTitlePipe" in the app.module.ts
+--> declarations: [AppComponent, EmployeeComponent,
+                   EmployeeListComponent, EmployeeTitlePipe],
+
+
+--> Step3: Include this pipe in html page
+--> <td>{{employee.name | employeeTitle:employee.gender}}</td>			--> also sending gender data to pipe
+
+------------------------------------------------------------------------------------
+
+24. Container and Nested Components
+
+--> What is a nested component 
+--> What is a container component 
+--> Passing data from the nested component to container component 
+--> Passing data from the container component to nested component
+--> Along the way we will discuss component input and output properties
+--> Creating custom events using EventEmitter class
+--> What is ng-container directive and it's use
+
+--> One of the component displays the list of employees
+--> The other component displays the radio buttons and the count of employees. --> EmployeeCountComponent
+
+--> EmployeeCountComponent becomes the nested component or child component.
+--> EmployeeListComponent becomes the container component or parent component.
+
+--> Container = parent
+--> Nested   = child
+
+------------------------------------------------------------------------------------
+
+--> Include below in EmployeeListComponent
+--> <employee-count></employee-count>
+
+--> EmployeeCountComponent --> 
+import { Component } from '@angular/core';
+
+@Component({
+    selector: 'employee-count',
+    templateUrl: 'app/employee/employeeCount.component.html',
+    styleUrls: ['app/employee/employeeCount.component.css']
+})
+export class EmployeeCountComponent {
+    all: number = 10;
+    male: number = 5;
+    female: number = 5;
+}
+
+------------------------------------------------------------------------------------
+
+--> css file
+.radioClass {
+    color: #369;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: large;
+}
+
+------------------------------------------------------------------------------------
+
+--> html file
+
+<span class="radioClass">Show : </span>
+
+<input type="radio" name="options" />
+<span class="radioClass">{{"All(" + all + ")"}}</span>
+
+<input name="options" type="radio">
+<span class="radioClass">{{"Male(" + male + ")"}}</span>
+
+<input name="options" type="radio">
+<span class="radioClass">{{"Female(" + female + ")"}}</span>
+
+------------------------------------------------------------------------------------
+
+--> Register this new component in app.module.ts
+--> declarations: [AppComponent, EmployeeComponent,
+        EmployeeListComponent, EmployeeTitlePipe, EmployeeCountComponent],
+
+------------------------------------------------------------------------------------
+
+25. Angular component input properties
+
+--> In this, we will discuss how to pass data from the container component to the nested component using input properties
+--> Convert a component property to an input property using @Input decorator : To be able to pass the values for these 3 properties from the container component to the nested component we need to decorate the properties with @Input() decorator.
+
+import { Component, Input } from '@angular/core';
+
+@Component({
+    selector: 'employee-count',
+    templateUrl: 'app/employee/employeeCount.component.html',
+    styleUrls: ['app/employee/employeeCount.component.css']
+})
+export class EmployeeCountComponent {
+    @Input()
+    all: number;
+
+    @Input()
+    male: number;
+
+    @Input()
+    female: number;
+}
+
+--> Input gets data from parent component
+
+----------------------------------------------------------------------------------------
+
+--> Passing data from the parent component to the child component
+
+--> There are 2 modifications that we need to do in EmployeeListComponent to be able to pass values from the parent component 
+
+1.
+    getTotalEmployeesCount(): number {
+        return this.employees.length;
+    }
+
+    getMaleEmployeesCount(): number {
+        return this.employees.filter(e => e.gender === 'Male').length;
+    }
+
+    getFemaleEmployeesCount(): number {
+        return this.employees.filter(e => e.gender === 'Female').length;
+    }
+
+2. <employee-count [all]="getTotalEmployeesCount()"
+                  [male]="getMaleEmployeesCount()"
+                [female]="getFemaleEmployeesCount()">
+
+
+--> These custom properties/attributes in html tag are input properties for child component
+--> data is defined in parent component and it is passed to child component using custom attributes and input decorators
+--> When a radio button checked event is raised in the child component, we want to know about it in the parent component so we can react and decide which employees to show in the table depending on the selection of the radio button.
+
+----------------------------------------------------------------------------------------
+
+26. Angular component output properties
+
+
+--> We will discuss:
+1. How to pass user actions or user entered values or selections from the child component to the parent component using output properties.
+2. Along the way we will discuss creating custom events using angular EventEmitter class
+3. Finally what is ng-container directive and it's use
+
+--> Child Component class
+
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+
+@Component({
+    selector: 'employee-count',
+    templateUrl: 'app/employee/employeeCount.component.html',
+    styleUrls: ['app/employee/employeeCount.component.css']
+})
+export class EmployeeCountComponent {
+    @Input()
+    all: number;
+
+    @Input()
+    male: number;
+
+    @Input()
+    female: number;
+
+    selectedRadioButtonValue: string = 'All';				--> Holds the selected value of the radio button
+
+
+    @Output()
+    countRadioButtonSelectionChanged: EventEmitter<string> = new EventEmitter<string>();	--> raises custom event and output property also
+
+
+    onRadioButtonSelectionChange() {
+        this.countRadioButtonSelectionChanged
+            .emit(this.selectedRadioButtonValue);
+    }
+}
+
+--> The Output decorator makes the property an Output property
+--> EventEmitter class is used to create the custom event
+
+ 
+--> When the radio button selection changes, the selected radio button value which is a string gets passed to the event handler method. Hence, the event payload is string.
+
+
+--> onRadioButtonSelectionChange() method raises the custom event. We will bind this Method to the change event of all the 3 radio buttons
+
+----------------------------------------------------------------------------------------
+
+--> Child Component html
+
+<span class="radioClass">Show : </span>
+
+<input name='options' type='radio' value="All"
+       [(ngModel)]="selectedRadioButtonValue"
+       (change)="onRadioButtonSelectionChange()">
+<span class="radioClass">{{'All(' + all + ')'}}</span>
+
+<input name="options" type="radio" value="Male"
+       [(ngModel)]="selectedRadioButtonValue"
+       (change)="onRadioButtonSelectionChange()">
+<span class="radioClass">{{"Male(" + male + ")"}}</span>
+
+<input name="options" type="radio" value="Female"
+       [(ngModel)]="selectedRadioButtonValue"
+       (change)="onRadioButtonSelectionChange()">
+
+<span class="radioClass">{{"Female(" + female + ")"}}</span>
+
+
+--> value attribute is set to (All, Male or Female)
+
+--> Implemented 2 way data-binding using the ngModel directive. 
+--> Notice ngModel is bound to selectedRadioButtonValue property in the component class. 
+--> This 2 way data-binding ensures whenever the radio button selection changes, the selectedRadioButtonValue property is updated with the value of the selected radio button.
+
+--> onRadioButtonSelectionChange() method is binded to "change" event of the radio button. So this means whenever, the selection of the radio button changes, onRadioButtonSelectionChange() method raises the custom event "countRadioButtonSelectionChanged". We defined this custom event using Angular EventEmitter class.
+
+----------------------------------------------------------------------------------------
+
+--> Parent Component class
+
+
+import { Component } from '@angular/core';
+
+@Component({
+    selector: 'list-employee',
+    templateUrl: 'app/employee/employeeList.component.html',
+    styleUrls: ['app/employee/employeeList.component.css']
+})
+
+export class EmployeeListComponent {
+    employees: any[];
+
+    // This property keeps track of which radio button is selected
+    // We have set the default value to All, so all the employees
+    // are displayed in the table by default
+    selectedEmployeeCountRadioButton: string = 'All';
+
+    constructor() {
+        this.employees = [
+            {
+                code: 'emp101', name: 'Tom', gender: 'Male',
+                annualSalary: 5500, dateOfBirth: '6/25/1988'
+            },
+            {
+                code: 'emp102', name: 'Alex', gender: 'Male',
+                annualSalary: 5700.95, dateOfBirth: '9/6/1982'
+            },
+            {
+                code: 'emp103', name: 'Mike', gender: 'Male',
+                annualSalary: 5900, dateOfBirth: '12/8/1979'
+            },
+            {
+                code: 'emp104', name: 'Mary', gender: 'Female',
+                annualSalary: 6500.826, dateOfBirth: '10/14/1980'
+            },
+            {
+                code: 'emp105', name: 'Nancy', gender: 'Female',
+                annualSalary: 6700.826, dateOfBirth: '12/15/1982'
+            },
+            {
+                code: 'emp106', name: 'Steve', gender: 'Male',
+                annualSalary: 7700.481, dateOfBirth: '11/18/1979'
+            },
+        ];
+    }
+
+    getTotalEmployeesCount(): number {
+        return this.employees.length;
+    }
+
+    getMaleEmployeesCount(): number {
+        return this.employees.filter(e => e.gender === 'Male').length;
+    }
+
+    getFemaleEmployeesCount(): number {
+        return this.employees.filter(e => e.gender === 'Female').length;
+    }
+
+    // Depending on which radio button is selected, this method updates
+    // selectedEmployeeCountRadioButton property declared above
+
+ 
+    // This method is called when the child component (EmployeeCountComponent)
+    // raises the custom event - countRadioButtonSelectionChanged
+    // The event binding is specified in employeeList.component.html
+
+
+    onEmployeeCountRadioButtonChange(selectedRadioButtonValue: string): void {
+        this.selectedEmployeeCountRadioButton = selectedRadioButtonValue;
+    }
+}
+
+----------------------------------------------------------------------------------------
+
+--> Parent Component html
+
+
+<employee-count [all]="getTotalEmployeesCount()"
+                [male]="getMaleEmployeesCount()"
+                [female]="getFemaleEmployeesCount()"
+                (countRadioButtonSelectionChanged)="onEmployeeCountRadioButtonChange($event)">
+</employee-count>
+<br /><br />
+<table>
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>Annual Salary</th>
+            <th>Date of Birth</th>
+        </tr>
+    </thead>
+    <tbody>
+        <ng-container *ngFor="let employee of employees;">
+            <tr *ngIf="selectedEmployeeCountRadioButton=='All' ||
+                       selectedEmployeeCountRadioButton==employee.gender">
+                <td>{{employee.code | uppercase}}</td>
+                <td>{{employee.name | employeeTitle:employee.gender }}</td>
+                <td>{{employee.gender}}</td>
+                <td>{{employee.annualSalary | currency:'USD':true:'1.3-3'}}</td>
+                <td>{{employee.dateOfBirth | date:'dd/MM/y'}}</td>
+            </tr>
+        </ng-container>
+        <tr *ngIf="!employees || employees.length==0">
+            <td colspan="5">
+                No employees to display
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+1. onEmployeeCountRadioButtonChange($event) method is bound to the custom event - countRadioButtonSelectionChanged. 
+--> The $event object will have the selected radio button value as that is what is passed as the event payload from the nested component. 
+--> The event handler method (onEmployeeCountRadioButtonChange()) in the component class updates the property "selectedEmployeeCountRadioButton". --> This property is then used along with *ngIf structural directive to decide which employee objects to display in the table.
+
+2. On the <tr> element, we are using "ngIf" directive along with selectedEmployeeCountRadioButton property which controls the employee objects to display. 
+--> Notice, just above the <tr> element, we have introduced <ng-container> element and the "ngFor" directive is placed on this element. 
+--> If you are wondering why we have done this, Angular does not allow multiple structural directives to be placed on one element as shown below. 
+
+<tr *ngFor="let employee of employees;"
+    *ngIf="selectedEmployeeCountRadioButton=='All' || selectedEmployeeCountRadioButton==employee.gender">
+
+The above line of code raises the following error
+Can't have multiple template bindings on one element. Use only one attribute named 'template' or prefixed with *.
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+--> Story 
+
+1. Child Component raises voice of (All, Male, Female) using custom event
+2. Parent Compoent hears voice of (All, Male, Female) and filter list using ngIf
+
+
+1. Child component uses: 
+--> ngModel to bind with variable - selectedRadioButtonValue
+--> Custom event emitter emitting variable value
+--> event emitter to raise variable value - countRadioButtonSelectionChanged
+
+2. Parent component uses
+--> Use custom event in html
+--> Got value from $event and stores its value in variable - selectedEmployeeCountRadioButton
+--> Use ngIf to filter list using variable value
+
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+27. Interfaces in Angular 
+
+--> The business objects that we usually create in real-world applications like Employee, Customer, Order, Invoice etc, does not have a pre-defined type. 
+--> In this case, we can use an interface to create a custom type for our business object.
+--> Earlier, we defined object as: employees : any[]
+--> Also without interface, intellisense would not work which can lead to typo-errors.
+
+--> Add a new TypeScript file to the employee folder. Name it employee.ts. 
+export interface IEmployee {
+    code: string;
+    name: string;
+    gender: string;
+    annualSalary: number;
+    dateOfBirth: string;
+    department?: string;			--> optional property
+
+    computeMonthlySalary(annualSalary: number): number;
+}
+
+--> All properties are compulsory to use in class except optional property
+
+---------------------------------------------------------------------------------------------
+
+--> Class implementing Interface:
+
+import { IEmployee } from './employee';
+
+export class EmployeeListComponent {
+    employees: IEmployee[];
+}
+
+---------------------------------------------------------------------------------------------
+
+export class Employee implements IEmployee {
+    // All the interface mandatory properties are defined  
+    public code: string;
+    public name: string;
+    public gender: string;
+    public annualSalary: number;
+    public dateOfBirth: string;
+
+    constructor(code: string, name: string, gender: string,
+        annualSalary: number, dateOfBirth: string) {
+        this.code = code;
+        this.name = name;
+        this.gender = gender;
+        this.annualSalary = annualSalary;
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    // Implementation of the interface method
+    computeMonthlySalary(annualSalary: number): number {
+        return annualSalary / 12;
+    }
+}
+
+---------------------------------------------------------------------------------------------
+
+--> Shorthand syntax to implement Interface and initialise in constructor
+
+export interface IEmployee {
+    code: string;
+    name: string;
+    gender: string;
+    annualSalary: number;
+    dateOfBirth: string;
+}
+
+export class Employee implements IEmployee {
+
+    constructor(public code: string, public name: string, public gender: string,
+        public annualSalary: number, public dateOfBirth: string) {
+    }
+
+}
+
+---------------------------------------------------------------------------------------------
+
+--> It is common to prefix the interface name with capital letter "I".
+--> A class that implements an interface must provide implementation for all the interface members unless the members are marked as optional using the ? operator
+--> TypeScript interfaces exist for developer convenience and are not used by Angular at runtime. During transpilation, no JavaScript code is generated for an interface. It is only used by Typescript for type checking during development.
+
+---------------------------------------------------------------------------------------------
+
+28. Angular component lifecycle hooks
+
+--> A component has a lifecycle managed by Angular. Angular
+1. Creates the component
+2. Renders the component
+3. Creates and renders the component children
+4. Checks when the component data-bound properties change, and 
+5. Destroys the component before removing it from the DOM
+
+--> To tap into and react when these life cycle events occur, angular offers several lifecycle hooks
+--> ngOnChanges
+--> ngOnInit
+--> ngDoCheck
+--> ngAfterContentInit
+--> ngAfterContentChecked
+--> ngAfterViewInit
+--> ngAfterViewChecked
+--> ngOnDestroy
+
+
+--> The 3 most commonly used hooks are
+
+1. ngOnChanges	
+--> Executes, every time the value of an input property changes. The hook method receives a SimpleChanges object containing current and previous property values. This is called before ngOnInit
+
+
+2. ngOnInit	
+--> Executes after the constructor and after ngOnChange hook for the first time. It is most commonly used for component initialisation and retrieving data from a database
+
+3. ngOnDestroy	
+--> Executes just before angular destroys the component and generally used for performing cleanup
+
+
+--> There are 3 simple steps to use the Life Cycle Hooks
+Step 1 : import { OnInit } from '@angular/core';
+Step 2 : export class SimpleComponent implements OnInit { }
+Step 3 : Life cycle interface has a single hook method whose name is the interface name prefixed with ng.
+ngOnInit() {
+    console.log('OnInit Life Cycle Hook');
+}
+
+-------------------------------------------------
+
+--> Demo of ngOnChanges
+
+--> ngOnChanges is called, every time the value of an input property of a component changes
+
+--> SimpleComponent class
+
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+
+@Component({
+    selector: 'simple',
+    template: `You entered : {{simpleInput}}`
+})
+
+export class SimpleComponent implements OnChanges {
+    
+    @Input() simpleInput: string;
+
+    ngOnChanges(changes: SimpleChanges) {
+        for (let propertyName in changes) {
+            let change = changes[propertyName];
+            let current = JSON.stringify(change.currentValue);
+            let previous = JSON.stringify(change.previousValue);
+            console.log(propertyName + ': currentValue = '
+                + current + ', previousValue = ' + previous);
+        }
+    }
+}
+
+--> SimleChanges is the object provided by the angular framework containing current and previous property values
+
+-------------------------------------------------
+
+--> AppComponent Class
+
+import { Component } from '@angular/core';
+
+@Component({
+    selector: 'my-app',
+    template: `Your Text : <input type='text' [(ngModel)]='userText'/>
+               <br/><br/>
+               <simple [simpleInput]='userText'></simple>				--> using input property
+              `
+})
+export class AppComponent {
+    userText: string = 'Pragim';
+}
+
+---------------------------------------------------------------------------------------------
+
+1. Service Class
+
+--> Service class: A class with a specific purpose
+1. Share data
+2. Implement application logic (like calculate age and pass that to all components instead of birthdate)
+3. External Interaction
+
+
+2. Dependency Injection
+
+--> DI is a coding pattern in which a class receives its dependencies from external sources rather than creating them itself in constructor.
+
+--> Code without DI
+constructor()
+{
+	this.engine = new Engine();
+	this.tires = new Tires();
+}
+	
+--> Any change in Engine or Tires class like adding parameters to constructors would break the code
+--> So instead of creating object, we provide reference to that class
+--> Code with DI
+--> constructor(engine, tires)
+    {
+	this.engine = engines;
+	this.tires = tires;
+    }
+
+------------------------------------------------------------
+
+3. DI as a framework
+
+--> Problem with above approach is if parent component takes dependencies of one class and its child component takes dependencies of parent class.
+--> This looks like chain of dependencies
+--> This will break maintainability of code
+
+--> Here comes in picture DI as a framework
+--> Making service as Injector class at one source and any component can take dependency from that class only, not from any other component.
+--> To convert regular class to Injector class, we use Injector decorative.
+
+-------------------------------------------------------------------
+
+29. Angular services tutorial
+
+--> Services is referred to API services
+--> Services provides data
+--> The logic or data access is implemented once in a service, and the service can be used across all the components in our application.
+--> Without the service you would have to repeat your code in each component. 
+
+-----------------------------------------------------------------------
+
+--> Add new file 'employee.service.ts' in employee folder
+
+--> At the moment we have the data hard-coded in the service method
+
+
+import { Injectable } from '@angular/core';
+import { IEmployee } from './employee';
+
+@Injectable()
+export class EmployeeService {
+    getEmployees(): IEmployee[] {
+        return [
+            {
+                code: 'emp101', name: 'Tom', gender: 'Male',
+                annualSalary: 5500, dateOfBirth: '6/25/1988'
+            },
+            {
+                code: 'emp102', name: 'Alex', gender: 'Male',
+                annualSalary: 5700.95, dateOfBirth: '9/6/1982'
+            },
+            {
+                code: 'emp103', name: 'Mike', gender: 'Male',
+                annualSalary: 5900, dateOfBirth: '12/8/1979'
+            },
+            {
+                code: 'emp104', name: 'Mary', gender: 'Female',
+                annualSalary: 6500.826, dateOfBirth: '10/14/1980'
+            },
+            {
+                code: 'emp105', name: 'Nancy', gender: 'Female',
+                annualSalary: 6700.826, dateOfBirth: '12/15/1982'
+            },
+            {
+                code: 'emp106', name: 'Steve', gender: 'Male',
+                annualSalary: 7700.481, dateOfBirth: '11/18/1979'
+            },
+        ];
+    }
+}
+
+
+--> The @Injectable() decorator is used to inject other dependencies into this service. 
+--> As our service does not have any dependencies at the moment, we may remove the @Injectable() decorator and the service works exactly the same way. 
+--> However, Angular recomends to always use @Injectable() decorator to ensures consistency
+
+---------------------------------------------------------------------------------------------
+
+--> Injecting and using the service  
+
+
+import { Component, OnInit } from '@angular/core';
+import { IEmployee } from './employee';
+import { EmployeeService } from './employee.service';			--> Importing Service Class
+
+@Component({
+    selector: 'list-employee',
+    templateUrl: 'app/employee/employeeList.component.html',
+    styleUrls: ['app/employee/employeeList.component.css'],
+    providers: [EmployeeService]					--> Setting as Provider
+})
+
+export class EmployeeListComponent implements OnInit {
+    employees: IEmployee[];
+
+    selectedEmployeeCountRadioButton: string = 'All';
+
+    constructor(private _employeeService: EmployeeService) {		--> object initialises of class
+    }
+
+    ngOnInit() {
+        this.employees = this._employeeService.getEmployees();		--> data is accessed at this stage of component
+    }
+
+    getTotalEmployeesCount(): number {
+        return this.employees.length;
+    }
+
+    getTotalMaleEmployeesCount(): number {
+        return this.employees
+            .filter(e => e.gender === 'Male').length;
+    }
+
+    getTotalFemaleEmployeesCount(): number {
+        return this.employees.filter(e => e.gender === 'Female').length;
+    }
+
+    onEmployeeCountRadioButtonChange(selectedRadioButtonValue: string): void {
+        this.selectedEmployeeCountRadioButton = selectedRadioButtonValue;
+    }
+}
+
+--> In app.module.ts, set
+--> providers: [EmployeeService],	--> creating single instance
+--> This will make service available in whole application
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--> Difference between constructor and ngOnInit
+
+--> A class constructor is automatically called when an instance of the class is created. 
+--> It is generally used to initialise the fields of the class and it's sub classes. 
+
+--> ngOnInit is a life cycle hook method provided by Angular. 
+--> ngOnInit is called after the constructor and is generally used to perform tasks related to Angular bindings. 
+--> For example, ngOnInit is the right place to call a service method to fetch data from a remote server.
+--> We can also do the same using a class constructor, but the general rule of thumb is, tasks that are time consuming should use ngOnInit instead of the constructor. 
+--> As fetching data from a remote server is time consuming, the better place for calling the service method is ngOnInit.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+30. Creating ASP.NET Web API service
+
+Step 1 : Creates the Employees table and populate it with sample data
+
+Create Database EmployeeDB
+Go
+
+Use EmployeeDB
+Go
+
+Create table Employees
+(
+     code nvarchar(50) primary key,
+     name nvarchar(50),
+     gender nvarchar(50),
+     annualSalary decimal(18,3),
+     dateOfBirth nvarchar(50)
+)
+Go
+
+Insert into Employees values ('emp101', 'Tom', 'Male', 5500, '6/25/1988')
+Insert into Employees values ('emp102', 'Alex', 'Male', 5700.95, '9/6/1982')
+Insert into Employees values ('emp103', 'Mike', 'Male', 5900, '12/8/1979')
+Insert into Employees values ('emp104', 'Mary', 'Female', 6500.826, '10/14/1980')
+Insert into Employees values ('emp105', 'Nancy', 'Female', 6700.826, '12/15/1982')
+Insert into Employees values ('emp106', 'Steve', 'Male', 7700.481, '11/18/1979')
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+Step 2 : To keep Angular and Web API projects separate, let's create a new project for our Web API Service. Right click on "Angular2Demo" solution in the Solution Explorer and select Add - New Project.
+
+Step 3 : In the Add New Project window
+Select "Visual C#" under "Installed - Templates"
+From the middle pane select, ASP.NET Web Application
+Name the project "EmployeeWebAPIService" and click "OK" angular and asp.net web api
+Step 4 : On the next window, select "Web API" and click "OK". At this point you should have the Web API project created.
+
+Step 5 : Add ADO.NET Entity Data Model to retrieve data from the database. Right click on "EmployeeWebAPIService" project and select Add - New Item
+In the "Add New Item" window
+Select "Data" from the left pane
+Select ADO.NET Entity Data Model from the middle pane
+In the Name text box, type EmployeeDataModel and click Add angularjs 2 asp net entity framework example
+Step 6 : On the Entity Data Model Wizard, select "EF Designer from database" option and click next
+
+Step 7 : On the next screen, click "New Connection" button
+
+Step 8 : On "Connection Properties" window, set
+Server Name = (local)
+Authentication = Windows Authentication
+Select or enter a database name = EmployeeDB
+Click OK and then click Next
+Step 9 : On the nex screen, select "Employees" table and click Finish.
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+Adding Web API Controller
+
+1. Right click on the Controllers folder in EmployeeWebAPIService project and select Add - Controller
+
+2. Select "Web API 2 Controller - Empty" and click "Add"
+
+3. On the next screen set the Controller Name = EmployeesController and click Add
+
+4. Copy and paste the following code in EmployeesController.cs
+
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Http;
+
+namespace EmployeeWebAPIService.Controllers
+{
+    public class EmployeesController : ApiController
+    {
+        public IEnumerable<Employee> Get()
+        {
+            using(EmployeeDBEntities entities = new EmployeeDBEntities())
+            {
+                return entities.Employees.ToList();
+            }
+        }
+
+        public Employee Get(string code)
+        {
+            using (EmployeeDBEntities entities = new EmployeeDBEntities())
+            {
+                return entities.Employees.FirstOrDefault(e => e.code == code);
+            }
+        }
+    }
+}
+
+At this point when you navigate to /api/employees you will see all the employees as expected. However, when you navigate to /api/employees/emp101, we expect to see employee whose employee code is emp101, but we still see the list of all employees. 
+This is because the parameter name for the Get() method in EmployeesController is "code"
+
+public Employee Get(string code)
+{
+    using (EmployeeDBEntities entities = new EmployeeDBEntities())
+    {
+        return entities.Employees.FirstOrDefault(e => e.code == code);
+    }
+}
+
+but in the default Web API route in WebApiConfig.cs file the parameter name is {id}. Change this to "code" as shown below
+
+config.Routes.MapHttpRoute(
+    name: "DefaultApi",
+    routeTemplate: "api/{controller}/{code}",
+    defaults: new { code = RouteParameter.Optional }
+);
+
+With this change if we navigate to /api/employees/emp101 we see just that employee whose employee code is "emp101"
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+31. http class is depreciated and upgraded to HttpClient class
+
+--> https://angular.io/guide/deprecations#angularhttp
+--> It is probably because you have stable 6.5 version of RxJs installed instead of 7 alpha.
+v6 import: import {Observable} from "rxjs";
+v7 import: import {Observable} from rxjs/Observable;
+
++---------------------------------------------------------+
+¦                            ¦                            ¦
+¦ Angular-CLI version        ¦ Angular version            ¦
+¦                            ¦                            ¦
+¦----------------------------+----------------------------¦
+¦ angular-cli@0.1.0          ¦ Angular 2                  ¦
+¦----------------------------+----------------------------¦
+¦ @angular/cli@1.1.0         ¦ Angular 4.0.0              ¦
+¦----------------------------+----------------------------¦
+¦ @angular/cli@1.4.10        ¦ Angular 4.2.4              ¦
+¦----------------------------+----------------------------¦
+¦ @angular/cli@1.5.0         ¦ Angular 4.4                ¦
+¦----------------------------+----------------------------¦
+¦ @angular/cli@1.7.4         ¦ Angular 5.2.0              ¦
+¦----------------------------+----------------------------¦
+¦ @angular/cli@6.2.8         ¦ Angular 6.1.0              ¦
+¦----------------------------+----------------------------¦
+¦ @angular/cli@7.3.9         ¦ Angular 7.2.0              ¦
++---------------------------------------------------------+
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+32. Using Services
+
+--> Here are the steps to call the Web API service using the Angular builtin http service.
+
+--> The first step is to import HttpClientModule which is present in a separate javascript file - @angular/common/http.
+--> In Earlier versions of angular(upto angular4), we need to use HttpModule from @angular/http. 
+--> With this change we can now start using the angular built-in http service throughout our application to access web services over HTTP.
+
+-----------------------------------------------------------------------
+
+--> app.module.ts
+
+import { HttpClientModule } from '@angular/common/http';
+
+@NgModule({
+    imports: [
+        BrowserModule,
+        FormsModule,
+        HttpClientModule],
+
+-----------------------------------------------------------------------
+
+--> Http Mechanism
+
+--> EmpService send GET request to http class and http class sends GET request to API server
+--> After getting response from API to http, http sends Observable to EmpService
+--> http is medium between two
+--> Observable object need to be typecasted to javascript object using Interface class
+--> To convert Observable object to plain javascript object, components needs to use subscribe method.
+
+
+--> RxJs - Reactive Extensions for Javascript
+--> It is external library to work with Observables
+
+
+----------------------------------------------------------------------
+
+--> Service class which gets data from api
+--> employee.service.ts
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { IEmployee } from './employee-list/employee';
+import { Observable } from 'rxjs';
+
+
+@Injectable({
+  providedIn: 'root'
+})
+export class EmployeeService {
+
+  private _url = "http://localhost:51926/api/employees";
+  constructor(private http: HttpClient) { }
+
+  getEmployees(): Observable<IEmployee[]> {
+    return this.http.get<IEmployee[]>(this._url);
+  }
+}
+
+
+
+--> http.get returns Observalable<response>, so we need to convert it to Observable<IEmployee()> to use as a strong-typed object
+--> Earlier, we use map operator which is present in assembly of 'rxjs/Rx' for typecasting.
+
+--> Observable<IEmployee[]>	
+--> It is type casting of Observable object to an Employee array
+--> Consider it as an conversion of Observable to Javascript Array
+
+--> Subscribe
+--> Any component doesn't get data from service class until someone subscribes to it.
+or
+--> Any component doesn't get data from Observable data until someone subscribes to it.
+
+--------------------------------------------------------------------------------------------
+
+--> employee-list.component.ts
+
+--> ngOnInit() {
+        this._employeeService.getEmployees().subscribe((employeeData) => this.employees = employeeData);
+    }
+
+
+--> When Observer wants to consume data from Observable, he needs to subscribe to Observable (subscribe means gets data)
+--> So subscribe method is used, which takes parameter as api data of type Observable<IEmployee()> and binding to variable - employees
+--> Consider subscribe method as converter from Observable to javascript object
+--> Subscribe method is callback function which gets data from Observable/API asynchronously.
+--> So there can be error in getting data - success or failure.
+
+--------------------------------------------------------------------------------------------
+
+33. http error handling
+
+--> employee.service.ts
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';			--------->import HttpErrorResponse object
+import { IEmployee } from './employee-list/employee';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/catch';							--------> import catch method
+import 'rxjs/add/Observable/throw';							--------> import throw method
+
+@Injectable({
+  providedIn: 'root'
+})
+export class EmployeeService {
+
+  private _url = "http://localhost:51926/api/employees";
+  constructor(private http: HttpClient) { }
+
+  getEmployees(): Observable<IEmployee[]> {
+    return this.http.get<IEmployee[]>(this._url)
+      .catch(this.errorHandler);							--> catch takes parameter as method  (remember no called)
+  }
+
+  errorHandler(error: HttpErrorResponse) {						--------> errorHandler method
+    console.error(error);
+    return Observable.throw(error.message || "Server Error");
+  }
+}
+
+--------------------------------------------------------------------------------------------
+
+--> employeeList.component.ts
+
+  errorMsg: string;
+  statusMessage: string = 'Loading data. Please wait...';
+
+  ngOnInit(): void {
+    this._employeeService.getEmployees().subscribe(data => this.employees = data, error => this.errorMsg = error);
+  }
+
+--------------------------------------------------------------------------------------------
+
+--> employeeList.component.html
+
+	<tr *ngIf="!employees">
+            <td colspan="5">
+                {{statusMessage}}
+            </td>
+        </tr>
+        <tr *ngIf="errorMsg">
+            <td>{{ errorMsg }}</td>
+        </tr>
+
+
+--------------------------------------------------------------------------------------------
+
+34. Include Bootstrap
+
+--> npm install bootstrap
+--> npm install jquery
+--> paste following code in index.html
+
+<script src="/node_modules/jquery/dist/jquery.min.js"></script>
+<link href="/node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+<script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+
+--------------------------------------------------------------------------------------------
+
+35. Routing tutorial
+
+--> app-routing.module.ts
+
+const routes: Routes = [
+  { path: 'home', component: HomeComponent },
+  { path: 'employees', component: EmployeeListComponent },
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  { path: '**', component: PageNotFoundComponent }
+];
+
+--> localhost:4200/home
+--> localhost:4200/employees
+--> The order of the routes is very important. 
+--> When matching routes, Angular router uses first-match wins strategy.
+
+---------------------------------------------------------------------------------------
+
+--> app.component.html
+
+<app-navbar></app-navbar>			--> Here navbar component gets placed in all routes
+<router-outlet></router-outlet>			--> component will be displayed acc. to routes like /employees, /home
+                
+
+---------------------------------------------------------------------------------------
+
+--> navbar component html
+
+--> It takes a tag as:
+--> <a class="nav-link" routerLink="/employees">employees</a>
+
+-----------------------------------------------
+--> Code taken from bootstrap
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Navbar</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+        aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" routerLink="/home">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" routerLink="/employees">employees</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+--------------------------------------------------------------------------------------------
+
+36. Route parameters
+
+--> When we click on an Employee code, we want to redirect the user to Employee Component which displays that specific employee details. 
+--> In the URL we will pass the employee code as a parameter. 
+--> So clicking on EMP101 will redirect the user to URL (http://localhost/employees/emp101). 
+--> The Employee component will then read the parameter value from the URL and retrieves that specific employee details by calling the server side web service.
+
+-------------------------------------------------------------------------------------------------------
+
+--> Step1:
+--> In app-routing.module.ts, include this path, { path: 'employees/:code', component: EmployeeComponent }
+
+-------------------------------------------------------------------------------------------------------
+
+--> Step2: 
+--> In EmployeeListComponent, modify the <td> element
+
+<td>
+    <a [routerLink]="['/employees',employee.code]">
+        {{employee.code | uppercase}}
+    </a>
+</td>
+
+--> Notice in this example we are binding routerLink directive to an array.
+--> This array is called link parameters array.
+--> The first element in the array is the path of the route to the destination component.
+--> The second element in the array is the route parameter, in our case the employee code.
+
+-------------------------------------------------------------------------------------------------------
+
+--> Step3: 
+--> In Employee service component
+
+  getEmployeeByCode(empCode: string): Observable<IEmployee> {
+    return this.http.get<IEmployee>("http://localhost:51926/api/employees/" + empCode)
+      .catch(this.errorHandler);
+  }
+
+--> This method calls the server side Web API service which retrieves that specific employee details from the database.
+--> The employee code parameter is in the URL
+
+-------------------------------------------------------------------------------------------------------
+
+--> Step4:
+--> ng g c employee
+--> employee.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { IEmployee } from './employee';
+import { EmployeeService } from './employee.service';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+    selector: 'my-employee',
+    templateUrl: 'app/employee/employee.component.html',
+    styleUrls: ['app/employee/employee.component.css']
+})
+export class EmployeeComponent implements OnInit {
+    employee: IEmployee;
+    statusMessage: string = 'Loading data. Please wait...';
+
+    constructor(private _employeeService: EmployeeService,
+        private _activatedRoute: ActivatedRoute) { }					----------> ActivatedRoute --> helps to retrieve parameter from url
+
+    ngOnInit() {
+        let empCode: string = this._activatedRoute.snapshot.params['code'];
+        this._employeeService.getEmployeeByCode(empCode)
+            .subscribe((employeeData) => {
+                if (employeeData == null) {
+                    this.statusMessage =
+                        'Employee with the specified Employee Code does not exist';
+                }
+                else {
+                    this.employee = employeeData;
+                }
+            },
+            (error) => {
+                this.statusMessage =
+                    'Problem with the service. Please try again after sometime';
+                console.error(error);
+            });
+    }
+}
+
+
+--> To retrieve the parameter from the URL we are using the ActivatedRoute service provided by Angular 
+--> Since ActivatedRoute is provided as a service inject it into the constructor just like how we have injected EmployeeService
+--> There are different approaches to retrieve route parameters values.
+
+
+-------------------------------------------------------------------------------------------------------------
+
+--> employee.component.html
+
+<table *ngIf="employee">
+    <thead>
+        <tr>
+            <th colspan="2">
+                Employee Details
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Employee Code</td>
+            <td>{{employee.code}}</td>
+        </tr>
+        <tr>
+            <td>Name</td>
+            <td>{{employee.name}}</td>
+        </tr>
+        <tr>
+            <td>Gender</td>
+            <td>{{employee.gender}}</td>
+        </tr>
+        <tr>
+            <td>Annual Salary</td>
+            <td>{{employee.annualSalary}}</td>
+        </tr>
+        <tr>
+            <td>Date of Birth</td>
+            <td>{{employee.dateOfBirth}}</td>
+        </tr>
+    </tbody>
+</table>
+<div *ngIf="!employee">
+    {{statusMessage}}
+</div>
+
+-------------------------------------------------------------------------------------------------------------
+
+37. Dependency Injection
+
+--> We are getting services object using depending injectino only by defining in constructor
+--> constructor(private _employeeService: EmployeeService)
+--> At this point, the next question that comes to our mind is who is creating and providing the instance to the constructor.
+--> The answer to this question is the Angular Injector. 
+--> When an instance of EmployeeListComponent is created, the angular injector creates an instance of the EmployeeService class and provides it to the EmployeeListComponent constructor. 
+--> The constructor then assigns that instance to the private field _employeeService. 
+--> We then use this private field _employeeService to call the EmployeeService method getEmployees().
+
+
+--> What is Dependency Injection?
+--> It's a coding pattern in which a class receives its dependencies from an external source rather than creating them itself. 
+
+
+--> If not Dependency Injection
+1. This code is difficult to maintain over time
+2. Instances of dependencies created by a class that needs those dependencies are local to the class and cannot share data and logic.
+3. Hard to unit test
+
+
+--> With Dependency Injection
+1. Create applications that are easy to write and maintain over time as the application evolves
+2. Easy to share data and functionality as the angular injector provides a Singleton i.e a single instance of the service
+3. Easy to write and maintain unit tests as the dependencies can be mocked
+
+-------------------------------------------------------------------------------------------------------------
+
+38. Promises in Angular
+
+--> With Observable:
+
+--> Service class
+getEmployeeByCode(empCode: string): Observable<IEmployee> {
+    return this._http.get("http://localhost:24535/api/employees/" + empCode)
+        .map((response: Response) => <IEmployee>response.json())
+        .catch(this.handleError);
+}
+
+--> Component class, which is taking services
+
+ngOnInit() {
+    let empCode: string = this._activatedRoute.snapshot.params['code'];
+
+    this._employeeService.getEmployeeByCode(empCode)
+        .subscribe((employeeData) => {
+            if (employeeData == null) {
+                this.statusMessage =
+                    'Employee with the specified Employee Code does not exist';
+            }
+            else {
+                this.employee = employeeData;
+            }
+        },
+        (error) => {
+            this.statusMessage =
+                'Problem with the service. Please try again after sometime';
+            console.error(error);
+        });
+}
+
+-----------------------------------------------------------------------
+
+--> With Promises:
+    getEmployeeByCode(empCode: string): Promise<IEmployee> {
+        return this._http.get("http://localhost:24535/api/employees/" + empCode)
+            .map((response: Response) => <IEmployee>response.json())
+            .toPromise()
+            .catch(this.handlePromiseError);
+    }
+
+
+--> Component class, which is taking services
+
+ ngOnInit() {
+        let empCode: string = this._activatedRoute.snapshot.params['code'];
+        // The only change that we need to make here is use then() method instead of subscribe() method
+        this._employeeService.getEmployeeByCode(empCode)
+            .then((employeeData) => {
+                if (employeeData == null) {
+                    this.statusMessage =
+                        'Employee with the specified Employee Code does not exist';
+                }
+                else {
+                    this.employee = employeeData;
+                }
+            },
+            (error) => {
+                this.statusMessage =
+                    'Problem with the service. Please try again after sometime';
+                console.error(error);
+            });
+    }
+
+-------------------------------------------------------------------------------------------------------------
+
+39. Promises Vs Observables
+
+1. Emits a single value		Emits multiple values over a period of time
+2. Not Lazy			Lazy. An Observable is not called until we subscribe to the Observable
+3. Cannot be cancelled		Can be cancelled using the unsubscribe() method
+4. -				Observable provides operators like map, forEach, filter, reduce, retry, retryWhen etc.
+
+-------------------------------------------------------------------------------------------------------------
+
+38. Observable retry on error
+
+--> We will discuss, how to resubscribe and retry an Observable if there is an error.
+--> To resubscribe to the Observable and retry, use the rxjs retry operator
+
+--> employee.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { IEmployee } from './employee';
+import { EmployeeService } from './employee.service';
+import { ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
+
+// Import rxjs retry operator
+import 'rxjs/add/operator/retry';							---------------------> Import statement
+	
+
+@Component({
+    selector: 'my-employee',
+    templateUrl: 'app/employee/employee.component.html',
+    styleUrls: ['app/employee/employee.component.css']
+})
+export class EmployeeComponent implements OnInit {
+    employee: IEmployee;
+    statusMessage: string = 'Loading data. Please wait...';
+    retryCount: number = 1;
+
+    constructor(private _employeeService: EmployeeService,
+        private _activatedRoute: ActivatedRoute,
+        private _router: Router) { }
+
+    ngOnInit() {
+        let empCode: string = this._activatedRoute.snapshot.params['code'];
+
+        this._employeeService.getEmployeeByCode(empCode)
+            // Chain the retry operator to retry on error.
+            .retry()									-------------------> retry
+            .subscribe((employeeData) => {
+                if (employeeData == null) {
+                    this.statusMessage =
+                        'Employee with the specified Employee Code does not exist';
+                }
+                else {
+                    this.employee = employeeData;
+                }
+            },
+            (error) => {
+                this.statusMessage =
+                    'Problem with the service. Please try again after sometime';
+                console.error(error);
+            });
+    }
+
+    onBackButtonClick(): void {
+        this._router.navigate(['/employees']);
+    }
+}
+
+-------------------------------------------------------------------------------------------------------------
+
+1) .retry()	--> application keeps on retrying forever.
+2) .retry(3)	--> application immidiately retries when there is an error. In our case it is a connection issue with the service. We want some delays between each retry
+
+3) retry with delay -->
+
+import 'rxjs/add/operator/retrywhen';
+import 'rxjs/add/operator/delay';
+.retryWhen((err) => err.delay(1000))
+
+4)  .retry().delay(5000)		--> wrong --> it immediately retries instead of waiting for 5 seconds before a retry attempt.
+
+5) with retry and with delay (both)
+
+import 'rxjs/add/operator/retrywhen';
+import 'rxjs/add/operator/delay';
+import 'rxjs/add/operator/scan';
+.retryWhen((err) => {
+                return err.scan((retryCount, val) => {
+                    retryCount += 1;
+                    if (retryCount < 6) {
+                        this.statusMessage = 'Retrying...Attempt #' + retryCount;
+                        return retryCount;
+                    }
+                    else {
+                        throw (err);
+                    }
+                }, 0).delay(1000)
+            })
+
+-------------------------------------------------------------------------------------------------------------
+
+39. Angular observable unsubscribe
+
+--> Here is what we want to do. When the request to the server is in progress we want to display "Cancel Request" button.
+--> The "Cancel Request" button should only be visible to the user when there is a request in progress.
+--> This button should disappear when error or success events take place.
+
+--> html file
+<div style="margin-top:5px" *ngIf="!subscription.closed">				---> !subscription.closed --> means running request process
+    <input type="button" class="btn btn-primary" value="Cancel Request"
+           (click)="onCancelButtonClick()" />
+</div>
+
+-> class file
+--> import { ISubscription } from "rxjs/Subscription";
+--> subscription: ISubscription;								---> class variable
+--> this.subscription = this._employeeService.getEmployeeByCode(empCode).subscribe....		---> assigning to variable
+
+
+    onCancelButtonClick(): void {
+        this.statusMessage = 'Request cancelled';
+        this.subscription.unsubscribe();							---> unsubscribed to Observable process
+    }
+
+-------------------------------------------------------------------------------------------------------------
+
+40. Angular versions
+
+AngularJS	2010
+Angular 2	2014
+Angular 4	2016
+Angular 5	2017
+Angular 6	2018 (may)
+Angular 7	2018 (nov)
+Angular 8	2019
+Angular 9	2020
+
+-------------------------------------------------------------------------------------------------------------
+
+41. Next steps:
+
+--> How to perform CRUD (i.e Create, Read, Update & Delete) operations in Angular
+--> Angular forms will be used
+--> We will fully utilize api methods to modify data on server database
+
+-------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+

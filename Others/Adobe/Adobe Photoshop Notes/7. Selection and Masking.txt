@@ -1,0 +1,368 @@
+1. How to copy from one image portion to another-->
+
+--> This is done using marquee tool
+--> Example is tea and universe
+
+--> Create new canvas of size 1080 x 1080 (pixels)
+--> Import images of tea and universe.
+
+--> Select Rectangle Marquee tool
+--> Select square portion from tea image for instagram post (holding shift key for square)
+--> Edit --> Copy
+--> Paste in canvas tab
+
+--> Transform scale if image small or big compared to canvas.
+
+--------------------------------------------------------------------
+
+--> Similarly, select circle portion from universe image using marquee tool
+--> paste in canvas tab
+--> Trasform it and Move it
+--> Use keyboard arrow keys for fine adjustments.
+
+------------------------------------------------------------------
+
+2. How to crop images inside of Text-->
+
+--> Select Image
+--> Write Text
+--> Increate Text Size using Transform tool
+--> Make text layer below image layer
+
+--> Make sure Image Layer is selected
+--> From Layer tab --> Create Clipping Mask
+
+--> Can move the background for perfect visual.
+
+--> To Move, select both background and text, then use move tool.
+
+--------------------------------------------------------------------
+
+--> Applying background for image text
+
+--> Create new Layer
+--> Place below all layers
+--> Edit --> Fill
+--> Choose any color
+
+------------------------------------------------------------------
+
+--> Making Glitch Offset Image Type thing-->
+
+--> Select Show image
+--> Type Text D
+--> Create Clipping Mask
+--> Duplicate Image
+--> Place it below all layers, make some offset to D, now add below adjustments
+--> Make Low Lightness, to display D more vividly in image
+
+------------------------------------------------------------------
+
+3. How to remove the background--->
+
+--> Select Image
+--> Select Quick Selection Tool
+--> In Properties, there is + and - brush
+--> click on arrow button --> Make size of brush to 50 and hardness = 85%
+
+--> Click and drag in the object, it will automatically select object outline.
+--> This is replacement of Lasso tool
+
+--> Copy this and paste in required background image.
+
+--> If selection crosses object, select - brush.
+
+--> For finner object, we reduce size of brush.
+----------------------------------------------------------------
+
+--> Sometimes, for long and thin objects, we can not select quick selection tool in the object
+--> Select background of object, go to Select tab --> Inverse.
+--> This will inverse selection.
+
+---------------------------------------------------------------
+
+--> Shortcut keys-->
+
+Alt + Mouse scroll --> Zoom in/out
+Space + Mouse scroll --> To drag
+brackets beside P key --> To alter size of brush
+
+--> very very useful for fine object
+
+--> If + brush is selected, hold alt key to convert - sign brush, reduces time, and makes work faster
+
+
+-----------------------------------------------------------
+
+--> Shift + alt --> For transform scale from center
+--> Shift --> For transform scale from corner point
+
+-----------------------------------------------------------
+
+--> Drop Shadow
+--> Make distance=0, spread=20%, size=60%
+
+-----------------------------------------------------------
+
+--> Now, shoe is black and white, we can adjust Levels in adjustment to improve graynish contrast.
+
+--> Level will affect whole image, not only shoe.
+--> Select first icon below hologram. --> This will only affect below first layer that is shoe.
+
+-----------------------------------------------------------
+
+
+4. How to put text behind a person-->
+
+--> Select Image
+--> Select Object using Quick Selection tool
+--> Copy and Paste there only. ( object layer)
+--> Place the text Above all
+--> Drag this text layer between Background and object layer
+
+--> To see Image Size
+--> Image tab --> Image Size
+
+-----------------------------------------------------------
+
+5. How to create a layer mask-->
+
+--> It is just copy and paste with some extra features.
+--> Select Image and select object using quick selection tool
+--> Click on Layer Mask at right bottom
+
+--> Now see in layer, left is image and right is mask image
+
+--> Now drag this selected part to other image and transform and adjust it.
+--> Unlock the link between layer Image and mask
+--> Having Layer Image selected, now move the object image to adjust perfect view
+--> Lock the view
+
+--> This makes object selection from image better.
+--> Object can be made using quick selection tool or marquee tool.
+
+-------------------------------------------------------------------
+
+--> To display whole image without mask --> right click mask --> disable mask
+--> This will display whole object image at once.
+
+------------------------------------------------------------------
+
+--> Select Mask --> In Properties --> There are two options 
+--> Density and feather
+
+--> Increating feather, removes fine border giving some real border like object to give real tone.
+
+--> From now onwards, never do copy paste.
+-------------------------------------------------------------------
+
+6. How to use burn tool for shadow-->
+
+--> Select an Image
+--> Select an Object
+--> Click on Layer Mask
+--> Drag to another background image and set there.
+
+--> Now there is burn tool in toolbox 
+--> There are two tools in that --> dodge and burn
+--> dodge makes it light and burn makes it dark
+
+--> Increase or decrease brush size
+--> Hardness is smooth shadow or hard shadow
+--> Range is Shadows, Highlights and midtones
+--> Shadows used when there is darker background
+--> Highlights used when there is lighter background
+--> Exposure is how darker the shadow is
+
+--> Caplocks on/off makes brush to original size if you changed size.
+
+--> Now draw shadow.
+
+
+--> Make sure to duplicate background to see the difference of shadow in background image before and after.
+--> You can reduce the opacity of Shadow Layer, opacity option is just above Layers.
+
+--------------------------------------------------------------------
+
+--> There is property in quick selection tool --> Auto enhance --> It makes selection more finner --> and it takes more time in selection.
+--> It is checkbox in property, bydefault it is unchecked.
+
+-------------------------------------------------------------------
+
+--> If object is more lighter or darker than background, then use Levels for that object to make object of same tone with background.
+
+-------------------------------------------------------------------
+
+7. How to blend fade one image into another-->
+
+--> Blend means combine
+--> Combine two images in one
+--> One example is previous and after image of renovation house.
+
+--> Place one image(new) on top of another(old) by dragging and dropping from tab.
+--> Name new as New and background as Old
+
+--> Select New(Name) Layer
+--> Click on Layer Mask
+--> This will create white empty mask with no area hidden.
+
+--> Select this mask, click on Brush tool, increase its size
+--> In Foreground color in toolbox, choose black and white, black on upper side
+--> If foreground is gray in color, click on small displaying black and white above it.
+--> Click on two sided arrow, to switch between black and white
+
+--> Now in mask, black means hidden area and white means showing/displaying area
+--> Choose black in foreground.
+
+--> Make sure Mask is selected, Click and Drag the mouse over the portion where you want to show old image
+--> See in mask, now that portion is showing black where you dragged.
+
+--> To reverse, change foreground color to white.
+
+--> If Image is Selected instead of Mask, foreground color is actually drawn on image using brush.
+--> This happens when project is reopened, so default selected is image, not mask.
+
+-------------------------------------------------------------------
+
+8. How to weave text in and out of a Photoshop image-->
+
+--> Select Image
+--> Select Object
+--> Copy and Paste that Object in same Image
+--> Place Text between these two layers -- Background and object layer.
+
+--> Select Object Layer and click on Layer Mask
+--> Select Brush and Foreground black
+--> Make sure Mask is selected.
+
+--> Black that portion where you want to show text above person.
+
+--> Some magic is happened.
+
+-------------------------------------------------------------------
+
+9. How to select hair of person-->
+
+---> Using Fine brush for hair selection and
+---> Giving fine smooth edge to Quick selection Tool using Select and Mask option.
+
+--> Sometimes, Quick Selection Tool is not accurate because of less contrast between object and background.
+--> So after selecting object from image (not accurate one), we change background to black or white or other to give fine selection to object
+
+--> Select Image
+--> Select Person
+--> Click on Create Mask 
+--> In Properties of Mask, click Select and Mask
+--> Select View as Black and make opacity 100%.
+--> If object is darker, then use White View.
+
+--> In this, on right side, there are global (automatic) selections
+--> On left side, there are individual (manual) selections of an object.
+
+------------------------------------------------------------------
+
+--> On right side
+--> Smooth pointer --> Makes every edge of quick selection tool smooth
+--> Shift Edge pointer --> (+) or (-) selection tiny bit (inside and outside)
+--> Edge Detection --> not good , not bad, not mentioned use here
+
+---------------------------------------------------------------------
+
+--> On left side
+
+--> Select second tool
+--> It smoothens object edge with background when there is enough contrast between object and background, here hair and white background.
+--> Drag brush all border edges of hair and give fine smooth edge.
+
+--> Select Third tool
+--> It smoothens object edge with background when there is not enough contrast between object and background, means nearly same color, t-shirt and white background here.
+--> Drag brush all border of t-shirt and give fine smooth edge.
+
+-------------------------------------------------------------------
+
+--> In Output Settings--> tick Decontaminate Colors
+--> Click Okay
+
+--> This will create new mask layer
+--> Compare them with display on and off.
+
+--> Place this in new background image.
+------------------------------------------------------------------
+
+--> Balancing toner between object and new background-->
+
+1. Use Drop Shadow-->
+
+--> Make Distance Zero(0)
+--> Give Size Full(250)
+--> Reduce opacity (47)
+
+2. Use Levels-->
+
+--> Select mask
+--> Go to adjustments --> Levels
+--> Click first icon below levels to change only object contrast with backround.
+--> Adjust it.
+
+
+--> Two ways to maintain toner.
+--> Does not feel like it is placed in new image.
+-------------------------------------------------------------------
+
+10. How to select things with straight edges-->
+
+--> Answer is Lasso tool
+--> It is useful for hatcher job for quick selection objects without any finement
+--> Lasso tool is useful when background is plain and only want to select object roughly, if background is same, there will not be any contrast.
+--> Polygon contrast is useful when objects are of shapes, just use this tool to select object and use it anywhere.
+
+--------------------------------------------------------
+
+--> Select object from image using Lasso tool
+--> Copy and Paste it.
+--> Use this object if background is same and object is matching.
+
+--> similarly, select object with shape like any polygon and choose polygon lasso tool to select object.
+
+
+--> While copying pasting, make sure background image is selected.
+-----------------------------------------------------------
+
+11. How to get text to interact with ink and texts-->
+
+--> Different machines has different fonts.
+--> So how to transfer asd file with fonts that are not available in another machine
+--> Right click Text in psd file --> convert to Shape --> This is transferable now.
+--> But this shape is not editable. Only for display and can transform and move.
+
+------------------------------------------------------------------
+
+--> Select Ink Image
+--> Type Text Above it 
+--> Duplicate Ink Image
+--> Select specific inks objects for showing above texts.
+--> Click Mask Layer
+--> And move this layer above texts to create amazing picture of ink with text overlapping effect
+
+--------------------------------------------------------------------
+
+--> Giving shadow effect inside the Text-->
+
+--> Burn out is used for giving showing shadow for texture like images.
+--> 2nd method-->
+
+--> Make new layer above text
+--> Make this layer as Create Clipping Mask
+--> Any change in this layer would affect below layer i.e. Text here.
+--> Now provide black brush color to it.
+
+
+--> If this new layer is not created, then brushing with black color would affect int image also along with text.
+
+--> Reduce some opacity if needed.
+
+--> Put spread but less dense shadow after border(with larger brush)
+--> Put darker shadow small on border (with smaller brush)
+------------------------------------------------------------------
+
+

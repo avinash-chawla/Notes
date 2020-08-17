@@ -1,0 +1,163 @@
+1. EntityFramework
+
+--> We will use Database First Migration Approach 
+--> Install EntityFramework from package manager
+--> The main function of EntityFramework is as it gives DataContext object to talk with database
+--> So instead of passing model to view directly, we use DataContext object to query database
+
+----------------------------------------------------------------------------
+
+--> In Sample Database, create table-->
+
+create table tblEmployee
+(
+EmployeeId int primary key identity,
+Name nvarchar(20),
+Gender nvarchar(20),
+City nvarchar(20)
+)
+
+--> Model name is different from table name 
+
+----------------------------------------------------------------------------
+
+--> Models can be entities or business objects.
+--> Models gets populated with data from database using entity framework.
+
+Step1: Install entity framework using nuget package manager
+Step2: Add ApplicationContext.cs class file to the Models folder.
+Step3: Add a connection string to the web.config file, in the root directory
+Step4: Map "Employee" model class to the database table tblEmployee using "Table" attribute
+Step5: Make the required changes to "Details()" action method in "EmployeeController"
+Step6: Paste the following code in Applicatoin_Start() function in Global.asax file.Existing databases do not need, database initializer so it can be turned off.
+
+-------------------------------------------------------------------------------
+
+Step1: Install entity framework using nuget package manager
+
+-------------------------------------------------------------------------------
+
+Step2: Add ApplicationContext.cs class file to the Models folder.
+
+using System.Data.Entity;
+public class ApplicationContext : DbContext 
+    {
+        public DbSet<Employee> Employees { get; set; }
+    }
+
+
+--> place cursor before D in DbContext and press ctrl+(dot) or ctrl+. --> select first option --> automatically import that reference.
+--> The object of this class will be used as reference to talk with database
+--> This object is replacement of model class which to passed to view now.
+--> This class should be ApplicationContext bec. it can have many DataSets object each representing different table and hence different model class
+--> connectionString--> add name as ApplicationContext
+
+-------------------------------------------------------------------------------
+
+Step3: Add a connection string to the web.config file, in the root directory
+
+<connectionStrings>
+      <add name="ApplicationContext" connectionString="data source=LENOVOLAPTOP; database=mvcdemo; integrated security=SSPI" providerName="System.Data.SqlClient" />
+</connectionStrings>
+
+-------------------------------------------------------------------------------
+
+Step4: Map "Employee" model class to the database table tblEmployee using "Table" attribute
+
+    using System.ComponentModel.DataAnnotations.Schema;
+
+    [Table("tblEmployee")]
+    public class Employee
+    {
+        public int EmployeeId { get; set; }
+        public string Name { get; set; }
+        public string Gender { get; set; }
+        public string City { get; set; }
+    }
+
+--> EntityFramework will look for Employee table in database same as model name( DbSet<Employee> )--> default convention used by entityframework
+--> To change this convention, we use Table Attribute
+
+-------------------------------------------------------------------------------
+
+Step5: Make the required changes to "Details()" action method in "EmployeeController"
+
+public ActionResult Details(int id)
+        {
+            EmployeeContext employeeContext = new EmployeeContext();
+            Employee employee = employeeContext.Employees.Single(emp => emp.EmployeeId == id);
+
+            return View(employee);
+        }
+
+--> Above LINQ query is used --> Single
+
+
+-------------------------------------------------------------------------------
+
+Step6: Paste the following code in Applicatoin_Start() function in Global.asax -->
+
+--> To let application know, that we are using EntityFramework DataContext object, we have to mention in global.asax file
+
+using System.Data.Entity;
+protected void Application_Start()
+        {
+            Database.SetInitializer<MvcApplication2.Models.EmployeeContext>(null);		---> null means we dont want to create database
+            AreaRegistration.RegisterAllAreas();
+
+            WebApiConfig.Register(GlobalConfiguration.Configuration);
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+        }
+
+--> Entity provides two workflows: Database first and CodeFirst
+--> In Database first, we have to make database and then connect to application
+--> In CodeFirst, database is automatically generated using migrations
+
+--> Which workflow we are using, is determined from Database.SetInitializer
+--> In this, we are using DatabaseFirst Approach.
+
+-------------------------------------------------------------------------------
+
+2.
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

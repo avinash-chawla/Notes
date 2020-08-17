@@ -1,0 +1,13 @@
+--> Replacing null values in table after executing query set
+
+1. IsNull
+
+--> select E.Name as Employee, ISNULL (M.NAME, 'No Manager') as Manager
+
+--------------------------------------------------------------------------------------
+
+2. Coalesce
+
+--> select id, coalesce(firstName, middleName, lastName) as Name from tblEmployee
+
+--------------------------------------------------------------------------------------

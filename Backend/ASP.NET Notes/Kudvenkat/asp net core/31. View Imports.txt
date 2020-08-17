@@ -1,0 +1,53 @@
+1. Problem
+
+--> In view files, we give full reference of models location from project
+--> eg. @model ProjectName.Models.EmployeeModel
+--> To make it simple, we use View Imports.
+
+-----------------------------------------------------------------------------------
+
+2. View Imports
+
+--> It is used to include the common namespaces so we do not have to include them in every view that needs those namespaces. 
+
+--> Right click Views
+--> Add new item and search for view imporsts
+
+--> Paste following code:
+
+@using EmployeeManagement.Models;
+@using EmployeeManagement.ViewModels;
+
+
+--> EmployeeManagement is project Name
+
+-----------------------------------------------------------------------------------
+
+3. View files
+
+--> Now no need to import full namespace of models in view files.
+
+--> In details view
+@model HomeDetailsViewModel
+
+--> In Index view
+@model IEnumerable<Employee>
+
+-----------------------------------------------------------------------------------
+
+4. Summary
+
+--> _Viewlmports file is placed in the Views folder 
+--> Used to include the common namespaces 
+--> To include the common namespaces use @using directive 
+--> Other supported directives 
+- @addTagHelper 
+- @removeTagHelper 
+- @tagHelperPrefix 
+- @model 
+- @inherits 
+- @inject 
+
+--> _Viewlmports file is also hierarchical like View Start file
+
+-----------------------------------------------------------------------------------

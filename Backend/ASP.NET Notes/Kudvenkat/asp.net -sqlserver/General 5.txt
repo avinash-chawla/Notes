@@ -1,0 +1,69 @@
+1. Stored Procedures
+
+Create Procedure spGetEmployees
+as
+Begin
+  Select Name, Gender from tblEmployee
+End
+
+--> It is like a function which takes input parameters and generate output.
+
+-------------------------------------------------------------------------------------
+
+2. Input Parameters start with @
+
+Create Procedure spGetEmployeesByGenderAndDepartment 
+@Gender nvarchar(50),
+@DepartmentId int
+as
+Begin
+  Select Name, Gender from tblEmployee Where Gender = @Gender and DepartmentId = @DepartmentId
+End
+
+--> EXECUTE spGetEmployeesByGenderAndDepartment 'Male', 1
+--> EXECUTE spGetEmployeesByGenderAndDepartment @DepartmentId=1, @Gender = 'Male'
+
+-------------------------------------------------------------------------------------
+
+3. To view text of stored procedure
+
+--> sp_helptext		--> display text 
+--> sp_help		--> display information
+
+-------------------------------------------------------------------------------------
+
+4. Output Parameters 
+
+--> Ouput variable passed as Input Parameter only with out keyword
+
+Create Procedure spGetEmployeeCountByGender
+@Gender nvarchar(20),
+@EmployeeCount int Output
+as
+Begin
+ Select @EmployeeCount = COUNT(Id) 
+ from tblEmployee 
+ where Gender = @Gender
+End
+
+--> Execution:
+
+Declare @EmployeeTotal int
+Execute spGetEmployeeCountByGender 'Female', @EmployeeTotal output
+Print @EmployeeTotal
+
+-------------------------------------------------------------------------------------
+
+5. Looping 
+
+Declare @Number int
+Set @Number = 1
+While(@Number <= 255)
+Begin
+ Print CHAR(@Number)			--> CHAR converts ASCII to character
+ Set @Number = @Number + 1
+End
+
+-------------------------------------------------------------------------------------
+
+6.

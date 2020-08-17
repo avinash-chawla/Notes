@@ -1,0 +1,42 @@
+1. What is Tag Helpers
+
+--> Tag Helpers are server side components. 
+--> They are processed on the server to create and render HTML elements in Razor files. 
+--> Tag Helpers are similar to HTML helpers. 
+--> There are many built-in Tag Helpers for common tasks such as generating links, creating forms, loading assets etc.
+
+----------------------------------------------------------------------------------
+
+2. Importing built-in Tag Helpers
+
+--> To use built in tag helpers, we need to import them in View start file
+
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+----------------------------------------------------------------------------------
+
+3. Generating Links using Tag Helpers
+
+1. Using a tag
+<a href="/home/details/@employee.Id">View</a>
+
+2. Using html helper method
+@Html.ActionLink("View", "details", new { id = employee.Id })
+
+3. Using Url.Action method
+<a href=@Url.Action("details", "home", new { id = employee.Id })>View</a>
+
+4. Using tag helper method
+<a asp-controller="home" asp-action="details" asp-route-id="@employee.Id">View</a>
+
+
+--> Tag helper will generate link like <a href="/Home/details/5">View</a> at runtime
+
+----------------------------------------------------------------------------------
+
+4. Note
+
+--> If both view files are on same controller folder in Views folder, then no need of asp-controller attribute
+
+----------------------------------------------------------------------------------
+

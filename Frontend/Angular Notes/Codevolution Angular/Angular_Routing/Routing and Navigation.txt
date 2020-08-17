@@ -1,0 +1,326 @@
+1. Routing and Navigation
+
+--> ng new routing-demo --routing
+
+Step1: Include this module in app.module.ts
+--> import { AppRoutingModule } from './app-routing.module';
+--> imports: [
+    BrowserModule,
+    AppRoutingModule,
+
+
+Step2: In index.html, must include below in head tag
+--> <base href="/">
+--> Necessary for routing
+
+Step3: Configure the routes for different components
+--> ng g c employee-list -it -is	(it for inlined template, is for inlined style)
+--> ng g c department-list -it -is
+--> In app-routing.module.ts-->
+--> const routes: Routes = [
+  	{ path: 'departments', component: DepartmentListComponent },
+  	{ path: 'employees', component: EmployeeListComponent },
+
+
+Step4: Make place for component using <router-outlet></router-outlet> in app.component.html
+
+Step5: Make link buttons to navigate
+<a routerLink="/employees" routerLinkActive="active">Employees</a>
+<a routerLink="/departments">Departments</a>
+
+--> routerLinkActive is css class only
+--> a.active{
+	color: blue;
+    }
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+2. Making Department Component
+
+--> ng g c department-list
+--> ng g c department-detail
+
+--> Department List.ts
+
+departments = [
+    { "id": 1, "name": "Angular" },
+    { "id": 2, "name": "React" },
+    { "id": 3, "name": "Vue" },
+    { "id": 4, "name": "JQuery" },
+    { "id": 5, "name": "Bootstrap" },
+  ]
+
+---------------------------------------------------------------
+
+--> Department List.html
+
+<div class="container">
+    <h3 class="header">Department List</h3>
+    <table class="table table-bordered table-hover mt-5">
+        <thead class="thead-dark">
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let department of departments">
+                <td>{{ department.id }}</td>
+                <td>{{ department.name}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+---------------------------------------------------------------
+
+--> In app-routing.module.ts-->
+--> const routes: Routes = [
+  	{ path: 'departments', component: DepartmentListComponent },
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+3. Route Parameters
+
+--> When we click on Id of Department List, it should navigate to Department Details component i.e. departments/:id	--> request params
+--> ng g c department-detail
+
+--> In app-routing.module.ts-->
+--> const routes: Routes = [
+  	{ path: 'departments', component: DepartmentListComponent }
+  	{ path: 'departments/:id', component: DepartmentDetailComponent },
+
+---------------------------------------------------------------
+
+--> Department List.html
+
+<td (click)="onSelect(department)">{{ department.id }}</td>		--> Sending department data to function
+
+---------------------------------------------------------------
+
+--> Department List.ts
+
+--> import { Router } from '@angular/router';
+
+--> constructor(private router: Router) { }
+
+--> onSelect(department) {
+    	this.router.navigate(['/departments', department.id])
+    	console.log(department);
+    }
+
+--> Router service helps to construct new url 
+--> navigate methods takes Links parameter array as parameter	--> all the information angular need to construct url
+--> first argument is url and second argument is request params
+
+--> When you click on Id in DepartmentList, you will navigate to departments/:id
+
+---------------------------------------------------------------
+
+--> Read Request param in department-details
+
+--> department details.ts
+
+--> import { ActivatedRoute } from '@angular/router';
+--> public departmentId;
+--> constructor(private route: ActivatedRoute) {
+    }
+
+--> ngOnInit() {
+    	let id = parseInt(this.route.snapshot.paramMap.get('id'));
+    	this.departmentId = id;
+    } 
+
+--> department details.html
+--> <h3>You have selected Department with Id: {{ departmentId }}</h3>
+
+
+--> Router is used to create url
+--> ActivatedRoute is used to read url param
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+4. paramMap Observable
+
+--> Snapshot method has some drawback
+--> When we navigate back to same component using next/previous button, snapshot won't work to retrieve id from url
+--> Bec. angular figures out that if he needs to reinitialise component or reuse the same component
+--> In Snapshot, same component is rendered instead of reinitialization of component
+
+---------------------------------------------------------------
+
+--> department detail.html
+
+<h3>You have selected Department with Id: {{ departmentId }}</h3>
+<a class="btn btn-primary text-light m-2" (click)="onPrevious()">Previous</a>
+<a class="btn btn-primary text-light m-2" (click)="onNext()">Next</a>
+
+---------------------------------------------------------------
+
+--> department detail.ts
+
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+
+@Component({
+  selector: 'app-department-detail',
+  templateUrl: './department-detail.component.html',
+  styleUrls: ['./department-detail.component.css']
+})
+export class DepartmentDetailComponent implements OnInit {
+  public departmentId;
+  constructor(private route: ActivatedRoute, private router: Router) {
+  }
+
+  ngOnInit() {
+    // let id = parseInt(this.route.snapshot.paramMap.get('id'));
+    // this.departmentId = id;
+      this.route.paramMap.subscribe((params: ParamMap) => {
+      let id = parseInt(params.get('id'));
+      this.departmentId = id;
+    })
+  }
+
+  onPrevious() {
+    let previousId = this.departmentId - 1;
+    this.router.navigate(['/departments', previousId])
+  }
+
+  onNext() {
+    let nextId = this.departmentId + 1;
+    this.router.navigate(['/departments', nextId])
+  }
+}
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+5. Optional Route Parameters
+
+--> like "/departments?id=4"	--> send by departmentDetails to departmentList component as a optional parameter to make use of that like class binding
+
+--> Department Details.html
+--> add below:
+--> <div><a class="btn btn-primary text-light m-2" (click)="onDepartments()">Back To List</a></div>
+
+---------------------------------------------------------------
+
+--> department detail.ts
+
+  onDepartments() {
+    let selectedId = this.departmentId ? this.departmentId : null;
+    this.router.navigate(['/departments', { id: selectedId }])				--> this is optional parameter in object
+  }
+
+--> We can pass multiple keyvalue pairs in object for multiple optional parameters
+
+---------------------------------------------------------------
+
+--> Retrieving Optional parameter in Department List
+
+--> Department List.ts
+
+--> import { Router, ActivatedRoute, ParamMap } from '@angular/router';
+--> public selectedId;
+--> constructor(private router: Router, private route: ActivatedRoute) { }
+
+--> ngOnInit(): void {
+     this.route.paramMap.subscribe((params: ParamMap) => {
+      let id = parseInt(params.get('id'));
+      this.selectedId = id;
+    })
+  }
+
+--> isSelected(department) {
+    	return department.id === this.selectedId;
+    }
+
+---------------------------------------------------------------
+
+--> Department List.html
+--> <tr *ngFor="let department of departments" [class.table-active]="isSelected(department)">
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+6. Relative Navigation 
+
+--> Suppose, you have to change to url from /departments to /department-list
+--> Then you have to change it at app-routing.module.ts, department component in navigate method, departmentdetail component navigate method
+--> There is full chance that you forget the places
+
+--> DepartmentList navigate method
+
+  onSelect(department) {
+    // this.router.navigate(['/departments', department.id])
+    this.router.navigate([department.id], { relativeTo: this.route });
+  }
+
+--> first parameter is Link parameter array, we are passing only :id that is department.id
+--> second parameter is current url
+--> Means add :id to current url
+
+--------------------------------------------------------------
+
+--> DepartmentDetails navigate method
+
+  onDepartments() {
+    let selectedId = this.departmentId ? this.departmentId : null;
+    // this.router.navigate(['/departments', { id: selectedId }])
+    this.router.navigate(['../', { id: selectedId }], { relativeTo: this.route })
+  }
+
+--> first parameter is Link parameter array, '../' means go back one point, then add id in optional parameter
+--> second parameter is current url
+--> means first add (-), then add (?id) to the current url
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+7. Child Routes
+
+--> departments/1/overview
+--> departments/1/contact
+
+--> Routes only available inside department-detail
+
+--> ng g c department-overview
+--> ng g c department-contact
+
+--------------------------------------------------------------
+
+--> app-routing.module.ts
+
+  { path: 'departments', component: DepartmentListComponent },
+  {
+    path: 'departments/:id',
+    component: DepartmentDetailComponent,
+    children: [
+      { path: 'overview', component: DepartmentOverviewComponent },
+      { path: 'contact', component: DepartmentContactComponent }
+    ]
+  }
+
+--------------------------------------------------------------
+
+--> department-detail.html
+
+<button class="btn btn-success text-light m-2" (click)="showOverview()">Overview</button>
+<button class="btn btn-success text-light m-2" (click)="showContact()">Contact</button>
+
+--------------------------------------------------------------
+
+--> department-detail.ts
+
+  showOverview() {
+    this.router.navigate(['overview'], { relativeTo: this.route });
+  }
+
+  showContact() {
+    this.router.navigate(['contact'], { relativeTo: this.route });
+  }
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+8. 
+
+
+

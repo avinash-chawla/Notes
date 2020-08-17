@@ -1,0 +1,195 @@
+--> ADO.NET DataSet
+
+1. Intro
+
+--> It is a collection of data tables that contain the data. 
+--> It is used to fetch data without interacting with a Data Source that's why, it also known as disconnected data access method. 
+
+--> It is an in-memory data store that can hold more than one table at the same time.
+-- We can use DataRelation object to relate these tables. 
+
+--> The DataSet can also be used to read and write data as XML document.
+
+--------------------------------------------------------------------------------
+
+2. DataSet Class Signature
+
+public class DataSet : System.ComponentModel.MarshalByValueComponent, System.ComponentModel.IListSource,   
+System.ComponentModel.ISupportInitializeNotification, System.Runtime.Serialization.ISerializable,   
+System.Xml.Serialization.IXmlSerializable 
+
+
+--> It is not part of System.Data Namespace.
+ 
+--------------------------------------------------------------------------------
+
+3. DataSet Constructors
+
+
+DataSet()					It is used to initialize a new instance of the DataSet class.
+DataSet(String)					It is used to initialize a new instance of a DataSet class with the given name.
+DataSet(SerializationInfo, StreamingContext)	It is used to initialize a new instance of a DataSet class that has the given serialization information and context.
+DataSet(SerializationInfo, StreamingContext, Boolean)	It is used to initialize a new instance of the DataSet class.
+
+--------------------------------------------------------------------------------
+
+4. DataSet Properties
+
+CaseSensitive		It is used to check whether DataTable objects are case-sensitive or not.
+DataSetName		It is used to get or set name of the current DataSet.
+DefaultViewManager	It is used to get a custom view of the data contained in the DataSet to allow filtering and searching.
+HasErrors		It is used to check whether there are errors in any of the DataTable objects within this DataSet.
+IsInitialized		It is used to check whether the DataSet is initialized or not.
+Locale			It is used to get or set the locale information used to compare strings within the table.
+Namespace		It is used to get or set the namespace of the DataSet.
+Site			It is used to get or set an ISite for the DataSet.
+Tables			It is used to get the collection of tables contained in the DataSet.
+
+--------------------------------------------------------------------------------
+
+5. DataSet Methods
+
+BeginInit()			It is used to begin the initialization of a DataSet that is used on a form.
+Clear()				It is used to clear the DataSet of any data by removing all rows in all tables.
+Clone()				It is used to copy the structure of the DataSet.
+Copy()				It is used to copy both the structure and data for this DataSet.
+CreateDataReader(DataTable[])	It returns a DataTableReader with one result set per DataTable.
+CreateDataReader()		It returns a DataTableReader with one result set per DataTable.
+EndInit()			It ends the initialization of a DataSet that is used on a form.
+GetXml()			It returns the XML representation of the data stored in the DataSet.
+GetXmlSchema()			It returns the XML Schema for the XML representation of the data stored in the DataSet.
+Load(IDataReader, LoadOption, DataTable[])	It is used to fill a DataSet with values from a data source using the supplied IDataReader.
+Merge(DataSet)			It is used to merge a specified DataSet and its schema into the current DataSet.
+Merge(DataTable)		It is used to merge a specified DataTable and its schema into the current DataSet.
+ReadXml(XmlReader, XmlReadMode)	It is used to read XML schema and data into the DataSet using the specified XmlReader and XmlReadMode.
+Reset()	It is used to clear all tables and removes all relations, foreign constraints, and tables from the DataSet.
+WriteXml(XmlWriter, XmlWriteMode)	It is used to write the current data and optionally the schema for the DataSet using the specified XmlWriter and XmlWriteMode.
+
+--------------------------------------------------------------------------------
+
+6. Code Demo
+
+SqlConnection sqlConnection = new SqlConnection("Data Source=DESKTOP-AKRLGCH;Initial Catalog=CTMDB1;Integrated Security=true;");                SqlCommand sqlCommand = new SqlCommand();                
+
+SqlDataAdapter adapter = new SqlDataAdapter();                
+DataSet ds = new DataSet();                
+
+sqlCommand.CommandText = "Select * from Employees";                
+sqlCommand.Connection = sqlConnection;                
+
+adapter.SelectCommand = sqlCommand;                
+
+adapter.Fill(ds);                
+
+for (int i = 0; i <= ds.Tables[0].Rows.Count - 1; i++)                
+{                   
+	Console.WriteLine(ds.Tables[0].Rows[i].ItemArray[0] + " -- " + ds.Tables[0].Rows[i].ItemArray[1]);  
+}                
+
+Console.ReadKey();            
+
+}        
+}   
+
+--------------------------------------------------------------------------------
+
+7. Code Demo with Grid View
+
+using System;  
+using System.Data.SqlClient;  
+using System.Data;  
+namespace DataSetExample  
+{  
+    public partial class DataSetDemo : System.Web.UI.Page  
+    {  
+        protected void Page_Load(object sender, EventArgs e)  
+        {  
+            using (SqlConnection con = new SqlConnection("data source=.; database=student; integrated security=SSPI"))  
+            {  
+                SqlDataAdapter sde = new SqlDataAdapter("Select * from student", con);  
+                DataSet ds = new DataSet();  
+                sde.Fill(ds);  
+                GridView1.DataSource = ds;  
+                GridView1.DataBind();  
+            }  
+        }  
+    }  
+}   
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

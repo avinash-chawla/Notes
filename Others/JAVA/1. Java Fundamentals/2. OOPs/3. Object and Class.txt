@@ -1,0 +1,319 @@
+1. What is an object in Java
+
+--> An entity that has state and behavior is known as an object e.g., chair, bike, marker, pen, table, car, etc. 
+--> It can be physical or logical (tangible and intangible). The example of an intangible object is the banking system.
+
+--------------------------------------------------------------------------------
+
+2. Characteristics of Object
+
+--> An object has three characteristics:
+
+1. State: represents the data (value) of an object.
+2. Behavior: represents the behavior (functionality) of an object such as deposit, withdraw, etc.
+3. Identity: An object identity is typically implemented via a unique ID. The value of the ID is not visible to the external user. However, it is used internally by the JVM to identify each object uniquely.
+
+--------------------------------------------------------------------------------
+
+3. Object is instance of a class
+
+--> An object is an instance of a class. A class is a template or blueprint from which objects are created. So, an object is the instance(result) of a class.
+
+--> Object Definitions:
+
+An object is a real-world entity.
+An object is a runtime entity.
+The object is an entity which has state and behavior.
+The object is an instance of a class.
+
+--------------------------------------------------------------------------------
+
+4. What is a class in Java
+
+--> A class is a group of objects which have common properties. It is a template or blueprint from which objects are created. It is a logical entity. It can't be physical.
+
+
+--> A class in Java can contain:
+
+Fields
+Methods
+Constructors
+Blocks
+Nested class and interface
+
+--------------------------------------------------------------------------------
+
+5. Syntax to declare a class:
+
+class <class_name>{  
+    field;  
+    method;  
+}  
+
+--------------------------------------------------------------------------------
+
+6. Instance variable in Java
+
+--> A variable which is created inside the class but outside the method is known as an instance variable. Instance variable doesn't get memory at compile time. It gets memory at runtime when an object or instance is created. That is why it is known as an instance variable.
+
+--------------------------------------------------------------------------------
+
+7. Method in Java
+
+--> In Java, a method is like a function which is used to expose the behavior of an object.
+
+--> Advantage of Method
+1. Code Reusability
+2. Code Optimization
+
+--------------------------------------------------------------------------------
+
+8. new keyword in Java
+
+--> The new keyword is used to allocate memory at runtime. All objects get memory in Heap memory area.
+
+--------------------------------------------------------------------------------
+
+9. Object and Class Example: main within the class
+
+class Student{  
+ //defining fields  
+ int id;//field or data member or instance variable  
+ String name;  
+ //creating main method inside the Student class  
+ public static void main(String args[]){  
+  //Creating an object or instance  
+  Student s1=new Student();//creating an object of Student  
+  //Printing values of the object  
+  System.out.println(s1.id);//accessing member through reference variable  
+  System.out.println(s1.name);  
+ }  
+}  
+
+--------------------------------------------------------------------------------
+
+10. Object and Class Example: main outside the class
+
+--> In real time development, we create classes and use it from another class. It is a better approach than previous one.
+
+class Student{  
+ int id;  
+ String name;  
+}  
+//Creating another class TestStudent1 which contains the main method  
+class TestStudent1{  
+ public static void main(String args[]){  
+  Student s1=new Student();  
+  System.out.println(s1.id);  
+  System.out.println(s1.name);  
+ }  
+}  
+
+--------------------------------------------------------------------------------
+
+11. 3 Ways to initialize object
+
+--> There are 3 ways to initialize object in Java.
+
+1. By reference variable
+2. By method
+3. By constructor
+
+--------------------------------------------------------------------------------
+
+
+12. Object and Class Example: Initialization through reference
+
+--> Initializing an object means storing data into the object. Let's see a simple example where we are going to initialize the object through a reference variable.
+
+class Student{  
+ int id;  
+ String name;  
+}  
+class TestStudent2{  
+ public static void main(String args[]){  
+  Student s1=new Student();  
+  s1.id=101;  
+  s1.name="Sonoo";  
+  System.out.println(s1.id+" "+s1.name);//printing members with a white space  
+ }  
+}  
+
+--------------------------------------------------------------------------------
+
+13. Object and Class Example: Initialization through method
+
+--> In this example, we are creating the two objects of Student class and initializing the value to these objects by invoking the insertRecord method. Here, we are displaying the state (data) of the objects by invoking the displayInformation() method.
+
+File: TestStudent4.java
+
+class Student{  
+ int rollno;  
+ String name;  
+ void insertRecord(int r, String n){  
+  rollno=r;  
+  name=n;  
+ }  
+ void displayInformation(){System.out.println(rollno+" "+name);}  
+}  
+class TestStudent4{  
+ public static void main(String args[]){  
+  Student s1=new Student();  
+  Student s2=new Student();  
+  s1.insertRecord(111,"Karan");  
+  s2.insertRecord(222,"Aryan");  
+  s1.displayInformation();  
+  s2.displayInformation();  
+ }  
+}  
+
+--------------------------------------------------------------------------------
+
+14. What are the different ways to create an object in Java?
+
+--> There are many ways to create an object in java. They are:
+
+1. By new keyword
+2. By newInstance() method
+3. By clone() method
+4. By deserialization
+5. By factory method etc.
+
+
+--------------------------------------------------------------------------------
+
+15. Anonymous object
+
+--> Anonymous simply means nameless. An object which has no reference is known as an anonymous object. It can be used at the time of object creation only.
+
+--> If you have to use an object only once, an anonymous object is a good approach. For example:
+
+new Calculation();//anonymous object  
+Calling method through a reference:
+
+Calculation c=new Calculation();  
+c.fact(5);  
+Calling method through an anonymous object
+
+new Calculation().fact(5);  
+Let's see the full example of an anonymous object in Java.
+
+class Calculation{  
+ void fact(int  n){  
+  int fact=1;  
+  for(int i=1;i<=n;i++){  
+   fact=fact*i;  
+  }  
+ System.out.println("factorial is "+fact);  
+}  
+public static void main(String args[]){  
+ new Calculation().fact(5);//calling method with anonymous object  
+}  
+}  
+
+
+--------------------------------------------------------------------------------
+
+16. Creating multiple objects by one type only
+
+--> We can create multiple objects by one type only as we do in case of primitives.
+
+--> Initialization of primitive variables:
+
+int a=10, b=20;  
+Initialization of refernce variables:
+
+Rectangle r1=new Rectangle(), r2=new Rectangle();//creating two objects  
+Let's see the example:
+
+//Java Program to illustrate the use of Rectangle class which  
+//has length and width data members  
+class Rectangle{  
+ int length;  
+ int width;  
+ void insert(int l,int w){  
+  length=l;  
+  width=w;  
+ }  
+ void calculateArea(){System.out.println(length*width);}  
+}  
+class TestRectangle2{  
+ public static void main(String args[]){  
+  Rectangle r1=new Rectangle(),r2=new Rectangle();//creating two objects  
+  r1.insert(11,5);  
+  r2.insert(3,15);  
+  r1.calculateArea();  
+  r2.calculateArea();  
+}  
+}  
+
+--------------------------------------------------------------------------------
+
+17. Real World Example: Account
+
+//Java Program to demonstrate the working of a banking-system  
+//where we deposit and withdraw amount from our account.  
+//Creating an Account class which has deposit() and withdraw() methods  
+class Account{  
+int acc_no;  
+String name;  
+float amount;  
+//Method to initialize object  
+void insert(int a,String n,float amt){  
+acc_no=a;  
+name=n;  
+amount=amt;  
+}  
+//deposit method  
+void deposit(float amt){  
+amount=amount+amt;  
+System.out.println(amt+" deposited");  
+}  
+//withdraw method  
+void withdraw(float amt){  
+if(amount<amt){  
+System.out.println("Insufficient Balance");  
+}else{  
+amount=amount-amt;  
+System.out.println(amt+" withdrawn");  
+}  
+}  
+//method to check the balance of the account  
+void checkBalance(){System.out.println("Balance is: "+amount);}  
+//method to display the values of an object  
+void display(){System.out.println(acc_no+" "+name+" "+amount);}  
+}  
+//Creating a test class to deposit and withdraw amount  
+class TestAccount{  
+public static void main(String[] args){  
+Account a1=new Account();  
+a1.insert(832345,"Ankit",1000);  
+a1.display();  
+a1.checkBalance();  
+a1.deposit(40000);  
+a1.checkBalance();  
+a1.withdraw(15000);  
+a1.checkBalance();  
+}}   
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
