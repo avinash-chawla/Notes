@@ -107,7 +107,7 @@ IReadOnlyList<T> FindAsync(Expression<Func<T, bool>> query)
 
 -----------------------------------------------------------------------------------------
 
-7. Evolution
+7. Evolution of Architecture
 
 1. Simple Context object of ef framework
 2. General Repository
@@ -123,24 +123,24 @@ IReadOnlyList<T> FindAsync(Expression<Func<T, bool>> query)
 2. Generic Repository
 
 --> It is placeholder for any object type and fill in the gap for all
---> This helps in not repeating code for every domain model and same template for all for returning IQueryable object.
+--> This helps in not repeating code (for every domain model) and same template for all for returning IQueryable object.
 --> Whenever you see template is repeating, solution is Generic.
 
 --> Generic Repository drawback: It does not contain 'include' and criteria search much in better way. 
---> Because it can contain expressions which will be complex, so solution is object.
+--> Because it can contain expressions which will be complex, so solution is use object.
 
 -----------------------------------------------------------------------------------------
 
 3. Specification Pattern
 
 --> It makes seperate object for including specification needed in Generic Repository.
---> This spec object will return Generic expressions - Criteria and Includes
+--> This spec object will return Generic expressions - Criteria and Includes eg. Expression<Func<T, bool>> 
 
 --> This will pass to Generic Repository and attach to Generic IQueryable List with Aggragate function.
 
 -----------------------------------------------------------------------------------------
 
-
+8. 
 
 -----------------------------------------------------------------------------------------
 

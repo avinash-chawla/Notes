@@ -94,8 +94,6 @@ public static string SummarizeText(string text, int maxLength = 20)
                 }
 
                 return String.Join(" ", summaryWords) + "...";
-
-
             }
         }
 
@@ -103,8 +101,8 @@ public static string SummarizeText(string text, int maxLength = 20)
 
 4. String Builder-->
 
---> this class is used to make string mutable
---> but this class does not have methods like IndexOf(), Contains(), StartsWith() basically for searching
+--> This class is used to make string mutable
+--> But this class does not have methods like IndexOf(), Contains(), StartsWith() basically for searching
 --> it is defined in System.text class
 --> it has methods like append, insert, remove, replace, cl ear
 
@@ -144,6 +142,7 @@ public static string SummarizeText(string text, int maxLength = 20)
 
 
 ------------------------------------------------------------------------
+
 Console.Write("Whats your name: ");
 var name = Console.ReadLine();
 
@@ -153,14 +152,16 @@ for(int i = name.Length, i>0; i--){
 	array[name.Length-i] = name[i-1];
 }
 
-var reversed = new string(array);
+var reversed = new String(array);
 Console.WriteLine("Reversed name: " + reversed);
 
 or 
 
 var reversed = String.Join("", array);
 Console.WriteLine("Reversed name: " + reversed);
+
 -----------------------------------------------------------------------
+
 to-->
 
 public static string reverseName(string name)

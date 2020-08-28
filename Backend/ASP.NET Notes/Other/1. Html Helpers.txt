@@ -1,0 +1,148 @@
+1. HTML Helpers are categorized into three types:
+
+1. Inline HTML helpers
+2. Built-in HTML helpers
+3. Custom HTML helpers
+
+-------------------------------------------------------------------------------------
+
+2. Inline Html Helpers
+
+--> @helper syntax is used to create reusable inline helper method. 
+--> They make the code more reusable, as well as more readable.
+
+@{  
+    Layout = null;  
+}  
+  
+@helper OrderedList(string[] words)  
+{  
+    <ol>  
+        @foreach(string word in words)  
+        {  
+            <li>@word</li>  
+        }  
+    </ol>  
+}  
+<!DOCTYPE html>  
+  
+<html>  
+<head>  
+    <meta name="viewport" content="width=device-width" />  
+    <title>Inline HTML Helper</title>  
+</head>  
+<body>  
+    <div>   
+        @OrderedList(new string[]{"Delhi","Punjab","Assam","Bihar"})  
+  
+    </div>  
+</body>  
+</html> 
+-------------------------------------------------------------------------------------
+
+3. Inline Helper methods across different Views
+
+--> There is a folder in project --> App_Code
+--> Place this view file containing this method
+
+@helper OrderedList(string[] words)  
+{  
+    <ol>  
+        @foreach (string word in words)  
+        {  
+            <li>@word</li>  
+        }  
+    </ol>  
+}
+
+--> To use this method in other views, 
+
+@InlineHelplerCode.OrderedList(new string[] { "Delhi", "Punjab", "Assam", "Bihar" })  
+
+-------------------------------------------------------------------------------------
+
+4. Built-In Html Helpers
+
+@Html.BeginForm
+@Html.EndForm
+@Html.TextBox
+@Html.TextArea
+@Html.Password
+@Html.Hidden
+@Html.CheckBox
+@Html.RadioButton
+@Html.DropDownList
+@Html.ListBox
+
+-------------------------------------------------------------------------------------
+
+5. Custom Html Helpers
+
+--> There are two approaches to do this:
+1. Using Static class
+2. Using Extension Method
+
+--> Both will return IHtmlString or MvcHtmlString object
+
+--> Create new folder --> Custom_Helpers
+--> Create new class  --> Custom_Helper_Class
+
+
+    public static class Custom_Helper_Class { 
+ 
+        public static IHtmlString Create_Lable(string Content) {
+  
+            string LableStr = $ "<label style=\"background-color:gray;color:yellow;font-size:24px\">{Content}</label>";  
+            return new HtmlString(LableStr);  
+
+        }  
+    }  
+
+--> Just bind the string in parameter of HtmlString object constructor
+--> Don't forget to import: using System.Web.Mvc; 
+  
+--> In View file,
+
+@using <project_name>.Custom_Helpers
+@Create_Lable("This is custom Label")
+
+-------------------------------------------------------------------------------------
+
+6. Another example using Extension method
+
+public static MvcHtmlString Image(this HtmlHelper htmlhelper, string source, string altTxt, string width, string height)  
+{  
+    var ImageTag = new TagBuilder("img");  
+    ImageTag.MergeAttribute("src", source);  
+    ImageTag.MergeAttribute("alt", altTxt);  
+    ImageTag.MergeAttribute("width", width);  
+    ImageTag.MergeAttribute("height", height);  
+    return MvcHtmlString.Create(ImageTag.ToString(TagRenderMode.SelfClosing));  
+}
+
+
+--> Instead of template string for html markup, we use TagBuilder class.
+--> It is strongly typed.
+
+--> In View file,
+
+    <div>  
+        @Html.Image("/Images/UserPic.jpg","UserPic","100","100")  
+    </div> 
+
+-------------------------------------------------------------------------------------
+
+7. EditorModelFor
+
+--> It creates entire form data automatically based on model datatypes
+--> You just need to import model in view file and use this helper method.
+
+@model <project>.Models.<class_name>
+
+@Html.EditorModelFor()
+
+--> You can not customize it much
+
+--> [Datatype(Datatype.Password)]
+    public string Password { get; set; }
+

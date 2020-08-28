@@ -44,8 +44,7 @@
 --> We can get this data from attri using jquery
 
 <td>
-    <button data-customer-id="@customer.Id" class="btn-link
-js-delete">Delete</button>
+    <button data-customer-id="@customer.Id" class="btn-link js-delete">Delete</button>
 </td>
 
 

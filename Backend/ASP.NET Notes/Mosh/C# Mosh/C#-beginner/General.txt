@@ -1,5 +1,5 @@
-1. Recompile --> ctrl+F5, ctrl+shift+B
-2. define variables- byte, int, float, char, string, bool, var
+1. Recompile 		--> ctrl+F5, ctrl+shift+B
+2. define variables	--> byte, int, float, char, string, bool, var
 
 ---------------------------------------------------------------------
 
@@ -65,7 +65,9 @@ string t = i.ToString("C");		--> C for currency --> insert $ sign
 
 6. enums-->
 
---> It is like dictionary to associate byte values
+--> It is like properties with predefined values to it.
+--> Then we use it as class property
+
 public enum ShippingMethod{		
 	Express = 1,
  	ByAir = 2,
@@ -171,7 +173,7 @@ for (int i = 0; i < numbers.Count; i++)		--> remove all occurance in list
 
 11. Shortcuts-->
 
-ctrl+k+f	--> auto formats code
+ctrl+k+f	--> auto formats code --> make sure to select all first using ctrl+A 
 tab tab		--> auto complete if, for, class
 ctrl+k+c / u	--> for bulk comment
 alt+shift+enter --> for full screen mode
@@ -179,11 +181,17 @@ alt+shift+ up/down	--> multicursor
 ctrl+r+r	--> to change all variable reference at one time
 ctrl+tab	--> to switch between tabs
 ctrl+c+v	--> duplicate lines of code
+ctrl+,		--> Find specific file or any method
+ctrl+Q		--> Find any setting here like line number; You can also find any file
 
 snippets-->
 cw		--> Console.WriteLine()
 prop		--> To define property in Class
+propfull	--> It create private property along with getter and setter
 mvcaction4	--> to generate actionMethod
+for		--> Autogenerate syntax
+if
+while
 
 ---------------------------------------------------------------------
 

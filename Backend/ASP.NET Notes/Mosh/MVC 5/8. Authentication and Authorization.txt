@@ -27,9 +27,9 @@
 4. Identity Framework
 
 --> It consists of 3 sections of project
---> It has domain classes like IdentityUser and Role	(Model)
---> It has API/Services like UserManager, RoleManager, SignInManager (Controller)
---> It has Persistant Store like UserStore, RoleStore
+--> It has domain classes like IdentityUser and IdentityRole	(Model)
+--> It has API/Services like UserManager, RoleManager, SignInManager (Controller) --> It has methods to create new user, create new role
+--> It has Persistant Store like UserStore, RoleStore --> Tables
 
 -------------------------------------------------------------------------------
 
@@ -106,6 +106,7 @@ filters.Add(new AuthorizeAttribute());
 
 --> Write following code,
 
+	[HttpPost]
         public async Task<ActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
@@ -120,8 +121,6 @@ filters.Add(new AuthorizeAttribute());
                     await roleManager.CreateAsync(new IdentityRole("CanManageMovies"));
                     await UserManager.AddToRoleAsync(user.Id, "CanManageMovies");
 
-
-
                     await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
 		    ...
 	}
@@ -133,11 +132,14 @@ filters.Add(new AuthorizeAttribute());
 
 --> After that we create roleManager for that store
 --> Consider it as User of that database
+--> For userManager, we save user, similarly for roleManager, we save different roles
 
 --> Then we provide that user a new role "CanManageMovies"
 --> Consider it as new field with User in table
 
 --> Finally adding that User in UserManager table
+
+--> Link User to that role using UserManager.AddToRoleAsync method which receives two parameters: user.Id and roleName
 
 -------------------------------------------------------------------------------
 

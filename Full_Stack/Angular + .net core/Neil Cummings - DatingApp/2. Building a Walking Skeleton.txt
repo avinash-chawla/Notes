@@ -2,7 +2,7 @@
 
 --> First we build api
 --> Second, we consume these api in angular
---> This is walking skeleton
+--> Walking skeleton: It means we define our architecture and functionality as we go through the course.
 
 -------------------------------------------------------------------------
 
@@ -11,7 +11,11 @@
 --> dotnet -h
 --> dotnet new -h
 --> dotnet new webapi -h
---> dotnet new webapi -o DatingApp.API -n DatingApp.API
+--> dotnet new webapi -o DatingApp.API -n DatingApp.API -f netcoreapp2.1
+
+--> -o		--> Output directory	--> If not mentioned, will place project in current directory
+--> -n		--> Name of project	--> If not mentioned, will create name same as current directory
+--> -f		--> netcore framework	--> If not mentioned, will use latest that is 3.1.
 
 --> We will not use template webapi with Angular
 --> We will keep seperate both.
@@ -31,6 +35,14 @@ or
 
 2. C# Extensions
 3. NuGet Package Manager
+
+-------------------------------------------------------------------------
+
+--> Set Default shell for vscode
+
+--> Open command pallette --> ctrl + shift + p
+--> type shell
+--> Choose default cmd line. (powershell, cmd, bash)
 
 -------------------------------------------------------------------------
 
@@ -261,9 +273,9 @@ public class ValuesController : ControllerBase
     }
 
 
---> ToList()    --> Gives list of records
---> First()     --> return single record, if not found record, then throw exception
---> FirstOrDefault  --> return single record, if not found record, then return null.
+--> ToList()    	--> Gives list of records
+--> First()     	--> return single record, if not found record, then throw exception
+--> FirstOrDefault  	--> return single record, if not found record, then return null.
 
 
 --> In post, if you try GET api/values/55       --> You won't get exception, you get no content with status 204
@@ -298,7 +310,9 @@ public async Task<IActionResult> GetValue(int id)
 
 10. Creating Angular application
 
+--> npm install -g @angular/cli
 --> Make sibling project
+--> cd DatingApp
 --> ng new DatingApp-SPA
 
 -------------------------------------------------------------------------
@@ -310,7 +324,7 @@ public async Task<IActionResult> GetValue(int id)
 --> There are different bundles -> styles, vendor, main, polyfills, runtime
 --> main.ts is the file which starts first
 --> It configures Browser with Angular and pass control to app.module
---> In app.module, we have bootstrap array, which initialises application with app.component.
+--> In app.module, we have bootstrap array, which initializes application with app.component.
 
 -------------------------------------------------------------------------
 
@@ -342,8 +356,18 @@ public async Task<IActionResult> GetValue(int id)
 -------------------------------------------------------------------------
 
 --> To change icons of file
---> ctrl + shift + p    --> open command palatte
---> search for material icon       --> activate it.
+--> ctrl + shift + p    	--> open command palatte
+--> search for material icon    --> activate it.
+
+-------------------------------------------------------------------------
+
+--> In app.module.ts,
+
+import { HttpClientModule } from '@angular/common/http'
+
+imports : [
+   HttpClientModule
+]
 
 -------------------------------------------------------------------------
 
@@ -369,6 +393,9 @@ export class ValueComponent implements OnInit {
   }
 }
 
+--> ngOnInit() runs after constructor
+--> This is time where component loads and perfect time to load data from api endpoint.
+
 -------------------------------------------------------------------------
 
 --> We need to display this on page
@@ -376,7 +403,9 @@ export class ValueComponent implements OnInit {
 
 --> In value.component.html
 
-{{ values }}
+{{ values[0].name }}
+
+-------------------------------------------------------------------------
 
 --> In app.component.html
 

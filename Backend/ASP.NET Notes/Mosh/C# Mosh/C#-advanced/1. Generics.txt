@@ -64,6 +64,8 @@ public class ObjectList
 --> .Net provide concept of Generics
 --> Use Generics to store list of anything
 --> And it won't affect performance issue.
+--> Consider Generic as placeholder for any datatype
+
 
 public class GenericList<T>		--> T stands for Type of object/List
 {

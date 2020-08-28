@@ -298,6 +298,7 @@ public CustomerDto GetCustomer(int id)
         }
 
 --> Here Mapper is used to convert Customer to CustomerDto and it is also taking customer object to convert to customerDto which is passed as return type direct.
+--> Earlier, it was getting customer object from Select() linq query.
 
 -------------------------------------------------------------------------------
 

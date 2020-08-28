@@ -6,10 +6,11 @@
 	2. Business Logic/Domain	-> Post
 	3. Data Access/ Persistence	-> PostRepository --> connect with database
 
+--> This is called 3-tier architecture
 --> anatomy of class--> Data, Behaviour -> Person
 --> object is an instance of a class	-> John, Mary
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
 
 2. Constructor & Overloading-->
 

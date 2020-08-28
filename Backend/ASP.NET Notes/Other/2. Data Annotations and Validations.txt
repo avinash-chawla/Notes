@@ -1,0 +1,444 @@
+
+1. Types of Data Annotations 
+
+-------------------------------------------------------------------------------------------
+
+--> Required
+
+This attribute specifies that the value is mandatory and cannot be skipped.
+
+Syntax
+
+[Required(ErrorMessage="Please enter name"),MaxLength(30)]
+
+-------------------------------------------------------------------------------------------
+
+
+--> DataType
+
+This attribute is used to specify the datatype of the model.
+
+Syntax
+
+[DataType(DataType.Text)]
+
+-------------------------------------------------------------------------------------------
+
+
+--> Range
+
+Using this attribute we can set a range between two numbers.
+
+Syntax
+
+[Range(100,500,ErrorMessage="Please enter correct value")]
+
+-------------------------------------------------------------------------------------------
+
+
+--> StringLength
+
+Using this attribute we can specify maximum and minimum length of the property.
+
+Syntax
+
+[StringLength(30,ErrorMessage="Do not enter more than 30 characters")]
+
+-------------------------------------------------------------------------------------------
+
+
+--> DisplayName
+
+Using this attribute we can specify property name to be displayed on view.
+
+Syntax
+
+[Display(Name="Student Name")]
+
+-------------------------------------------------------------------------------------------
+
+
+--> MaxLength
+
+Using this attribute we can specify maximum length of property.
+
+Syntax
+
+[MaxLength(3)]
+
+-------------------------------------------------------------------------------------------
+
+
+--> Bind
+
+This attribute specify fields to include or exclude for model binding.
+
+Syntax
+
+[Bind(Exclude = "StudentID")]
+
+-------------------------------------------------------------------------------------------
+
+
+--> DisplayFormat
+
+This attribute allows us to set date in the format specified as per the attribute.
+
+Syntax
+
+[DisplayFormat(DataFormatString = "{0:dd.MM.yyyy}")]
+
+-------------------------------------------------------------------------------------------
+
+
+--> RegularExpression
+
+We can set a regex pattern for the property. For ex: Email ID.
+
+Syntax
+
+[RegularExpression(@"^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$", ErrorMessage = "Email is not valid.")]
+
+-------------------------------------------------------------------------------------------
+
+--> Compare 
+
+It compares field value with another field, If not match, will throw validation-error
+
+[Compare("Password", ErrorMessage="Confirm password and password should be same")]
+public string ConfirmPassword { get; set; }
+
+-------------------------------------------------------------------------------------------
+
+2. [ScaffoldColumn(false)]  
+
+   [ScaffoldColumn(false)]  
+   publicintStudentID { get; set; }
+
+--> It is used when some developer using EditorModelFor
+--> Then in that case, Id property will not shown bydefault.
+--> Normally, we use below approach in real case.
+
+@Html.HiddenFor(model => model.id)
+
+or
+
+[HiddenInput(DisplayValue=false)]
+
+-------------------------------------------------------------------------------------------
+
+3. Other Necessary Stuff
+
+--> @Html.AntiForgeryToken()
+
+--> @Html.ValidationMessageFor(m => m.Username)
+--> @Html.ValidationSummaryFor()
+
+-------------------------------------------------------------------------------------------
+
+4. To Enable Client-Side Validation
+
+--> Add following Scripts links
+--> Do not change order of it.
+
+<script src="~/Scripts/jquery-1.7.1.js"></script>  
+<script src="~/Scripts/jquery.validate.js"></script>  
+<script src="~/Scripts/jquery.validate.unobtrusive.js"></script> 
+
+-------------------------------------------------------------------------------------------
+
+5. To pass custom error message from action method to view
+
+[HttpPost]
+public ActionResult Index(Employee emp)
+{
+   if(string.IsNullOrEmpty(emp.Username))
+   {
+	ModelState.AddModelError("Username", "User Name is required")
+   }
+}
+
+--> This method was used in mvc3, 
+--> From mvc4 onwards, we use if(ModelState.IsValid){}	property to validate fields
+
+-------------------------------------------------------------------------------------------
+
+6. Make bool property required using custom validation
+
+public bool IsTerms { get; set; }
+
+public class ValidateCheckBox : RequiredAttribute
+{
+   public override bool IsValid(object value)
+   {
+	return (bool)value;
+   }
+}
+
+-------------------------------------------------------------------------------------------
+
+7. Custom Validation 
+
+--> Make a new folder --> CustomValidations
+
+public class MaxWordAttributes : ValidationAttribute  
+    {  
+        private readonly int _maxWords;  
+        public MaxWordAttributes(int maxWords) : base("{0} has to many words.")  
+        {  
+            _maxWords = maxWords;  
+        }  
+
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)  
+        {  
+            if (value == null) return ValidationResult.Success;  
+
+            var textValue = value.ToString();  
+
+            if (textValue.Split(' ').Length <= _maxWords) return ValidationResult.Success;  
+
+            var errorMessage = FormatErrorMessage((validationContext.DisplayName));  
+
+            return new ValidationResult(errorMessage);  
+        }  
+    }
+
+--> The IsValid method takes two parameters, The second is the value of Object type that is nothing but the information or string typed by the user in the TextBox.
+
+--> The Second one is a ValidationContext that gives access to the model type, model object instance, and friendly display name of the property you are validating, among other pieces of information. 
+
+[DataType(DataType.MultilineText)]  
+[MaxWordAttributes(50)]  
+public string Address { get; set; }
+
+-------------------------------------------------------------------------------------------
+
+8. Custom Validation Example 2
+
+public class ExcludeChar : ValidationAttribute
+
+{
+
+    private readonly string _chars;
+    public ExcludeChar(string chars)
+        : base("{0} contains invalid character.")
+
+    {
+        _chars = chars;
+    }
+
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        if (value != null)
+        {
+            for (int i = 0; i < _chars.Length; i++)
+            {
+                var valueAsString = value.ToString();
+                if (valueAsString.Contains(_chars[i]))
+               {
+                    var errorMessage = FormatErrorMessage(validationContext.DisplayName);
+                    return new ValidationResult(errorMessage);
+                }
+            }
+        }
+        return ValidationResult.Success;
+    }
+}
+
+
+[ExcludeChar("/.,!@#$%")]
+
+// overriding the error message of data annotation attribute
+
+[ExcludeChar("/.,!@#$%", ErrorMessage="Name contains invalid character.")]
+
+-------------------------------------------------------------------------------------------
+
+9. Remote
+
+--> The Remote attributes enable us to perform client side validation with server callback. 
+--> Take for example the UserName property is of a StudentModel, We are not going to allow the user name that already exists in our database. 
+
+--> Which means to say for every student there must be a unique UserName. To achieve this we need to use Remote attributes.
+
+[Remote("CheckUserName","Student")]  
+public string UserName { get; set; }   
+
+--> Inside the attributes we can set the name of the action and the name of the controller the client call should call. 
+--> The client code will send the value the user enters for the UserName property automatically and an overload of the attributes constructor allow us to specify additional fields to send to the server.
+
+public JsonResult CheckUserName(string userName)  
+        {  
+            var studentUserList = new List<string> {"Manish", "Saurabh", "Akansha", "Ekta", "Rakesh", "Bhayia Jee"};  
+  
+            var result = studentUserList.Any(userName.Contains);  
+            return Json(result, JsonRequestBehavior.AllowGet);  
+        }  
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

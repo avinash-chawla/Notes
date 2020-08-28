@@ -10,6 +10,7 @@
 --> File     -> provides static methods
 
 --> File class -->
+
 var path = @"c:\somefile.jpg";
 File.Copy(@c:\temp\myfile.jpg", @c:\temp\myfile.jpg", true);
 File.Delete(path);
@@ -19,6 +20,7 @@ var byteConvertedFile = File.ReadByte(path);
 
 
 --> Using FileInfo class-->
+
 var fileInfo = new FileInfo(path);
 fileInfo.CopyTo("...");
 fileInfo.Delete();

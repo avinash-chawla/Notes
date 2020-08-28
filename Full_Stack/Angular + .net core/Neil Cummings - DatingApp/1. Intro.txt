@@ -9,7 +9,8 @@
 
 --> nodejs
 --> visual studio code
---> .net core sdk
+--> .net core sdk 2.1
 --> db browser for sqlite
+--> postman
 
 ----------------------------------------------------

@@ -52,6 +52,8 @@ ctrl + x --> deletes line
 
 Console.WriteLine("{0} {1}", byte.MinValue, byte.MaxValue);
 
+Console.WriteLine(@"{byte.MinValue} {byte.MaxValue}");
+
 -----------------------------------------------------------------------------------------------
 
 8. type conversion-->

@@ -5,7 +5,7 @@
 
 2. .Net-->
 
---> it consists of two components--> CLR(Common Language Runtime) and Class Library(dll)
+--> It consists of two components--> CLR(Common Language Runtime) and Base Class Library (BSL) (in dll)
 --> CLR = compiler
 --> dll = Libraries like System.Data, System.Web, System.Net
 

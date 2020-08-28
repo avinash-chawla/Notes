@@ -272,10 +272,11 @@ return View("CustomerForm", viewModel);
         }
 
 --> We have 3 options to update customer object
+
 1. Use TryUpdateModel()
 --> In this, you pass updated object and it will map request key value pairs and target key value pairs and update object.
 --> There are some fields which you do not want user to update like MembershipType to premium
---> To white list or protect that fields, we use 3 paramter of this method
+--> To white list or protect that fields, we use 3 parameter of this method
 
 TryUpdateModel(customer, "", new String[] { "Name", "Id" }
 

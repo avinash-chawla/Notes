@@ -1,4 +1,4 @@
-1. What we will lean
+1. What we will learn
 
 1. How we store password in DB
 2. Creating the User Model
@@ -22,6 +22,8 @@
 2. Everytime you put text, you get different hashed text.
 3. It is more secure
 
+--> We will put Each Salt with Each Hashed Password in database for decrypting 
+
 -----------------------------------------------------------------------------
 
 3. Creating the User Model
@@ -32,7 +34,7 @@ public class User
 {
     public int Id { get; set; }
     public string Username { get; set; }
-    public byte[] PasswordHashed { get; set; }
+    public byte[] PasswordHash { get; set; }
     public byte[] PasswordSalt { get; set; }
 }
 
@@ -101,14 +103,16 @@ public interface IAuthRepository
 6. Creating the Concrete Auth Repository and Register method
 
 --> This class is implementing methods of an interface
---> In Register method, we get paraemters like user, password
---> We want to save hashed password
+--> In Register method, we get parameters like user object, password
+
+--> We want to save hashed password  and also salt, instead of plain password.
 --> For hashing, we use System.Security.Cryptogrphy class
+
 --> It inherites IDisposable class, means we have dispose this object after completing our job --> done by 'using' statement
 --> For hashing password, we create another method and we are using out parameter
---> Because parameter which we are inputting, we also want back to store in database.
---> Then, we save user in database using _context.Users.AddAsync(user)	and save changes using _context.SaveChanges().
 
+--> Because function return single output, so make use of out keyword to get multiple outputs
+--> Then, we save user in database using _context.Users.AddAsync(user)	and save changes using _context.SaveChanges().
 
 -----------------------------------------------------------------------------
 
@@ -157,6 +161,14 @@ public class AuthRepository : IAuthRepository
 
 -----------------------------------------------------------------------------
 
+--> We will save passwordHash and passwordSalt in database
+--> We created method which will receive plain password and generate passwordHash and passwordSalt
+
+--> To generate both at a time, function can return a single value so we have make use of out keyword as reference
+--> So when function changes its values, variable value gets changed.
+
+-----------------------------------------------------------------------------
+
 7. Creating the Login Repository method
 
 --> Login method takes username and password
@@ -168,9 +180,10 @@ public class AuthRepository : IAuthRepository
 --> Checking for username and if find it, return true.
 
 --> For verifying password,
+
 --> We use same class, to compare password, we first provide key(salt) and then get ComputedPasswordHash and then compare.
 
-public async Task<User> Login(string username, string password)
+	public async Task<User> Login(string username, string password)
         {
             var user = await this._context.Users.FirstOrDefaultAsync(x => x.Username == username);
             if(user == null)
@@ -285,21 +298,284 @@ namespace DatingApp.API.Controllers
 
 10. Using DTOs (Data Transfer Objects)
 
---> Other name for this is ViewModel class
+--> We will use Dto class for Model Binding to collect data from body in register and login post action method.
+--> Make new folder in server project --> Dtos
+--> Make new class --> UserForRegisterDto
 
---> Assume there is a remote client which is making calls to get Customer data and the Products they bought. 
---> Now the client has to make two calls, one to get Customer data and the other to get Products data. 
---> Now that is quiet inefficient. 
---> It would be great if we can get data in one call.
+public class UserForRegisterDto
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
 
-class CustomerProductDTO
+-----------------------------------------------------------------------------
+
+--> Register action Method in AuthController
+
+	[HttpPost("register")]
+        public async Task<IActionResult> Register(UserForRegisterDto userForRegisterDto)
+        {
+            // validate request
+
+            userForRegisterDto.Username = userForRegisterDto.Username.ToLower();
+
+            if(await _repo.UserExists(userForRegisterDto.Username))
+                return BadRequest("Username already exists");
+
+            var userToCreate = new User
+            {
+                Username = userForRegisterDto.Username
+            };
+
+            var createdUser = await _repo.Register(userToCreate, userForRegisterDto.Password);
+            return StatusCode(201);
+        }
+
+--> We will use vscode debugger to check code step by step.
+--> Go to debugger tab, click on add configuration in drop down 
+--> Select .Net: Attach to local .Net Console, it will add default configuration
+--> Select .NET Core Attach from dropdown
+--> Run after putting break point in Register actionMethod.
+--> If ask for runtime, select DatingApp.API dll
+
+-----------------------------------------------------------------------------
+
+11. Validation in API
+
+--> We can pass data in json like :
+
 {
-  // Customer properties
-        public string CustomerName { get; set; }
-   // Product properties
-        public string ProductName { get; set; }
-        public double ProductCost { get; set; }
+    "username": "",
+    "password": ""
 }
+
+--> We have to provide validation
+
+-----------------------------------------------------------------------------
+
+--> In UserForRegisterDto class,
+
+        [Required]
+        public string Username { get; set; }
+
+        [Required]
+        [StringLength(8, MinimumLength = 4, ErrorMessage = "You must specify password between 4 and 8")]
+        public string Password { get; set; }
+
+-----------------------------------------------------------------------------
+
+--> We do not need to provide ModelState for validation in action Method
+
+--> This task is automatically done by [ApiController] attribute
+--> It applies validation like this:
+
+if(!ModelState.IsValid)
+   return BadRequest(ModelState);
+
+-----------------------------------------------------------------------------
+
+--> Absense of ApiController can create problems:
+
+1. If username: "" from json, then model.Username = null is set, it will create exception in converting to ToLowerCase()
+--> If we want to replace [ApiController] manually, then:
+
+	[HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody]UserForRegisterDto userForRegisterDto)
+        {
+            if(!ModelState.IsValid)
+   		return BadRequest(ModelState);
+
+	    ...
+	}
+
+--> FromBody will make "" instead of null value in model object and make sure data come from body and not from header
+--> Manual ModelState Checking.
+
+-----------------------------------------------------------------------------
+
+12. JWT
+
+--> It is token based authorization
+--> It contains three parts: header, payload and secret key
+--> Anyone can see header and payload by decrypting it.
+--> Secret key is stored in server for validating jwt token
+
+--> Hacker can not modify the original token, if he did whole token will get changed
+
+--> User can access different pages by showing this token each time to server
+
+-----------------------------------------------------------------------------
+
+13. Creating the Login method in API
+
+--> Model
+
+--> Make new class in Dtos folder --> UserForRegisterDto.cs
+
+    public class UserForLoginDto
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+
+-----------------------------------------------------------------------------
+
+--> Controller
+
+	[HttpPost("login")]
+        public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
+        {
+            var userFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
+
+            if(userFromRepo == null)
+                return Unauthorized();
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
+                new Claim(ClaimTypes.Name, userFromRepo.Username)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8
+                .GetBytes(_config.GetSection("AppSettings:Token").Value));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddDays(1),
+                SigningCredentials = creds
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return Ok(new {
+                token = tokenHandler.WriteToken(token)
+            });
+        }
+
+
+-----------------------------------------------------------------------------
+
+--> appsettings.json
+
+  "AppSettings":{
+    "Token": "super secret key"
+  },
+
+-----------------------------------------------------------------------------
+
+--> startup.cs
+
+services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options=> {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
+                });
+
+app.UseAuthentication();
+
+-----------------------------------------------------------------------------
+
+--> ValuesController.cs
+
+[Authorize]			--> apply to class
+[AllowAnonymous]		--> apply to one actionmethod
+
+-----------------------------------------------------------------------------
+
+--> Test in PostMan
+
+--> Do Login --> Get Token
+--> Insert in header for values GET Request
+
+-----------------------------------------------------------------------------
+
+14. Note:
+
+--> There is nothing about to understand the code.
+--> It is the way implemented without understanding
+--> I don't know where they hide understanding 
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+
+
 
 -----------------------------------------------------------------------------
 

@@ -1,0 +1,107 @@
+
+----------------------------------------------------------------------------------------
+
+--> Pushing Branch
+
+1. git clone <url>
+2. git pull origin master
+3. git checkout -b avinash/feature1
+4. // do some necessary changes
+5. git add . && git commit -m "new feature1 added"
+6. git push origin feature1
+
+--> Go to github
+--> Manager will make pull request
+--> All discussions will be held at that pull request with pipeline
+--> After satisfaction, manager will merge it with master branch
+
+----------------------------------------------------------------------------------------
+
+2. 3-tier architecture
+
+--> Presentation layer, Business Layer and Data-Access Layer
+--> MVC is triangular architecture while 3-tier is linear
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

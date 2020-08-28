@@ -10,7 +10,7 @@
 
    var dateTime = new DateTime(2015, 1, 1);
 
-   var now = DateTime.Now;			--> DateTime is static class
+   var now = DateTime.Now;			--> DateTime has static method 'Now'
    var today = DateTime.Today;
 
    Console.WriteLine("Hour: "+ now.Hour);
