@@ -1,0 +1,250 @@
+1. Intro
+
+--> In this video we will discuss, why email confirmation is important for the security of your application.
+
+--> When registering for an account with a website, we provide our email address. 
+--> Upon registration, an email with a link is sent, which we should click to confirm that the provided email really belongs to us.
+
+--> Until the email address is confirmed, your account will have very limited functionality. 
+--> Some websites might even block you from signing-in until the email address is confirmed. 
+
+--> Letting users login and use your application, without a confirmed email is a security risk. 
+--> Email confirmation is important both for your security and the security of the application.
+
+------------------------------------------------------------------------------------------
+
+2. Prevents accidental account hijacking
+
+--> Let's say for example, a user registered with our application with the email john@foo.com. 
+--> His actual email is jon@foo.com without the letter h. 
+
+--> He made a typo and accidentally included the letter h in his email (john@foo.com). 
+--> Our application allowed the user to login and setup his account by providing all the personal, financial and other required details. 
+
+--> This user is using the application as normal and so far no problem.
+
+--> After a few days, another user who actually owns the email john@foo.com (with the letter h in the email), tries to register with our application. 
+--> He will not be able to proceed with the registration as his email is already in use. 
+
+--> So he requests for a password reset link, which will be sent to his email. 
+--> He clicks on the link and changes the password.
+
+--> There are 2 problems here
+1. As the password is changed, the first user will no longer be able to login. 
+2. When the second user logs-in he will have access to the first user personal, financial and other details.
+
+--> This is a huge concern from security standpoint. The second user is able to hijack the first user account. We wouldn't have been in this situation if the email was confirmed upon registration.
+
+------------------------------------------------------------------------------------------
+
+3. Reduces spam registrations
+
+--> Email confirmation may not completely prevent spam registrations, but can reduce to a great extent. 
+
+--> Without email verification, you are opening gates to Spam bots. 
+--> A large number of spam accounts can be created by these spam bots with random emails. 
+
+--> With email verification you are adding an extra layer of protection. Creating a new email address, registering with your application and then confirming the email address by logging-in to the email service provider is definitely much more work than just allowing to register for an account with a random email.
+
+------------------------------------------------------------------------------------------
+
+4. Prevents unsolicited emails
+
+--> Without email confirmation, you would not know if the email provided during registration really belong to that user. 
+--> You may end up sending unsolicited emails, if a random email is used or mis-typed. 
+
+--> With email confirmation in place, we know the provided email actually belong to the registered user and prevent sending unsolicited emails.
+
+------------------------------------------------------------------------------------------
+
+5. Easy to recover account
+
+--> In most cases a confirmed email is the easiest method for account recovery, if a user has forgotten username and/or password.
+
+--> In our next videos, we will discuss, how to block a user from signing-in if the email is not confirmed and sending a confirmation email.
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

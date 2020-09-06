@@ -1,0 +1,973 @@
+------------------------------------------------------------------------------------------
+
+1. Revisiting Domain Models
+
+--> There are four domain models now:
+
+1. Make
+2. Model
+3. Vehicle
+4. Feature
+
+--> 1 Make has many Models
+--> 1 Model has one Make
+
+--> Vehicle has 1 Make, 1 Model and has many features
+--> 1 Feature can include in many vehicles
+
+--> There is a loop in domain models
+--> Between make, model and vehicle
+
+--> We should avoid this loop
+--> Vehicle does not record Make but record Model
+
+------------------------------------------------------------------------------------------
+
+2. Extending the Domain Model
+
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace Vega.API.Models
+{
+    public class Vehicle
+    {
+        public int Id { get; set; }
+        public int ModelId { get; set; }
+        public Model Model { get; set; }
+        public bool IsRegistered { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string ContactName { get; set; }
+
+        [StringLength(255)]
+        public string ContactEmail { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string ContactPhone { get; set; }
+
+        public DateTime LastUpdate { get; set; }
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+3. Many-to-Many Relationships
+
+--> There is many to many relationships between vehicle and feature
+--> 1 vehicle can have many features
+--> 1 Feature can be have to many vehicles
+
+--> This ManyToMany Relationship is not supported in entity framework core.
+--> Solution: Create an intermediate table  
+
+--> Just like user and roles have manyTomany relationships and intermediate table is UserRoles in identity framework
+--> We will here have VehicleFeatures table
+
+------------------------------------------------------------------------------------------
+
+namespace Vega.API.Models
+{
+    [Table("VehicleFeatures")]
+    public class VehicleFeature
+    {
+        public int VehicleId { get; set; }
+        public int FeatureId { get; set; }
+        public Vehicle Vehicle { get; set; }
+        public Feature Feature { get; set; }
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+namespace Vega.API.Models
+{
+    [Table("Vehicles")]
+    public class Vehicle
+    {
+        ...
+        public ICollection<VehicleFeature> Features { get; set; }
+
+        public Vehicle()
+        {
+            Features = new Collection<VehicleFeature>();
+        }
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+--> VegaDbContext.cs
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<VehicleFeature>().HasKey(vf =>
+                new { vf.VehicleId, vf.FeatureId }
+            );
+        }
+
+--> For VehicleFeature table, we use composite key where VehicleId and FeatureId will be unique for each record
+
+------------------------------------------------------------------------------------------
+
+4. Building an API to create Objects
+
+--> Create new controller 
+
+namespace Vega.API.Controllers
+{
+    [Route("/api/[controller]")]
+    public class VehiclesController : Controller
+    {
+        [HttpPost]
+        public IActionResult CreateVehicle(Vehicle vehicle)
+        {
+            return Ok(vehicle);
+        }
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+5. Creating an API Resource
+
+namespace Vega.API.Resources
+{
+    public class VehicleResource
+    {
+        public int Id { get; set; }
+        public int ModelId { get; set; }
+        public bool IsRegistered { get; set; }
+        public ContactResource Contact { get; set; }
+        public ICollection<int> Features { get; set; }
+
+        public VehicleResource()
+        {
+            Features = new Collection<int>();
+        }
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+namespace Vega.API.Resources
+{
+    public class ContactResource{
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+
+        [StringLength(255)]
+        public string Email { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Phone { get; set; }
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+6. Mapping API Resources to Domain Classes
+
+--> In MappingProfile.cs,
+
+namespace Vega.API.Mapping
+{
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            // Domain to Api Resource
+            CreateMap<Make, MakeResource>();
+            CreateMap<Model, ModelResource>();
+            CreateMap<Feature, FeatureResource>();
+
+            // Api Resource to Domain
+            CreateMap<VehicleResource, Vehicle>()
+                .ForMember(v => v.ContactName, opt => opt.MapFrom(vr => vr.Contact.Name))
+                .ForMember(v => v.ContactEmail, opt => opt.MapFrom(vr => vr.Contact.Email))
+                .ForMember(v => v.ContactPhone, opt => opt.MapFrom(vr => vr.Contact.Phone))
+                .ForMember(v => v.Features, opt => opt.MapFrom(vr => vr.Features.Select(id => new VehicleFeature { FeatureId = id })));
+        }
+    }
+}
+
+--> To map objects with different names, we use ForMember chain method
+--> First argument is target object property
+--> Second argument is from where to take property from, so opt (opt = operations)
+
+------------------------------------------------------------------------------------------
+
+--> In VehiclesController,
+
+namespace Vega.API.Controllers
+{
+    [Route("/api/[controller]")]
+    public class VehiclesController : Controller
+    {
+        private readonly IMapper mapper;
+        public VehiclesController(IMapper mapper)
+        {
+            this.mapper = mapper;
+        }
+
+        [HttpPost]
+        public IActionResult CreateVehicle([FromBody] VehicleResource vehicleResource)
+        {
+            var vehicle = mapper.Map<VehicleResource, Vehicle>(vehicleResource);
+            return Ok(vehicle);
+        }
+    }
+}
+
+--> It is required to mention [FromBody] in parameter of actionMethod
+--> If not, we will receive emtpy object.
+
+------------------------------------------------------------------------------------------
+
+--> In postman,
+
+{
+    "modelId": 1,
+    "isRegistered": true,
+    "contact": {
+        "name" : "name",
+        "phone": "phone",
+        "email": "email"    
+    },
+    "features": [1,2,3]
+}
+
+------------------------------------------------------------------------------------------
+
+--> Get Response
+
+{
+    "id": 0,
+    "model": null,
+    "modelId": 1,
+    "isRegistered": true,
+    "contactName": "name",
+    "contactEmail": "email",
+    "contactPhone": "phone",
+    "lastUpdate": "0001-01-01T00:00:00",
+    "features": [
+        {
+            "vehicleId": 0,
+            "featureId": 1,
+            "vehicle": null,
+            "feature": null
+        },
+        {
+            "vehicleId": 0,
+            "featureId": 2,
+            "vehicle": null,
+            "feature": null
+        },
+        {
+            "vehicleId": 0,
+            "featureId": 3,
+            "vehicle": null,
+            "feature": null
+        }
+    ]
+}
+
+------------------------------------------------------------------------------------------
+
+7. Adding a record to the Database
+
+--> MappingProfile.cs,
+
+namespace Vega.API.Mapping
+{
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            // Domain to Api Resource
+            CreateMap<Make, MakeResource>();
+            CreateMap<Model, ModelResource>();
+            CreateMap<Feature, FeatureResource>();
+            CreateMap<Vehicle, VehicleResource>()
+                .ForMember(vr => vr.Contact, opt =>
+                    opt.MapFrom(v => new ContactResource
+                    {
+                        Name = v.ContactName,
+                        Email = v.ContactEmail,
+                        Phone = v.ContactPhone
+                    }))
+                .ForMember(vr => vr.Features, opt =>
+                    opt.MapFrom(v => v.Features.Select(vf => vf.FeatureId)));
+
+            // Api Resource to Domain
+            CreateMap<VehicleResource, Vehicle>()
+                .ForMember(v => v.ContactName, opt => opt.MapFrom(vr => vr.Contact.Name))
+                .ForMember(v => v.ContactEmail, opt => opt.MapFrom(vr => vr.Contact.Email))
+                .ForMember(v => v.ContactPhone, opt => opt.MapFrom(vr => vr.Contact.Phone))
+                .ForMember(v => v.Features, opt => opt.MapFrom(vr => vr.Features.Select(id => new VehicleFeature { FeatureId = id })));
+        }
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+--> VehiclesController.cs
+
+namespace Vega.API.Controllers
+{
+    [Route("/api/[controller]")]
+    public class VehiclesController : Controller
+    {
+        private readonly IMapper mapper;
+        private readonly VegaDbContext context;
+        public VehiclesController(IMapper mapper, VegaDbContext context)
+        {
+            this.context = context;
+            this.mapper = mapper;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateVehicle([FromBody] VehicleResource vehicleResource)
+        {
+            var vehicle = mapper.Map<VehicleResource, Vehicle>(vehicleResource);
+            vehicle.LastUpdate = DateTime.Now;
+
+            context.Vehicles.Add(vehicle);
+            await context.SaveChangesAsync();
+
+            var result = mapper.Map<Vehicle, VehicleResource>(vehicle);
+            return Ok(result);
+        }
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+--> VegaDbContext.cs
+
+public DbSet<Vehicle> Vehicles { get; set; }
+
+------------------------------------------------------------------------------------------
+
+--> Postman Response
+
+{
+    "modelId": 1,
+    "isRegistered": true,
+    "contact": {
+        "name" : "name",
+        "phone": "phone",
+        "email": "email"    
+    },
+    "features": [1,2,3]
+}
+
+------------------------------------------------------------------------------------------
+
+{
+    "id": 1,
+    "modelId": 1,
+    "isRegistered": true,
+    "contact": {
+        "name": "name",
+        "email": "email",
+        "phone": "phone"
+    },
+    "features": [
+        1,
+        2,
+        3
+    ]
+}
+
+--> Id is vehicle ID which is registered in database
+
+------------------------------------------------------------------------------------------
+
+--> Planning
+
+--> Buyer will add detail in vehicle domain class
+--> In Vehicle, he will select make and model, for that, we use make and model domain class
+
+--> In Vehicle, he will select features checkboxes, for that, we use feature domain class.
+--> We use featureId numbers in checkboxes and we will send this numbers to api endpoint (instead of seperate VehicleFeature objects)
+
+--> Mapper will convert Dto class to normal class and int[] to VehicleFeature[]
+
+--> We do not want to create seperate table for name, email, phone. so we have included them in vehicles class only
+--> But in dto, we create seperate object "ContactResource"
+
+--> From VehicleResource, we are not sending make, we are sending modelId only.
+
+--> In an admin also, we do not create crud for "make"
+--> We will have fix number of "makes" like mercedes, bmw, audi, chevrolet
+--> We will also have fix number of models for them.
+
+--> So we are only saving ModelId in Vehicle domain class.
+
+------------------------------------------------------------------------------------------
+
+8. Implementing Server Side Validation
+
+--> Fluent-API vs DataAnnotation
+--> Both are used to override EF Default conventions
+
+--> Fluent-API example: 
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<VehicleFeature>().HasKey(vf =>
+                new { vf.VehicleId, vf.FeatureId }
+            );
+        }
+
+--> There is no data-annotation for creating composite key
+--> Fluent-API are always used for domain classes and tell database how to link domain class and database
+--> Fluent-API can not be applied to ViewModels or Dtos
+
+------------------------------------------------------------------------------------------
+
+--> Server-Side Validation
+
+	[HttpPost]
+        public async Task<IActionResult> CreateVehicle([FromBody] VehicleResource vehicleResource)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var model = await context.Models.FindAsync(vehicleResource.ModelId);
+            if (model == null)
+            {
+                ModelState.AddModelError("ModelId", "Invalid ModelId");
+                return BadRequest(ModelState);
+            }
+	    
+	    ....
+	}
+
+------------------------------------------------------------------------------------------
+
+9. Building an API to Update objects
+
+--> Create new actionmethod in VehicleController,
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateVehicle([FromQuery] int id, [FromBody] VehicleResource vehicleResource)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var vehicle = await context.Vehicles.FindAsync(id);
+            mapper.Map<VehicleResource, Vehicle>(vehicleResource, vehicle);
+            vehicle.LastUpdate = DateTime.Now;
+
+            await context.SaveChangesAsync();
+
+            var result = mapper.Map<Vehicle, VehicleResource>(vehicle);
+            return Ok(result);
+        }
+
+------------------------------------------------------------------------------------------
+
+--> Error: The property Id on entity type 'Vehicle' is part of key and so cannot be modified
+--> Solution: 
+
+--> Actually, we need to exclude Id property from Dto class while updating
+
+--> In MappingProfile class,
+
+            // Api Resource to Domain
+            CreateMap<VehicleResource, Vehicle>()
+                .ForMember(v => v.Id, opt => opt.Ignore())
+		...
+
+------------------------------------------------------------------------------------------
+
+--> Error: Violation of Primary key constraint PK_VehicleFeatures. The duplicate key value is (10, 1).
+
+--> Actually, While mapping, we are creating new VehicleFeature[] from int[] and during updating this, it tries to create new VehicleFeature[]
+--> So it shows this error.
+--> Solution in next video.
+
+------------------------------------------------------------------------------------------
+
+10. Mapping Collections
+
+	   CreateMap<VehicleResource, Vehicle>()
+                .ForMember(v => v.Id, opt => opt.Ignore())
+                .ForMember(v => v.ContactName, opt => opt.MapFrom(vr => vr.Contact.Name))
+                .ForMember(v => v.ContactEmail, opt => opt.MapFrom(vr => vr.Contact.Email))
+                .ForMember(v => v.ContactPhone, opt => opt.MapFrom(vr => vr.Contact.Phone))
+                .ForMember(v => v.Features, opt => opt.Ignore())
+                .AfterMap((vr, v) =>
+                {
+                    // Remove unselected features
+                    var removedFeatures = new List<VehicleFeature>();
+                    foreach (var f in v.Features)
+                        if (!vr.Features.Contains(f.FeatureId))
+                            removedFeatures.Add(f);
+                    foreach (var f in removedFeatures)
+                        v.Features.Remove(f);
+
+                    // Add new features
+                    foreach (var id in vr.Features)
+                        if (!v.Features.Any(f => f.FeatureId == id))
+                            v.Features.Add(new VehicleFeature { FeatureId = id });
+                });
+
+--> We will provide algorithm
+--> We will compare VehicleResource features and Vehicle features and then update Vehicle class
+
+--> First we iterate through Vehicle features and apply if condition inside it, taking out features which are present in vehicle and not in VehicleResource and inside it we will also remove from vehicle class
+
+--> Second we iterate through VehicleResource featureIds and apply if condition inside it, taking out features, which are present in vehicleResource and not in Vehicle and inside it, we will also add to vehicle class
+
+--> In Layman language, comparing both classes features and adding or removing in vehicle based on vehicleResource
+
+--> AfterMap will do processing after Mapping
+
+------------------------------------------------------------------------------------------
+
+--> In VehiclesController.cs,
+
+var vehicle = await context.Vehicles.Include(v => v.Features).SingleOrDefaultAsync(v => v.Id == id);
+
+------------------------------------------------------------------------------------------
+
+11. Refactoring Using LINQ
+
+--> Doing the above logic using LINQ
+
+var removedFeatures = v.Features.Where(f => !vr.Features.Contains(f.FeatureId));
+foreach (var f in removedFeatures)
+     v.Features.Remove(f);
+
+------------------------------------------------------------------------------------------
+
+var addedFeatures = vr.Features.Where(id => !v.Features.Any(f => f.FeatureId == id)).Select(id => new VehicleFeature { FeatureId = id });
+foreach (var f in addedFeatures)
+     v.Features.Add(f);
+
+or
+
+var addedFeaturesId = vr.Features.Where(id => !v.Features.Any(f => f.FeatureId == id));
+foreach (var id in addedFeaturesId)
+    v.Features.Add(new VehicleFeature { FeatureId = id });
+
+------------------------------------------------------------------------------------------
+
+12. Building an API to Delete objects
+
+	[HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteVehicle(int id)
+        {
+            var vehicle = await context.Vehicles.FindAsync(id);
+
+            if(vehicle == null)
+                return NotFound();
+
+            context.Remove(vehicle);
+            await context.SaveChangesAsync();
+            return Ok(id);
+        }
+
+--> Also, update Update Action method,
+
+	[HttpPut("{id}")]
+        public async Task<IActionResult> UpdateVehicle([FromQuery] int id, [FromBody] VehicleResource vehicleResource)
+        {
+            ...
+            
+            if(vehicle == null)
+                return NotFound();
+
+------------------------------------------------------------------------------------------
+
+13. Building an API to get single vehicle object
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetVehicle(int id)
+        {
+            var vehicle = await context.Vehicles.Include(v => v.Features).SingleOrDefaultAsync(v => v.Id == id);
+
+            if (vehicle == null)
+                return NotFound();
+
+            var vehicleResource = mapper.Map<Vehicle, VehicleResource>(vehicle);
+
+            return Ok(vehicleResource);
+        }
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,8 +1,11 @@
 1. Intro
 
---> We have many-to-many relationship between make and model
---> 1 make can have multiple models
---> 1 model can be applied to multiple makes.
+--> Functionality:
+--> We have 3 form fields for posting: Make and corresponding Model
+--> Both will be dropdown lists
+--> When user selects Make, corresponding Model will be listed in Model ddl.
+
+--------------------------------------------------------------------------------
 
 --> Implementing Options
 1. We give two api-endpoint to user
@@ -16,7 +19,15 @@ Get /api/makes/1/models
 Get /api/makes
 { id:1, name: 'model1', models: [...]}
 
---> As this will be small scale applications, we choose second approach.
+--> As this will be small scale applications, we choose second approach bec less number of req-res cycle.
+
+--------------------------------------------------------------------------------
+
+--> Note:
+
+--> We have many-to-many relationship between make and model
+--> 1 make can have multiple models
+--> 1 model can be applied to multiple makes.
 
 --------------------------------------------------------------------------------
 
@@ -33,6 +44,8 @@ Get /api/makes
 
         public int MakeId { get; set; }
     }
+
+--------------------------------------------------------------------------------
 
 --> Create another new class --> Make.cs
 
@@ -55,18 +68,536 @@ Get /api/makes
 --> IList is used to alter object of list and also provide index to each record
 --> ICollection is used to iterate over list and does not provide index to each record.
 
---> Now make new property in Model class --> Make which saves make for model
+--> When we define any List Property in Model class, it is better to initialize in constructor
+--> You will get null reference exception, when you do operations on this List.
+
+--> Now create another property in Model class --> Make which saves make for each model
 --> Now to update in make class should also update in model class
 
 --> We set foreign key 
 --> To set foreign property --> we use ParentName followed by parent id
+
 --> In model class, MakeId automatically references Make model class
 --> This column does not show in table also.
 --> It will set as foreign key to make table.
 
 --------------------------------------------------------------------------------
 
-3. 
+3. Adding Entity Framework Core
+
+--> dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+--> dotnet add package Microsoft.EntityFrameworkCore.Tools
+
+or
+
+--> Install nuget-package extension in vscode
+--> open command pallete and type nuget
+--> Name Dependency: Microsoft.EntityFrameworkCore.SqlServer
+--> It will ask for version and install it.
+
+--> dotnet ef --help 
+--> To check if it is installed. 
+
+--------------------------------------------------------------------------------
+
+4. Creating a DbContext class
+
+--> Create new folder --> Persistence
+--> Make new class
+
+    public class VegaDbContext : DbContext
+ {
+        
+	public VegaDbContext(DbContextOptions<VegaDbContext> options) : base(options) {}
+    
+    }
+
+--------------------------------------------------------------------------------
+
+--> In startup class,
+
+            services.AddDbContext<VegaDbContext>(options => 
+                    options.UseSqlServer(Configuration.GetConnectionString("")));
+
+--------------------------------------------------------------------------------
+
+5. Using Configuration
+
+--> appsettings.json
+
+  "ConnectionStrings": {
+    "DefaultConnection" :  "Server=.; database=vega; trusted_connection = true"
+  },
+
+--------------------------------------------------------------------------------
+
+--> startup.cs
+
+services.AddDbContext<VegaDbContext>(options => 
+                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+--> If you are using docker container, you have to mention username and password in connectionString
+
+--------------------------------------------------------------------------------
+
+6. Creating the Database
+
+--> In VegaDbContext.cs,
+
+public DbSet<Make> Makes { get; set; }
+
+--> To add migration
+
+--> dotnet ef migrations add InitialModel
+--> add-migration InitialModel
+
+--> To remove migration which has not applied changes to db
+--> dotnet ef migrations remove
+--> remove-migration
+
+--> To update the database with migration
+--> update-database
+--> dotnet ef database update
+
+--------------------------------------------------------------------------------
+
+7. Applying Constraints
+
+--> In Model.cs
+
+    [Table("Models")]
+    
+    public class Model
+    
+    {
+        
+	public int Id { get; set; }
+
+        [Required]
+        
+        [StringLength(255)]
+        
+        public string Name { get; set; }
+	...
+    }
+
+--> In Make.cs
+
+    public class Make
+    
+    {
+        
+	public int Id { get; set; }
+
+        [Required]
+        
+        [StringLength(255)]
+        
+        public string Name { get; set; }
+	..
+    }
+
+--------------------------------------------------------------------------------
+
+--> Now we need to revert the migration InitialModel
+
+--> remove-migration will not work if it is applied to database
+--> update-database InitialName will also not work if it is first migration
+
+--> update-database 0 will do our work
+
+or
+
+--> dotnet ef database update 0
+
+--> Now,
+--> dotnet ef migrations remove
+--> remove-migration
+
+--> Again do migrations, add-migration InitialModel
+
+--------------------------------------------------------------------------------
+
+8. Seeding the Database
+
+--> dotnet ef migrations add SeedDatabase
+
+ protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql("Insert into Makes (Name) Values ('Make1')");
+            migrationBuilder.Sql("Insert into Makes (Name) Values ('Make2')");
+            migrationBuilder.Sql("Insert into Makes (Name) Values ('Make3')");
+
+            migrationBuilder.Sql("Insert into Models (Name, MakeId) Values ('Make1-ModelA', (Select Id from Makes Where Name = 'Make1'))");
+            migrationBuilder.Sql("Insert into Models (Name, MakeId) Values ('Make1-ModelB', (Select Id from Makes Where Name = 'Make1'))");
+            migrationBuilder.Sql("Insert into Models (Name, MakeId) Values ('Make1-ModelC', (Select Id from Makes Where Name = 'Make1'))");
+
+            migrationBuilder.Sql("Insert into Models (Name, MakeId) Values ('Make2-ModelA', (Select Id from Makes Where Name = 'Make2'))");
+            migrationBuilder.Sql("Insert into Models (Name, MakeId) Values ('Make2-ModelB', (Select Id from Makes Where Name = 'Make2'))");
+            migrationBuilder.Sql("Insert into Models (Name, MakeId) Values ('Make2-ModelC', (Select Id from Makes Where Name = 'Make2'))");
+
+            migrationBuilder.Sql("Insert into Models (Name, MakeId) Values ('Make3-ModelA', (Select Id from Makes Where Name = 'Make3'))");
+            migrationBuilder.Sql("Insert into Models (Name, MakeId) Values ('Make3-ModelB', (Select Id from Makes Where Name = 'Make3'))");
+            migrationBuilder.Sql("Insert into Models (Name, MakeId) Values ('Make3-ModelC', (Select Id from Makes Where Name = 'Make3'))");
+
+        }
+
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql("Remove from Makes where Name in ('Make1', 'Make2', 'Make3')");
+        }
+
+--> We are using Select statement because Id of Make1 can be anything
+
+--------------------------------------------------------------------------------
+
+9. Building an API
+
+namespace Vega.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class MakesController : ControllerBase
+    {
+        private readonly VegaDbContext context;
+        public MakesController(VegaDbContext context)
+        {
+            this.context = context;
+        }
+
+        [HttpGet("/api/makes")]
+        public async Task<IEnumerable<Make>> GetMakes()
+        {
+            return await context.Makes.Include(m => m.Models).ToListAsync();
+        } 
+    }
+}
+
+--------------------------------------------------------------------------------
+
+10. Common Runtime Errors
+
+1. For Docker container
+
+--> You can not keep persistant database with container
+--> as soon as, you disconnect from docker all database records will be lost.
+--> Only issue in mac
+
+--------------------------------------------------------------------------------
+
+2. Error: A possible object cycle was detected which is not supported. This can either be due to a cycle or if the object depth is larger than the maximum allowed depth of 32.
+
+--> This Loop happens because Make domain contain Models List and Model domain again contain Make model
+--> So there is loop form in json
+
+--------------------------------------------------------------------------------
+
+11. API Resources
+
+--> Why we need Dtos classes
+--> So that we can change implementation details on server but on api level, we do not break contract
+--> Such functionality is of interfaces
+--> We will keep the api endpoints same and can modify the implementation details
+
+--------------------------------------------------------------------------------
+
+--> make new folder --> Resources
+--> Make new class
+
+namespace Vega.API.Resources
+{
+    public class MakeResource
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
+
+        public ICollection<ModelResource> Models { get; set; }
+
+        public MakeResource()
+        {
+            Models = new Collection<ModelResource>();
+        }
+    }
+}
+
+--------------------------------------------------------------------------------
+
+
+namespace Vega.API.Resources
+{
+    public class ModelResource
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
+    }
+}
+
+--------------------------------------------------------------------------------
+
+12. AutoMapper
+
+--> dotnet add package AutoMapper
+--> dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection --version 1.2.0
+
+--> For visual studio, use install-package AutoMapper
+
+--------------------------------------------------------------------------------
+
+--> In startup.cs,
+
+using AutoMapper;
+
+	    var mapperConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new MappingProfile());
+            });
+
+            IMapper mapper = mapperConfig.CreateMapper();
+            services.AddSingleton(mapper);
+
+--------------------------------------------------------------------------------
+
+--> Create new folder --> Mapping
+--> Create new class
+
+namespace Vega.API.Mapping
+{
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            CreateMap<Make, MakeResource>();
+            CreateMap<Model, ModelResource>();
+        }
+    }
+}
+
+--------------------------------------------------------------------------------
+
+--> In MakesController,
+
+public class MakesController : ControllerBase
+    {
+        private readonly VegaDbContext context;
+        private readonly IMapper mapper;
+
+        public MakesController(VegaDbContext context, IMapper mapper)
+        {
+            this.context = context;
+            this.mapper = mapper;
+        }
+
+        [HttpGet("/api/makes")]
+        public async Task<IEnumerable<MakeResource>> GetMakes()
+        {
+            var makes = await context.Makes.Include(m => m.Models).ToListAsync();
+            return mapper.Map<List<Make>, List<MakeResource>>(makes);
+
+        } 
+    }
+
+
+--> https://localhost:44334/api/makes
+--> For good view of json, download jsonView chrome extension
+
+--> Task: Add new domain class Feature
+--> github.com/mosh-hamedani/vega
+
+--------------------------------------------------------------------------------
+
+13. /api/features
+
+--> In Models folder, create new class,
+
+namespace Vega.API.Models
+{
+    public class Feature
+    {
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; }
+    }
+}
+
+--------------------------------------------------------------------------------
+
+--> In VegaDbContext.cs,
+
+        public DbSet<Feature> Features { get; set; }
+
+
+--------------------------------------------------------------------------------
+
+--> In console, add-migration AddFeatureEntity
+--> update-database
+
+--------------------------------------------------------------------------------
+
+--> In console, add-migration SeedFeature
+
+namespace Vega.API.Migrations
+{
+    public partial class SeedFeatures : Migration
+    {
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql("Insert into Features (Name) Values ('Feature1')");
+            migrationBuilder.Sql("Insert into Features (Name) Values ('Feature2')");
+            migrationBuilder.Sql("Insert into Features (Name) Values ('Feature3')");
+        }
+
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql("Delete from Features where Name in ('Feature1', 'Feature2', 'Feature3')");
+        }
+    }
+}
+
+--> update-database
+
+--------------------------------------------------------------------------------
+
+--> In Resources folder, create new class,
+
+namespace Vega.API.Resources
+{
+    public class FeatureResource
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+}
+
+--------------------------------------------------------------------------------
+
+--> In MappingProfile class,
+
+ CreateMap<Feature, FeatureResource>();
+
+--------------------------------------------------------------------------------
+
+--> In makescontroller,
+
+        [HttpGet("/api/features")]
+        public async Task<IEnumerable<FeatureResource>> GetFeatures()
+        {
+            var features = await context.Features.ToListAsync();
+            return mapper.Map<List<Feature>, List<FeatureResource>>(features);
+        }
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
 
 
 

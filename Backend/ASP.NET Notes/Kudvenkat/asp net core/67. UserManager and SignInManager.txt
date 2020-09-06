@@ -115,12 +115,15 @@ public class AccountController : Controller
 --> First we create new object of identityUser class
 --> In CreateAsync method of UserManager object, we assign this object of identityUser class as user and second paramter as password that came from register form
 --> As we are using async method, we have to make this actionMethod async
---> After Creating user, we get result
---> This result object has boolean property Succeded
+--> After Creating user, we get IdentityResult object which we name it : result
+--> This result object has boolean property Succeeded
 --> If user creation is succeeded, then user is sigin using signInManager service instance.
 --> After signin, user is redirect to Index page of employee
 
 --> If there are errors in generating new user, we will pass to ModelState object using AddModelError method.
+
+--> SignInManager.SignInAsync()
+--> UserManager.CreateAsync()
 
 -------------------------------------------------------------------------------
 

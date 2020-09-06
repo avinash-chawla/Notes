@@ -1,0 +1,352 @@
+1. Generate email confirmation token in asp.net core
+
+--> In ASP.NET core generating email confirmation token is straight forward. 
+--> Use UserManager service GenerateEmailConfirmationTokenAsync() method. 
+--> This method takes one parameter. 
+
+--> The user for whom we want to generate the email confirmation token.
+
+var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+
+------------------------------------------------------------------------------------------
+
+2. Build the email confirmation link
+
+--> Once we have the token generated, build the email confirmation link. 
+--> The user simply clicks this link to confirm his email. 
+
+--> This link executes, ConfirmEmail action in Account controller. 
+--> The user ID and the email confirmation token are passed in the query string. 
+
+--> Model binding in ASP.NET core maps the values from the query string parameters to the respective parameters on the ConfirmEmail action.
+
+var confirmationLink = Url.Action("ConfirmEmail", "Account",
+    new { userId = user.Id, token = token }, Request.Scheme);
+
+--> The generated confirmation link would look like the following
+
+https://localhost:44304/Account/ConfirmEmail?userId=987009e3-7f78-445e-8bb8-4400ba886550&token=CfDJ8Hpirs
+
+--> The last parameter Request.Scheme returns the request protocol such as Http or Https. 
+--> This parameter is required to generate the full absolute URL. 
+--> If this parameter is not specified, a relative URL like the following will be generated.
+
+/Account/ConfirmEmail?userId=987009e3-7f78-445e-8bb8-4400ba886550&token=CfDJ8Hpirs
+
+------------------------------------------------------------------------------------------
+
+3. Confirming the email
+
+--> Use ConfirmEmailAsync() method of the UserManager service to confirm the email. 
+--> To this method we pass 2 parameters. 
+
+--> The user whose email we want to confirm and them email confirmation token. 
+--> Upon successful email confirmation, this method sets EmailConfirmed column to True in AspNetUsers table.
+
+var result = await userManager.ConfirmEmailAsync(user, token);
+
+------------------------------------------------------------------------------------------
+
+4. Add ASP.NET core default token providers
+
+--> In ConfigureServices() method of the Startup class, call AddDefaultTokenProviders() method to add the asp.net core default token providers that generate tokens for email confirmation, password reset, two factor authentication etc.
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+    {
+        options.SignIn.RequireConfirmedEmail = true;
+    })
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+}
+
+--> You should add, either the default token providers or your own custom token providers that can generate tokens. 
+--> Otherwise you would get the following runtime exception.
+
+NotSupportedException: No IUserTwoFactorTokenProvider<TUser> named 'Default' is registered.
+
+------------------------------------------------------------------------------------------
+
+5. Register and ConfirmEmail actions
+
+public class AccountController : Controller
+{
+    private readonly UserManager<ApplicationUser> userManager;
+    private readonly SignInManager<ApplicationUser> signInManager;
+    private readonly ILogger<AccountController> logger;
+
+    public AccountController(UserManager<ApplicationUser> userManager,
+                                SignInManager<ApplicationUser> signInManager,
+                                ILogger<AccountController> logger)
+    {
+        this.userManager = userManager; this.signInManager = signInManager;
+        this.logger = logger;
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl)
+    {
+        if (ModelState.IsValid)
+        {
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                City = model.City,
+            };
+
+            var result = await userManager.CreateAsync(user, model.Password);
+
+            if (result.Succeeded)
+            {
+                var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+
+                var confirmationLink = Url.Action("ConfirmEmail", "Account",
+                    new { userId = user.Id, token = token }, Request.Scheme);
+
+                logger.Log(LogLevel.Warning, confirmationLink);
+
+                if (signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("ListUsers", "Administration");
+                }
+
+                ViewBag.ErrorTitle = "Registration successful";
+                ViewBag.ErrorMessage = "Before you can Login, please confirm your " +
+                        "email, by clicking on the confirmation link we have emailed you";
+                return View("Error");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+        }
+
+        return View(model);
+    }
+
+    [AllowAnonymous]
+    public async Task<IActionResult> ConfirmEmail(string userId, string token)
+    {
+        if (userId == null || token == null)
+        {
+            return RedirectToAction("index", "home");
+        }
+
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            ViewBag.ErrorMessage = $"The User ID {userId} is invalid";
+            return View("NotFound");
+        }
+
+        var result = await userManager.ConfirmEmailAsync(user, token);
+        if (result.Succeeded)
+        {
+            return View();
+        }
+
+        ViewBag.ErrorTitle = "Email cannot be confirmed";
+        return View("Error");
+    }
+
+    // rest of the code
+}
+
+------------------------------------------------------------------------------------------
+
+6. ConfirmEmail View
+
+<h3>Thank you for confirming your email</h3>
+
+--> At the moment we are logging the email confirmation link to a file. 
+--> We will discuss how to send the email confirmation link in an email in our upcoming videos.
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,278 @@
+-----------------------------------------------------------------------------------------
+
+1. Intro
+
+--> In this, we will discuss, why and how to create a custom authorization policy using a func in asp.net core
+
+-----------------------------------------------------------------------------------------
+
+2. Why create a custom authorization policy
+
+--> Let's say we want to create a policy with multiple requirements. 
+--> For example to be able to edit a given role, the following are the requirements.
+
+1. Must be a member of the Admin role AND 
+2. Must have Edit Role claim with a value of true OR
+3. Must be a member of the Super Admin role
+
+-----------------------------------------------------------------------------------------
+
+3. Fluent Syntax 
+
+--> AuthorizationPolicyBuilder supports fluent syntax, so we could chain multiple calls to RequireClaim and RequireRole methods as shown below. 
+
+services.AddAuthorization(options =>
+{
+    options.AddPolicy("EditRolePolicy", policy => policy
+        .RequireRole("Admin")
+        .RequireClaim("Edit Role", "true")
+        .RequireRole("Super Admin")
+    );
+});
+
+--> However, this would not meet our authorization requirement. 
+--> For this policy to succeed, all the requirements in the policy must be satisfied i.e there is an AND condition between all the requirements. 
+--> In our case, we want an AND condition between the first and second requirement and an OR condition between the first 2 requirements and the last requirement.
+
+-----------------------------------------------------------------------------------------
+
+4. Requirement
+
+--> In simple terms to be able to edit a given role, the logged-in user must be
+
+Member of the Admin role AND have Edit Role claim with a value of true
+OR
+Member of the Super Admin role 
+
+-----------------------------------------------------------------------------------------
+
+5. Using a Func to create a custom policy
+
+--> We can use a func to create a custom policy that meets our authorization need. 
+--> If you are new to func, we discussed them in detail in Part 100 of C# tutorial.
+
+services.AddAuthorization(options =>
+{
+    options.AddPolicy("EditRolePolicy", policy => policy.RequireAssertion(context =>
+        context.User.IsInRole("Admin") &&
+        context.User.HasClaim(claim => claim.Type == "Edit Role" && claim.Value == "true") ||
+        context.User.IsInRole("Super Admin")
+    ));
+});
+
+
+--> On the AuthorizationPolicyBuilder instance, use RequireAssertion method instead of RequireClaim or RequireRole
+--> RequireAssertion() method takes Func<AuthorizationHandlerContext, bool> as a parameter
+
+--> This Func takes AuthorizationHandlerContext as input parameter and returns a boolean
+--> The AuthorizationHandlerContext instance provides access to the User roles and claims
+
+--> Func encapsulates a method, so the above code can also be rewritten as shown below. 
+--> We created a separate method and referenced it, instead of creating the method inline.
+
+services.AddAuthorization(options =>
+{
+    options.AddPolicy("EditRolePolicy", policy =>
+        policy.RequireAssertion(context => AuthorizeAccess(context)));
+});
+
+private bool AuthorizeAccess(AuthorizationHandlerContext context)
+{
+    return context.User.IsInRole("Admin") &&
+            context.User.HasClaim(claim => claim.Type == "Edit Role" && claim.Value == "true") ||
+            context.User.IsInRole("Super Admin");
+}
+
+-----------------------------------------------------------------------------------------
+
+6. Notes
+
+--> You can create roles and authorize actionMethods using [Authorize(Roles = "Admin")]
+--> You can assign users claims and authorize actionMethods using policy [Authorize(Policy = "EditRolePolicy")]
+
+--> This policy is a collection of fixed claims.
+--> We can apply like this: If the user is Admin or users having EditRole Claim can only touch EditRole actionMethod
+--> We build policy like this.
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,332 @@
+1. Our Application Authorization Requirement
+
+--> An Admin user can manage other Admin user roles and claims but not their own claims and roles. 
+
+--> To achieve this, we need to know the logged-in UserID and the UserId of the Admin being edited. 
+--> If they are the same we do not want to allow access. 
+
+--> The admin UserID being edited is passed in the URL as a query string parameter.
+
+------------------------------------------------------------------------------------------
+
+2. Why create custom requirements and handlers
+
+--> We can create a custom policy using a func. 
+--> We discussed the func delegate and RequireAssertion() method in Part 99 of ASP.NET Core tutorial.
+
+--> However, a func cannot be used to satisfy our authorization requirement here because we need to access the query string parameter. 
+--> Also as your authorization requirements get complex, you may need access to other services via dependency injection. 
+
+--> In situations like these we create custom requirements and handlers.
+
+------------------------------------------------------------------------------------------
+
+3. Creating a custom authorization requirement
+
+--> Make a new folder in project --> Security
+
+--> To create a custom authorization requirement, create a class that implements the IAuthorizationRequirement interface. 
+--> This is an empty marker interface, which means there is nothing in this interface that our custom requirement class must implement.
+
+public class ManageAdminRolesAndClaimsRequirement : IAuthorizationRequirement
+{ }
+
+--> IAuthorizationRequirement interface is in Microsoft.AspNetCore.Authorization namespace.
+
+------------------------------------------------------------------------------------------
+
+4. Creating a custom authorization handler
+
+--> It is in the authorization handler that we write our logic to allow or deny access to a resource like a controller action for example. 
+--> To implement a handler you inherit from AuthorizationHandler<T>, and implement the HandleRequirementAsync() method. 
+
+--> The generic parameter <T> on the AuthorizationHandler<T> is the type of requirement.
+
+public class CanEditOnlyOtherAdminRolesAndClaimsHandler : AuthorizationHandler<ManageAdminRolesAndClaimsRequirement>
+{
+    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ManageAdminRolesAndClaimsRequirement requirement)
+    {
+        var authFilterContext = context.Resource as AuthorizationFilterContext;
+        if (authFilterContext == null)
+        {
+            return Task.CompletedTask;
+        }
+
+        string loggedInAdminId =
+            context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+        string adminIdBeingEdited = authFilterContext.HttpContext.Request.Query["userId"];
+
+        if (context.User.IsInRole("Admin") &&
+            context.User.HasClaim(claim => claim.Type == "Edit Role" && claim.Value == "true") &&
+            adminIdBeingEdited.ToLower() != loggedInAdminId.ToLower())
+        {
+            context.Succeed(requirement);
+        }
+
+        return Task.CompletedTask;
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+5. Authorization handler code explanation
+
+--> Resource property of AuthorizationHandlerContext returns the resource that we are protecting. 
+--> In our case, we are using this custom requirement to protect a controller action method. 
+
+--> So the following line returns the controller action being protected as the AuthorizationFilterContext and provides access to HttpContext, RouteData, and everything else provided by MVC and Razor Pages.
+
+var authFilterContext = context.Resource as AuthorizationFilterContext;
+
+--> If AuthorizationFilterContext is NULL, we cannot check if the requirement is met or not, so we return Task.CompletedTask and the access is not authorised.
+
+if (authFilterContext == null)
+{
+    return Task.CompletedTask;
+}
+
+--> Our requirement is met and the authorization succeeds 
+
+--> If the user is in the Admin role 
+AND
+has Edit Role claim type with a claim value of true
+AND
+the logged-in user Id is NOT EQUAL TO the Id of the Admin user being edited
+
+if (context.User.IsInRole("Admin") &&
+    context.User.HasClaim(claim => claim.Type == "Edit Role" && claim.Value == "true") &&
+    adminIdBeingEdited.ToLower() != loggedInAdminId.ToLower())
+{
+    context.Succeed(requirement);
+}
+
+--> Succeed() method specifies that the requirement is successfully evaluated.
+
+
+------------------------------------------------------------------------------------------
+
+6. Authorization handler registration
+
+--> We register custom authorization handler in ConfigureServices() method of the Startup class
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddAuthorization(options =>
+    {
+        options.AddPolicy("EditRolePolicy", policy =>
+            policy.AddRequirements(new ManageAdminRolesAndClaimsRequirement()));
+    });
+
+    services.AddSingleton<IAuthorizationHandler, CanEditOnlyOtherAdminRolesAndClaimsHandler>();
+}
+
+------------------------------------------------------------------------------------------
+
+7. Finally use the custom policy to protect the resources like controller action methods
+
+[HttpGet]
+[Authorize(Policy = "EditRolePolicy")]
+public async Task<IActionResult> ManageUserRoles(string userId)
+{
+    // Implementation
+}
+
+------------------------------------------------------------------------------------------
+
+8. Problem
+
+var authFilterContext = context.Resource as AuthorizationFilterContext;
+Above line always returns null in aspnet 3.0
+Please help!!
+
+--> Solution:
+
+This Worked for me !
+
+public class CanEditOnlyOtherAdminRolesAndClaimsHandler : AuthorizationHandler
+{
+private readonly IHttpContextAccessor httpContextAccessor;
+public CanEditOnlyOtherAdminRolesAndClaimsHandler(IHttpContextAccessor httpContextAccessor)
+{
+this.httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+
+}
+
+protected override Task HandleRequirementAsync(AuthorizationHandlerContext context,
+ManageAdminRolesAndClaimsRequirement requirement)
+{
+
+string loggedInAdminId = context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value.ToString();
+
+string adminIdBeingEdited = httpContextAccessor.HttpContext.Request.Query["userId"].ToString();
+
+if (context.User.IsInRole("Admin") &&
+context.User.HasClaim(claim =>
+claim.Type == "Edit Role" && claim.Value == "true") && adminIdBeingEdited.ToLower() != loggedInAdminId.ToLower())
+{
+context.Succeed(requirement);
+}
+
+return Task.CompletedTask;
+
+}
+}
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

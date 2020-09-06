@@ -83,7 +83,7 @@ public class LoginViewModel
 --> A session cookie is created and stored within the session instance of the browser. 
 --> A session cookie does not contain an expiration date and is permanently deleted when the browser window is closed.
 
---> Persistetn Cookie:
+--> Persistent Cookie:
 --> A persistent cookie on the other hand is not deleted when the browser window is closed. 
 --> It usually has an expiry date and deleted on the date of expiry.
 
@@ -122,7 +122,7 @@ public class LoginViewModel
 --> HttpGet will provide the login form to user
 --> HttpPost will receive the form and redirect the user
 --> In HttpPost, first we do validation using ModelState
---> We have method PasswordSignInAsync to authentication user and check credentials
+--> We have method PasswordSignInAsync to authenticate user and check credentials
 --> It returns result
 --> If Succeded, we redirect the user
 --> If Error, we pass error to ModelState.

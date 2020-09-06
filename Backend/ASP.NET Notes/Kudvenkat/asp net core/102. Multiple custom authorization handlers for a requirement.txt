@@ -1,0 +1,284 @@
+1. Why we need multiple handlers
+
+--> One of the following 2 conditions must be met for a logged-in user to be able to manage user roles and claims.
+
+Codition 1 :
+The user must be in the Admin role AND has Edit Role claim type with a claim value of true
+AND
+the logged-in user Id must NOT BE EQUAL TO the Id of the Admin user being edited
+
+OR
+
+Condition 2 : 
+The user must be in the Super Admin role 
+
+--> For the logged-in admin to be able to edit and manage other Admin roles and claims either Condition 1 OR Condition 2 must be satisfied. There is an OR relationship. We already have a handler for handling the first condition of the requirement. We implemented this in our previous video.
+
+------------------------------------------------------------------------------------------
+
+2. Custom requirement handler - 1
+
+--> For your reference here is the first handler that handles the first condition of our requirement.
+
+public class CanEditOnlyOtherAdminRolesAndClaimsHandler :
+    AuthorizationHandler<ManageAdminRolesAndClaimsRequirement>
+{
+    protected override Task HandleRequirementAsync(
+        AuthorizationHandlerContext context,
+        ManageAdminRolesAndClaimsRequirement requirement)
+    {
+        var authFilterContext = context.Resource as AuthorizationFilterContext;
+        if (authFilterContext == null)
+        {
+            return Task.CompletedTask;
+        }
+
+        string loggedInAdminId = context.User.Claims.FirstOrDefault(
+            c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+        string adminIdBeingEdited =
+            authFilterContext.HttpContext.Request.Query["userId"];
+
+        if (context.User.IsInRole("Admin") &&
+            context.User.HasClaim(claim =>
+            claim.Type == "Edit Role" && claim.Value == "true") &&
+            adminIdBeingEdited.ToLower() != loggedInAdminId.ToLower())
+        {
+            context.Succeed(requirement);
+        }
+
+        return Task.CompletedTask;
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+3. Custom requirement handler - 2
+
+--> The following is the second handler that handles the second condition of our requirement.
+
+public class SuperAdminHandler : AuthorizationHandler<ManageAdminRolesAndClaimsRequirement>
+{
+    protected override Task HandleRequirementAsync(
+        AuthorizationHandlerContext context,
+        ManageAdminRolesAndClaimsRequirement requirement)
+    {
+        if (context.User.IsInRole("Super Admin"))
+        {
+            context.Succeed(requirement);
+        }
+
+        return Task.CompletedTask;
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+4. Registering the custom requirement handlers
+
+--> Once we have the second handler implemented, we register it in the ConfigureServices() method of the Startup class just like the first handler.
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddAuthorization(options =>
+    {
+        options.AddPolicy("EditRolePolicy", policy =>
+            policy.AddRequirements(new ManageAdminRolesAndClaimsRequirement()));
+    });
+
+    // Register the first handler
+    services.AddSingleton<IAuthorizationHandler,
+        CanEditOnlyOtherAdminRolesAndClaimsHandler>();
+
+    // Register the second handler
+    services.AddSingleton<IAuthorizationHandler, SuperAdminHandler>();
+}
+
+------------------------------------------------------------------------------------------
+
+5. Custom requirement handler not working
+
+--> If your custom handler is not working as expected, place a breakpoint in the handler and debug. 
+--> If the break point is not hit, it's most likely you have not registered the handler.
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

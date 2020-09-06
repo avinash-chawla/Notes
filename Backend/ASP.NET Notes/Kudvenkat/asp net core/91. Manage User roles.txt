@@ -83,8 +83,7 @@ public async Task<IActionResult> ManageUserRoles(string userId)
 5. HttpPost ManageUserRoles Action
 
 [HttpPost]
-public async Task<IActionResult>
-    ManageUserRoles(List<UserRolesViewModel> model, string userId)
+public async Task<IActionResult> ManageUserRoles(List<UserRolesViewModel> model, string userId)
 {
     var user = await userManager.FindByIdAsync(userId);
 

@@ -18,7 +18,7 @@ Regular Expression
 
 3. Custom Validation Attribute Example
 
--->  Our business requirement is to only allow email address where the domain name is pragimtech.com. 
+--> Our business requirement is to only allow email address where the domain name is pragimtech.com. 
 
 --> If any other domain name is used, we want to display a validation error. 
 

@@ -2,7 +2,7 @@
 
 --> Concept:
 --> We are showing list of Users in ListUsers View
---> There is update button on that
+--> There is Edit button on that
 --> It will redirected to EditUser View for single user
 --> This view will contain properties like Id, Username, Email, City, List<roles>, List<Claims>
 --> There will be button AddOrRemove Roles and AddOrRemoveClaims on that user.
@@ -24,7 +24,7 @@
 
 --------------------------------------------------------------------------------
 
-2. Edit User View Model 
+2. EditUser View Model 
 
 public class EditUserViewModel
 {

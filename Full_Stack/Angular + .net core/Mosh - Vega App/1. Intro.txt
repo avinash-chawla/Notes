@@ -36,6 +36,7 @@
 --> Buyers will browser through the list
 
 --> Recording a Vehicle
+--> Domain class will contains following properties:
 --> Make, Model, Features, Registerd or not?, Owner(name, phone, email), photos
 
 
@@ -47,6 +48,8 @@
 --> For Authorization, we define roles
 1. Admin		--> Can also view Report of maximum car selling
 2. Moderate
+
+--> Moderate will be sellers who can do crud operations on their selling item.
 
 --------------------------------------------------------------------------------
 
@@ -77,6 +80,53 @@ npm i -g yo generator-aspnetcore-spa
 
 --> Install Sql server on windows as normal
 
+--> If mac/linux, then follow below procedures:
+
+--> We will use Docker
+--> docker automates and simplifies the deployment of our application.
+--> It solves the issue of application running on one machine and through docker, use on other production machines as well
+
+--> Docker Image
+--> It consists of Application code, dependencies and config file
+--> You can deploy this image to server container using only one command.
+
+--> Install Docker
+--> Based on os, install docker software
+--> Give memory allocation in preferences settings.
+
+--> Download SqlServer Image from docker repo
+--> Write following cmd:
+--> docker		-> it will list all images
+--> sudo docker pull microsoft/mssql-server-linux
+
+--> Running SqlServer inside component
+--> sudo docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyComplexPassword!234' -p 1433:1433 -v /user/my/db:/var/opt/mssql -d microsoft/mssql-server-linux
+
+-e = environment variable
+EULA = End User Licence Agreement
+-p = port
+-d = to run as a background service
+-v = volumn in linux	--> used to store something.
+
+--> We set environmental variables -e
+--> We define port for connecting to SqlServer -p
+--> We define volume -v to persist data across container to SqlServer in host machine.
+--> Last, we define our docker image name using -d
+
+
+--> List all docker images
+--> docker 
+
+--> List all containers running application
+--> docker ps
+--> It has docker component id with following image, it is using.
+
+--> To stop any container running application
+--> docker stop d8cf	(first four letters of docker compnent id)
+
+--> To list all containers previously used
+--> docker ps -a
+
 --------------------------------------------------------------------------------
 
 
@@ -93,11 +143,22 @@ npm i -g yo generator-aspnetcore-spa
 --> need unit testing 		--> say no
 --> name of project 		--> .   --> same as folderName
 
+--> Note:
+--> yo template engine is outdated
+--> use: dotnet cli cmd to generate template for project
+--> dotnet new angular --framework netcoreapp3.1  
+
 ---------------------------------------------------------------------------------
 
 --> To run this application,
 
 1. dotnet run
+
+--> We will not make use of this template, because it supports specific version of Angular cli 
+--> We will create different templates individually.
+
+--> dotnet new webapi -o Vega.API -n Vega.API -f netcoreapp3.1
+--> ng new Vega-SPA
 
 ---------------------------------------------------------------------------------
 
@@ -110,6 +171,8 @@ npm i -g yo generator-aspnetcore-spa
 
 2. ClientApp
 --> This is our Angular Application
+--> It is generated using dotnet cli command
+
 3. Controllers
 4. Pages
 5. appsettings.json
@@ -151,6 +214,9 @@ npm i -g yo generator-aspnetcore-spa
 1. launchSettings.json
 2. Set at machine	--> SET ASPNETCORE_ENVIRONMENT=Development
 
+--> This env_variable exists till your pc is running.
+--> To make this persistant, add this env_variable in ControlPanel --> System --> Advanced Settings
+
 ---------------------------------------------------------------------------------
 
 10. .net watch
@@ -182,8 +248,9 @@ npm i -g yo generator-aspnetcore-spa
 
 --> I have created the application but from where to start
 
---> Ever project starts with clients requirements
+--> Every project starts with clients requirements
 --> That can be 1-2 pages or 100 pages or verbal communication with client
+
 --> First understand use cases of project
 --> eg. For Vega,
 

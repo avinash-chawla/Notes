@@ -1,0 +1,287 @@
+-----------------------------------------------------------------------------------------
+
+1. Intro
+
+--> In this video we will discuss custom authorization requirements and handlers. 
+--> These are very useful and powerful concepts that help us implement even the most complex authorization needs of an application.
+
+-----------------------------------------------------------------------------------------
+
+2. Simple ASP.NET Core Authorization Requirements 
+
+--> The following EditRolePolicy has just one requirement. 
+--> Edit Role claim must be present for this policy to succeed. 
+--> The policy requirement is specified using RequireClaim() method.
+
+options.AddPolicy("EditRolePolicy", 
+    policy => policy.RequireClaim("Edit Role"));
+
+-----------------------------------------------------------------------------------------
+
+--> The following policy also has just one requirement. For this policy to succeed, Edit Role claim type must be present with a claim value of true.
+
+options.AddPolicy("EditRolePolicy", 
+    policy => policy.RequireClaim("Edit Role", "true"));
+
+-----------------------------------------------------------------------------------------
+
+--> Even this policy has just one requirement. 
+--> The only difference is we have specified multiple claim values (i.e true and yes). 
+--> For this policy to succeed, Edit Role claim type must be present with a claim value of either true OR yes.
+
+options.AddPolicy("EditRolePolicy", 
+    policy => policy.RequireClaim("Edit Role", "true", "yes"));
+
+-----------------------------------------------------------------------------------------
+
+--> Multiple ASP.NET Core Authorization Requirements 
+
+--> This policy has 2 simple built-in requirements. 
+--> One requirement is specified using RequireClaim() method and the other using RequireRole() method. 
+
+--> For this policy to succeed, the user must be in the Admin role AND must have Edit Role claim type with a claim value of either true or yes.
+
+options.AddPolicy("EditRolePolicy", policy => policy
+                    .RequireClaim("Edit Role", "true", "yes")
+                    .RequireRole("Admin"));
+
+--> All requirements must be met for the policy to succeed, when we specify requirements using the fluent syntax by chaining calls to RequireClaim() and RequireRole() methods like this. 
+--> There is an AND relationship between the requirements.
+
+-----------------------------------------------------------------------------------------
+
+--> To create a policy with an OR relationship between the requirements, use RequireAssertion() method. 
+--> This method adds the built-in AssertionRequirement. 
+--> We discussed RequireAssertion() method in detail in our previous video - Create custom authorization policy using func in asp.net core. 
+
+options.AddPolicy("EditRolePolicy", policy => policy.RequireAssertion(context =>
+            context.User.IsInRole("Admin") &&
+            context.User.HasClaim(claim => claim.Type == "Edit Role" && claim.Value == "true") ||
+            context.User.IsInRole("Super Admin") ));
+
+--> For the above policy to succeed, one of the following must be TRUE
+
+--> The user must be in the Admin role and has claim type Edit Role with a value of true
+OR
+--> The user must be in the Super Admin role 
+
+-----------------------------------------------------------------------------------------
+
+3. Built-in asp.net core authorization requirements
+
+RequireClaim() method adds ClaimsAuthorizationRequirement. 
+RequireRole() method adds RolesAuthorizationRequirement.
+RequireAssertion() method adds AssertionRequirement.
+
+--> All these are built-in requirements. 
+--> If the application that we are building, is a simple application then, these built-in requirements would do the job. 
+--> However, for most applications we need more than what is offered by these built-in requirements. 
+--> This is when we create a custom authorization requirement
+
+-----------------------------------------------------------------------------------------
+
+4. Custom authorization requirement
+
+--> An authorization policy has one or more requirements. 
+--> Each authorization requirement has one or more handlers.
+
+--> asp.net core custom requirements
+
+--> All the built-in authorization requirements implement IAuthorizationRequirement interface. 
+--> So to create a custom authorization requirement, we need to implement IAuthorizationRequirement interface. 
+
+--> This is an empty marker interface, which means there is nothing in this interface that our custom requirement class must implement.
+
+--> It is in the authorization handler that we write our logic to allow or deny access to a resource like a controller action for example. 
+--> An authorization handler implements AuthorizationHandler<T> where T is the type of requirement.
+
+--> For example, let's say, an admin user can assign or remove roles of other admin users but not his own roles. 
+--> To achieve this, we need to know the logged-in UserID and the UserId of the Admin being edited. 
+
+--> If they are the same we do not want to allow access. 
+--> The admin UserID being edited is passed in the URL as a query string parameter. 
+
+--> From the authorization handler we will have access to the route data and URL query string parameters. 
+--> Dependency injection is also supported. This means, we can even inject and use other services if required.
+
+-----------------------------------------------------------------------------------------
+
+5. Asp.net Core Features
+
+--> It is highly extensible and highly configuration
+--> It provides built-in class to change the default behaviour.
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

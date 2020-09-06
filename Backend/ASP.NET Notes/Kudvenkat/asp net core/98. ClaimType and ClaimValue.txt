@@ -1,108 +1,95 @@
 -----------------------------------------------------------------------------------------
 
-1. Role based authorization check in views
+1. Authorization Policy
 
---> Earlier, we have seen this,
+--> Consider the following Authorization policy. 
+--> To satisfy this policy the loggedin user must have Edit Role claim. 
+--> At the moment we are not checking for any value.
 
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<ApplicationUser> SignInManager
-
-@if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+services.AddAuthorization(options =>
 {
-    <li class="nav-item dropdown">
-        ...
-    </li>
+    options.AddPolicy("EditRolePolicy",
+        policy => policy.RequireClaim("Edit Role"));
+});
+
+-----------------------------------------------------------------------------------------
+
+2. Double Check Claim
+
+--> Most claims come with a value. 
+--> To satisfy this policy the loggedin user must have Edit Role claim with a value of true.
+
+-----------------------------------------------------------------------------------------
+
+services.AddAuthorization(options =>
+{
+    options.AddPolicy("EditRolePolicy",
+        policy => policy.RequireClaim("Edit Role", "true"));
+});
+
+-----------------------------------------------------------------------------------------
+
+--> A list of allowed values can also be specified. 
+--> To satisfy the following policy the loggedin user must have Country claim with a value of USA, India, or UK
+
+services.AddAuthorization(options =>
+{
+    options.AddPolicy("AllowedCountryPolicy",
+        policy => policy.RequireClaim("Country", "USA", "India", "UK"));
+});
+
+--> Second parameter is params String[] claimValue
+
+-----------------------------------------------------------------------------------------
+
+--> ClaimType comparison is case in-sensitive where as ClaimValue comparison is case sensitive.
+
+-----------------------------------------------------------------------------------------
+
+3. AspNetUserClaims Table
+
+--> We are storing all claims key-value pairs in this table
+--> We are storing same name and value for claimName and claimValue
+--> We can put values for claimName and check for that also
+--> eg. true
+
+-----------------------------------------------------------------------------------------
+
+4. Changing ClaimValue from name to boolean
+
+--> In ManageUserClaims actionMethod PostRequest,
+
+result = await userManager.AddClaimsAsync(user, model.Cliams.Select(c => new Claim(c.ClaimType, c.IsSelected ? "true" : "false" )));
+
+-----------------------------------------------------------------------------------------
+
+5. Changing View for EditUser Get Request
+
+--> Showing both ClaimName and ClaimType
+--> In EditUser action method (GET),
+
+var model = new EditUserViewModel
+{
+	...
+	Claims = userClaims.Select(c => c.Type + " : " + c.Value).ToList(),
+	...
 }
 
 -----------------------------------------------------------------------------------------
 
-2. Creating Policy for storing Claim
+6. In ManageUserClaims actionMethod
 
-public void ConfigureServices(IServiceCollection services)
+--> In GET request,
+--> We are now checking claimType for isSelected field
+
+if(existingUserClaims.Any(c => c.Type == claim.Type && c => c.Value == "true"))
 {
-    services.AddAuthorization(options =>
-    {
-        options.AddPolicy("EditRolePolicy", policy => policy.RequireClaim("Edit Role"));
-    });
-}
-
---> To satisfy EditRolePolicy, the logged-in user must have Edit Role claim. 
-
------------------------------------------------------------------------------------------
-
-3. Claims based authorization check in views
-
---> In ListRoles View,
-
---> To check if the signed-in user satisfies EditRolePolicy, inject IAuthorizationService service into the view
-
-@using Microsoft.AspNetCore.Authorization
-@inject IAuthorizationService authorizationService;
-
---> Pass the user and the name of the policy as parameters to AuthorizeAsync() method of IAuthorizationService. 
---> Succeeded property returns true if the policy is satisfied, otherwise false.
-
-@if ((await authorizationService.AuthorizeAsync(User, "EditRolePolicy")).Succeeded)
-{
-    <a asp-controller="Administration" asp-action="EditRole"
-       asp-route-id="@role.Id" class="btn btn-primary">
-        Edit
-    </a>
+   userClaim.IsSelected = true;
 }
 
 -----------------------------------------------------------------------------------------
 
-4. Authorization checks in views alone is not enough
 
---> It's not enough if we just show or hide UI elements on the view. 
---> The respective controller actions must also be protected. 
-
---> Otherwise, the user can directly type the URL in the address bar and access the resources.
-
---> In our example, though Edit button is hidden, the user can directly type the following URL to get to the EditRole action
-
-http://localhost:0001/Administration/EditRole/RoleIdGuidHere
-
---> Make sure to protect the respective controller action as well
-
-[Authorize(Policy = "EditRolePolicy")]
-public async Task<IActionResult> EditRole(string id)
-{
-    // Code
-}
-
------------------------------------------------------------------------------------------
-
-5. Service injection in multiple views
-
---> If you need IAuthorizationService in multiple views, consider importing in _ViewImports.cshtml, so you do not have to import it in every individual view.
-
------------------------------------------------------------------------------------------
-
-6. Same For DeleteRole Action
-
-    services.AddAuthorization(options =>
-    {
-        options.AddPolicy("DeleteRolePolicy", policy => policy.RequireClaim("Delete Role"));
-    });
-
------------------------------------------------------------------------------------------
-
-@if ((await authorizationService.AuthorizeAsync(User, "DeleteRolePolicy")).Succeeded)
-{
-    <a asp-controller="Administration" asp-action="DeleteRole"
-       asp-route-id="@role.Id" class="btn btn-primary">
-        Edit
-    </a>
-}
-
------------------------------------------------------------------------------------------
-
-[Authorize(Policy = "DeleteRolePolicy")]
-public async Task<IActionResult> DeleteRole(string id)
-{
-    // Code
-}
 
 -----------------------------------------------------------------------------------------
 

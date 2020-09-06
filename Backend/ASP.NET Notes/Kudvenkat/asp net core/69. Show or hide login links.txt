@@ -7,7 +7,7 @@
 
 2. Show or hide navlinks in _Layout.cshtml
 
---> To inject class directly in view, we use @inject
+--> To inject class (dependency injection) directly in view, we use @inject
 --> This class is present in Microsoft.AspNetCore.Identity, so using statement
 --> We can shift this using in _ViewImports file.
 

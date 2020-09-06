@@ -1,0 +1,278 @@
+1. Intro
+
+--> In this video we will discuss how to set token lifespan for a specific type of token. 
+--> This is continuation to our previous video Part 118. Please watch Part 118 from ASP.NET Core tutorial before proceeding.
+
+------------------------------------------------------------------------------------------
+
+2. The built-in DataProtectorTokenProvider can generate different types of tokens like Email Confirmation Token, Password Reset Token for example. 
+
+--> The default lifespan for all these token types is 1 day. 
+--> One way to change the default lifespan is by using the built-in DataProtectionTokenProviderOptions. 
+
+--> This class sets the lifespan of all the token types to the same value. 
+--> In the following example to 5 hours. We discussed this in detail in our previous video.
+
+services.Configure<DataProtectionTokenProviderOptions>(o =>
+        o.TokenLifespan = TimeSpan.FromHours(5));
+ 
+
+------------------------------------------------------------------------------------------
+
+--> If you want to set the lifespan of just a specific type of token, you can do so by creating a custom token provider. 
+--> For example, let's set the lifespan of email confirmation token type to 3 days.
+
+--> Create custom email confirmation token provider options
+
+--> By default, it is the built-in DataProtectionTokenProviderOptions class that controls the token lifespan of all token types. 
+--> If you want to set a specific lifespan for just the email confirmation token type, create a CustomEmailConfirmationTokenProviderOptions class. 
+
+------------------------------------------------------------------------------------------
+
+--> Make this custom class inherit from the built-in DataProtectionTokenProviderOptions class. 
+--> There are 2 important reasons why we do this.
+
+--> The TokenLifespan property is inherited from the base class and
+--> It allows an instance of this class to be passed as an argument to the DataProtectorTokenProvider class.
+
+public class CustomEmailConfirmationTokenProviderOptions : DataProtectionTokenProviderOptions
+{ }
+
+------------------------------------------------------------------------------------------
+
+Create custom email confirmation token provider
+
+--> It is the built-in DataProtectorTokenProvider class that generates the email confirmation token. 
+--> Our custom provider class gets all the functionality required to generate tokens by inheriting from the DataProtectorTokenProvider class. 
+
+--> We do not have to write any special logic in this custom provider class to generate tokens. 
+--> It will be taken care by the base DataProtectorTokenProvider class. 
+
+--> All we need is a constructor which in turn calls the base class constructor. 
+--> Our CustomEmailConfirmationTokenProviderOptions instance is passed to the base class constructor.
+
+public class CustomEmailConfirmationTokenProvider<TUser> : DataProtectorTokenProvider<TUser> where TUser : class
+{
+    public CustomEmailConfirmationTokenProvider(IDataProtectionProvider dataProtectionProvider, IOptions<CustomEmailConfirmationTokenProviderOptions> options)
+        :base(dataProtectionProvider, options)
+    { }
+}
+
+------------------------------------------------------------------------------------------
+
+--> Register custom token provider
+
+public void ConfigureServices(IServiceCollection services)
+{
+    // Rest of the code
+
+    services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+    {
+        options.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
+    })
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders()
+    .AddTokenProvider<CustomEmailConfirmationTokenProvider
+            <ApplicationUser>>("CustomEmailConfirmation");
+
+    // Rest of the code
+}
+
+--> Change email confirmation token lifespan
+
+public void ConfigureServices(IServiceCollection services)
+{
+    // Changes token lifespan of all token types
+    services.Configure<DataProtectionTokenProviderOptions>(o =>
+            o.TokenLifespan = TimeSpan.FromHours(5));
+
+    // Changes token lifespan of just the Email Confirmation Token type
+    services.Configure<CustomEmailConfirmationTokenProviderOptions>(o =>
+            o.TokenLifespan = TimeSpan.FromDays(3));
+}
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

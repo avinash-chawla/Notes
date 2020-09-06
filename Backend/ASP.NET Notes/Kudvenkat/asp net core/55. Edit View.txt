@@ -23,7 +23,7 @@
 
 3. Edit View Model
 
---> Create new class in ViewModels folder -> EmployeeCreateViewModel
+--> Create new class in ViewModels folder -> EmployeeEditViewModel
 --> This will contain properties like Name, Email, Department, ExistingPhotoPath
 --> As form model is somewhat same as create form viewModel , we will derive this class.
 
