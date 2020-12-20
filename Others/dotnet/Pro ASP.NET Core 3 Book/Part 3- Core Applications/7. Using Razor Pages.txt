@@ -1,0 +1,1988 @@
+----------------------------------------------------------------------------------------
+
+1.  Intro
+
+--> In this chapter, I introduce Razor Pages, which is a simpler approach to generating HTML content, intended to capture some of the enthusiasm for the legacy ASP.NET Web Pages framework. 
+
+--> I explain how Razor Pages work, explain how they differ from the controllers and views approach taken by the MVC Framework, and show you how they fit into the wider ASP.NET Core platform.
+
+--> I have been using the MVC Framework since it was first introduced, and I admit to ignoring the early releases of Razor Pages. 
+--> Now, however, I find myself mixing Razor Pages and the MVC Framework in most projects
+
+----------------------------------------------------------------------------------------
+
+What are they? 
+--> Razor Pages are a simplified way of generating HTML responses.
+
+Why are they useful?
+--> The simplicity of Razor Pages means you can start getting results sooner than with the MVC Framework, which can require a relatively complex preparation process. --> Razor Pages are also easier for less experienced web developers to understand because the relationship between the code and content is more obvious.
+
+How are they used?
+--> Razor Pages associate a single view with the class that provides it with features and uses a file-based routing system to match URLs.
+
+Are there any pitfalls or limitations?
+--> Razor Pages are less flexible than the MVC Framework, which makes them unsuitable for complex applications. 
+--> Razor Pages can be used only to generate HTML responses and cannot be used to create RESTful web services.
+
+Are there any alternatives?
+--> The MVC Framework’s approach of controllers and views can be used instead of Razor Pages.
+
+----------------------------------------------------------------------------------------
+
+2. Understanding Razor Pages
+
+--> The MVC Framework solves every problem in the same way: a controller defines action methods that select views to produce responses. It is a solution that works because it is so flexible: the controller can define multiple action methods that respond to different requests, the action method can decide which view will be used as the request is being processed, and the view can depend on private or shared partial views to produce its response.
+
+--> Not every feature in web applications needs the flexibility of the MVC Framework. For many features, a single action method will be used to handle a wide range of requests, all of which are dealt with using the same view. Razor Pages offer a more focused approach that ties together markup and C# code, sacrificing flexibility for focus.
+
+----------------------------------------------------------------------------------------
+
+3. Configuring Razor Pages
+
+--> startup.cs
+
+	public void ConfigureServices(IServiceCollection services) {
+            services.AddDbContext<DataContext>(...);
+            services.AddControllersWithViews().AddRazorRuntimeCompilation();
+            services.AddRazorPages().AddRazorRuntimeCompilation();			// This Line
+        }
+
+        public void Configure(IApplicationBuilder app, DataContext context) {
+            app.UseDeveloperExceptionPage();
+            app.UseStaticFiles();
+            app.UseRouting();
+            app.UseEndpoints(endpoints => {
+                endpoints.MapControllers();
+                endpoints.MapDefaultControllerRoute();
+                endpoints.MapRazorPages();						// This Line
+            });
+            SeedData.SeedDatabase(context);
+        }
+
+--> The AddRazorPages method sets up the service that is required to use Razor Pages, while the optional AddRazorRuntimeCompilation method enables runtime recompilation
+-->  The MapRazorPages method creates the routing configuration that matches URLs to pages.
+
+----------------------------------------------------------------------------------------
+
+4. Creating a Razor Page
+
+--> Create the WebApp/Pages folder
+--> Add to it a new razor page named Index.cshtml
+
+
+@page 
+@model IndexModel 
+@using Microsoft.AspNetCore.Mvc.RazorPages 
+@using WebApp.Models;
+
+<!DOCTYPE html> 
+<html> 
+<head>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" /> 
+</head> 
+<body>
+    <div class="bg-primary text-white text-center m-2 p-2">@Model.Product.Name</div> 
+</body> 
+</html>
+
+@functions {
+    public class IndexModel: PageModel {
+        private DataContext context;
+        public Product Product { get; set; }
+
+        public IndexModel(DataContext ctx) {
+            context = ctx;
+        }
+
+        public async Task OnGetAsync(long id = 1) {
+            Product = await context.Products.FindAsync(id);
+        }
+    } 
+}
+
+
+--> The @page directive must be the first thing in a Razor Page, which ensures that the file is not mistaken for a view associated with a controller. 
+--> But the most important difference is that the @functions directive is used to define the C# code that supports the Razor content in the same file. 
+
+--> Use a browser to request http://localhost:5000/index, which produces the response
+
+----------------------------------------------------------------------------------------
+
+5. Understanding the URL Routing Convention
+
+--> URL routing for Razor Pages is based on the file name and location, relative to the Pages folder. 
+
+----------------------------------------------------------------------------------------
+
+6. Understanding the Page Model
+
+--> In a Razor Page, the @model directive is used to select a page model class, rather than identifying the type of the object provided by an action method.
+--> When the Razor Page is selected to handle an HTTP request, a new instance of the page model class is created, and dependency injection is used to resolve any dependencies that have been declared using constructor parameters
+
+--> After the page model object has been created, a handler method is invoked. 
+--> The name of the handler method is On, followed by the HTTP method for the request so that the OnGet method is invoked when the Razor Page is selected to handle an HTTP GET request. 
+
+--> Handler methods can be asynchronous, in which case a GET request will invoke the OnGetAsync method, which is the method implemented by the IndexModel class.
+
+--> Values for the handler method parameters are obtained from the HTTP request using the model binding process.
+--> The OnGetAsync method receives the value for its id parameters from the model binder, which it uses to query the database and assign the result to its Product property.
+
+----------------------------------------------------------------------------------------
+
+7. Understanding the Page View
+
+--> The page model’s methods and properties are accessible in the Razor Page through the @Model expression. 
+--> The Product property defined by the IndexModel class is used to set the content of an HTML element.
+
+--> The @Model expression returns an IndexModel object, and this expression reads the Name property of the object returned by the Product property.
+
+----------------------------------------------------------------------------------------
+
+8. Understanding the Generated C# Class
+
+--> Behind the scenes, Razor Pages are transformed into C# classes, just like regular Razor views. Here is a simplified version of the C# class that is produced from the Razor Page
+
+----------------------------------------------------------------------------------------
+
+using System; 
+using System.Collections.Generic; 
+using System.Linq; 
+using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc.Rendering; 
+using Microsoft.AspNetCore.Mvc.ViewFeatures; 
+using Microsoft.AspNetCore.Mvc.Razor.TagHelpers; using Microsoft.AspNetCore.Mvc.ViewFeatures; 
+using Microsoft.AspNetCore.Mvc.Rendering; 
+using Microsoft.AspNetCore.Mvc.RazorPages; 
+using Microsoft.AspNetCore.Razor.Runtime.TagHelpers; using Microsoft.AspNetCore.Razor.TagHelpers; 
+using WebApp.Models;
+namespace AspNetCore {
+    public class Pages_Index : Page {
+        public <IndexModel> ViewData => (<IndexModel>)PageContext?.ViewData;
+        public IndexModel Model => ViewData.Model;
+        public async override Task ExecuteAsync() {
+            WriteLiteral("\r\n<!DOCTYPE html>\r\n<html>\r\n");
+            WriteLiteral("<head>");
+            WriteLiteral("@<link
+                href=\"/lib/twitter-bootstrap/css/bootstrap.min.css\"
+                rel=\"stylesheet\" />");
+            WriteLiteral("</head>");
+            WriteLiteral("<body>");
+            WriteLiteral("<div class=\"bg-primary text-white text-center m-2 p-2\">")
+            Write(Model.Product.Name);
+            WriteLiteral("</div>");
+            WriteLiteral("</body></html>\r\n\r\n");
+        }
+
+        public class IndexModel: PageModel {
+            private DataContext context;
+            public Product Product { get; set; }
+            public IndexModel(DataContext ctx) {
+                context = ctx;
+            }
+            public async Task OnGetAsync(long id = 1) {
+                Product = await context.Products.FindAsync(id);
+            }
+        }
+
+        public IUrlHelper Url { get; private set; }
+        public IViewComponentHelper Component { get; private set; }
+        public IJsonHelper Json { get; private set; }
+        public IHtmlHelper<IndexModel> Html { get; private set; }
+        public IModelExpressionProvider ModelExpressionProvider { get; private set; }
+    } 
+}
+
+--> You can see the generated classes by examining the contents of the obj/Debug/netcoreapp3.0/Razor/Pages folder with the Windows File explorer.
+
+----------------------------------------------------------------------------------------
+
+9. Understanding Razor Pages Routing
+
+--> Adding a more complex URL structure for an application is done by adding folders in Pages folder whose names represent the segments in the URL you want to support. --> As an example, create the WebApp/Pages/Suppliers folder and add to it a Razor Page named List.cshtml 
+
+@page 
+@model ListModel 
+@using Microsoft.AspNetCore.Mvc.RazorPages 
+@using WebApp.Models;
+
+<!DOCTYPE html> <html> 
+
+<head>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" /> 
+</head> 
+
+<body>
+    <h5 class="bg-primary text-white text-center m-2 p-2">Suppliers</h5>
+    <ul class="list-group m-2">
+        @foreach (string s in Model.Suppliers) {
+            <li class="list-group-item">@s</li>
+        }
+    </ul> 
+</body> 
+</html>
+
+@functions {
+    public class ListModel : PageModel {
+        private DataContext context;
+        public IEnumerable<string> Suppliers { get; set; }
+
+        public ListModel(DataContext ctx) {
+            context = ctx;
+        }
+
+        public void OnGet() {
+            Suppliers = context.Suppliers.Select(s => s.Name);
+        }
+    } 
+}
+
+-->  http://localhost:5000/suppliers/list
+--> You will see a list of Suppliers
+
+
+----------------------------------------------------------------------------------------
+
+10. UNDERSTANDING THE DEFAULT URL HANDLING
+
+--> Order of middleware is important
+
+app.UseEndpoints(endpoints => {
+    endpoints.MapRazorPages();
+    endpoints.MapControllers();
+    endpoints.MapDefaultControllerRoute(); 
+});
+
+--> This application will render Index.cshtml of Razor pages folder, not of mvc HomeController
+
+----------------------------------------------------------------------------------------
+
+11. Specifying a Routing Pattern in a Razor Page
+
+--> Using the folder and file structure to perform routing means there are no segment variables for the model binding process to use. 
+--> Instead, values for the request handler methods are obtained from the URL query string, which you can see by using a browser to request http://localhost:5000/index?id=2
+
+--> public async Task OnGetAsync(long id = 1) {...}
+
+----------------------------------------------------------------------------------------
+
+--> The @page directive can be used with a routing pattern, which allows segment variables to be defined,
+
+@page "{id:long?}"
+
+--> Use a browser to request http://localhost:5000/index/4, which produces the same response 
+
+----------------------------------------------------------------------------------------
+
+--> The @page directive can also be used to override the file-based routing convention for a Razor Page
+--> List.cshtml
+
+@page "/lists/suppliers"
+
+--> Earlier, suppliers/list
+--> request http://localhost:5000/lists/suppliers, which produces the response 
+
+----------------------------------------------------------------------------------------
+
+12. Adding Routes for a Razor Page
+
+--> Using the @page directive replaces the default file-based route for a Razor Page. 
+--> If you want to define multiple routes for a page, then configuration statements can be added to the Startup class
+
+using Microsoft.AspNetCore.Mvc.RazorPages;
+
+        public void ConfigureServices(IServiceCollection services) {
+            ...
+	    services.Configure<RazorPagesOptions>(opts => {
+                opts.Conventions.AddPageRoute("/Index", "/extra/page/{id:long?}");
+            });
+        }
+
+--> The options pattern is used to add additional routes for a Razor Page using the RazorPageOptions class. 
+--> The AddPageRoute extension method is called on the Conventions property to add a route for a page. 
+
+--> The first argument is the path to the page, without the file extension and relative to the Pages folder. 
+--> The second argument is the URL pattern to add to the routing configuration
+
+Response are same for both urls:
+1. http://localhost:5000/extra/page/2
+2. http://localhost:5000/index/2
+
+----------------------------------------------------------------------------------------
+
+13. Understanding the Page Model Class
+
+--> Page models are derived from the PageModel class, which provides the link between the rest of ASP.NET Core and the view part of the Razor Page. 
+--> The PageModel class provides methods for managing how requests are handled and properties that provide context data, the most useful of which are described
+
+----------------------------------------------------------------------------------------
+
+1. HttpContext
+--> This property returns an HttpContext object
+
+2. ModelState
+--> This property provides access to the model binding and validation features described in Chapters 28 and 29.
+
+3. PageContext
+--> This property returns a PageContext object that provides access to many of the same properties defined by the 
+PageModel class, along with additional information about the current page selection.
+
+4. Request
+--> This property returns an HttpRequest object that describes the current HTTP request, as described in Chapter 12.
+
+5. Response
+--> This property returns an HttpResponse object that represents the current response, as described in Chapter 12.
+
+6. RouteData
+--> This property provides access to the data matched by the routing system, as described in Chapter 13.
+
+7. TempDataUser
+--> This property provides access to the temp data feature, which is used to store data until it can be read by a subsequent request. See Chapter 22 for details.
+
+8. User
+--> This property returns an object that describes the user associated with the request, as described in Chapter 38.
+
+----------------------------------------------------------------------------------------
+
+14. Using a Code-Behind Class File
+
+--> The @function directive allows the page-behind class and the Razor content to be defined in the same file, which is a development approach used by popular client-side frameworks, such as React or Vue.js. 
+
+--> Defining code and markup in the same file is convenient but can become difficult to manage for more complex applications. 
+--> Razor Pages can also be split into separate view and code files
+
+--> The convention for naming Razor Pages code-behind files is to append the .cs file extension to the name of the view file. 
+
+----------------------------------------------------------------------------------------
+
+--> Index.cshtml.cs
+
+using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Mvc.RazorPages; 
+using WebApp.Models;
+
+namespace WebApp.Pages {
+    public class IndexModel: PageModel {
+
+        private DataContext context;
+
+        public Product Product { get; set; }
+
+        public IndexModel(DataContext ctx) {
+            context = ctx;
+        }
+
+        public async Task OnGetAsync(long id = 1) {
+            Product = await context.Products.FindAsync(id);
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+15. Adding a View Imports File 
+
+--> A view imports file can be used to avoid using the fully qualified name for the page model class in the view file
+--> _ViewImports.cs
+
+@namespace WebApp.Pages 
+@using WebApp.Models
+
+--> Index.cshtml
+
+@page "{id:long?}" 
+@model IndexModel
+
+--> http://localhost:5000/index,
+
+----------------------------------------------------------------------------------------
+
+16. Understanding Action Results in Razor Pages
+
+--> Although it is not obvious, Razor Page handler methods use the same IActionResult interface to control the responses they generate. 
+--> To make page model classes easier to develop, handler methods have an implied result that displays the view part of the page.
+
+--> Index.cshtml.cs 
+
+using Microsoft.AspNetCore.Mvc;
+
+..
+        public async Task<IActionResult> OnGetAsync(long id = 1) {
+            Product = await context.Products.FindAsync(id);
+            return Page();
+        }
+
+--> The Page method is inherited from the PageModel class and creates a PageResult object, which tells the framework to render the view part of the page. 
+--> Unlike the View method used in MVC action methods, the Razor Pages Page method doesn’t accept arguments and always renders the view part of the page that has been selected to handle the request.
+
+----------------------------------------------------------------------------------------
+
+17. The PageModel Action Result Methods
+
+1. Page()
+--> This IActionResult returned by this method produces a 200 OK status code and renders the view part of the Razor Page.
+
+2. NotFound()
+--> The IActionResult returned by this method produces a 404 NOT FOUND status code.
+
+3. BadRequest()
+--> The IActionResult returned by this method produces a 400 BAD REQUEST status code. The method accepts an optional model state object that describes the problem to the client, as demonstrated in Chapter 19.
+
+4. File(name, type)
+--> The IActionResult returned by this method produces a 200 OK response, sets the Content-Type header to the specified type, and sends the specified file to the client.
+
+5. Redirect(path)
+RedirectPermanent(path)
+--> The IActionResult returned by these methods produces 302 FOUND and 301 MOVED PERMANENTLY responses, which redirect the client to the specified URL.
+
+6. RedirectToAction(name)
+RedirectoActionPermanent(name)
+--> The IActionResult returned by these methods produces 302 FOUND and 301 MOVED PERMANENTLY responses, which redirect the client to the specified action method. The URL used to redirect the client is produced using the routing features described in Chapter 13.
+
+7. RedirectToPage(name)
+RedirectToPagePermanent(name)
+--> The IActionResult returned by these methods produce 302 FOUND and 301 MOVED PERMANENTLY responses that redirect the client to another Razor Page. If no name is supplied, the client is redirected to the current page.
+
+8. StatusCode(code)
+--> The IActionResult returned by this method produces a response with the specific status code.
+
+----------------------------------------------------------------------------------------
+
+18. Using an Action Result
+
+--> Except for the Page method, the methods in Table 23-4 are the same as those available in action methods. 
+--> However, care must be taken with these methods because sending a status code response is unhelpful in Razor Pages because they are used only when a client expects the content of the view.
+
+----------------------------------------------------------------------------------------
+
+--> Add a Razor Page named NotFound.cshtml to the Pages folder
+
+@page "/noid" 
+@model NotFoundModel 
+@using Microsoft.AspNetCore.Mvc.RazorPages 
+@using WebApp.Models;
+
+<!DOCTYPE html> <html> 
+<head>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <title>Not Found</title> </head> 
+<body>
+    <div class="bg-primary text-white text-center m-2 p-2">No Matching ID</div>
+    <ul class="list-group m-2">
+        @foreach (Product p in Model.Products) {
+            <li class="list-group-item">@p.Name (ID: @p.ProductId)</li>
+        }
+    </ul> 
+</body> 
+</html>
+
+
+@functions {
+    public class NotFoundModel: PageModel {
+        private DataContext context;
+        public IEnumerable<Product> Products { get; set; }
+        public NotFoundModel(DataContext ctx) {
+            context = ctx;
+        }
+        public void OnGetAsync(long id = 1) {
+            Products = context.Products;
+        }
+    } 
+}
+
+--> The @page directive overrides the route convention so that this Razor Page will handle the /noid URL path.
+--> I have updated the handle method of the IndexModel class to redirect the user to the NotFound page when a request is received that doesn’t match a Product object in the database. 
+
+----------------------------------------------------------------------------------------
+
+--> Using a Redirection in the Index.cshtml.cs
+
+        public async Task<IActionResult> OnGetAsync(long id = 1) {
+            Product = await context.Products.FindAsync(id);
+            if (Product == null) {
+                return RedirectToPage("NotFound");
+            }
+            return Page();
+        }
+
+--> Try: http://localhost:5000/index/500
+--> You will get redirection on: /noid path
+
+----------------------------------------------------------------------------------------
+
+19. Handling Multiple HTTP Methods
+
+--> Razor Pages can define handler methods that respond to different HTTP methods. 
+--> The most common combination is to support the GET and POST methods that allow users to view and edit data
+
+----------------------------------------------------------------------------------------
+
+--> Editor.cshtml
+
+@page "{id:long}" 
+@model EditorModel
+
+<!DOCTYPE html> <html> 
+<head>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" /> </head> 
+<body>
+    <div class="bg-primary text-white text-center m-2 p-2">Editor</div>
+    <div class="m-2">
+        <table class="table table-sm table-striped table-bordered">
+            <tbody>
+                <tr><th>Name</th><td>@Model.Product.Name</td></tr>
+                <tr><th>Price</th><td>@Model.Product.Price</td></tr>
+            </tbody>
+        </table>
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label>Price</label>
+                <input name="price" class="form-control" value="@Model.Product.Price" />
+            </div>
+            <button class="btn btn-primary" type="submit">Submit</button>
+        </form>
+    </div> 
+</body> 
+</html>
+
+--> The @Html.AntiForgeryToken() expression in Listing 23-16 adds a hidden form field to the htML form that asp.net Core uses to guard against cross-site request forgery (CsrF) attacks.
+
+----------------------------------------------------------------------------------------
+
+--> Editor.cshtml.cs 
+
+using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc.RazorPages; 
+using WebApp.Models;
+
+namespace WebApp.Pages {
+
+    public class EditorModel : PageModel {
+
+        private DataContext context;
+        public Product Product { get; set; }
+
+        public EditorModel(DataContext ctx) {
+            context = ctx;
+        }
+
+        public async Task OnGetAsync(long id) {
+            Product = await context.Products.FindAsync(id);
+        }
+
+        public async Task<IActionResult> OnPostAsync(long id, decimal price) {
+            Product p = await context.Products.FindAsync(id);
+            p.Price = price;
+            await context.SaveChangesAsync();
+            return RedirectToPage();
+        }
+    } 
+}
+
+--> http://localhost:5000/editor/1. Edit the field to set the price to 100 and click the Submit button. 
+--> The browser will send a POST request that is handled by the OnPostAsync method. The database will be updated, and the browser will be redirected so that the updated data is displayed
+
+----------------------------------------------------------------------------------------
+
+--> UNDERSTANDING THE POST REDIRECTION
+
+notice that the last statement in the OnPostAsync method invokes the RedirectToPage method without an argument, which redirects the client to the UrL for the razor page. this may seem odd, but the effect is to tell the browser to send a get request to the UrL it used for the post request. this type of redirection means that the browser won’t resubmit the post request if the user reloads the browser, preventing the same action from being accidentally performed more than once.
+
+----------------------------------------------------------------------------------------
+
+20. Selecting a Handler Method
+
+--> The page model class can define multiple handler methods, allowing the request to select a method using a handler query string parameter or routing segment variable.
+
+----------------------------------------------------------------------------------------
+
+--> HandlerSelector.cshtml
+
+@page 
+@model HandlerSelectorModel 
+@using Microsoft.AspNetCore.Mvc.RazorPages 
+@using Microsoft.EntityFrameworkCore
+
+<!DOCTYPE html> <html> 
+<head>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" /> </head> 
+<body>
+    <div class="bg-primary text-white text-center m-2 p-2">Selector</div>
+    <div class="m-2">
+        <table class="table table-sm table-striped table-bordered">
+            <tbody>
+                <tr><th>Name</th><td>@Model.Product.Name</td></tr>
+                <tr><th>Price</th><td>@Model.Product.Name</td></tr>
+                <tr><th>Category</th><td>@Model.Product.Category?.Name</td></tr>
+                <tr><th>Supplier</th><td>@Model.Product.Supplier?.Name</td></tr>
+            </tbody>
+        </table>
+        <a href="/handlerselector" class="btn btn-primary">Standard</a>
+        <a href="/handlerselector?handler=related" class="btn btn-primary">
+            Related
+        </a>
+    </div> 
+</body> 
+</html>
+
+@functions{
+    public class HandlerSelectorModel: PageModel {
+        private DataContext context;
+        public Product Product { get; set; }
+        public HandlerSelectorModel(DataContext ctx) {
+            context = ctx;
+        }
+        public async Task OnGetAsync(long id = 1) {
+            Product = await context.Products.FindAsync(id);
+        }
+        public async Task OnGetRelatedAsync(long id = 1) {
+            Product = await context.Products
+                .Include(p => p.Supplier)
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.ProductId == id);
+            Product.Supplier.Products = null;
+            Product.Category.Products = null;
+        }
+    } 
+}
+----------------------------------------------------------------------------------------
+
+--> The page model class in this example defines two handler methods: OnGetAsync and OnGetRelatedAsync. 
+
+--> The OnGetAsync method is used by default, which you can see by using a browser to request http://localhost:5000/handlerselector. 
+
+--> One of the anchor elements rendered by the page targets a URL with a handler query string parameter, like this:
+... 
+<a href="/handlerselector?handler=related" class="btn btn-primary">Related</a> ...
+
+--> The name of the handler method is specified without the On[method] prefix and without the Async suffix so that the OnGetRelatedAsync method is selected using a handler value of related. 
+--> This alternative handler method includes related data in its query and presents additional data to the user,
+
+----------------------------------------------------------------------------------------
+
+21. Understanding the Razor Page View
+
+--> The view part of a Razor Page uses the same syntax and has the same features as the views used with controllers. 
+--> Razor Pages can use the full range of expressions and features such as sessions, temp data, and layouts. 
+
+--> Aside from the use of the @page directive and the page model classes, the only differences are a certain amount of duplication to configure features such as layouts and partial views
+
+----------------------------------------------------------------------------------------
+
+22. Creating a Layout for Razor Pages
+
+--> Create the Pages/Shared folder and add to it a file named _Layout.cshtml
+
+<!DOCTYPE html> <html> 
+
+<head>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <title>@ViewBag.Title</title> 
+</head> 
+
+<body>
+    <h5 class="bg-secondary text-white text-center m-2 p-2">
+        Razor Page
+    </h5>
+    @RenderBody() 
+</body> 
+</html>
+
+----------------------------------------------------------------------------------------
+
+--> _ViewStart.cshtml
+
+@{
+    Layout = "_Layout"; 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Disabling Layouts in the Editor.cshtml File
+
+@{
+    Layout = null; 
+}
+
+----------------------------------------------------------------------------------------
+
+23. Using Partial Views in Razor Pages
+
+--> Razor Pages can use partial views so that common content isn’t duplicated. 
+--> _ViewImports.cshtml 
+
+@namespace WebApp.Pages 
+@using WebApp.Models 
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+----------------------------------------------------------------------------------------
+
+--> add a Razor view named _ProductPartial.cshtml in the Pages/Shared folder
+
+@model Product
+<div class="m-2">
+    <table class="table table-sm table-striped table-bordered">
+        <tbody>
+            <tr><th>Name</th><td>@Model.Name</td></tr>
+            <tr><th>Price</th><td>@Model.Price</td></tr>
+        </tbody>
+    </table> 
+</div>
+
+----------------------------------------------------------------------------------------
+
+--> Partial views receive a view model through their @model directive and not a page model. 
+--> It is for this reason that the value of the model attribute is Model.Product and not just Model.
+
+--> Index.cshtml 
+
+@page "{id:long?}" 
+
+@model IndexModel
+
+<div class="bg-primary text-white text-center m-2 p-2">@Model.Product.Name</div> 
+<partial name="_ProductPartial" model="Model.Product" />
+
+----------------------------------------------------------------------------------------
+
+24. Creating Razor Pages Without Page Models
+
+--> Data.cshtml
+
+@page 
+@model DataPageModel 
+@using Microsoft.AspNetCore.Mvc.RazorPages
+
+<h5 class="bg-primary text-white text-center m-2 p-2">Categories</h5> 
+
+<ul class="list-group m-2">
+    @foreach (Category c in Model.Categories) {
+        <li class="list-group-item">@c.Name</li>
+    } 
+</ul>
+
+@functions {
+    public class DataPageModel : PageModel {
+        private DataContext context;
+        public IEnumerable<Category> Categories { get; set; }
+        public DataPageModel(DataContext ctx) {
+            context = ctx;
+        }
+        public void OnGet() {
+            Categories = context.Categories;
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The page model in this example doesn’t transform data, perform calculations, or do anything other than giving the view access to the data through dependency injection. 
+
+--> To avoid this pattern, where a page model class is used only to access a service, the  @inject directive can be used to obtain the service in the view, without the need for a page model
+
+--> the @inject directive should be used sparingly and only when the page model class adds no value other than to provide access to services. in all other situations, using a page model class is easier to manage and maintain.
+
+----------------------------------------------------------------------------------------
+
+--> Data.cshtml
+
+@page 
+@inject DataContext context;
+
+<h5 class="bg-primary text-white text-center m-2 p-2">Categories</h5> 
+
+<ul class="list-group m-2">
+    @foreach (Category c in context.Categories) {
+        <li class="list-group-item">@c.Name</li>
+    } 
+</ul>
+
+----------------------------------------------------------------------------------------
+
+25. Summary
+
+--> I introduced Razor Pages and explained how they differ from the controllers and views. 
+--> I showed you how to define content and code in the same file, how to use a code-behind file, and how page models provide the underpinnings for the most important Razor Pages features. 
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

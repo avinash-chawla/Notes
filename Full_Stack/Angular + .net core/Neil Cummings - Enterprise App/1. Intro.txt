@@ -62,8 +62,10 @@ public string Name { get; set; }
 
 --> Open nuget package manager 
 --> Microsoft.EntityFrameworkCore
+
 --> To choose version, it should match with version of .net core
 --> dotnet --info	--> show version of .net core
+
 --> Three packages: Microsoft.EntityFrameworkCore, Microsoft.EntityFrameworkCore.Sqlite and Microsoft.EntityFrameworkCore.design
 --> dotnet restore
 
@@ -110,8 +112,10 @@ services.AddDbContext<StoreContext>(x =>
 
 --> dotnet ef database update 
 --> download extension --> sqlite
+
 --> Open command pallette --> type sqlite --> Open database
 --> A new explorer --> Sqlite created in vscode, open it
+
 --> Right click Products --> Insert Data
 
 -- SQLite

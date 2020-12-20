@@ -1,0 +1,219 @@
+----------------------------------------------------------------------------------------
+
+1. Creating Custom Middleware
+
+	app.Use(async (context, next) => {
+                if (context.Request.Method == HttpMethods.Get && context.Request.Query["custom"] == "true") {
+                    await context.Response.WriteAsync("Custom Middleware \n");
+                }
+                await next();
+            });
+
+----------------------------------------------------------------------------------------
+
+2. Defining Middleware Using a Class
+
+namespace Platform {
+
+    public class QueryStringMiddleWare {
+
+        private RequestDelegate next;
+
+        public QueryStringMiddleWare(RequestDelegate nextDelegate) {
+            next = nextDelegate;
+        }
+
+        public async Task Invoke(HttpContext context) {
+            if (context.Request.Method == HttpMethods.Get && context.Request.Query["custom"] == "true") {
+                await context.Response.WriteAsync("Class-based Middleware \n");
+            }
+            await next(context);
+        }
+    } 
+}
+
+--> In Startup.cs,
+
+app.UseMiddleware<QueryStringMiddleWare>();
+
+----------------------------------------------------------------------------------------
+
+3. Creating Pipeline Branches
+
+	    app.Map("/branch", branch => {
+
+                branch.UseMiddleware<QueryStringMiddleWare>();
+                branch.Use(async (context, next) => {
+                    await context.Response.WriteAsync($"Branch Middleware");
+                });
+            });
+
+----------------------------------------------------------------------------------------
+
+4. Options Pattern 
+
+--> It is used to configure services which are passed to middleware
+--> Services are nothing but classes with properties
+
+----------------------------------------------------------------------------------------
+
+--> Service class
+
+namespace Platform {
+
+    public class MessageOptions {
+
+        public string CityName { get; set; } = "New York";
+        public string CountryName{ get; set; } = "USA";
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Registering as Service and also changing some properties in Startup class
+
+            services.Configure<MessageOptions>(options => {
+                options.CityName= "Albany";
+            });
+
+----------------------------------------------------------------------------------------
+
+--> Passing Service class to middleware
+
+	public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IOptions<MessageOptions> msgOptions) {
+            
+	    app.Use(async (context, next) => {
+
+                if (context.Request.Path == "/location") {
+
+                    MessageOptions opts = msgOptions.Value;
+                    await context.Response
+                        .WriteAsync($"{opts.CityName}, {opts.CountryName}");
+
+                } else {
+                    await next();
+                }
+            });
+
+--> Service class is passed through IOption Interface to the middleware
+--> Object of service class is created using .Value property.
+
+
+----------------------------------------------------------------------------------------
+
+5. Passing Service class to Class-based Middleware
+
+public class LocationMiddleware {
+	public LocationMiddleware(RequestDelegate nextDelegate, IOptions<MessageOptions> opts) {
+ 	...
+
+
+--> In Startup.cs
+
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+            
+	app.UseMiddleware<LocationMiddleware>();
+
+----------------------------------------------------------------------------------------
+
+6. URL Routing
+
+--> URL routing consolidates the processing and matching of URLs, allowing components known as endpoints to generate responses.
+
+--> URL routing obviates the need for each middleware component to process the URL to see whether the request will be handled or passed along the pipeline. 
+--> The result is more efficient and easier to maintain.
+
+--> The URL routing middleware components are added to the request pipeline and configured with a set of routes. 
+--> Each route contains a URL path and a delegate that will generate a response when a request with the matching path is received.
+
+----------------------------------------------------------------------------------------
+
+7. Routing Middleware
+
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapGet("routing", async context => {
+                    await context.Response.WriteAsync("Request Was Routed");
+                });
+            });
+
+----------------------------------------------------------------------------------------
+
+8. Using Segmented Variables in URL Patterns
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapGet("{first}/{second}/{third}", async context => {
+
+                    await context.Response.WriteAsync("Request Was Routed\n");
+
+                    foreach (var kvp in context.Request.RouteValues) {
+                        await context.Response
+                            .WriteAsync($"{kvp.Key}: {kvp.Value}\n");
+                    }
+                });
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,611 @@
+1. Project Structure
+
+Api			--> Endpoints
+Core			--> Entities
+Infrastructure		--> Data Access Layer, Busines Logic Layer
+
+------------------------------------------------------------------------------------
+
+2. Api
+
+[ApiController]
+[Route("api/[controller]")]
+public class ShoppingCartController : ControllerBase
+{
+    [HttpGet]
+    public string GetProducts()
+    {
+        return "List of Products";
+    }
+
+    [HttpGet("{id}")]
+    public string GetProduct(int id)
+    {
+        return "Single Product";
+    }
+}
+
+------------------------------------------------------------------------------------
+
+3. DbContext class
+
+    public class StoreContext : DbContext
+    {
+        public StoreContext(DbContextOptions<StoreContext> options) : base(options){}        
+        public DbSet<Product> Products { get; set; }
+    }
+
+--> DbContextOptions will be provided by dependency injection from startup class
+
+--> services.AddDbContext<StoreContext>(options => options.UseSqlite(_config.GetConnectionString("DefaultConnection")));
+--> In AddDbContext, there is optional parameter - Lifetime (its default value is Scoped)
+
+--> Scoped means object is created and available till current Request object.
+
+------------------------------------------------------------------------------------
+
+4. Using dbContext object
+
+[ApiController]
+[Route("api/[controller]")]
+public class ShoppingCartController : ControllerBase
+{
+    private readonly StoreContext _context;
+    public ShoppingCartController(StoreContext context)
+    {
+        _context = context;
+    }
+
+    [HttpGet]
+    public ActionResult<List<Product>> GetProducts()
+    {
+        return _context.Products.ToList();
+    }
+}
+
+------------------------------------------------------------------------------------
+
+or
+
+
+        [HttpGet]
+        public IActionResult GetProducts()
+        {
+            var products = _context.Products.ToList();
+            return Ok(products);
+        }
+
+------------------------------------------------------------------------------------
+
+5. Task
+
+[HttpGet("{id}")]
+public async Task<ActionResult<Product>> GetProduct(int id)
+{
+    var product = await _context.Products.FindAsync(id);
+    return Ok(product);
+}
+
+------------------------------------------------------------------------------------
+
+6. .gitignore
+
+obj
+bin
+appsettings.json
+*.db
+
+------------------------------------------------------------------------------------
+
+7. Repository Patter
+
+--> Now, controller is tightly bind to DbContext object
+--> We will create BL Layer to provide abstraction and reduce same query codes for all entities
+
+[ApiController]
+[Route("api/[controller]")]
+public class ShoppingCartController : ControllerBase
+{
+    private readonly StoreContext _context;
+    public ShoppingCartController(StoreContext context)
+    {
+        _context = context;
+    }
+}
+
+------------------------------------------------------------------------------------
+
+public class ProductsController : BaseApiController
+{
+    private readonly IGenericRepository<Product> _productsRepo;
+
+    public ProductsController(IProductRepository<Product> productsRepo)
+    {
+        _productsRepo = productsRepo;
+    }
+}
+
+------------------------------------------------------------------------------------
+
+IProductRepository.cs
+
+Task<Product> GetProduct(int id);
+Task<IReadOnlyList<Product>> GetProducts();
+
+------------------------------------------------------------------------------------
+
+8. Configuring Migration in EF
+
+--> There are two ways to configure migration in Code-First Approach
+--> 1st: Use Data Annotations
+--> 2nd: Use modelBuilder object in DbContext class
+
+public class ProductConfiguration : IEntityTypeConfiguration<Product>
+{
+    public void Configure(EntityTypeBuilder<Product> builder)
+    {
+        builder.Property(p => p.Id).IsRequired();
+        builder.Property(p => p.Name).IsRequired().HasMaxLength(100);
+        builder.Property(p => p.Description).IsRequired().HasMaxLength(180);
+        builder.Property(p => p.Price).HasColumnType("decimal(18,2)");
+        builder.Property(p => p.PictureUrl).IsRequired();
+        builder.HasOne(b => b.ProductBrand).WithMany().HasForeignKey(p => p.ProductBrandId);
+        builder.HasOne(b => b.ProductType).WithMany().HasForeignKey(p => p.ProductTypeId);
+    }
+}
+
+--> IsRequired: will make field not nullable
+--> HasColumnType: will look for specific type (default is int32)
+--> HasOne, WithMany, HasForeignKey (Setting Custom Navigation)
+
+------------------------------------------------------------------------------------
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+    modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+}
+
+------------------------------------------------------------------------------------
+
+9. Creating and Applying Migration at starting point
+
+--> Thought-Process: 
+--> Use this method:
+
+context.Database.MigrateAsync() in Main method (entry point)
+
+--> It will migrate all pending migrations in db or create new db if not existed
+
+--> Only will be used in Code-First migration approach
+
+------------------------------------------------------------------------------------
+
+public static async Task Main(string[] args)
+{	        
+    var host = CreateHostBuilder(args).Build();
+    using (var scope = host.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+        try 
+        {
+            var context = services.GetRequiredService<StoreContext>();
+            await context.Database.MigrateAsync();
+        }
+        catch (Exception ex)
+        {
+            var logger = loggerFactory.CreateLogger<Program>();
+            logger.LogError(ex, "An error occured during migration");
+        }
+    }
+
+    host.Run();
+}	   
+
+--> To use context object, we need to create service for that class
+--> So, we used host.Services.CreateScope method
+
+--> All Application Exceptions are handled at Startup class
+--> To implement here, we use using 'using' statement and manual try-catch block
+
+------------------------------------------------------------------------------------
+
+--> Earlier:
+
+public static async Task Main(string[] args)
+{	        
+    CreateHostBuilder(args).Build().Run();
+}
+
+------------------------------------------------------------------------------------
+
+10. Automatically Seeding Data into Database using json file
+
+--> Thought Process:
+
+1. We need dummy data to automatically fill
+2. We use json files for that
+3. First we read data using jsonDeserializer and then adding individual item to context object and save changes also.
+4. We need this operation to run during entry point of an application
+
+--> So database is automatically created and automatically Seeded everytime you start new application.
+
+public class StoreContextSeed
+{
+    public static async Task SeedAsync(StoreContext context, ILoggerFactory loggerFactory)
+    {
+        try
+        {
+            if (!context.ProductBrands.Any())
+            {
+                var brandsData =
+                    File.ReadAllText("../Infrastructure/Data/SeedData/brands.json");
+
+                var brands = JsonSerializer.Deserialize<List<ProductBrand>>(brandsData);
+
+                foreach (var item in brands)
+                {
+                    context.ProductBrands.Add(item);
+                }
+
+                await context.SaveChangesAsync();
+            }
+
+            if (!context.ProductTypes.Any())
+            {
+                var typesData =
+                    File.ReadAllText("../Infrastructure/Data/SeedData/types.json");
+
+                var types = JsonSerializer.Deserialize<List<ProductType>>(typesData);
+
+                foreach (var item in types)
+                {
+                    context.ProductTypes.Add(item);
+                }
+
+                await context.SaveChangesAsync();
+            }
+
+            if (!context.Products.Any())
+            {
+                var productsData =
+                    File.ReadAllText("../Infrastructure/Data/SeedData/products.json");
+
+                var products = JsonSerializer.Deserialize<List<Product>>(productsData);
+
+                foreach (var item in products)
+                {
+                    context.Products.Add(item);
+                }
+
+                await context.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            var logger = loggerFactory.CreateLogger<StoreContextSeed>();
+            logger.LogError(ex.Message);
+        }
+    }
+}
+
+------------------------------------------------------------------------------------
+
+public class Program
+{
+    public static async Task Main(string[] args)
+    {	        
+        var host = CreateHostBuilder(args).Build();
+        using (var scope = host.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+            try 
+            {
+                var context = services.GetRequiredService<StoreContext>();
+                await context.Database.MigrateAsync();
+                await StoreContextSeed.SeedAsync(context, loggerFactory);			--> This Line
+            }
+            catch (Exception ex)
+            {
+                var logger = loggerFactory.CreateLogger<Program>();
+                logger.LogError(ex, "An error occured during migration");
+            }
+        }
+
+        host.Run();
+    }	   
+
+------------------------------------------------------------------------------------
+
+11. Generic Repository
+
+--> Reducing Repositories in DA Layer by including one Generic Repository
+
+public interface IGenericRepository<T> where T : BaseEntity
+{
+    Task<T> GetByIdAsync(int id);
+    Task<IReadOnlyList<T>> ListAllAsync();
+}
+
+------------------------------------------------------------------------------------
+
+--> Startup.cs
+
+services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+------------------------------------------------------------------------------------
+
+12. Implementing Generic Repository
+
+public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
+{
+    private readonly StoreContext _context;
+
+    public GenericRepository(StoreContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<T> GetByIdAsync(int id)
+    {
+        return await _context.Set<T>().FindAsync(id);
+    }
+
+    public async Task<IReadOnlyList<T>> ListAllAsync()
+    {
+        return await _context.Set<T>().ToListAsync();
+    }
+}
+
+------------------------------------------------------------------------------------
+
+public class ProductsController : Controller
+{
+    public ProductsController(IGenericRepository<Product> productsRepo){
+	_productsRepo = productsRepo;
+    }
+
+    public Product GetProduct(id)
+    {
+	return _productsRepo.GetById(id);
+    }
+}
+
+------------------------------------------------------------------------------------
+
+13. Why Generic Repository is considered anti-pattern
+
+--> Consider following disadvantages
+
+1. How to put conditions bec. it can be specific to column name eg. Find(x => x.Name = 'red')
+2. How to put pagination, sorting and filering and retrieve only that data.
+
+------------------------------------------------------------------------------------
+
+14. Leaky Abstractions
+
+--> Solution to above problems
+--> We can provide generic conditions like:
+
+IReadOnlyList<T> FindAsync(Expression<Func<T, bool>> query)
+
+--> Problem:
+
+--> It will return our needed data forsure.
+--> Problem is that, if we provide condition, this query will go in database and it will return IQueryable object
+
+--> Controller using this repository can further query this Queryable object for further conditions
+--> So there are total 2 queries which go in database.
+--> This is called Leaky Abstraction
+
+------------------------------------------------------------------------------------
+
+14. Specification Pattern
+
+--> Describes a query in an object
+--> Returns an IQueryable<T>
+
+--> Generic List method takes specification object as a parameter and return IQueryable obj
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

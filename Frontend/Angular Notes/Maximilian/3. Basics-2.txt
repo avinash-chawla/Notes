@@ -1,0 +1,626 @@
+1. What is DataBinding
+
+--> Upto now, we consider only static content
+--> Its time to increase user interactivity
+
+--> You can consider DataBinding as a communication between html template and ts component
+
+--> There are different ways of this communication
+
+1. String interpolation		= Transfer some information from ts component to html file
+2. Property binding		= Transfer some information from ts component to html file
+3. Event binding		= User clicks on component or inputs data, means information is passed from html file to ts component
+4. Two-way binding		= Both happens at same time, user do some action, it is automatically reflected
+
+
+--> Consider ts file as business Logic
+--> Consider html file as User Interaction
+
+----------------------------------------------------------------------------------
+
+DataBinding = Communication
+
+--> Output Data
+
+String Interpolation  	= {{ data }}
+Property binding	= [property="data"]
+
+--> React to (User) Events
+
+Event Binding		= (event)="expression"
+
+--> Combination of both
+
+Two-way Binding		= [(ngModel)]="data"
+
+----------------------------------------------------------------------------------
+
+2. String Interpolation
+
+export class ServerComponent{
+    serverId = 1;
+    serverStatus = "Active";
+}
+
+
+<p>Server with ID {{ serverId }} is {{ serverStatus}} </p>
+
+----------------------------------------------------------------------------------
+
+--> Any Expression that result into String can be placed here
+
+{{ 'server' }}		--> String itself returning a string
+{{ greetThem() }}	--> Function returning a string
+
+
+--> You can't write
+
+1. Multiline expressions here
+2. Multiblock expression here
+
+----------------------------------------------------------------------------------
+
+export class ServerComponent{
+    serverId : number = 1;
+    serverStatus : string = "offline";
+}
+
+
+--> String interpolation has to resolve to a string at the end
+
+----------------------------------------------------------------------------------
+
+export class ServerComponent{
+    serverId : number = 1;
+    serverStatus : string = "offline";
+
+    getServerStatus(){
+        return this.serverStatus;
+    }
+}
+
+<p>Server with ID {{ serverId }} is {{ getServerStatus() }} </p>
+
+
+----------------------------------------------------------------------------------
+
+3. Property Binding
+
+--> Every native html element has set of dom properties
+--> Most properties cant' be bind by using attributes, but for manipulation we can dynamically control such properties using Angular
+
+--> To see the set of properties, use jquery or dom Selector and console.it.
+--> Or click element in Elements tab and on right side, click on Properties
+
+----------------------------------------------------------------------------------
+
+--> We will control disabled property of button
+
+<button class="btn btn-primary" disabled>Add To Server</button>
+
+----------------------------------------------------------------------------------
+
+export class ServersComponent implements OnInit {
+
+  allowNewServer = false;
+
+  constructor() { 
+    setTimeout(() => {
+      this.allowNewServer = true;
+    },2000)
+  }
+}
+
+----------------------------------------------------------------------------------
+
+<button class="btn btn-primary" [disabled]="allowNewServer">Add To Server</button>
+
+----------------------------------------------------------------------------------
+
+--> We enclose the property between double brackets and assign a value of string which contains any expression
+
+--> So, we control dom properties using Angular Property Binding dynamically.
+
+----------------------------------------------------------------------------------
+
+4. Property Binding vs String interpolation
+
+--> Consider following example:
+
+<p [innerText]="allowNewServer"><p>
+<p>{{ allowNewServer }}<p>
+
+--> Both outputs same
+
+--> Property binding is more often used for manipulating property dynamically
+--> String interpolation is more often used for render text dynamically
+
+--> Note things:
+
+--> In Property binding, between quotation marks, it is typescript expression and not string
+--> If using function in Property binding, use without parenthesis
+
+----------------------------------------------------------------------------------
+
+5. Event Binding
+
+--> Event is triggered when user do some action
+--> Events present in dom are click, change, mousehover, keydown, keyup
+
+--> Often we bind events to some function
+
+----------------------------------------------------------------------------------
+
+--> In Native Javascript
+
+<button onclick="alert('Button is clicked');">Click Me</button>
+
+--> Or bind to a javascript function
+
+----------------------------------------------------------------------------------
+
+--> Angular
+
+export class ServersComponent implements OnInit {
+
+  allowNewServer = false;
+  serverCreationStatus = "No Server is created";
+
+  constructor() { 
+    setTimeout(() => {
+      this.allowNewServer = true;
+    },2000)
+  }
+
+  onCreateServer(){
+    this.serverCreationStatus = "Server is Created!";
+  }
+}
+
+----------------------------------------------------------------------------------
+
+<button class="btn btn-primary" [disabled]="!allowNewServer" (click)="onCreateServer()">Add To Server</button> 
+{{ serverCreationStatus }}
+
+----------------------------------------------------------------------------------
+
+6. Passing and Using Data with Event Binding
+
+--> input element in html is the only element through which we can get data from user
+
+--> We can bind input dom-event to function in Angular and get value typed in input element by using event property provided by dom
+--> This event property has another property 'target' which targets given input element
+
+--> This target property has another property 'value' which refers to value in that input field.
+
+--> We can access to this event property by following below code
+
+----------------------------------------------------------------------------------
+
+<input type="text" class="form-control" (input)="onUpdateServerName($event)">
+<button class="btn btn-primary" [disabled]="!allowNewServer" (click)="onCreateServer()">Add To Server</button>
+
+
+  onUpdateServerName(event: Event){
+    console.log(event);
+  }
+
+----------------------------------------------------------------------------------
+
+--> $event is a reserved keywork in Angular to get event property provided by dom referencing to that element.
+--> It has also type in Angular as 'Event'
+
+--> You can refer this event property in console.
+
+----------------------------------------------------------------------------------
+
+--> After getting this data, we can bind it to variable in class
+
+  serverName = "";
+
+  onUpdateServerName(event: Event){
+    console.log(event);
+    this.serverName = (<HTMLInputElement>event.target).value;
+  }
+
+--> value property is only available on html input field, so we have typecast it.
+
+
+<input type="text" class="form-control" (input)="onUpdateServerName($event)">
+<button class="btn btn-primary" [disabled]="!allowNewServer" (click)="onCreateServer()">Add To Server</button> 
+{{ serverName }}
+
+----------------------------------------------------------------------------------
+
+7. Two Way binding
+
+--> It is feature provided by @angular/forms module
+--> It binds input field value with typescript class property
+
+--> Means any change occured either by user or class property will be reflected in both
+
+--> For this, we use directive, [(ngModel)] in input field and set its value to typescript class Property.
+
+----------------------------------------------------------------------------------
+
+<input type="text" class="form-control" (input)="onUpdateServerName($event)" [value]="serverName">
+<input type="text" class="form-control" [(ngModel)]="serverName">
+<button class="btn btn-primary" [disabled]="!allowNewServer" (click)="onCreateServer()">Add To Server</button> 
+{{ serverName }}
+
+--> Advantage of this:
+
+1. No need of event listener function
+
+----------------------------------------------------------------------------------
+
+8. Assigment
+
+--> Create one input field and one button
+
+--> Make button disabled if input field is empty
+--> On button click, make input field emtpy
+
+----------------------------------------------------------------------------------
+
+<input type="text" class="form-control" [(ngModel)]="username">
+<button type="button" class="btn btn-primary" [disabled]="username === ''" (click)="username = ''">Click</button>
+
+----------------------------------------------------------------------------------
+
+9. What are Directives
+
+--> Directives are the instructions to the DOM
+
+--> Components are kind of directives
+--> eg. Component directive directs Angular to use this selector and replace with template
+
+--> There are directives which won't use template
+--> You can also built your own directive
+
+----------------------------------------------------------------------------------
+
+--> All Directives needs selector
+--> eg
+
+@Directive({
+   selector: '[appTurnGreen]'
+})
+
+export class TurnGreenDirective {
+   ..
+}
+
+--> usage
+
+<div appTurnGreen>Receives a green background</div>
+
+----------------------------------------------------------------------------------
+
+10. Built-in Directives
+
+--> ngIf
+
+<input type="text" class="form-control" [(ngModel)]="serverName">
+<button class="btn btn-primary" [disabled]="!allowNewServer" (click)="onCreateServer()">Add To Server</button> 
+<p *ngIf="serverCreated">Server was created. Server Name is {{ serverName }}</p>
+
+----------------------------------------------------------------------------------
+
+export class ServersComponent implements OnInit {
+  allowNewServer = false;
+  serverCreationStatus = "No Server is created";
+  serverName = "";
+  serverCreated = false;
+
+  constructor() { 
+    setTimeout(() => {
+      this.allowNewServer = true;
+    },2000)
+  }
+
+  onCreateServer(){
+    this.serverCreationStatus = "Server is Created!";
+    this.serverCreated = true;
+  }
+
+----------------------------------------------------------------------------------
+
+--> Problem
+
+--> I want to only render this text, if it mets this condition
+--> Solution: Structural Directive of ngIf
+
+--> Structural Directive means it controls/changes the Structure of Dom 
+
+--> Any structural directive starts with * like *ngIf
+
+--> Normally all built-in directives are/have attribute selectors
+
+--> eg. <p *ngIf="any expression">...</p>
+
+----------------------------------------------------------------------------------
+
+--> The Text which is dynamically rendered is not present in dom before
+--> *ngIf changes the structure of dom and adds that text.
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,918 @@
+1. What is Laravel?
+
+--> Framework for creating PHP websites
+--> Works well with MySQL databases
+--> Packed with useful features: blade, auth, eloquent
+
+--> blade: template engine
+--> auth : authentication classes
+--> eloquent: It is like Linq query to communicate with database
+
+--> It uses MVC Pattern
+--> It is application design pattern
+
+-----------------------------------------------------------------------------------------
+
+2. Installing Laravel
+
+--> Download composer: https://getcomposer.org/Composer-Setup.exe
+
+--> It is package manager for managing packages of php
+--> It is similar to npm
+
+--> Run this exe file
+--> Open cmd line
+
+--> composer -V
+--> composer global require laravel/installer
+
+--> laravel new pizzahouse
+--> cd pizzahouse
+--> code .
+
+--> php artisan serve
+
+-----------------------------------------------------------------------------------------
+
+3. Route file
+
+--> There is a routes folder
+--> There is a file --> web.php
+
+--> When any request come to server, this route file will serve the request.
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+-----------------------------------------------------------------------------------------
+
+--> It is sending 'welcome' view to the client
+--> All views are stored in resources folder --> views folder
+
+--> It is the blade template engine which parses php and convert to normal html, which is served to client.
+
+-----------------------------------------------------------------------------------------
+
+--> We can also send string or json data
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/pizzas', function () {
+    return 'pizzas';
+});
+
+Route::get('/list', function () {
+    return ['name'=>'veg pizza', 'base'=>'classic'];
+});
+
+--> Laravel automatically converts assoc array to json
+--> Route::get	(Route is a static class containing get method)
+
+-----------------------------------------------------------------------------------------
+
+4. Passing Data to Views
+
+Route::get('/pizzas', function () {
+    return view('pizzas', [ 'item'=> 'hawaiian'] );
+});
+
+--> We use associative array to pass data to view
+
+-----------------------------------------------------------------------------------------
+
+--> In pizzas.blade.php,
+
+<p>{{ $item }} </p>
+
+-----------------------------------------------------------------------------------------
+
+--> Using seperate variable 
+
+Route::get('/pizzas', function () {
+    $pizza = [ 'item'=>'hawaiian', 'base'=>'cheesy crust'];
+    return view('pizzas', $pizza);
+});
+
+--> In View,
+
+<p>{{ $item }} - {{ $base}} </p>
+
+--> It replaces <?php echo $item ?> with {{ $item }}
+
+-----------------------------------------------------------------------------------------
+
+5. Blade Basics 
+
+Route::get('/pizzas', function () {
+    $pizza = [ 'item'=>'hawaiian', 'base'=>'cheesy crust', 'price'=> 4];
+    return view('pizzas', $pizza);
+});
+
+-----------------------------------------------------------------------------------------
+
+<p>{{ $item }} - {{ $base}} </p>
+
+@if($price > 15)
+    <p>The pizza is expensive</p>
+@elseif($price < 5)
+    <p>The pizza is cheap</p>
+@else   
+    <p>The pizza is mediumly prices.</p>
+@endif
+
+-----------------------------------------------------------------------------------------
+
+--> Opposite of if:
+
+@unless($price > 15) 
+    <p>The pizza is cheap
+@endunless
+
+--> If condition becomes false, then go under the code of block.
+
+-----------------------------------------------------------------------------------------
+
+--> php directive
+
+@php
+    $name = 'shaun';
+    echo $name;
+@endphp
+
+-----------------------------------------------------------------------------------------
+
+6. Blade Loops
+
+@for($i = 0; $i < 5; $i++)
+    <p>The value of i is {{ $i }} </p>
+@endfor
+
+-----------------------------------------------------------------------------------------
+
+Route::get('/pizzas', function () {
+    $pizzas = [
+        ['type' => 'hawaiian', 'base' => 'cheesy crust'],
+        ['type' => 'volcano', 'base' => 'garlic crust'],
+        ['type' => 'veg supreme', 'base' => 'thin and crispy']
+    ];
+    return view('pizzas', ['pizzas' => $pizzas]);
+});
+
+-----------------------------------------------------------------------------------------
+
+@foreach($pizzas as $pizza)
+    <p>{{ $loop->index + 1 }} {{ $pizza['type'] }} - {{ $pizza['base']}} </p>
+@endforeach
+
+--> loop is an inbuilt object inside foreach which has many properties
+--> loop->index returns current index
+
+
+-----------------------------------------------------------------------------------------
+
+7. Layout Files
+
+--> Create new folder in views folder --> Layouts
+--> Create new file --> Layout.blade.php
+
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <title>Laravel</title>
+
+        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+        <style>
+        </style>
+
+        <style>
+            body {
+                font-family: 'Nunito';
+            }
+            footer{
+                background: #eee;
+                padding: 20px;
+                text-align: center;
+            }
+        </style>
+    </head>
+
+    <body>
+        @yield('content')				// All context will be rendered here
+
+        <footer>
+            Copyright 2020 Pizza House
+        </footer>
+    </body>
+</html> 
+
+-----------------------------------------------------------------------------------------
+
+--> welcome.blade.php
+
+@extends('layouts/layout')
+
+@section('content')
+    <h1>Home Page</h1>
+@endsection
+
+-----------------------------------------------------------------------------------------
+
+--> pizzas.blade.php
+
+@extends('layouts.layout')
+
+@section('content')
+
+@foreach($pizzas as $pizza)
+    <p>{{ $loop->index + 1 }} {{ $pizza['type'] }} - {{ $pizza['base']}} </p>
+@endforeach
+
+@endsection
+
+--> @extends, @section, @yield are all directives
+
+-----------------------------------------------------------------------------------------
+
+8. CSS and Images
+
+--> There is a public folder in project structure for storing all css, javascript and images
+--> Create new folder inside public folder --> css
+--> Create new file --> main.css
+
+html, body {
+    background-color: #fff;
+    color: #636b6f;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 200;
+    height: 100vh;
+    margin: 0;
+  }
+  
+  .full-height {
+    height: 100vh;
+  }
+  
+  .flex-center {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .position-ref {
+    position: relative;
+  }
+  
+  .top-right {
+    position: absolute;
+    right: 10px;
+    top: 18px;
+  }
+  
+  .content {
+    text-align: center;
+  }
+  
+  .links > a {
+    color: #636b6f;
+    padding: 0 25px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .1rem;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+  
+  .m-b-md {
+    margin-bottom: 30px;
+  }
+  
+  footer{
+    background: #eee;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .title {
+    font-size: 50px;
+    text-transform: uppercase;
+    border-bottom: 2px solid;
+    padding: 12px 0;
+    color: #5e2195;
+  }
+
+--> In Layouts.blade.php,
+
+<link href="/css/main.css" rel="stylesheet"/>
+
+-----------------------------------------------------------------------------------------
+
+--> Create another folder --> img
+--> Place the pizza image from github repo
+
+--> In welcome.blade.php,
+
+<div class="content">
+        <img src="/img/pizza-house.png" alt="pizza house logo">
+        <div class="title m-b-md">
+            The North's Best Pizzas
+        </div>
+    </div>
+
+-----------------------------------------------------------------------------------------
+
+--> <link href="/css/main.css" rel="stylesheet"/>
+
+--> <img src="/img/pizza-house.png" alt="pizza house logo">
+
+-----------------------------------------------------------------------------------------
+
+9. Query Parameters
+
+--> To retrieve value from query string, we use request method
+
+Route::get('/pizzas', function () {
+    $name = request('name');					// retrieving value from query string
+    $pizzas = [
+        ['type' => 'hawaiian', 'base' => 'cheesy crust'],
+        ['type' => 'volcano', 'base' => 'garlic crust'],
+        ['type' => 'veg supreme', 'base' => 'thin and crispy']
+    ];
+    return view('pizzas', ['pizzas' => $pizzas, 'name' => $name]);
+});
+
+-----------------------------------------------------------------------------------------
+
+<p>{{ $name }}</p>
+
+-----------------------------------------------------------------------------------------
+
+10. Route parameters
+
+Route::get('/pizzas/{id}', function($id){
+    return view('details', ['id'=> $id]);
+});
+
+{{ $id }}
+
+-----------------------------------------------------------------------------------------
+
+11. Controllers
+
+
+--> In terminal,
+
+php artisan make:controller PizzaController
+
+--> Above command will create new controller under app folder -> under Http folder --> under Controller folder --> PizzaController.php
+
+-----------------------------------------------------------------------------------------
+
+--> web.php
+
+use App\Http\Controllers\PizzaController;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('pizzas', [PizzaController::class, 'index']);
+Route::get('pizzas/{id}', [PizzaController::class, 'show']);
+
+-----------------------------------------------------------------------------------------
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class PizzaController extends Controller
+{
+
+  public function index() {
+    // get data from a database
+    $pizzas = [
+      ['type' => 'hawaiian', 'base' => 'cheesy crust'],
+      ['type' => 'volcano', 'base' => 'garlic crust'],
+      ['type' => 'veg supreme', 'base' => 'thin & crispy']
+    ];
+
+    return view('pizzas', [
+      'pizzas' => $pizzas,
+    ]);
+  }
+
+  public function show($id) {
+    // use the $id variable to query the db for a record
+    return view('details', ['id' => $id]);
+  }
+
+}
+
+-----------------------------------------------------------------------------------------
+
+12. Connecting to MySql
+
+--> C:\xampp\mysql\bin
+
+--> Place this path in environmental variable
+
+-----------------------------------------------------------------------------------------
+
+--> In integrated terminal of vscode, type: mysql -u root
+--> Now you are inside database, type: create database pizzahouse;
+
+-----------------------------------------------------------------------------------------
+
+--> In .env file in project, check following data,
+
+DB_DATABASE=pizzahouse
+DB_USERNAME=root
+DB_PASSWORD=
+
+-----------------------------------------------------------------------------------------
+
+13. Migration basics
+
+--> Migration file will be stored in database folder --> migrations folder
+--> To create migration file:
+
+php artisan make:migration create_pizzas_table
+
+-----------------------------------------------------------------------------------------
+
+--> In created migratino file, add following properties,
+
+        Schema::create('pizzas', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+            $table->string('type');
+            $table->string('base');
+            $table->string('name');
+        });
+
+-----------------------------------------------------------------------------------------
+
+--> To update database,
+
+php artisan migrate
+
+-----------------------------------------------------------------------------------------
+
+--> To remove last applied migration
+
+php artisan migrate:rollback
+
+-----------------------------------------------------------------------------------------
+
+--> To delete all migrations from database and apply migration from start
+
+php artisan migrate:fresh
+
+-----------------------------------------------------------------------------------------
+
+--> To check the status of all migrations, have been applied or not,
+
+php artisan migrate:status
+
+-----------------------------------------------------------------------------------------
+
+14. More on Migrations
+
+--> To see all options of migration : php artisan 
+
+-----------------------------------------------------------------------------------------
+
+--> To add other columns in same table
+
+-----------------------------------------------------------------------------------------
+
+--> Option1:
+
+--> rollback all migrations and edit the migration file and again migrate
+--> Dangerous option bec all data will be deleted
+--> Cannot be done in production model
+
+-----------------------------------------------------------------------------------------
+
+--> Option2:
+--> php artisan make:migration add_price_to_pizza_table
+
+        Schema::table('pizzas', function (Blueprint $table) {
+            $table->string('price');
+        });
+
+--> php artisan migrate:status
+--> php artisan migrate
+
+-----------------------------------------------------------------------------------------
+
+15. Eloquent Models
+
+--> It is an ORM
+--> It is similar to Entity Framework
+
+--> php artisan make:model Pizza
+
+--> It will create model class in app/Models folder --> Pizza.php
+
+-----------------------------------------------------------------------------------------
+
+--> In PizzaController.php
+
+use App\Models\Pizza;
+
+class PizzaController extends Controller
+{
+
+  public function index() {
+    // get data from a database
+    // $pizzas = Pizza::all();				--> retrieve all data from database
+    // $pizzas = Pizza::orderBy('name')->get();		--> retrieve all data with order (get() method to be mentioned)
+    $pizzas = Pizza::where('type', 'hawaiian')->get();	--> retrieve data based on condition
+
+    return view('pizzas', [
+      'pizzas' => $pizzas,
+    ]);
+  }
+
+
+--> Eloquest Model will look in Pizza model class
+--> Now, it is empty, so it will look in Pizzas tables (default convention to look up in plural name)
+
+--> It is convention based to name controllers like index, show($id), etc.
+
+-----------------------------------------------------------------------------------------
+
+--> In view,
+
+--> Instead of $pizza['item'], we use $pizza->item (as a property)
+
+
+-----------------------------------------------------------------------------------------
+
+16. MVC Naming Convention
+
+--> Model and Controller name should be singular
+--> Controller action name and view name should be same
+
+--> Each view should be in corresponding controller folder
+
+-----------------------------------------------------------------------------------------
+
+--> Inside view folder --> create new folder --> Pizza
+--> Place index.blade.php, create.blade.php, show.blade.php view files
+
+-----------------------------------------------------------------------------------------
+
+--> PizzaController.php
+
+  public function show($id) {
+    return view('pizzas.show', ['id' => $id]);
+  }
+
+--> view name: 'pizzas.show'
+
+--> Similarly, for index and create action method, 'pizzas.index' & 'pizzas.create'
+
+-----------------------------------------------------------------------------------------
+
+17. Getting a single record
+
+--> PizzaController.php
+
+  public function show($id) {
+    $pizza = Pizza::findOrFail($id);
+    return view('pizzas.show', ['pizza' => $pizza]);
+  }
+
+-----------------------------------------------------------------------------------------
+
+--> View
+
+            <li>{{ $pizza->name }}</li>
+            <li>{{ $pizza->type}}</li>
+            <li>{{ $pizza->base }}</li>
+
+-----------------------------------------------------------------------------------------
+
+18. Create a Web Form
+
+--> pizzas.create view, create.blade.php
+
+@extends('layouts.layout')
+
+@section('content')
+<div class="wrapper create-pizza">
+
+  <h1>Create a New Pizza</h1>
+
+  <form action="/pizzas" method="POST">
+  @csrf
+
+    <label for="name">Your name:</label>
+    <input type="text" name="name" id="name" required>
+
+    <label for="type">Choose type of pizza:</label>
+    <select name="type" id="type">
+      <option value="margarita">Margarita</option>
+      <option value="hawaiian">Hawaiian</option>
+      <option value="veg supreme">Veg Supreme</option>
+      <option value="volcano">Volcano</option>
+    </select>
+
+    <label for="base">Choose crust:</label>
+    <select name="base" id="base">
+      <option value="thick">Thick</option>
+      <option value="thin & crispy">Thin & Crispy</option>
+      <option value="cheese crust">Cheese Crust</option>
+      <option value="garlic crust">Garlic Crust</option>
+    </select>
+
+    <input type="submit" value="Order Pizza">
+  </form>
+</div>
+@endsection
+
+-----------------------------------------------------------------------------------------
+
+19. Post Request
+
+--> In web.php,
+
+Route::get('/pizzas', [PizzaController::class, 'index']);
+Route::get('/pizzas/create', [PizzaController::class, 'create']);
+Route::post('/pizzas', [PizzaController::class, 'store']);			// post request handler
+Route::get('/pizzas/{id}', [PizzaController::class, 'show']);
+
+--> It is convention to use 'store' action method.
+
+-----------------------------------------------------------------------------------------
+
+--> In PizzaController.php,
+
+  public function store() {
+    error_log(request['name']);
+    error_log(request['type']);
+    error_log(request['base']);
+
+    return redirect('/pizzas');
+  }
+
+--> Check this post method in browser
+
+-----------------------------------------------------------------------------------------
+
+20. Saving Records
+
+--> In PizzaController.php,
+
+  public function store() {
+    $pizza = new Pizza();
+
+    $pizza->name = request('name');
+    $pizza->type = request('type');
+    $pizza->base = request('base');
+
+    $pizza->save();
+
+    return redirect('/pizzas');
+  }
+
+-----------------------------------------------------------------------------------------
+
+--> Passing some message also, along with redirection
+
+return redirect('/pizzas')->with('msg', 'Thanks for your order');
+
+--> In /pizzas view,
+
+<p>{{ session('msg') }}</p>
+
+-----------------------------------------------------------------------------------------
+
+21. Arrays and Json
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

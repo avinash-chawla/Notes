@@ -1,0 +1,2362 @@
+
+1. Intro
+
+--> To handle MVC URLs, the ASP.NET platform uses the routing system. 
+
+--> The routing system has two functions:
+
+1. Examine the incoming URL and figure out for which controller and action the request is intended
+2. Generate outgoing URLs in view. (Link for navigation)
+
+-------------------------------------------------------------------------------------
+
+2. Types of Routing
+
+--> Conventional Routing
+--> Attribute Routing
+
+-------------------------------------------------------------------------------------
+
+3. Preparing for this Chapter
+
+--> HomeController.cs 
+
+using System.Web.Mvc;
+
+namespace UrlsAndRoutes.Controllers {
+
+    public class HomeController : Controller {
+
+        public ActionResult Index() {
+            ViewBag.Controller = "Home";
+            ViewBag.Action = "Index";
+            return View("ActionName");
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> CustomerController.cs
+
+namespace UrlsAndRoutes.Controllers {
+    public class CustomerController : Controller {
+
+        public ActionResult Index() {
+            ViewBag.Controller = "Customer";
+            ViewBag.Action = "Index";
+            return View("ActionName");
+        }
+
+        public ActionResult List() {
+            ViewBag.Controller = "Customer";
+            ViewBag.Action = "List";
+            return View("ActionName");
+        }
+    } 
+} 
+
+-------------------------------------------------------------------------------------
+
+--> AdminController.cs 
+
+using System.Web.Mvc;
+namespace UrlsAndRoutes.Controllers {
+
+    public class AdminController : Controller {
+        public ActionResult Index() {
+            ViewBag.Controller = "Admin";
+            ViewBag.Action = "Index";
+            return View("ActionName");
+        }
+    } 
+}
+
+
+-------------------------------------------------------------------------------------
+
+--> Creating the View
+
+--> Create a folder called Shared in the Views folder and add a new view called ActionName.cshtml to it
+
+@{
+    Layout = null; 
+}
+
+<!DOCTYPE html>
+<html> 
+
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>ActionName</title> 
+</head> 
+
+<body>
+    <div>The controller is: @ViewBag.Controller</div>
+    <div>The action is: @ViewBag.Action</div> </body> 
+</html>
+
+-------------------------------------------------------------------------------------
+
+4. Intro to URL Patterns 
+
+--> I do not need to manually type out all of the individual URLs I am willing to support in my applications. 
+--> Instead, each route contains a URL pattern, which is compared to incoming URLs. 
+
+--> If a URL matches the pattern, then it is used by the routing system to process that URL. 
+
+--> URLs can be broken down into segments. 
+--> These are the parts of the URL, excluding the hostname and query string, that are separated by the / character. 
+--> The first segment relates to the controller and the second segment relates to the action. 
+
+
+--> The routing system does not have any special knowledge of controllers and actions. 
+--> It just extracts values for the segment variables. 
+
+--> It is later in the request handling process, when the request reaches the MVC Framework proper, that meaning is assigned to the controller and action variables.
+
+-------------------------------------------------------------------------------------
+
+5. Creating and Registering a Simple Route
+
+--> Once you have a URL pattern in mind, you can use it to define a route. 
+--> Routes are defined in the RouteConfig.cs file, which is in the App_Start project folder. 
+
+--> RouteConfig.cs 
+
+using System.Web.Routing;
+
+namespace UrlsAndRoutes {
+
+    public class RouteConfig {
+
+        public static void RegisterRoutes(RouteCollection routes) {
+
+            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+
+            routes.MapRoute(
+                name: "Default",
+                url: "{controller}/{action}/{id}",
+                defaults: new { controller = "Home", action = "Index",
+                    id = UrlParameter.Optional }
+            );
+        }
+    }
+}
+
+-------------------------------------------------------------------------------------
+
+--> The static RegisterRoutes method that is defined in the RouteConfig.cs file is called from the Global.asax.cs file, which sets up some of the core MVC features when the application is started. 
+
+--> You can see the default contents of the Global.asax.cs file in Listing 15-6, and I have highlighted the call to the RouteConfig.RegisterRoutes method, which is made from the Application_Start method.
+
+-------------------------------------------------------------------------------------
+
+--> Global.asax.cs
+
+namespace UrlsAndRoutes {
+     
+    public class MvcApplication : System.Web.HttpApplication {
+
+        protected void Application_Start() {
+
+            AreaRegistration.RegisterAllAreas();
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> The Application_Start method is called by the underlying ASP.NET platform when the MVC application is first started, which leads to the RouteConfig.RegisterRoutes method being called. 
+
+--> The parameter to this method is the value of the static RouteTable.Routes property, which is an instance of the RouteCollection class, which I describe shortly.
+
+-------------------------------------------------------------------------------------
+
+--> Listing 15-7 shows how to create a route using the example URL pattern from the previous section in the RegisterRoutes method of the RouteConfig.cs file. 
+
+-------------------------------------------------------------------------------------
+
+--> RouteConfig.cs 
+
+namespace UrlsAndRoutes {
+    public class RouteConfig {
+        public static void RegisterRoutes(RouteCollection routes) {
+            Route myRoute = new Route("{controller}/{action}", new MvcRouteHandler());
+            routes.Add("MyRoute", myRoute);
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> I created a new Route using a URL pattern as a constructor parameter, which I express as a string. I also pass an instance of MvcRouteHandler to the constructor. --> Different ASP.NET technologies provide different classes to tailor the routing behavior, and this is the class used for ASP.NET MVC applications. 
+
+--> Once I have created the route, I add it to the RouteCollection object using the Add method, passing in the name I want the route to be known by and the route itself.
+
+-------------------------------------------------------------------------------------
+
+--> A more convenient way of registering routes is to use the MapRoute method defined by the RouteCollection class. 
+--> Listing 15-8 shows how I can use this method to register a route, which has the same effect as the previous example, but has a cleaner syntax.
+
+--> RouteConfig.cs
+
+namespace UrlsAndRoutes {
+    public class RouteConfig {
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}");
+        }
+    } 
+}
+
+--> This approach is more compact, mainly because I do not need to create an instance of the MvcRouteHandler class (it is done for me, behind the scenes). 
+--> The MapRoute method is solely for use with MVC applications. 
+
+--> ASP.NET Web Forms applications can use the MapPageRoute method, also defined in the RouteCollection class.
+
+-------------------------------------------------------------------------------------
+
+6. Using the Simple Route
+
+--> You can see the effect of the changes I made to the routing by starting the example application. 
+--> You will see an error when the browser tries to navigate to the root URL for the application, but if you navigate to a route that matches the {controller}/{action} pattern, you will see a result like the one shown in Figure 15-4, which illustrates the effect of navigating to /Admin/Index.
+
+
+--> My simple route in Listing 15-8 does not tell the MVC Framework how to respond to requests for the root URL and only supports a single, specific, URL pattern. 
+--> I have temporarily taken a step back from the functionality that Visual Studio adds to the RouteConfig.cs file when it creates the project, but I will show you how to build more complex patterns and routes throughout the rest of this chapter.
+
+-------------------------------------------------------------------------------------
+
+7. Defining Default Values
+
+--> The reason that I got an error when I requested the default URL for the application is that it didn’t match the route  I had defined. 
+--> The default URL is expressed as ~/ to the routing system and there are no segments in this string that can be matched to the controller and action variables defined by the simple route pattern.
+
+--> I explained earlier that URL patterns are conservative, in that they will match only URLs with the specified number of segments. 
+--> I also said that this was the default behavior and one way to change this behavior is to use default values. 
+
+--> A default value is applied when the URL doesn’t contain a segment that can be matched to the value.
+
+-------------------------------------------------------------------------------------
+
+--> RouteConfig.cs
+
+namespace UrlsAndRoutes {
+    public class RouteConfig {
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}",
+                new { action = "Index" });
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> Default values are supplied as properties in an anonymous type. 
+--> In Listing 15-9, I provided a default value of Index for the action variable. This route will match all two-segment URLs, as it did previously. 
+
+--> For example, if the URL http://mydomain.com/Home/Index is requested, the route will extract Home as the value for the controller and Index as the value for the action.
+
+--> Now that I have provided a default value for the action segment, the route will also match single-segment URLs as well. When processing a single-segment URL, the routing system will extract the controller value from the sole URL segment, and use the default value for the action variable. 
+
+--> In this way, I can request the URL  http://mydomain.com/Home and invoke the Index action method on the Home controller.
+--> I can go further and define URLs that do not contain any segment variables at all, relying on just the default values to identify the action and controller. 
+
+--> And as an example, Listing 15-10 shows how I have mapped the root URL for the application by providing default values for both segments.
+
+-------------------------------------------------------------------------------------
+
+namespace UrlsAndRoutes {
+    public class RouteConfig {
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}",
+                new { controller = "Home", action = "Index" });
+        }
+    } 
+}
+
+--> By providing default values for both the controller and action variables, I have created a route that will match URLs that have zero, one, or two segments, 
+
+
+mydomain.com				Controller=Home, action=Index
+mydomain.com/Customer			Controller=Customer, action=Index
+mydomain.com/Customer/List		Controller=Customer, action=List
+
+
+--> This time, when the browser requests the root URL for the application, the default values for the controller and action segment variables will be used, which will lead the MVC Framework to invoke the Index action method on the Home controller
+
+-------------------------------------------------------------------------------------
+
+8. Using Static URL Segments
+
+--> Not all of the segments in a URL pattern need to be variables. 
+--> You can also create patterns that have static segments. 
+
+--> Suppose that I want to match a URL like this to support URLs that are prefixed with Public: 
+
+http://mydomain.com/Public/Home/Index 
+
+namespace UrlsAndRoutes {
+    public class RouteConfig {
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}",
+                new { controller = "Home", action = "Index" });
+            routes.MapRoute("", "Public/{controller}/{action}",
+               new { controller = "Home", action = "Index" });
+        }
+    } 
+}
+
+--> This new pattern will match only URLs that contain three segments, the first of which must be Public. 
+--> The other two segments can contain any value, and will be used for the controller and action variables. 
+
+--> If the last two segments are omitted, then the default values will be used.
+
+-------------------------------------------------------------------------------------
+
+--> I can also create URL patterns that have segments containing both static and variable elements, such as the one
+
+namespace UrlsAndRoutes {
+    public class RouteConfig {
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("", "X{controller}/{action}");
+            routes.MapRoute("MyRoute", "{controller}/{action}",
+                new { controller = "Home", action = "Index" });
+            routes.MapRoute("", "Public/{controller}/{action}",
+               new { controller = "Home", action = "Index" });
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> The pattern in this route matches any two-segment URL where the first segment starts with the letter X. 
+--> The value for controller is taken from the first segment, excluding the X. 
+
+--> The action value is taken from the second segment. You can see the effect of this route if you start the application and navigate to /XHome/Index
+
+-------------------------------------------------------------------------------------
+
+19. Route Ordering
+
+--> The most specific routes must be defined first
+
+routes.MapRoute("MyRoute", "{controller}/{action}",
+    new { controller = "Home", action = "Index" });
+routes.MapRoute("", "X{controller}/{action}"); ...
+
+--> Then the first route, which matches any URL with zero, one, or two segments, will be the one that is used. 
+--> The more specific route, which is now second in the list, will never be reached
+
+--> The new route excludes the leading  X of a URL, but this won’t be done by the older route. Therefore, a URL such as this:
+http://mydomain.com/XHome/Index
+
+--> will be targeted to a controller called XHome, which does not exist, and so will lead to a 404—Not Found error being sent to the user.
+
+-------------------------------------------------------------------------------------
+
+20. Route Contract
+
+--> I can combine static URL segments and default values to create an alias for a specific URL. 
+--> This can be useful if you have published your URL schema publicly and it has formed a contract with your user. 
+
+--> If you refactor an application in this situation, you need to preserve the previous URL format so that any URL favorites, macros or scripts the user has created continue to work. 
+
+--> Imagine that I used to have a controller called Shop, which has now been replaced by the Home controller. 
+--> Listing 15-13 shows how I can create a route to preserve the old URL schema.
+
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("ShopSchema", "Shop/{action}",
+                new { controller = "Home" });
+	}
+
+--> Request: localhost:1234/Shop/Index
+--> Output:
+
+The Controller is: Home
+The Action is: Index
+
+-------------------------------------------------------------------------------------
+
+--> The route I added matches any two-segment URL where the first segment is Shop. 
+--> The action value is taken from the second URL segment. 
+
+--> The URL pattern doesn’t contain a variable segment for controller, so the default value I have supplied is used. 
+--> This means that a request for an action on the Shop controller is translated to a request for the Home controller. 
+
+--> You can see the effect of this route by starting the app and navigating to the /Shop/Index URL.  
+--> As Figure 15-7 shows, the new route causes the MVC Framework to target the Index action method in the Home controller.
+
+-------------------------------------------------------------------------------------
+
+--> I can go one step further and create aliases for action methods that have been refactored away as well and are no longer present in the controller. 
+--> To do this, I create a static URL and provide the controller and action values as defaults
+
+    public class RouteConfig {
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("ShopSchema2", "Shop/OldAction",
+                new { controller = "Home", action = "Index" });
+	}
+    }
+
+--> Notice that, once again, I have placed the new route so that it is defined first. 
+--> This is because it is more specific than the routes that follow. If a request for Shop/OldAction were processed by the next defined route, for example,  I would get a different result from the one I want. 
+
+--> The request would be dealt with using a 404—Not Found error, rather than being translated in order to preserve a contract with my clients.
+
+-------------------------------------------------------------------------------------
+
+21. Defining Custom Segment Variables
+
+--> The controller and action segment variables have special meaning to the MVC Framework and, obviously, they correspond to the controller and action method that will be used to service the request. 
+
+--> But these are only the built-in segment variables. 
+--> I can also define my own variables
+
+-------------------------------------------------------------------------------------
+
+--> RouteConfig.cs 
+
+    public class RouteConfig {
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}/{id}",
+                new { controller = "Home", action = "Index",
+                    id = "DefaultId" });
+        }
+    }
+
+-------------------------------------------------------------------------------------
+
+--> The route’s URL pattern defines the standard controller and action variables, as well as a custom variable called id. 
+--> This route will match any zero-to-three-segment URL. 
+
+--> The contents of the third segment will be assigned to the id variable, and if there is no third segment, the default value will be used.
+
+-------------------------------------------------------------------------------------
+
+--> I can access any of the segment variables in an action method by using the RouteData.Values property. 
+--> To demonstrate this, I have added an action method to the Home controller called CustomVariable,
+
+-------------------------------------------------------------------------------------
+
+--> HomeController.cs
+
+        public ActionResult CustomVariable() {
+            ViewBag.Controller = "Home";
+            ViewBag.Action = "CustomVariable";
+            ViewBag.CustomVariable = RouteData.Values["id"];
+            return View();
+        }
+
+--> This method obtains the value of the custom variable in the route URL pattern and passes it to the view using the ViewBag. 
+
+-------------------------------------------------------------------------------------
+
+--> CustomVariable.cshtml
+
+<div>The custom variable is: @ViewBag.CustomVariable</div>
+
+--> To see the effect of the custom segment variable, start the application and navigate to the URL /Home/ CustomVariable/Hello. 
+--> The CustomVariable action method in the Home controller is called, and the value of the custom segment variable is retrieved from the ViewBag and passed to the view.
+
+-------------------------------------------------------------------------------------
+
+--> I have provided a default value for the id segment variable in the route, which means that you will see the results shown in Figure 15-9 if you navigate to /Home/CustomVariable.
+
+-------------------------------------------------------------------------------------
+
+22. Using Custom Variables as Action Method Parameters
+
+--> Using the RouteData.Values property is not only one way to access custom route variables. 
+--> The other way is much more elegant. 
+
+--> If I define parameters to the action method with names that match the URL pattern variables, the MVC Framework will pass the values obtained from the URL as parameters to the action method. 
+
+--> For example, the custom variable I defined in the route in Listing 15-15 is called id. 
+--> I can modify the CustomVariable action method in the Home controller so that it has a matching parameter
+
+        public ActionResult CustomVariable(string id) {
+            ViewBag.Controller = "Home";
+            ViewBag.Action = "CustomVariable";
+            ViewBag.CustomVariable = id;
+            return View();
+        }
+
+
+--> When the routing system matches a URL against the route defined in Listing 15-18, the value of the third segment in the URL is assigned to the custom variable id. --> The MVC Framework compares the list of segment variables with the list of action method parameters, and if the names match, passes the values from the URL to the method.
+
+--> I have defined the id parameter as a string, but the MVC Framework will try to convert the URL value to whatever parameter type I define. 
+--> If I declared the id parameter as an int or a DateTime, then I would receive the value from the URL parsed to an instance of that type. 
+
+--> This is an elegant and useful feature that removes the need for me to handle the conversion myself.
+
+--> The MVC Framework uses the model binding feature to convert the values contained in the URL to .NET types and can handle much more complex situations than shown in this example
+
+-------------------------------------------------------------------------------------
+
+23. Defining Optional URL Segments
+
+--> An optional URL segment is one that the user does not need to specify, but for which no default value is specified.
+--> You can see that I specify that a segment variable is optional by setting the default value to UrlParameter.Optional.
+
+-------------------------------------------------------------------------------------
+
+    public class RouteConfig {
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}/{id}",
+                new { controller = "Home", action = "Index", id = UrlParameter.Optional });
+        }
+    }
+
+
+--> The id variable is added to the set of variables only when there is a corresponding segment in the incoming URL. 
+--> This feature is useful if you need to know whether the user supplied a value for a segment variable. 
+
+--> When no value has been supplied for an optional segment variable, the value of the corresponding parameter will be null. 
+--> I have updated the controller to respond when no value is provided for the id segment variable
+
+-------------------------------------------------------------------------------------
+
+        public ActionResult CustomVariable(string id) {
+            ViewBag.Controller = "Home";
+            ViewBag.Action = "CustomVariable";
+            ViewBag.CustomVariable = id ?? "<no value>";
+            return View();
+        }
+
+-------------------------------------------------------------------------------------
+
+24. Using Optional URL Segments to Enforce Separation of Concerns
+
+--> Some developers who are focused on the separation of concerns in the MVC pattern do not like putting the default values for segment variables into the routes for an application. 
+
+--> If this is an issue, you can use C# optional parameters along with an optional segment variable in the route to define the default values for action method parameters. 
+
+-------------------------------------------------------------------------------------
+
+public ActionResult CustomVariable(string id = "DefaultId") {
+    ViewBag.Controller = "Home";
+    ViewBag.Action = "CustomVariable";
+    ViewBag.CustomVariable = id;
+    return View(); 
+}
+
+--> There will always be a value for the id parameter (either one from the URL or the default), so I am able to remove the code which deals with the null value. 
+--> This action method combined with the route I defined in Listing 15-21 is the functional equivalent to the route  
+
+-------------------------------------------------------------------------------------
+
+25. Defining Variable-Length Routes
+
+--> Another way of changing the default conservatism of URL patterns is to accept a variable number of URL segments. 
+--> This allows you to route URLs of arbitrary lengths in a single route. 
+
+--> You define support for variable segments by designating one of the segment variables as a catchall, done by prefixing it with an asterisk (*)
+
+-------------------------------------------------------------------------------------
+
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}/{id}/{*catchall}",
+                new { controller = "Home", action = "Index", id = UrlParameter.Optional });
+        }
+
+-------------------------------------------------------------------------------------
+
+--> I have extended the route from the previous example to add a catchall segment variable, which I imaginatively called catchall. 
+--> This route will now match any URL, irrespective of the number of segments it contains or the value of any of those segments. 
+
+--> The first three segments are used to set values for the controller, action, and id variables, respectively. 
+--> If the URL contains additional segments, they are all assigned to the catchall variable
+
+
+/Customer/List/All/Delete/Perm		--> controller = Customer; action = List; id = All ; catchall = Delete/Perm
+
+
+--> There is no upper limit to the number of segments that the URL pattern in this route will match. 
+--> Notice that the segments captured by the catchall are presented in the form segment/segment/segment. 
+
+--> I am responsible for processing the string to break out the individual segments.
+
+-------------------------------------------------------------------------------------
+
+26. Prioritizing Controllers by Namespaces
+
+--> When an incoming URL matches a route, the MVC Framework takes the value of the controller variable and looks for the appropriate name. 
+--> For example, when the value of the controller variable is Home, then the MVC Framework looks for a controller called HomeController. 
+
+--> This is an unqualified class name, which means that the MVC Framework doesn’t know what to do if there are two or more classes called HomeController in different namespaces.
+
+--> To demonstrate the problem, create a new folder in the root of the example project called AdditionalControllers and add a new Home controller,
+
+-------------------------------------------------------------------------------------
+
+namespace UrlsAndRoutes.AdditionalControllers {
+    public class HomeController : Controller {
+        public ActionResult Index() {
+            ViewBag.Controller = "Additional Controllers - Home";
+            ViewBag.Action = "Index";
+            return View("ActionName");
+        }
+    } 
+}
+
+--> When you start the app, you will see the error 
+
+--> To address this problem, I can tell the MVC Framework to give preference to certain namespaces when attempting to resolve the name of a controller class,
+
+-------------------------------------------------------------------------------------
+
+--> RouteConfig.cs
+
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}/{id}/{*catchall}",
+                new { controller = "Home", action = "Index",
+                    id = UrlParameter.Optional
+                }, new[] { "URLsAndRoutes.AdditionalControllers" });
+        }
+
+--> I express the namespaces as an array of strings and in the listing I have told the MVC Framework to look in the URLsAndRoutes.AdditionalControllers namespace before looking anywhere else.
+
+--> If a suitable controller cannot be found in that namespace, then the MVC Framework will default to its regular behavior and look in all of the available namespaces. 
+
+-------------------------------------------------------------------------------------
+
+--> The namespaces added to a route are given equal priority.
+
+routes.MapRoute("MyRoute", "{controller}/{action}/{id}/{*catchall}",
+    new { controller = "Home", action = "Index", id = UrlParameter.Optional },
+    new[] { "URLsAndRoutes.AdditionalControllers", "UrlsAndRoutes.Controllers" });
+
+--> I would see the same error as shown in Figure 15-11, because the MVC Framework is trying to resolve the controller class name in all of the namespaces added to the route. 
+
+--> If I want to give preference to a single controller  in one namespace, but have all other controllers resolved in another namespace, I need to create multiple routes
+
+            routes.MapRoute("AddContollerRoute", "Home/{action}/{id}/{*catchall}",
+                new { controller = "Home", action = "Index",
+                    id = UrlParameter.Optional },
+                new[] { "URLsAndRoutes.AdditionalControllers" });
+
+            routes.MapRoute("MyRoute", "{controller}/{action}/{id}/{*catchall}",
+                new { controller = "Home", action = "Index",
+                    id = UrlParameter.Optional },
+                new[] { "URLsAndRoutes.Controllers" });
+
+
+-------------------------------------------------------------------------------------
+
+--> The first route applies when the user explicitly requests a URL whose first segment is Home and will target the Home controller in the AdditionalControllers folder. 
+
+--> All other requests, including those where no first segment is specified, will be handled by controllers in the Controllers folder.
+--> I can tell the MVC Framework to look only in the namespaces that I specify. If a matching controller cannot be found, then the framework will not search elsewhere. 
+
+-------------------------------------------------------------------------------------
+
+        public static void RegisterRoutes(RouteCollection routes) {
+            Route myRoute = routes.MapRoute("AddContollerRoute",
+                    "Home/{action}/{id}/{*catchall}",
+                new { controller = "Home", action = "Index",
+                    id = UrlParameter.Optional },
+                new[] { "URLsAndRoutes.AdditionalControllers" });
+            myRoute.DataTokens["UseNamespaceFallback"] = false;
+        }
+
+-------------------------------------------------------------------------------------
+
+--> The MapRoute method returns a Route object. 
+--> I have been ignoring this in previous examples, because I didn’t need to make any adjustments to the routes that were created. 
+
+--> To disable searching for controllers in other namespaces, I take the Route object and set the UseNamespaceFallback key in the DataTokens collection property to false.
+
+--> This setting will be passed along to the component responsible for finding controllers, which is known as the controller factory and which I discuss in detail in Chapter 19. 
+
+--> The effect of this addition is that requests that cannot be satisfied by the Home controller in the AdditionalControllers folder will fail.
+
+-------------------------------------------------------------------------------------
+
+27. Constraining Routes
+
+--> It is now time to look at how to control the liberalism in matching the content of URL segments: how to restrict the set of URLs that a route will match against. --> Once I have control over both of these aspects of the behavior of a route, I can create URL schemas that are expressed with laser-like precision.
+
+-------------------------------------------------------------------------------------
+
+--> The first technique is constraining a route using regular expressions. 
+
+namespace UrlsAndRoutes {
+    public class RouteConfig {
+
+        public static void RegisterRoutes(RouteCollection routes) {
+
+            routes.MapRoute("MyRoute", "{controller}/{action}/{id}/{*catchall}",
+               new { controller = "Home", action = "Index", id = UrlParameter.Optional },
+               new { controller = "^H.*" },
+               new[] { "URLsAndRoutes.Controllers" });
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> Constraints are defined by passing them as a parameter to the MapRoute method. 
+--> Like default values, constraints are expressed as an anonymous type, where the properties of the type correspond to the names of the segment variables they constrain. 
+
+--> In this example, I have used a constraint with a regular expression that matches URLs only where the value of the controller variable begins with the letter H.
+
+-------------------------------------------------------------------------------------
+
+--> Default values are applied before constraints are checked. 
+--> So, for example, if I request the URL /, the default value for controller, which is Home, is applied. 
+
+--> The constraints are then checked, and since the controller value begins with H, the default URL will match the route.
+
+-------------------------------------------------------------------------------------
+
+28. Constraining a Route to a Set of Specific Values
+
+--> Regular expressions can constrain a route so that only specific values for a URL segment will cause a match. I do this using the bar (|) character.
+
+    public class RouteConfig {
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}/{id}/{*catchall}",
+               new { controller = "Home", action = "Index", id = UrlParameter.Optional },
+               new { controller = "^H.*", action = "^Index$|^About$" },
+               new[] { "URLsAndRoutes.Controllers" });
+        }
+    }
+
+-------------------------------------------------------------------------------------
+
+--> This constraint will allow the route to match only URLs where the value of the action segment is Index or About. 
+
+--> Constraints are applied together, so the restrictions imposed on the value of the action variable are combined with those imposed on the controller variable. 
+--> This means that the route in Listing 15-29 will match URLs only when  the controller variable begins with the letter H and the action variable is Index or About. 
+--> So now you can see what  I mean about creating precise routes
+
+-------------------------------------------------------------------------------------
+
+29. Constraining a Route Using HTTP Methods
+
+--> Routes can be constrained so that they match a URL only when it is requested using a specific HTTP method, 
+
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}/{id}/{*catchall}",
+               new { controller = "Home", action = "Index", id = UrlParameter.Optional },
+               new {
+                   controller = "^H.*", action = "Index|About",
+                   httpMethod = new HttpMethodConstraint("GET")
+               },
+               new[] { "URLsAndRoutes.Controllers" });
+        }
+
+--> The format for specifying an HTTP method constraint is slightly odd. 
+--> It does not matter what name is given to the property, as long as it is assigned to an instance of the HttpMethodConstraint class. 
+
+--> In the listing, I called the constraint property httpMethod to help distinguish it from the value-based constraints I defined previously.
+
+-------------------------------------------------------------------------------------
+
+--> I pass the names of the HTTP methods I want to support as string parameters to the constructor of the HttpMethodConstraint class. 
+--> In the listing, I limited the route to GET requests, but I could have easily added support for other methods, like this:
+
+... 
+httpMethod = new HttpMethodConstraint("GET", "POST") },
+
+-------------------------------------------------------------------------------------
+
+30. Using Type and Value Constraints
+
+--> The MVC Framework contains a number of built-in constraints that can be used to restrict the URLs that a route matches based on the type and value of segment variables. 
+
+--> In Listing 15-31, you can see how I have applied one of these constraints to the routing configuration of the example application
+
+
+using System.Web.Mvc.Routing.Constraints;
+
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}/{id}/{*catchall}",
+               new { controller = "Home", action = "Index", id = UrlParameter.Optional },
+               new {
+                   controller = "^H.*", action = "Index|About",
+                   httpMethod = new HttpMethodConstraint("GET"),
+                   id = new RangeRouteConstraint(10, 20)				// This Line
+               },
+               new[] { "URLsAndRoutes.Controllers" });
+        }
+
+-------------------------------------------------------------------------------------
+
+--> In the constraint classes, which are in the System.Web.Mvc.Routing.Constraints namespace, check to see if segment variables are values for different C# types and can perform basic checks. 
+
+--> In the listing, I have used the RangeRouteConstraint class, which checks that the value provided for a segment variable is a valid int value that falls between two bounds – , in this case 10 and 20. 
+
+--> Table 15-6 describes the complete set of constraint classes. 
+--> Not all of them accept arguments and so I have shown the class names as they would be used to configure routes. 
+
+--> Ignore the Attribute Constraint column for the moment. 
+
+-------------------------------------------------------------------------------------
+
+--> The route constraint classes
+
+AlphaRouteConstraint()		- Matches alphabet characters, irrespective of case (A–Z, a–z)
+BoolRouteConstraint()		- Matches a value that can be parsed into a bool 
+DateTimeRouteConstraint() 	- Matches a value that can be parsed into a datetime
+DecimalRouteConstraint() 	- Matches a value that can be parsed into a decimal
+DoubleRouteConstraint() 	- Matches a value that can be parsed into a double
+FloatRouteConstraint()		- Matches a value that can be parsed into a float
+IntRouteConstraint()		- Matches a value that can be parsed into a int
+LengthRouteConstraint(len)      - Matches a value with the specified number of characters or that is between min and max characters in length.
+LengthRouteConstraint(min, max)
+
+LongRouteConstraint()		- Matches a value that can be parsed into a long 
+MaxRouteConstraint(val) 	- Matches an int value if the value is less than val 
+MaxLengthRouteConstraint(len)   - Matches a string with no more than len characters 
+MinRouteConstraint(val) 	- Matches an int value if the value is more than val 
+MinLengthRouteConstraint(len)   - Matches a string with at least len characters minlength(len)
+RangeRouteConstraint(min, max) 	- Matches an int value if the value is between min  and max
+
+-------------------------------------------------------------------------------------
+
+--> You can combine different constraints for a single segment variable by using the CompoundRouteConstraint class, which accepts an array of constraints as its constructor argument. 
+
+--> In Listing 15-32, you can see how I have used this feature to apply both the AlphaRouteConstraint and the MinLengthRouteConstraint to the id segment variable to ensure that the route will only match string values that contain solely alphabetic characters and have at least six characters
+
+-------------------------------------------------------------------------------------
+
+--> RouteConfig.cs
+
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("MyRoute", "{controller}/{action}/{id}/{*catchall}",
+               new { controller = "Home", action = "Index", id = UrlParameter.Optional },
+               new {
+                   controller = "^H.*", action = "Index|About",
+                   httpMethod = new HttpMethodConstraint("GET"),
+                   id = new CompoundRouteConstraint(new IRouteConstraint[] {
+                        new AlphaRouteConstraint(),
+                        new MinLengthRouteConstraint(6)
+                    })
+               },
+               new[] { "URLsAndRoutes.Controllers" });
+        }
+
+-------------------------------------------------------------------------------------
+
+31. Defining a Custom Constraint
+
+--> If the standard constraints are not sufficient for your needs, you can define your own custom constraints by implementing the IRouteConstraint interface. 
+--> To demonstrate this feature, I added an Infrastructure folder to the example project and created a new class file called UserAgentConstraint.cs,
+
+using System.Web; 
+using System.Web.Routing;
+
+namespace UrlsAndRoutes.Infrastructure {
+
+    public class UserAgentConstraint : IRouteConstraint {
+
+        private string requiredUserAgent;
+
+        public UserAgentConstraint(string agentParam) {
+            requiredUserAgent = agentParam;
+        }
+
+        public bool Match(HttpContextBase httpContext, Route route, string parameterName,
+                          RouteValueDictionary values, RouteDirection routeDirection) {
+            return httpContext.Request.UserAgent != null &&
+                httpContext.Request.UserAgent.Contains(requiredUserAgent);
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> The IRouteConstraint interface defines the Match method, which an implementation can use to indicate to the routing system if its constraint has been satisfied. --> The parameters for the Match method provide access to the request from the client, the route that is being evaluated, the parameter name of the constraint, the segment variables extracted from the URL, and details of whether the request is to check an incoming or outgoing URL. 
+
+--> For the example, I check the value of the UserAgent property of the client request to see if it contains a value that was passed to the constructor. 
+--> Listing 15-34 shows the custom constraint used in a route.
+
+        public static void RegisterRoutes(RouteCollection routes) {
+            routes.MapRoute("ChromeRoute", "{*catchall}",
+                new { controller = "Home", action = "Index" },
+                new { customConstraint = new UserAgentConstraint("Chrome") },
+                new[] { "UrlsAndRoutes.AdditionalControllers" });
+
+            routes.MapRoute("MyRoute", "{controller}/{action}/{id}/{*catchall}",
+               new { controller = "Home", action = "Index", id = UrlParameter.Optional },
+               new {
+                   controller = "^H.*", action = "Index|About",
+                   httpMethod = new HttpMethodConstraint("GET"),
+                   id = new CompoundRouteConstraint(new IRouteConstraint[] {
+                        new AlphaRouteConstraint(),
+                        new MinLengthRouteConstraint(6)
+                    })
+               },
+               new[] { "URLsAndRoutes.Controllers" });
+        
+	}
+
+-------------------------------------------------------------------------------------
+
+--> In the listing, I have constrained the first route so that it will match only requests made from browsers whose user-agent string contains Chrome. 
+--> If the route matches, then the request will be sent to the Index action method in the Home controller defined in the AdditionalControllers folder, irrespective of the structure and content of the URL that has been requested. 
+
+--> The URL pattern consists of just a catchall segment variable, which means that the values for the controller and action segment variables will always be taken from the defaults and not the URL itself.
+
+--> The second route will match all other requests and target controllers in the Controllers folder, subject to the type and value constraints I applied in the previous section. 
+
+--> The effect of these routes is that one kind of browser always ends up at the same place in the application. 
+--> You can see this in Figure 15-13, which shows the effect of navigating to the app using Google Chrome.
+
+--> I used user-agent strings solely to demonstrate custom route constraints and believe in equal opportunities for all browsers. 
+--> I really hate Web sites that try to force their preference for browsers on users.
+
+-------------------------------------------------------------------------------------
+
+32. Using Attribute Routing
+
+--> All of the examples so far in this chapter have been defined using a technique known as convention-based routing. 
+--> MVC 5 adds support for a new technique known as attribute routing, in which routes are defined by C# attributes that are applied directly to the controller classes. 
+
+--> In the sections that follow, I’ll show you how to create and configure routes using attributes, which can be mixed freely with the standard convention-based routes.
+
+-------------------------------------------------------------------------------------
+
+33. Enabling and Applying Attribute Routing 
+
+--> Attribute routing is disabled by default and is enabled by the MapMvcAttributeRoutes extension method, which is called on the RouteCollection object passed as the argument to the static RegisterRoutes method. 
+
+--> I have added this method call to the RouteConfig.cs file in Listing 15-35, as well as simplifying the routes in the application so that I can focus on using attributes.
+
+-------------------------------------------------------------------------------------
+
+    public class RouteConfig {
+
+        public static void RegisterRoutes(RouteCollection routes) {
+
+            routes.MapMvcAttributeRoutes();
+
+            routes.MapRoute("Default", "{controller}/{action}/{id}",
+                new { controller = "Home", action = "Index", id = UrlParameter.Optional },
+                new[] { "UrlsAndRoutes.Controllers" });
+        }
+    }
+
+-------------------------------------------------------------------------------------
+
+--> Calling the MapMvcAttributeRoutes method causes the routing system to inspect the controller classes in the application and look for attributes that configure routes. 
+
+--> The most important attribute is called Route and you can see how I have applied it to the Customer controller
+
+-------------------------------------------------------------------------------------
+
+        [Route("Test")]
+        public ActionResult Index() {
+            ViewBag.Controller = "Customer";
+            ViewBag.Action = "Index";
+            return View("ActionName");
+        }
+
+-------------------------------------------------------------------------------------
+
+--> The Parameters Supported by the Route Attribute
+
+Name	 - Assigns a name to the route, used for generating outgoing URLs from a specific route
+Template - Defines the pattern that will be used to match URLs that target the action method
+
+-------------------------------------------------------------------------------------
+
+--> If you supply just one value when applying the Route attribute—as I did in the listing—then the value is assumed to be the pattern that will be used to match routes. 
+
+--> Patterns for the Route attribute follow the same structure as for convention-based routing, although there are some differences when it comes to constraining route matching (which I describe in the Applying Route Constraints section, later in the chapter). 
+
+--> In this example, I used the Route attribute to specify that the Index action on the Customer controller can be accessed through the URL /Test. 
+
+-------------------------------------------------------------------------------------
+
+--> Note: When an action method is decorated with the Route attribute, it can no longer be accessed through the convention-based routes defined in the RouteConfig.cs file. For my example, this means that the Index action of Customer controller can no longer be reached through the /Customer/Index URL.
+
+--> The Route attribute stops convention-based routes from targeting an action method even if attribute  routing is disabled. 
+--> Take care to call the MapMvcAttributeRoutes method in the RouteConfig.cs file or you will create unreachable action methods.
+
+-------------------------------------------------------------------------------------
+
+34. Creating Routes with Segment Variables
+
+--> The attribute routing feature supports all of the same features as convention-based routing, albeit expressed through attributes. 
+--> This includes creating routes that contain segment variables and you can see an example of such a route
+
+        [Route("Users/Add/{user}/{id}")]
+        public string Create(string user, int id) {
+            return string.Format("User: {0}, ID: {1}", user, id);
+        }
+
+-------------------------------------------------------------------------------------
+
+--> I have added an action method called Create that takes string and int arguments. For simplicity, I return a string result from the method so that I don’t have to create a view. 
+
+--> The route I defined with the Route attribute mixes a static prefix (Users/Add) with user and id segment variables that correspond to the method arguments. 
+--> The MVC Framework uses the model binding feature, which I describe in Chapter 25, to convert the segment variable values to the correct types in order to invoke the Create method. 
+
+--> Figure 15-16 shows the effect of navigating to the URL /Users/Add/Adam/100.
+
+-------------------------------------------------------------------------------------
+
+35. Applying Route Constraints
+
+--> Routes defined using attributes can be constrained just like those defined in the RouteConfig.cs file, although the technique is more direct. 
+
+        [Route("Users/Add/{user}/{id:int}")]
+        public string Create(string user, int id) {
+            return string.Format("Create Method - User: {0}, ID: {1}", user, id);
+        }
+
+        [Route("Users/Add/{user}/{password}")]
+        public string ChangePass(string user, string password) {
+            return string.Format("ChangePass Method - User: {0}, Pass: {1}",
+                user, password);
+        }
+
+-------------------------------------------------------------------------------------
+
+--> I followed the name of the segment variable—id—with a colon and then int. 
+--> This tells the routing system that the Create action method should only be targeted by requests where the value provided for the id segment is a valid int value. 
+--> The int constraint corresponds to the IntRouteConstraint constraint class and Table 15-6 includes the set of constraint names you can use to access the built-in type and value constraints.
+
+--> You can see the effect of my constraints by starting the application and requesting the /Users/Add/Adam/100 and /Users/Add/Adam/Secret URLs. 
+--> The final segment of the first URL is a valid int and is directed to the Create method. 
+
+--> The final segment of the second URL isn’t an int value and so is directed to the ChangePass method
+
+-------------------------------------------------------------------------------------
+
+36. Combining Constraints 
+
+--> You can apply multiple constraints to a segment variable to further restrict the range of values that the route will match.
+
+[Route("Users/Add/{user}/{password:alpha:length(6)}")] 
+public string ChangePass(string user, string password) {
+    return string.Format("ChangePass Method - User: {0}, Pass: {1}",
+        user, password); 
+} 
+
+-------------------------------------------------------------------------------------
+
+--> Multiple constraints are chained together using the same format as for a single constraint: a colon followed by the name of the constraint and, if required, a value in parentheses. 
+
+--> The route created by the attribute in this example will only match alphabetic strings that have exactly six characters.
+
+-------------------------------------------------------------------------------------
+
+37. Using a Route Prefix
+
+--> You can use the RoutePrefix attribute to define a common prefix that will be applied to all of the routes defined in a controller, which can be useful when you have multiple action methods that should be targeted using the same URL root. 
+
+--> You can see how I have applied the RoutePrefix attribute to the CustomerController
+
+-------------------------------------------------------------------------------------
+
+namespace UrlsAndRoutes.Controllers {
+
+    [RoutePrefix("Users")]
+    public class CustomerController : Controller {
+
+        [Route("~/Test")]
+        public ActionResult Index() {
+            ViewBag.Controller = "Customer";
+            ViewBag.Action = "Index";
+            return View("ActionName");
+        }
+
+        [Route("Add/{user}/{id:int}")]
+        public string Create(string user, int id) {
+            return string.Format("Create Method - User: {0}, ID: {1}", user, id);
+        }
+
+        [Route("Add/{user}/{password}")]
+        public string ChangePass(string user, string password) {
+            return string.Format("ChangePass Method - User: {0}, Pass: {1}",
+                user, password);
+        }
+
+        public ActionResult List() {
+            ViewBag.Controller = "Customer";
+            ViewBag.Action = "List";
+            return View("ActionName");
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> I used the RoutePrefix attribute to specify that the routes for the action method should be prefixed with Users. With the prefix defined, I am able to update the Route attribute for the Create and ChangePass action methods to remove the prefix. 
+
+--> The MVC Framework will combine the prefix with the URL pattern automatically when the routes are created.
+
+--> Notice that I have also changed the URL pattern for the Route attribute applied to the Index action method,  as follows:
+... [Route("~/Test")] ...
+
+--> Prefixing the URL with ~/ tells the MVC Framework that I don’t want the RoutePrefix attribute applied to the Index action method, which means that it will still be accessible through the URL /Test
+
+-------------------------------------------------------------------------------------
+
+38. Summary
+
+--> In this chapter, I took an in-depth look at the routing system. 
+--> You have seen how routes are defined by convention or with attributes. 
+
+--> You have seen how incoming URLs are matched and handled, how to customize routes by changing the way that they match URL segments and by using default values and optional segments. 
+
+--> I also showed you how to constrain routes to narrow the range of requests that they will match, using both built-in constraints and using custom constraint classes.
+
+--> In the next chapter, I show you how to generate outgoing URLs from routes in your views and how to use the MVC Framework areas feature, which relies on the routing system and which can be used to manage large and complex MVC Framework applications.
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+

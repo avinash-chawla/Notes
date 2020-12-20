@@ -1,0 +1,2068 @@
+----------------------------------------------------------------------------------------
+
+1. What are they? 
+
+--> View components are classes that provide application logic to support partial views or to inject small fragments of HTML or JSON data into a parent view.
+
+----------------------------------------------------------------------------------------
+
+Why are they useful? 
+--> Without view components, it is hard to create embedded functionality such as shopping baskets or login panels in a way that is easy to maintain.
+
+----------------------------------------------------------------------------------------
+
+How are they used? 
+--> View components are typically derived from the ViewComponent class and are applied in a parent view using the custom vc HTML element or the @await Component.InvokeAsync expression.
+
+----------------------------------------------------------------------------------------
+
+Are there any pitfalls or limitations?
+--> View components are a simple and predictable feature. 
+--> The main pitfall is not using them and trying to include application logic within views where it is difficult to test and maintain.
+
+----------------------------------------------------------------------------------------
+
+Are there any alternatives?
+--> You could put the data access and processing logic directly in a partial view, but the result is difficult to work with and hard to maintain.
+
+----------------------------------------------------------------------------------------
+
+2. Preparing for this Chapter
+
+--> In Models folder,
+
+--> City.cs 
+
+namespace WebApp.Models {
+    public class City {
+        public string Name { get; set; }
+        public string Country { get; set; }
+        public int Population { get; set; }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> CitiesData.cs 
+
+using System.Collections.Generic;
+
+namespace WebApp.Models {
+
+    public class CitiesData {
+
+        private List<City> cities = new List<City> {
+            new City { Name = "London", Country = "UK", Population = 8539000},
+            new City { Name = "New York", Country = "USA", Population = 8406000 },
+            new City { Name = "San Jose", Country = "USA", Population = 998537 },
+            new City { Name = "Paris", Country = "France", Population = 2244000 }
+        };
+
+        public IEnumerable<City> Cities => cities;
+
+        public void AddCity(City newCity) {
+            cities.Add(newCity);
+        }
+    } 
+}
+
+--> The CitiesData class provides access to a collection of City objects and provides an AddCity method that adds a new object to the collection.
+
+----------------------------------------------------------------------------------------
+
+--> Startup.cs
+
+        public void ConfigureServices(IServiceCollection services) {
+            ...
+            services.AddSingleton<CitiesData>();
+        }
+
+--> Sharing a single object of CitiesData class
+
+----------------------------------------------------------------------------------------
+
+--> Cities.cshtml File in the Pages Folder
+
+@page 
+@inject CitiesData Data
+
+<div class="m-2">
+    <table class="table table-sm table-striped table-bordered">
+        <tbody>
+            @foreach (City c in Data.Cities) {
+                <tr>
+                    <td>@c.Name</td>
+                    <td>@c.Country</td>
+                    <td>@c.Population</td>
+                </tr>
+            }
+        </tbody>
+    </table> 
+</div>
+
+--> Injecting the service using @inject directive
+--> Restart the Application and navigate to: http://localhost:5000/cities
+
+----------------------------------------------------------------------------------------
+
+3. Understanding View Components
+
+--> Partial views are used to create reusable markup that is required in views, avoiding the need to duplicate the same content in multiple places in the application.
+--> Partial views are a useful feature, but they just contain fragments of HTML and Razor directives, and the data they operate on is received from the parent view. 
+
+--> If you need to display different data, then you run into a problem. 
+--> You could access the data you need directly from the partial view, but this breaks the development model and produces an application that is difficult to understand and maintain. 
+
+--> Alternatively, you could extend the view models used by the application so that it includes the data you require, but this means you have to change every action method, which makes it hard to isolate the functionality of action methods for effective maintenance and testing.
+
+--> This is where view components come in. 
+
+--> A view component is a C# class that provides a partial view with the data that it needs, independently from the action method or Razor Page. 
+--> In this regard, a view component can be thought of as a specialized action or page, but one that is used only to provide a partial view with data; it cannot receive HTTP requests, and the content that it provides will always be included in the parent view.
+
+--> You can consider it as partial view with its own data.
+
+----------------------------------------------------------------------------------------
+
+4. Creating and Using a View Component
+
+--> A view component is any class whose name ends with ViewComponent and that defines an Invoke or InvokeAsync method or any class that is derived from the ViewComponent base class or that has been decorated with the ViewComponent attribute. 
+
+--> View components can be defined anywhere in a project, but the convention is to group them in a folder named Components. 
+--> Create the WebApp/Components folder and add to it a class file named CitySummary.cs 
+
+----------------------------------------------------------------------------------------
+
+using Microsoft.AspNetCore.Mvc; 
+using System.Linq; 
+using WebApp.Models;
+
+namespace WebApp.Components {
+
+    public class CitySummary: ViewComponent {
+
+        private CitiesData data;
+
+        public CitySummary(CitiesData cdata) {
+            data = cdata;
+        }
+
+        public string Invoke() {
+            return $"{data.Cities.Count()} cities, " + $"{data.Cities.Sum(c => c.Population)} people";
+        }
+    } 
+}
+
+--> View components can take advantage of dependency injection to receive the services they require.
+
+----------------------------------------------------------------------------------------
+
+5. Applying a View Component
+
+--> View components can be applied in two different ways. 
+
+--> The first technique is to use the Component property that is added to the C# classes generated from views and Razor Pages. 
+--> This property returns an object that implements the IViewComponentHelper interface, which provides the InvokeAsync method. 
+
+----------------------------------------------------------------------------------------
+
+--> Index.cshtml
+
+@model Product 
+@{
+    Layout = "_Layout";
+    ViewBag.Title = ViewBag.Title ?? "Product Table"; 
+}
+
+@section Header { Product Information }
+
+<tr>
+    <th>Name</th>
+    <td>@Model.Name</td>
+</tr> 
+
+<tr>
+    <th>Price</th>
+    <td>@Model.Price.ToString("c")</td> 
+</tr> 
+
+<tr>
+    <th>Category ID</th>
+    <td>@Model.CategoryId</td>
+</tr>
+
+@section Footer {
+    @(((Model.Price / ViewBag.AveragePrice) * 100).ToString("F2"))% of average price 
+}
+
+@section Summary {
+    <div class="bg-info text-white m-2 p-2">
+        @await Component.InvokeAsync("CitySummary")
+    </div> 
+}
+
+----------------------------------------------------------------------------------------
+
+--> View components are applied using the Component.InvokeAsync method, using the name of the view component class as the argument. 
+
+--> The syntax for this technique can be confusing. 
+--> View component classes define either an Invoke or InvokeAsync method, depending on whether their work is performed synchronously or asynchronously. 
+
+--> But the Component.InvokeAsync method is always used, even to apply view components that define the Invoke method and whose operations are entirely synchronous
+
+----------------------------------------------------------------------------------------
+
+--> _ViewImports.cshtml
+
+@using WebApp.Models 
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers 
+@using WebApp.Components
+
+--> Restart ASP.NET Core and use a browser to request http://localhost:5000/home/index/1, which will produce the result
+
+----------------------------------------------------------------------------------------
+
+6. Applying View Components Using a Tag Helper
+
+--> Razor views and pages can contain tag helpers, which are custom HTML elements that are managed by C# classes. 
+ 
+--> _ViewImports.cshtml 
+
+@using WebApp.Models 
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers 
+@using WebApp.Components 
+@addTagHelper *, WebApp		// This Line
+
+--> Index.cshtml
+
+@section Summary {
+    <div class="bg-info text-white m-2 p-2">
+        <vc:city-summary />
+    </div> 
+}
+
+--> The tag for the custom element is vc, followed by a colon, followed by the name of the view component class, which is transformed into kebab-case. 
+--> Each capitalized word in the class name is converted to lowercase and separated by a hyphen so that CitySummary becomes city-summary, and the CitySummary view component is applied using the vc:city-summary element.
+
+--> Before:
+
+@section Summary {
+    <div class="bg-info text-white m-2 p-2">
+        @await Component.InvokeAsync("CitySummary")
+    </div> 
+}
+
+----------------------------------------------------------------------------------------
+
+7. Applying View Components in Razor Pages
+
+--> Razor Pages use view components in the same way, either through the Component property or through the custom HTML element. 
+--> Since Razor Pages have their own view imports file, a separate @addTagHelper directive is required,
+
+----------------------------------------------------------------------------------------
+
+--> _ViewImports.cshtml File in the Pages Folder
+
+@addTagHelper *, WebApp
+
+
+----------------------------------------------------------------------------------------
+
+--> Data.cshtml 
+
+<div class="bg-info text-white m-2 p-2">
+    <vc:city-summary /> 
+</div>
+
+--> Use a browser to request http://localhost:5000/data
+
+----------------------------------------------------------------------------------------
+
+8. Understanding View Component Results
+
+--> The ability to insert simple string values into a view or page isn’t especially useful, but fortunately, view components are capable of much more. 
+--> More complex effects can be achieved by having the Invoke or InvokeAsync method return an object that implements the IViewComponentResult interface. 
+
+--> There are three built-in classes that implement the IViewComponentResult interface, and they are described in Table 24-3, along with the convenience methods for creating them provided by the ViewComponent base class
+
+----------------------------------------------------------------------------------------
+
+1. ViewViewComponentResult 
+--> This class is used to specify a Razor view, with optional view model data. Instances of this class are created using the View method.
+
+2. ContentViewComponentResult 
+--> This class is used to specify a text result that will be safely encoded for inclusion in an HTML document. Instances of this class are created using the Content method.
+
+3. HtmlContentViewComponentResult 
+--> This class is used to specify a fragment of HTML that will be included in the HTML document without further encoding. There is no ViewComponent method to create this type of result.
+
+
+--> There is special handling for two result types. 
+--> If a view component returns a string, then it is used to create a ContentViewComponentResult object, which is what I relied on in earlier examples. 
+
+--> If a view component returns an IHtmlContent object, then it is used to create an HtmlContentViewComponentResult object
+
+----------------------------------------------------------------------------------------
+
+9. Returning a Partial View
+
+--> The most useful response is the awkwardly named ViewViewComponentResult object, which tells Razor to render a partial view and include the result in the parent view. 
+
+--> The ViewComponent base class provides the View method for creating ViewViewComponentResult objects, and four versions of the method are available
+
+----------------------------------------------------------------------------------------
+
+1. View()		- Using this method selects the default view for the view component and does not provide a view model.
+2. View(model)		- Using the method selects the default view and uses the specified object as the view model.
+3. View(viewName) 	- Using this method selects the specified view and does not provide a view model.
+4. View(viewName, model)- Using this method selects the specified view and uses the specified object as the view model.
+
+----------------------------------------------------------------------------------------
+
+--> These methods correspond to those provided by the Controller base class and are used in much the same way. 
+--> To create a view model class that the view component can use, add a class file named CityViewModel.cs to the WebApp/Models folder
+
+namespace WebApp.Models {
+    public class CityViewModel {
+        public int Cities { get; set; }
+        public int Population { get; set; }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> CitySummary.cs (View Component class)
+
+        public IViewComponentResult Invoke() {
+            return View(new CityViewModel {
+                Cities = data.Cities.Count(),
+                Population = data.Cities.Sum(c => c.Population)
+            });
+        }
+
+----------------------------------------------------------------------------------------
+
+--> There is no view available for the view component currently, but the error message this produces reveals the locations that are searched. 
+--> Restart ASP.NET Core and use a browser to request http://localhost:5000/home/index/1 to see the locations that are searched when the view component is used with a controller. 
+--> Request http://localhost:5000/data to see the locations searched when a view component is used with a Razor Page. 
+
+----------------------------------------------------------------------------------------
+
+--> Razor searches for a view named Default.cshtml when a view component invokes the View method without specifying a name. 
+
+--> If the view component is used with a controller, then the search locations are as follows: 
+1. /Views/[controller]/Components/[viewcomponent]/Default.cshtml
+2. /Views/Shared/Components/[viewcomponent]/Default.cshtml
+3. /Pages/Shared/Components/[viewcomponent]/Default.cshtml
+
+--> When the CitySummary component is rendered by a view selected through the Home controller, for example, [controller] is Home and [viewcomponent] is CitySummary, which means the first search location is /Views/Home/Components/CitySummary/ Default.cshtml.
+
+----------------------------------------------------------------------------------------
+
+--> If the view component is used with a Razor Page, then the search locations are as follows:
+1. /Pages/Components/[viewcomponent]/Default.cshtml
+2. /Pages/Shared/Components/[viewcomponent]/Default.cshtml
+3. /Views/Shared/Components/[viewcomponent]/Default.cshtml
+
+--> If the search paths for Razor Pages do not include the page name but a Razor Page is defined in a subfolder, then the Razor view engine will look for a view in the Components/[viewcomponent] folder, relative to the location in which the Razor Page is defined, working its way up the folder hierarchy until it finds a view or reaches the Pages folder.
+
+----------------------------------------------------------------------------------------
+
+--> Notice that view components used in razor pages will find views defined in the Views/Shared/Components folder and that view components defined in controllers will find views in the Pages/Shared/Components folder. 
+
+--> This means you don’t have to duplicate views when a view component is used by controllers and razor pages
+
+----------------------------------------------------------------------------------------
+
+--> Create the WebApp/Views/Shared/Components/CitySummary folder and add to it a Razor view named Default.cshtml
+
+@model CityViewModel
+
+<table class="table table-sm table-bordered text-white bg-secondary">
+    <thead>
+        <tr><th colspan="2">Cities Summary</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Cities:</td>
+            <td class="text-right">
+                @Model.Cities
+            </td>
+        </tr>
+        <tr>
+            <td>Population:</td>
+            <td class="text-right">
+                @Model.Population.ToString("#,###")
+            </td>
+        </tr>
+    </tbody> 
+</table>
+
+----------------------------------------------------------------------------------------
+
+--> Views for view components are similar to partial views and use the @model directive to set the type of the view model object. 
+--> This view receives a CityViewModel object from its view component, which is used to populate the cells in an HTML table. 
+
+--> http://localhost:5000/home/index/1 and http://localhost:5000/data
+
+----------------------------------------------------------------------------------------
+
+10. Returning HTML Fragments
+
+--> The ContentViewComponentResult class is used to include fragments of HTML in the parent view without using a view. 
+--> Instances of the ContentViewComponentResult class are created using the Content method inherited from the ViewComponent base class, which accepts a string value
+
+--> In addition to the Content method, the Invoke method can return a string, which will be automatically converted to a ContentViewComponentResult. 
+--> This is the approach i took in the view component when it was first defined.
+
+----------------------------------------------------------------------------------------
+
+--> CitySummary.cs
+
+using Microsoft.AspNetCore.Mvc; using System.Linq; 
+using WebApp.Models;
+namespace WebApp.Components {
+
+    public class CitySummary: ViewComponent {
+
+        private CitiesData data;
+
+        public CitySummary(CitiesData cdata) {
+            data = cdata;
+        }
+
+        public IViewComponentResult Invoke() {
+            return Content("This is a <h3><i>string</i></h3>");
+        }
+    } 
+}
+
+--> The string received by the Content method is encoded to make it safe to include in an HTML document. 
+--> This is particularly important when dealing with content that has been provided by users or external systems because it prevents JavaScript content from being embedded into the HTML generated by the application
+
+--> http://localhost:5000/home/index/1
+--> HTML code is encoded
+
+----------------------------------------------------------------------------------------
+
+--> You don’t need to encode content if you trust its source and want it to be interpreted as HTML. 
+--> The Content method always encodes its argument, so you must create the HtmlContentViewComponentResult object directly and provide its constructor with an HtmlString object, which represents a string that you know is safe to display, either because it comes from a source that you trust or because you are confident that it has already been encoded
+
+----------------------------------------------------------------------------------------
+
+--> CitySummary.cs 
+
+using Microsoft.AspNetCore.Mvc.ViewComponents; 
+using Microsoft.AspNetCore.Html;
+
+        public IViewComponentResult Invoke() {
+            return new HtmlContentViewComponentResult(
+                new HtmlString("This is a <h3><i>string</i></h3>"));
+        }
+
+--> Use a browser to request http://localhost:5000/home/index/1, and you will see the response isn’t encoded and is interpreted as HTML elements.
+
+----------------------------------------------------------------------------------------
+
+11. Getting Context Data
+
+--> Details about the current request and the parent view are provided to a view component through properties defined by the ViewComponent base class
+
+----------------------------------------------------------------------------------------
+
+--> The ViewComponentContext Properties
+
+HttpContext
+--> This property returns an HttpContext object that describes the current request and the response that is being prepared.
+
+Request
+--> This property returns an HttpRequest object that describes the current HTTP request.
+
+User
+--> This property returns an IPrincipal object that describes the current user, as described in Chapters 37 and 38.
+
+RouteData
+--> This property returns a RouteData object that describes the routing data for the current request.
+
+ViewBag
+--> This property returns the dynamic view bag object, which can be used to pass data between the view component and the view, as described in Chapter 22.
+
+ModelState
+--> This property returns a ModelStateDictionary, which provides details of the model binding process, as described in Chapter 29.
+
+ViewData
+--> This property returns a ViewDataDictionary, which provides access to the view data provided for the view component.
+
+----------------------------------------------------------------------------------------
+
+--> CitySummary.cs
+
+        public string Invoke() {
+            if (RouteData.Values["controller"] != null) {
+                return "Controller Request";
+            } else {
+                return "Razor Page Request";
+            }
+        }
+
+--> http://localhost:5000/home/index/1 		// Controller Request
+--> http://localhost:5000/data			// Razor Page Request
+
+
+----------------------------------------------------------------------------------------
+
+12. Providing Context from the Parent View Using Arguments
+
+--> Parent views can provide additional context data to view components, providing them with either data or guidance about the content that should be produced. 
+--> The context data is received through the Invoke or InvokeAsync method
+
+        public IViewComponentResult Invoke(string themeName) {
+            ViewBag.Theme = themeName;
+            return View(new CityViewModel {
+                Cities = data.Cities.Count(),
+                Population = data.Cities.Sum(c => c.Population)
+            });
+        }
+
+----------------------------------------------------------------------------------------
+
+--> Default.cshtml File in the Views/Shared/Components/CitySummary Folder
+
+@model CityViewModel
+
+<table class="table table-sm table-bordered text-white bg-@ViewBag.Theme">
+    <thead>
+        <tr><th colspan="2">Cities Summary</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Cities:</td>
+            <td class="text-right">
+                @Model.Cities
+            </td>
+        </tr>
+        <tr>
+            <td>Population:</td>
+            <td class="text-right">
+                @Model.Population.ToString("#,###")
+            </td>
+        </tr>
+    </tbody> 
+</table>
+
+----------------------------------------------------------------------------------------
+
+--> Note: 
+
+--> The view component will not be used if you do not provide values for all the parameters it defines but no error message is displayed. 
+--> If you don’t see any content from a view component, then the likely cause is a missing parameter value.
+
+----------------------------------------------------------------------------------------
+
+--> Supplying a Value in the Index.cshtml File in the Views/Home Folder
+
+@model Product @{
+    Layout = "_Layout";
+    ViewBag.Title = ViewBag.Title ?? "Product Table"; 
+}
+
+@section Header { Product Information }
+
+<tr><th>Name</th><td>@Model.Name</td></tr> <tr>
+    <th>Price</th>
+    <td>@Model.Price.ToString("c")</td> 
+</tr> 
+
+<tr><th>Category ID</th><td>@Model.CategoryId</td></tr>
+
+@section Footer {
+    @(((Model.Price / ViewBag.AveragePrice)
+        * 100).ToString("F2"))% of average price 
+}
+
+@section Summary {
+    <div class="bg-info text-white m-2 p-2">
+        <vc:city-summary theme-name="secondary" />		// This Line
+    </div> 
+}
+
+--> The name of each parameter is expressed an attribute using kebab-case so that the theme-name attribute provides a value for the themeName parameter.
+
+----------------------------------------------------------------------------------------
+
+--> Supplying a Value in the Data.cshtml File in the Pages Folder
+
+@page 
+@inject DataContext context;
+
+<h5 class="bg-primary text-white text-center m-2 p-2">Categories</h5> 
+
+<ul class="list-group m-2">
+    @foreach (Category c in context.Categories) {
+        <li class="list-group-item">@c.Name</li>
+    } 
+</ul>
+
+<div class="bg-info text-white m-2 p-2">
+    <vc:city-summary theme-name="danger" /> 
+</div>
+
+----------------------------------------------------------------------------------------
+
+--> http://localhost:5000/home/index/1 and http://localhost:5000/data
+
+
+----------------------------------------------------------------------------------------
+
+--> PROVIDING VALUES USING THE COMPONENT HELPER
+
+--> If you prefer applying view components using the Component.InvokeAsync helper, then you can provide context using method arguments, like this:
+... 
+<div class="bg-info text-white m-2 p-2">
+    @await Component.InvokeAsync("CitySummary", new { themeName = "danger" }) 
+</div> 
+
+----------------------------------------------------------------------------------------
+
+13. Creating Asynchronous View Components
+
+-->  If your view component relies on asynchronous APIs, then you can create an asynchronous view component by defining an InvokeAsync method that returns a Task. 
+--> When Razor receives the Task from the InvokeAsync method, it will wait for it to complete and then insert the result into the main view. 
+
+--> Create a new component PageSize.cs in Components folder
+
+using Microsoft.AspNetCore.Mvc; 
+using System.Net.Http; 
+using System.Threading.Tasks;
+
+namespace WebApp.Components {
+
+    public class PageSize : ViewComponent {
+
+        public async Task<IViewComponentResult> InvokeAsync() {
+            HttpClient client = new HttpClient();
+            HttpResponseMessage response = await client.GetAsync("http://apress.com");
+            return View(response.Content.Headers.ContentLength);
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Create the Views/Shared/Components/PageSize folder and add to it a Razor view named Default.cshtml
+
+@model long 
+<div class="m-1 p-1 bg-light text-dark">Page size: @Model</div>
+
+--> In Index.cshtml of Home Controller
+
+@section Summary {
+    <div class="bg-info text-white m-2 p-2">
+        <vc:city-summary theme-name="secondary" />
+        <vc:page-size />
+    </div> 
+}
+
+----------------------------------------------------------------------------------------
+
+14. Creating View Components Classes
+
+--> View components often provide a summary or snapshot of functionality that is handled in-depth by a controller or Razor Page. 
+--> For a view component that summarizes a shopping basket, for example, there will often be a link that targets a controller that provides a detailed list of the products in the basket and that can be used to check out and complete the purchase. 
+
+--> In this situation, you can create a class that is a view component as well as a controller or Razor Page.
+
+----------------------------------------------------------------------------------------
+
+--> Cities.cshtml.cs 
+
+using System.Linq; 
+using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc.RazorPages; 
+using Microsoft.AspNetCore.Mvc.ViewComponents; 
+using Microsoft.AspNetCore.Mvc.ViewFeatures; 
+using WebApp.Models;
+
+namespace WebApp.Pages {
+
+    [ViewComponent(Name = "CitiesPageHybrid")]
+    public class CitiesModel : PageModel {
+
+        public CitiesModel(CitiesData cdata) {
+            Data = cdata;
+        }
+
+        public CitiesData Data { get; set; }
+
+        [ViewComponentContext]
+        public ViewComponentContext Context { get; set; }
+
+        public IViewComponentResult Invoke() {
+            return new ViewViewComponentResult() {
+                ViewData = new ViewDataDictionary<CityViewModel>(
+                    Context.ViewData,
+                    new CityViewModel {
+                        Cities = Data.Cities.Count(),
+                        Population = Data.Cities.Sum(c => c.Population)
+                    })
+            };
+        }
+    }
+
+----------------------------------------------------------------------------------------
+
+--> This page model class is decorated with the ViewComponent attribute, which allows it to be used as a view component. 
+--> The Name argument specifies the name by which the view component will be applied. 
+
+--> Since a page model cannot inherit from the ViewComponent base class, a property whose type is ViewComponentContext is decorated with the ViewComponentContext attribute, which signals that it should be assigned an object that defines the properties described in Table 24-5 before the Invoke or InvokeAsync method is invoked. 
+--> The View method isn’t available, so I have to create a ViewViewComponentResult object, which relies on the context object received through the decorated property. --> Listing 24-28 updates the view part of the page to use the new page model class.
+
+----------------------------------------------------------------------------------------
+
+--> Cities.cshtml 
+
+@page 
+@model WebApp.Pages.CitiesModel
+<div class="m-2">
+    <table class="table table-sm table-striped table-bordered">
+        <tbody>
+            @foreach (City c in Model.Data.Cities) {
+                <tr>
+                    <td>@c.Name</td>
+                    <td>@c.Country</td>
+                    <td>@c.Population</td>
+                </tr>
+            }
+        </tbody>
+    </table> 
+</div>
+
+----------------------------------------------------------------------------------------
+
+--> The changes update the directives to use the page model class. 
+--> To create the view for the hybrid view component, create the Pages/Shared/Components/CitiesPageHybrid folder and add to it a Razor view named Default.cshtml
+
+----------------------------------------------------------------------------------------
+
+--> Default.cshtml File in the Pages/Shared/Components/CitiesPageHybrid Folder
+
+@model CityViewModel
+<table class="table table-sm table-bordered text-white bg-dark">
+    <thead><tr><th colspan="2">Hybrid Page Summary</th></tr></thead>
+    <tbody>
+        <tr>
+            <td>Cities:</td>
+            <td class="text-right">@Model.Cities</td>
+        </tr>
+        <tr>
+            <td>Population:</td>
+            <td class="text-right">
+                @Model.Population.ToString("#,###")
+            </td>
+        </tr>
+    </tbody> 
+</table>
+
+----------------------------------------------------------------------------------------
+
+--> Using a View Component in the Data.cshtml File in the Pages Folder
+
+@page 
+@inject DataContext context;
+<h5 class="bg-primary text-white text-center m-2 p-2">Categories</h5> 
+
+<ul class="list-group m-2">
+    @foreach (Category c in context.Categories) {
+        <li class="list-group-item">@c.Name</li>
+    } 
+</ul>
+
+<div class="bg-info text-white m-2 p-2">
+    <vc:cities-page-hybrid  /> 
+</div>
+
+----------------------------------------------------------------------------------------
+
+--> Hybrids are applied just like any other view component. Restart ASP.NET Core and request http://localhost:5000/cities and http://localhost:5000/data. 
+--> Both URLs are processed by the same class. For the first URL, the class acts as a page model; for the second URL, the class acts as a view component. 
+
+----------------------------------------------------------------------------------------
+
+15. Creating a Hybrid Controller Class
+
+--> The same technique can be applied to controllers. Add a class file named CitiesController.cs to the Controllers folder 
+
+--> CitiesController.cs
+
+using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc.ViewComponents; using Microsoft.AspNetCore.Mvc.ViewFeatures; using System.Linq; 
+using WebApp.Models;
+namespace WebApp.Controllers {
+
+    [ViewComponent(Name = "CitiesControllerHybrid")]
+    public class CitiesController: Controller {
+        private CitiesData data;
+        public CitiesController(CitiesData cdata) {
+            data = cdata;
+        }
+
+        public IActionResult Index() {
+            return View(data.Cities);
+        }
+
+        public IViewComponentResult Invoke() {
+            return new ViewViewComponentResult() {
+                ViewData = new ViewDataDictionary<CityViewModel>(
+                    ViewData,
+                    new CityViewModel {
+                        Cities = data.Cities.Count(),
+                        Population = data.Cities.Sum(c => c.Population)
+                    })
+            };
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> A quirk in the way that controllers are instantiated means that a property decorated with the ViewComponentContext attribute isn’t required and the ViewData property inherited from the Controller base class can be used to create the view component result. 
+--> To provide a view for the action method, create the Views/Cities folder and add to it a file named Index.cshtml
+
+----------------------------------------------------------------------------------------
+
+--> Index.cshtml File 
+
+@model IEnumerable<City> 
+@{
+    Layout = "_ImportantLayout"; }
+<div class="m-2">
+    <table class="table table-sm table-striped table-bordered">
+        <tbody>
+            @foreach (City c in Model) {
+                <tr>
+                    <td>@c.Name</td>
+                    <td>@c.Country</td>
+                    <td>@c.Population</td>
+                </tr>
+            }
+        </tbody>
+    </table> 
+</div>
+
+----------------------------------------------------------------------------------------
+
+--> To provide a view for the view component, create the Views/Shared/Components/CitiesControllerHybrid folder and add to it a Razor view named Default.cshtml 
+
+@model CityViewModel 
+<table class="table table-sm table-bordered text-white bg-dark">
+    <thead><tr><th colspan="2">Hybrid Controller Summary</th></tr></thead>
+    <tbody>
+        <tr>
+            <td>Cities:</td>
+            <td class="text-right">@Model.Cities</td>
+        </tr>
+        <tr>
+            <td>Population:</td>
+            <td class="text-right">
+                @Model.Population.ToString("#,###")
+            </td>
+        </tr>
+    </tbody> 
+</table>
+
+----------------------------------------------------------------------------------------
+
+--> Applying the View Component in the Data.cshtml File in the Pages Folder
+
+@page 
+@inject DataContext context;
+<h5 class="bg-primary text-white text-center m-2 p-2">Categories</h5> 
+
+<ul class="list-group m-2">
+    @foreach (Category c in context.Categories) {
+        <li class="list-group-item">@c.Name</li>
+    } 
+</ul>
+
+<div class="bg-info text-white m-2 p-2">
+    <vc:cities-controller-hybrid  /> 
+</div>
+
+----------------------------------------------------------------------------------------
+
+--> Restart ASP.NET Core and use a browser to request http://localhost:5000/cities/index and http://localhost:5000/ data. 
+--> For the first URL, the class in Listing 24-34 is used as a controller; for the second URL, the class is used as a view component.
+
+----------------------------------------------------------------------------------------
+
+16. Summary
+
+--> In this chapter, I described the view components feature, which allows orthogonal features to be included in views used by controllers or Razor Pages. 
+--> I explained how view components work and how they are applied, and I demonstrated the different types of results they produce. 
+
+--> I completed the chapter by showing you how to create classes that are both view components and controllers or Razor Pages. 
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

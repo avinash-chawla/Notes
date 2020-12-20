@@ -1,11 +1,301 @@
 1. Delegates
 
 --> An object that knows how to call a method(or a group of methods)
---> A reference to a function or pointer to a function
+--> In simple terms, it is a reference to a function or pointer to a function
+
+--------------------------------------------------------------------------------
 
 2. Why do we need delegates
 
 --> This technique allows us to create applications that are extensible and flexible.
 --> Often this is used in designing frameworks.
 
-3. 
+--------------------------------------------------------------------------------
+
+3. Consider an example
+
+--> There is a class Photo
+--> There is another class PhotoProcessing, that you don't own.
+--> This PhotoProcessing class applies the filters on photo.
+
+--> Task is you have to apply your own filter and send the Photo for Processing
+--> In such case, we can either use inheritance, polyphormism or delegates.
+
+--> .net core framework is highly extensible
+--> It accepts delegates in constructor parameters (options) to change default settings to custom logic settings
+
+--------------------------------------------------------------------------------
+
+4. PhotoProcessor Class
+
+public class PhotoProcessor
+{
+   public void Process(string path)
+   {
+ 	var photo = Photo.Load(path);
+
+	var filters = new PhotoFilters();
+	filters.ApplyBrightness(photo);
+	filters.ApplyContrast(photo);
+	filters.Resize(photo);
+
+	photo.Save();
+   }
+}
+
+--------------------------------------------------------------------------------
+
+--> PhotoFilters class
+
+public class PhotoFilters
+{
+   public void ApplyBrightness(Photo photo)
+   {
+	CW("Apply Brightness");
+   }
+
+   public void ApplyContrast(Photo photo)
+   {
+	CW("Apply contrast");
+   }
+
+   public void Resize(Photo photo)
+   {
+	CW("Resize photo");
+   }
+}
+
+--------------------------------------------------------------------------------
+
+--> Program Class (Consumer using this framework)
+
+class Program
+{
+   static void Main(string[] args)
+   {
+	var processor = new PhotoProcessor();
+	processor.Process("photo.jpg");
+   }
+}
+
+--> Now we have no options to include our custom filter in this class.
+--> If owner of this class has added delegate function, we can add our custom filter and pass it to Process method.
+
+--------------------------------------------------------------------------------
+
+--> Modifying PhotoProcess and including delegate in parameter.
+
+public class PhotoProcessor
+{
+    public delegate void PhotoFilterHandler(Photo photo);
+
+    public void Process(string path, PhotoFilterHandler filterHandler)
+    {
+	var photo = Photo.Load(path);
+	filterHandler(photo);
+	photo.Save();
+    }
+}
+
+--------------------------------------------------------------------------------
+
+class Program
+{
+   static void Main(string[] args)
+   {
+	var processor = new PhotoProcessor();
+	var filters = new PhotoFilters();
+
+	PhotoProcessor.PhotoFilterHandler filterHandler = filters.ApplyBrightness;
+	filterHandler += filters.ApplyContrast;
+	filterHandler += RemoveRedEyeFilter;
+
+	processor.Process("photo.jpg", filterHandler);
+   }
+
+   static void RemoveRedEyeFilter(Photo photo)
+   {
+  	CW("Apply RemoveRedEye");
+   }
+}
+}
+
+--------------------------------------------------------------------------------
+
+--> Built-in Delegates in .net
+
+1. Func
+2. Action
+
+--> Func points to a method which returns value
+--> Action points to a method which returns void
+
+--> Lets use this:
+
+--------------------------------------------------------------------------------
+
+public class PhotoProcessor
+{
+    
+    public void Process(string path, Action<Photo> filterHandler)
+    {
+	var photo = Photo.Load(path);
+	filterHandler(photo);
+	photo.Save();
+    }
+}
+
+--------------------------------------------------------------------------------
+
+class Program
+{
+   static void Main(string[] args)
+   {
+	var processor = new PhotoProcessor();
+	var filters = new PhotoFilters();
+
+	Action<Photo> filterHandler = filters.ApplyBrightness;
+	filterHandler += filters.ApplyContrast;
+	filterHandler += RemoveRedEyeFilter;
+
+	processor.Process("photo.jpg", filterHandler);
+   }
+
+   static void RemoveRedEyeFilter(Photo photo)
+   {
+  	CW("Apply RemoveRedEye");
+   }
+}
+}
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

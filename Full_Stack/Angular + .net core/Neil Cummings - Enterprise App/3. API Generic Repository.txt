@@ -1,6 +1,7 @@
 1. Intro
 
 --> Why generics
+
 1. Help avoid duplicate code
 2. Type safety
 3. We mostly use generics rather than create them.
@@ -82,6 +83,7 @@ services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 --> Angular brackets <> will set the type for given class.
 --> It will go to startup class for implementation of this Generic interface 
+
 --> Instead of repeating methods for each domain model, we have only two methods - GetByIdAsync and ListAllAsync
 --> This reduces repeatability of code greatly.
 
@@ -100,8 +102,10 @@ IReadOnlyList<T> FindAsync(Expression<Func<T, bool>> query)
 -----------------------------------------------------------------------------------------
 
 --> The Specification Pattern to the rescue!
+
 1. Describes a query in an object instead of expression
 2. Returns an IQueryable<T> which can be used by FindAsync method
+
 3. Generic List method takes specification as parameter
 4. Specification can have meaningful name instead of only expression.
 

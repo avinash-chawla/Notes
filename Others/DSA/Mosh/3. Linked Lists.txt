@@ -1,0 +1,918 @@
+1. What are Linked Lists
+
+--> Linked Lists are used to store list of objects in sequence
+--> Unlike Arrays, Linked Lists can grow and shrink automatically
+
+--> Linked Lists consists of a group of nodes in sequence
+--> Each node holds two pieces of data --> Value and Address of next node
+
+--> We call the first node --> Head
+--> We call the last node  --> Tail
+
+----------------------------------------------------------------------------------------
+
+--> A LinkedList is a linear data structure which stores element in the non-contiguous location. 
+--> The elements in a linked list are linked with each other using pointers. 
+--> Or in other words, LinkedList consists of nodes where each node contains a data field and a reference(link) to the next node in the list.
+
+----------------------------------------------------------------------------------------
+
+2. Time Complexity of Various Operations
+
+1. Lookup
+
+--> By Value  O(n)
+--> By index  O(n)
+
+--> We have to traverse the whole linked list to find the value, bec nodes are distributed over memory unlike arrays which are stored as memory locations in sequence. 
+
+----------------------------------------------------------------------------------------
+
+2. Insert
+
+--> At the End		--> O(1)
+--> At the Beginning	--> O(1)
+--> At the Middle 	--> O(n)
+
+--> If we want to add item at end, we just to change reference of tail to newly added last node and insert pointer from previous last node to new last node
+--> If we want to add item at beginning, we just to add new node and point Head to that node
+--> If we want to add item at Middle, we first need to traverse the whole list upto that value and then insert new node and change references
+
+----------------------------------------------------------------------------------------
+
+3. Deletion
+
+--> At the Beginning	--> O(1)
+--> At the End		--> O(n)
+--> At the Middle 	--> O(n)
+
+--> At the Beginning, we change head pointer to second node and remove the pointer from first node to second node, then only it will be collected by garbage collector.
+
+--> At the End, We need to find second last node, so we need to traverse down the whole list, then change the pointer links of Tail and remove the last pointer of deleted node
+
+--> At the Middle, we need to traverse the whole list to find position at which new node will be inserted and changing the pointer references
+
+----------------------------------------------------------------------------------------
+
+3. Working with Linked Lists
+
+--> Creating the LinkedList
+
+LinkedList<String> my_list = new LinkedList<String>(); 
+
+----------------------------------------------------------------------------------------
+
+--> Inserting Elements
+
+	my_list.AddLast("Zoya"); 
+        my_list.AddLast("Shilpa"); 
+        my_list.AddLast("Rohit"); 
+        my_list.AddLast("Rohan"); 
+        my_list.AddLast("Juhi"); 
+        my_list.AddLast("Zoya");  
+
+----------------------------------------------------------------------------------------
+
+--> Accessing Each Element
+    
+foreach(string str in my_list) 
+        { 
+            Console.WriteLine(str); 
+        }  
+
+----------------------------------------------------------------------------------------
+
+--> Remove Element
+
+my_list.Remove(my_list.First); 		// Based on node
+	
+my_list.Remove("Rohit"); 		// Based on Value
+
+my_list.RemoveFirst();			// Removes First Node
+ 
+my_list.RemoveLast(); 			// Removes Last Node
+
+my_list.Clear(); 	// This method is used to remove all nodes from the LinkedList.
+
+----------------------------------------------------------------------------------------
+
+--> Check Availability
+
+if (my_list.Contains("Shilpa") == true)  
+
+----------------------------------------------------------------------------------------
+
+4. Exercise: Building a Linked List
+
+--> Hint:
+--> You will need two classes
+
+public class Node {
+    private int value;
+    private Node next;
+}
+
+public class LinkedList {
+
+   private Node first;
+   private Node last;
+
+   // addFirst
+   // addLast
+   // deleteFirst
+   // deleteLast
+   // contains
+   // indexOf
+}
+
+----------------------------------------------------------------------------------------
+
+5. Solution - AddLast method
+
+class Node
+{
+    public int Value { get; set; }
+    public Node Next { get; set; }
+    public Node(int value)
+    {
+        this.Value = value;
+    }
+}
+
+class LinkedList
+{
+    public Node First { get; set; }
+    public Node Last { get; set; }
+
+    public void AddLast(int item)
+    {
+        Node node = new Node(item);
+
+        if(First == null)
+        {
+            First = Last = node;
+        } else
+        {
+            Last.Next = node;
+            Last = node;
+        }
+    }
+}
+
+----------------------------------------------------------------------------------------
+
+static void Main(string[] args)
+{
+    var list = new LinkedList();
+    list.AddLast(10);
+    list.AddLast(20);
+    list.AddLast(30);
+}
+
+----------------------------------------------------------------------------------------
+
+--> For every value, a node object is created
+--> Node object has two properties: value and reference of next node
+
+--> First we insert 10
+--> a node object is created with value 10
+--> first and last node property set to this node
+--> Next property of Last property is set to this node
+
+--> Then, we insert 20
+--> a node object is created with value 20
+--> We change the Last property reference to this node object now.
+--> We also change the Next property of this Last property to this node, now before modifying Last property, this is needed to insert the reference of this new item in previous last item node.
+
+--> When new item is added, the previous Last node Next property is set to this new node, means we are updating the reference of last previous node each time new node is added.
+
+----------------------------------------------------------------------------------------
+
+6. Solution- AddFirst()
+
+public void AddFirst(int item)
+{
+    var node = new Node(item);
+    if(First == null)
+    {
+        First = Last = node;
+    } else
+    {
+        node.Next = First;
+        First = node;
+    }
+}
+
+----------------------------------------------------------------------------------------
+
+7. Solution - IndexOf()
+
+public int IndexOf(int item)
+{
+    int index = 0;
+    var current = First;
+    while(current != null)
+    {
+        if (current.Value == item)
+            return index;
+        current = current.Next;
+        index++;
+    }
+    return -1; 
+} 
+
+----------------------------------------------------------------------------------------
+
+8. Solution - Contains()
+
+public bool Contains(int item)
+{
+    var current = First;
+    while(current != null)
+    {
+        if (current.Value == item)
+            return true;
+        current = current.Next;
+    }
+    return false;
+}
+
+or
+
+public bool Contains(int item)
+{
+    return IndexOf(item) != -1;
+}
+
+----------------------------------------------------------------------------------------
+
+9. Solution - RemoveFirst()
+
+public void RemoveFirst()
+{
+    if(First == null)
+    {
+        //throw new NoSuchElementException();
+    }
+
+    if(First == Last)
+    {
+        First = Last = null;
+        return;
+    }
+
+    var Second = First.Next;
+    First.Next = null;
+    First = Second;
+}
+
+----------------------------------------------------------------------------------------
+
+10. Solution: RemoveLast()
+
+public void RemoveLast()
+{
+    if (First == null)
+    {
+        //throw new NoSuchElementException();
+    }
+
+    if (First == Last)
+    {
+        First = Last = null;
+        return;
+    }
+
+    var previous = GetPrevious(Last);
+    Last = previous;
+    Last.Next = null;
+}
+
+private Node GetPrevious(Node node)
+{
+    var current = First;
+    while (current != null)
+    {
+        if (current.Next == node)
+            return current;
+        current = current.Next;
+    }
+    return null;
+}
+
+----------------------------------------------------------------------------------------
+
+11. Solution - Implementing Size
+
+--> There are two ways to solve this:
+1. Iterate over whole list	--> O(n)
+2. Create new property - Size   --> O(1)
+
+----------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace ConsoleApp2
+{
+    class Node
+    {
+        public int Value { get; set; }
+        public Node Next { get; set; }
+        public Node(int value)
+        {
+            this.Value = value;
+        }
+    }
+    class LinkedList
+    {
+        public Node First { get; set; }
+        public Node Last { get; set; }
+        public int Size { get; set; }
+
+        public void AddLast(int item)
+        {
+            Node node = new Node(item);
+
+            if(First == null)
+            {
+                First = Last = node;
+            } else
+            {
+                Last.Next = node;
+                Last = node;
+            }
+            Size++;
+        }
+
+        public void AddFirst(int item)
+        {
+            var node = new Node(item);
+            if(First == null)
+            {
+                First = Last = node;
+            } else
+            {
+                node.Next = First;
+                First = node;
+            }
+            Size++;
+        }
+
+        public int IndexOf(int item)
+        {
+            int index = 0;
+            var current = First;
+            while(current != null)
+            {
+                if (current.Value == item)
+                    return index;
+                current = current.Next;
+                index++;
+            }
+            return -1; 
+        }
+
+        public bool Contains(int item)
+        {
+            var current = First;
+            while(current != null)
+            {
+                if (current.Value == item)
+                    return true;
+                current = current.Next;
+            }
+            return false;
+        }
+
+        public void RemoveFirst()
+        {
+            if(First == null)
+            {
+                //throw new NoSuchElementException();
+            }
+
+            if(First == Last)
+            {
+                First = Last = null;
+                return;
+            } else
+            {
+                var Second = First.Next;
+                First.Next = null;
+                First = Second;
+            }
+
+            Size--;
+        }
+
+        public void RemoveLast()
+        {
+            if (First == null)
+            {
+                //throw new NoSuchElementException();
+            }
+
+            if (First == Last)
+            {
+                First = Last = null;
+                return;
+            } else
+            {
+                var previous = GetPrevious(Last);
+                Last = previous;
+                Last.Next = null;
+            }
+
+            Size--;
+        }
+
+        private Node GetPrevious(Node node)
+        {
+            var current = First;
+            while (current != null)
+            {
+                if (current.Next == node)
+                    return current;
+                current = current.Next;
+            }
+            return null;
+        }
+    }
+}
+
+
+----------------------------------------------------------------------------------------
+
+12. Arrays vs Linked Lists
+
+--> In terms of Space
+
+--> Static arrays have a fixed size
+--> Dynamic arrays grow by 50-100%
+--> Linked Lists don't waste memory
+--> Use arrays if you know the number of items to store
+--> new ArrayList(100)
+
+----------------------------------------------------------------------------------------
+
+--> Runtime Complexity
+
+		Arrays	LinkedList
+
+--> Look up			
+--> By Index	O(1)	O(n)
+--> By Value 	O(n)	O(n)
+
+--> Insert
+--> Begin/end	O(n)	O(1)
+--> Middle	O(n)	O(n)
+
+--> Delete
+--> Begin	O(n)	O(1)
+--> Middle	O(n)	O(n)
+--> end		O(n)	O(n)
+
+----------------------------------------------------------------------------------------
+
+13. Types of Linked Lists
+
+1. Singly
+2. Doubly
+3. Circle
+
+--> In Doubly, each node contains Previous Property also, which references previous node
+--> Benefit of this, Runtime Complexity for DeleteAtLast Operation becomes O(1) from O(n)
+
+--> In Circular Linked List, application like music playlist can be made through it.
+--> In this, last node references the first node.
+
+----------------------------------------------------------------------------------------
+
+14. Exercise: Reversing a Linked List
+
+public void Reverse()
+{
+    if (First == null) return;
+
+    // [10 -> 20 -> 30]
+    //   p     c     n
+    //         p     c    n
+    //               p    c   n
+    var previous = First;
+    var current = previous.Next;
+    while(current != null)
+    {
+        var next = current.Next;
+        current.Next = previous;
+        previous = current;
+        current = next;
+    }
+
+    Last = First;
+    Last.Next = null;
+    First = previous;
+}
+
+----------------------------------------------------------------------------------------
+
+15. Exercise: Find the Kth node from the end of a linked list in one pass
+
+--> Hint:
+
+--> [10 -> 20 -> 30 -> 40 -> 50]  		  
+     *           *
+		 *           *
+
+--> K = 1 (50)
+--> K = 2 (40)
+--> K = 3 (30)
+
+----------------------------------------------------------------------------------------
+
+16. Solution
+
+public int GetKthFromTheEnd(int k)
+{
+    if(First == null)
+    {
+        // throw new IllegalStateException
+    }
+
+    var a = First;
+    var b = First;
+
+    for(int i = 0; i< k-1; i++)
+    {
+        b = b.Next;
+        if(b == null)
+        {
+            // throw new IllegalArgumentException
+        }
+    }
+
+    while(b != Last)
+    {
+        a = a.Next;
+        b = b.Next;
+    }
+    return a.Value;
+}
+
+----------------------------------------------------------------------------------------
+
+17. Summary
+
+--> Second most used data structure
+--> Grow and shrink automatically
+--> Take a bit more memory
+
+----------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace ConsoleApp2
+{
+    class Node
+    {
+        public int Value { get; set; }
+        public Node Next { get; set; }
+        public Node(int value)
+        {
+            this.Value = value;
+        }
+    }
+    class LinkedList
+    {
+        public Node First { get; set; }
+        public Node Last { get; set; }
+        public int Size { get; set; }
+
+        public void AddLast(int item)
+        {
+            Node node = new Node(item);
+
+            if(First == null)
+            {
+                First = Last = node;
+            } else
+            {
+                Last.Next = node;
+                Last = node;
+            }
+            Size++;
+        }
+
+        public void AddFirst(int item)
+        {
+            var node = new Node(item);
+            if(First == null)
+            {
+                First = Last = node;
+            } else
+            {
+                node.Next = First;
+                First = node;
+            }
+            Size++;
+        }
+
+        public int IndexOf(int item)
+        {
+            int index = 0;
+            var current = First;
+            while(current != null)
+            {
+                if (current.Value == item)
+                    return index;
+                current = current.Next;
+                index++;
+            }
+            return -1; 
+        }
+
+        public bool Contains(int item)
+        {
+            var current = First;
+            while(current != null)
+            {
+                if (current.Value == item)
+                    return true;
+                current = current.Next;
+            }
+            return false;
+        }
+
+        public void RemoveFirst()
+        {
+            if(First == null)
+            {
+                //throw new NoSuchElementException();
+            }
+
+            if(First == Last)
+            {
+                First = Last = null;
+                return;
+            } else
+            {
+                var Second = First.Next;
+                First.Next = null;
+                First = Second;
+            }
+
+            Size--;
+        }
+
+        public void RemoveLast()
+        {
+            if (First == null)
+            {
+                //throw new NoSuchElementException();
+            }
+
+            if (First == Last)
+            {
+                First = Last = null;
+                return;
+            } else
+            {
+                var previous = GetPrevious(Last);
+                Last = previous;
+                Last.Next = null;
+            }
+
+            Size--;
+        }
+
+        private Node GetPrevious(Node node)
+        {
+            var current = First;
+            while (current != null)
+            {
+                if (current.Next == node)
+                    return current;
+                current = current.Next;
+            }
+            return null;
+        }
+
+        public int[] ToArray()
+        {
+            int[] array = new int[Size];
+            int index = 0;
+            var current = First;
+            while(current != null)
+            {
+                array[index] = current.Value;
+                index++;
+                current = current.Next;
+            }
+            return array;
+        }
+
+        public void Reverse()
+        {
+            if (First == null) return;
+
+            // [10 -> 20 -> 30]
+            //   p     c     n
+            //         p     c    n
+            //               p    c   n
+            var previous = First;
+            var current = previous.Next;
+            while(current != null)
+            {
+                var next = current.Next;
+                current.Next = previous;
+                previous = current;
+                current = next;
+            }
+
+            Last = First;
+            Last.Next = null;
+            First = previous;
+        }
+
+        public int GetKthFromTheEnd(int k)
+        {
+            if(First == null)
+            {
+                // throw new IllegalStateException
+            }
+
+            var a = First;
+            var b = First;
+
+            for(int i = 0; i< k-1; i++)
+            {
+                b = b.Next;
+                if(b == null)
+                {
+                    // throw new IllegalArgumentException
+                }
+            }
+
+            while(b != Last)
+            {
+                a = a.Next;
+                b = b.Next;
+            }
+            return a.Value;
+        }
+    }
+}
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,461 @@
+1. Changing Code-First Configuration
+
+[Table("Locations", Schema = "baga")]
+public class Destination
+{
+   public Destination()
+   {
+   	this.Lodgings = new List<Lodging>();
+   }
+
+   [Column("LocationID")]
+   public int DestinationId { get; set; }
+
+   [Required, Column("LocationName")]
+   [MaxLength(200)]
+   public string Name { get; set; }
+   public string Country { get; set; }
+
+   [MaxLength(500)]
+   public string Description { get; set; }
+
+   [Column(TypeName = "image")]
+   public byte[] Photo { get; set; }
+
+   public string TravelWarnings { get; set; }
+   public string ClimateInfo { get; set; }
+   public List<Lodging> Lodgings { get; set; }
+}
+
+--> The Destination class has a number of Data Annotations. 
+
+--> It begins with a Table attribute indicating that the Destination class will map to a database table named Locations which has the schema baga. 
+--> Without this annotation, Code First would presume the table name is the plural of Destination (Destinations), in the default dbo schema.
+
+--> The DestinationId property is configured to map to a column in the table name LocationId and the Name column to one called LocationName, with a max length of 200.
+
+--> The System.Data.SqlClient provider will default to specifying that the LocationName column is an nvarchar(200). 
+--> Another annotation ensures that Code First understands that the Photo property maps to a column whose type is image.
+
+--> The BreakAway context class inherits from System.Data.Entity.DbContext, the central class of the DbContext API. 
+--> It contains properties that reflect sets of the various model classes contained in the solutions. 
+
+--> For example a property named Destinations returns a queryable set of Destination types. 
+
+DbSet<Destination> Destinations { get; set; }
+
+--> The queryable set comes in the form of a DbSet class—another piece of the DbContext API
+
+
+-----------------------------------------------------------------------------------
+
+2. Other Book
+
+--> Programming Entity Framework: Code First.
+--> Programming EntityFramework, 2e
+
+
+--> “Demystifying Entity Framework Strategies: Loading Related Data” 
+
+-----------------------------------------------------------------------------------
+
+3. ToList()
+
+private static void PrintAllDestinations()
+{
+ using (var context = new BreakAwayContext())
+ {
+ foreach (var destination in context.Destinations)
+ {
+ Console.WriteLine(destination.Name);
+ }
+ }
+}
+
+-----------------------------------------------------------------------------------
+
+private static void PrintAllDestinationsTwice()
+{
+ using (var context = new BreakAwayContext())
+ {
+Querying All the Data from a Set | 17
+ var allDestinations = context.Destinations.ToList();
+ foreach (var destination in allDestinations)
+ {
+ Console.WriteLine(destination.Name);
+ }
+ foreach (var destination in allDestinations)
+ {
+ Console.WriteLine(destination.Name);
+ }
+ }
+
+-----------------------------------------------------------------------------------
+
+private static void PrintAllDestinationsSorted()
+{
+ using (var context = new BreakAwayContext())
+ {
+ var query = from d in context.Destinations
+ orderby d.Name
+ select d;
+ foreach (var destination in query)
+ {
+ Console.WriteLine(destination.Name);
+ }
+ }
+
+-----------------------------------------------------------------------------------
+var query = from d in context.Destinations
+ where d.Country == "Australia"
+ orderby d.Name
+ select d;
+
+
+-----------------------------------------------------------------------------------
+var query = context.Destinations
+ .Where(d => d.Country == "Australia")
+ .OrderBy(d => d.Name);
+
+
+-----------------------------------------------------------------------------------
+
+
+ var query = from d in context.Destinations
+ where d.Country == "Australia"
+ orderby d.Name
+ select d.Name;
+-----------------------------------------------------------------------------------
+
+var query = context.Destinations
+ .Where(d => d.Country == "Australia")
+ .OrderBy(d => d.Name)
+ .Select(d => d.Name);
+
+-----------------------------------------------------------------------------------
+ var destination = context.Destinations.Find(id);
+ if (destination == null)
+ {
+ Console.WriteLine("Destination not found!");
+ }
+
+
+-----------------------------------------------------------------------------------
+
+var query = from d in context.Destinations
+ where d.Name == "Great Barrier Reef"
+ select d;
+
+-----------------------------------------------------------------------------------
+
+var query = from d in context.Destinations
+ where d.Name == "Great Barrier Reef"
+ select d;
+ var reef = query.SingleOrDefault();
+
+-----------------------------------------------------------------------------------
+
+SingleOrDefault uses the same database query that Find uses when it looks for entities
+in the database
+
+-----------------------------------------------------------------------------------
+
+private static void AddMachuPicchu()
+{
+ using (var context = new BreakAwayContext())
+ {
+ var machuPicchu = new Destination
+ {
+ Name = "Machu Picchu",
+ Country = "Peru"
+ };
+ context.Destinations.Add(machuPicchu);
+ context.SaveChanges();
+ }
+}
+
+-----------------------------------------------------------------------------------
+
+private static void ChangeGrandCanyon()
+{
+ using (var context = new BreakAwayContext())
+ {
+ var canyon = (from d in context.Destinations
+ where d.Name == "Grand Canyon"
+select d).Single();
+ canyon.Description = "227 mile long canyon.";
+ context.SaveChanges();
+ }
+}
+
+
+-----------------------------------------------------------------------------------
+
+private static void DeleteWineGlassBay()
+{
+ using (var context = new BreakAwayContext())
+ {
+ var bay = (from d in context.Destinations
+ where d.Name == "Wine Glass Bay"
+ select d).Single();
+ context.Destinations.Remove(bay);
+ context.SaveChanges();
+ }
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

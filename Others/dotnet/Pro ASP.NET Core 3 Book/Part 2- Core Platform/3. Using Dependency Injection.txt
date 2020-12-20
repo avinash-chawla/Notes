@@ -1,0 +1,3357 @@
+----------------------------------------------------------------------------------------
+
+1. Intro
+
+--> Services are objects that are shared between middleware components and endpoints. 
+
+--> There are no restrictions on the features that services can provide, but they are usually used for tasks that are needed in multiple parts of the application, such as logging or database access.
+
+--> The ASP.NET Core dependency injection feature is used to create and consume services. 
+
+----------------------------------------------------------------------------------------
+
+What is it? 
+
+--> Dependency Injection makes it easy to create loosely coupled components, which typically means that components consume functionality defined by interfaces without having any firsthand knowledge of which implementation classes are being used.
+
+----------------------------------------------------------------------------------------
+
+Why is it useful?
+
+--> Dependency injection makes it easier to change the behavior of an application by changing the components that implement the interfaces that define application features. It also results in components that are easier to isolate for unit testing. 
+
+----------------------------------------------------------------------------------------
+
+How is it used? 
+
+--> The Startup class is used to specify which implementation classes are used to deliver the functionality specified by the interfaces used by the application. 
+
+----------------------------------------------------------------------------------------
+
+2. Service Class
+
+--> In this session, we are showing how features/service are applied differently when using middlewares and endpoints.
+
+--> Service class are used by middlewares to generate responses
+--> Middlewares are meant for reading request, using the subsequent Service class to generate the responses.
+
+--> Create new folder --> Services in Project
+--> Create new interface
+
+using Microsoft.AspNetCore.Http; 
+using System.Threading.Tasks;
+
+namespace Platform.Services {
+
+    public interface IResponseFormatter {
+        Task Format(HttpContext context, string content);
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Implementation of above interface
+
+using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Http;
+
+namespace Platform.Services {
+
+    public class TextResponseFormatter : IResponseFormatter {
+
+        private int responseCounter = 0;
+
+        public async Task Format(HttpContext context, string content) {
+            await context.Response.WriteAsync($"Response {++responseCounter}:\n{content}");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Creating a Middleware Component and an Endpoint
+--> Create new class for Middleware --> WeatherMiddleware.cs
+
+using Microsoft.AspNetCore.Http; 
+using System.Threading.Tasks;
+
+namespace Platform {
+
+    public class WeatherMiddleware {
+
+        private RequestDelegate next;
+
+        public WeatherMiddleware(RequestDelegate nextDelegate) {
+            next = nextDelegate;
+        }
+
+        public async Task Invoke(HttpContext context) {
+            if (context.Request.Path == "/middleware/class") {
+                await context.Response.WriteAsync("Middleware Class: It is raining in London");
+            } else {
+                await next(context);
+            }
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Creating Endpoint class
+
+--> We can either create class for middleware or create class for endpoint which will placed in app.UseEndpoints middleware
+--> To create an endpoint that produces a similar result to the middleware component, add a file called WeatherEndpoint.cs 
+
+using Microsoft.AspNetCore.Http; 
+using System.Threading.Tasks;
+
+namespace Platform {
+
+    public class WeatherEndpoint {
+
+        public static async Task Endpoint(HttpContext context) {
+            await context.Response.WriteAsync("Endpoint Class: It is cloudy in Milan");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Configuring the Request Pipeline
+
+namespace Platform {
+
+    public class Startup {
+
+        public void ConfigureServices(IServiceCollection services) {}
+
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+
+            app.UseDeveloperExceptionPage();
+            app.UseRouting();
+
+            app.UseMiddleware<WeatherMiddleware>();
+
+            IResponseFormatter formatter = new TextResponseFormatter();
+
+            app.Use(async (context, next) => {
+                if (context.Request.Path == "/middleware/function") {
+                    await formatter.Format(context, "Middleware Function: It is snowing in Chicago");
+                } else {
+                    await next();
+                }
+            });
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapGet("/endpoint/class", WeatherEndpoint.Endpoint);
+
+                endpoints.MapGet("/endpoint/function", async context => {
+                    await context.Response.WriteAsync("Endpoint Function: It is sunny in LA");
+                });
+            });
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Output:
+
+--> Navigate to: http://localhost:5000/middleware/function
+--> Each time you reload the browser, the counter shown in the response will be incremented.
+(first time)
+Response1:
+..
+
+(second time)
+Response2:
+..
+
+----------------------------------------------------------------------------------------
+
+3. Understanding the Service Location Problem
+
+--> Earlier, we are instantiating an object manually
+--> So every time, a new request come, middleware will use new instance everytime
+--> Also, when you need that object throughout the application, you will either instantiate an object in that class or use DI pattern
+
+--> Most projects have features that need to be used in different parts of the application, which are known as services.
+
+----------------------------------------------------------------------------------------
+
+--> Service Location means giving access to service object through different ways. There are total such ways:
+
+1. Constructor / Method Argument
+2. Static property of service object which will provide shared instance (Singleton Pattern)
+
+----------------------------------------------------------------------------------------
+
+--> TextResponseFormatter.cs 
+
+using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Http;
+
+namespace Platform.Services {
+
+    public class TextResponseFormatter : IResponseFormatter {
+
+        private int responseCounter = 0;
+        private static TextResponseFormatter shared;
+
+        public async Task Format(HttpContext context, string content) {
+            await context.Response.WriteAsync($"Response {++responseCounter}:\n{content}");
+        }
+
+        public static TextResponseFormatter Singleton {
+            get {
+                if (shared == null) {
+                    shared = new TextResponseFormatter();
+                }
+                return shared;
+            }
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> In Startup.cs
+
+            app.Use(async (context, next) => {
+
+                if (context.Request.Path == "/middleware/function") {
+                    await TextResponseFormatter.Singleton.Format(context, "Middleware Function: It is snowing in Chicago");		// This Line
+                } else {
+                    await next();
+                }
+
+            });
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapGet("/endpoint/class", WeatherEndpoint.Endpoint);
+                endpoints.MapGet("/endpoint/function", async context => {
+                    await TextResponseFormatter.Singleton.Format(context, "Endpoint Function: It is sunny in LA");			// This Line
+                });
+            });
+
+
+--> The singleton pattern allows me to share a single TextResponseFormatter so it is used by a middleware component and an endpoint, with the effect that a single counter is incremented by requests for two different URLs.
+
+--> Navigate to url: middleware/function
+--> Output: Response1
+
+--> Navigate to url: endpoint/function
+--> Output: Response2
+
+--> Everytime, a new request comes, this same object is used
+--> This is called Singleton Pattern
+
+----------------------------------------------------------------------------------------
+
+4. Type Broker Pattern
+
+--> Earlier, we are using Service object like this, TextResponseFormatter.Singleton.Format(...)
+
+--> The Problem with this approach, it is tightly coupled with TextResponseFormatter class.
+--> When any change in TextResponseFormatter would require changes in thousand places, whereever this class is used.
+
+--> Type Broker is middleman
+--> We provide links of this class to each dependency and this class will provide the object of TextResponseFormatter
+--> Any change in TextResponseFormatter will affect only this Type Broker class
+
+----------------------------------------------------------------------------------------
+
+--> TypeBroker Class
+
+namespace Platform.Services {
+
+    public static class TypeBroker {
+        private static IResponseFormatter formatter = new TextResponseFormatter();
+        public static IResponseFormatter Formatter => formatter;
+    } 
+}
+
+--> The Formatter property provides access to a shared service object that implements the IResponseFormatter interface. 
+--> Consumers of the service need to know that the TypeBroker class is responsible for selecting the implementation that will be used, but this pattern means that service consumers can work through interfaces rather than concrete classes,
+
+----------------------------------------------------------------------------------------
+
+--> In Startup.cs
+
+            app.Use(async (context, next) => {
+                if (context.Request.Path == "/middleware/function") {
+                    await TypeBroker.Formatter.Format(context, "Middleware Function: It is snowing in Chicago");	// this Line
+                } else {
+                    await next();
+                }
+            });
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapGet("/endpoint/class", WeatherEndpoint.Endpoint);
+                endpoints.MapGet("/endpoint/function", async context => {
+                    await TypeBroker.Formatter.Format(context, "Endpoint Function: It is sunny in LA");			// This Line
+                });
+            })
+
+----------------------------------------------------------------------------------------
+
+--> This approach makes it easy to switch to a different implementation class by altering just the TypeBroker class and prevents service consumers from creating dependencies on a specific implementation. 
+
+--> It also means that service classes can focus on the features they provide without having to deal with how those features will be located.
+
+----------------------------------------------------------------------------------------
+
+--> Creating new implementation for IResponseFormatter
+--> One already implementation is TextResponseFormatter
+--> Other is HtmlResponseFormatter.cs
+
+using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Http;
+
+namespace Platform.Services {
+
+    public class HtmlResponseFormatter : IResponseFormatter {
+
+        public async Task Format(HttpContext context, string content) {
+
+            context.Response.ContentType = "text/html";
+            await context.Response.WriteAsync($@"
+                <!DOCTYPE html>
+                <html lang=""en"">
+                <head><title>Response</title></head>
+                <body>
+                    <h2>Formatted Response</h2>
+                    <span>{content}</span>
+                </body>
+                </html>");
+        }
+    } 
+}
+
+
+----------------------------------------------------------------------------------------
+
+--> To use the new formatter class, I only need to change the TypeBroker
+
+namespace Platform.Services {
+
+    public static class TypeBroker {
+
+        private static IResponseFormatter formatter = new HtmlResponseFormatter();
+        public static IResponseFormatter Formatter => formatter;
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+5. Dependency Injection
+
+--> Dependency injection provides an alternative approach to providing services that tidy up the rough edges that arise in the singleton and type broker pattern, and it is integrated with other ASP.NET Core features.
+
+--> In startup.cs
+
+services.AddSingleton<IResponseFormatter, HtmlResponseFormatter>();
+
+--> Services are registered in the ConfigureServices method of the Startup class, using extensions methods on the IServiceCollection parameter. 
+--> The AddSingleton method is one of the extension methods available for services and tells ASP.NET Core that a single object should be used to satisfy demands for the service 
+
+--> The interface and the implementation class are specified as generic type arguments. 
+--> To consume the service, I added a parameter to the Configure method.
+
+----------------------------------------------------------------------------------------
+
+--> In Configure method
+
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IResponseFormatter formatter) {
+
+	    app.Use(async (context, next) => {
+                if (context.Request.Path == "/middleware/function") {
+                    await formatter.Format(context, "Middleware Function: It is snowing in Chicago");
+                } else {
+                    await next();
+                }
+            });
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapGet("/endpoint/class", WeatherEndpoint.Endpoint);
+                endpoints.MapGet("/endpoint/function", async context => {
+                    await formatter.Format(context, "Endpoint Function: It is sunny in LA");
+                });
+            });
+
+----------------------------------------------------------------------------------------
+
+--> The new parameter declares a dependency on the IResponseFormatter interface, and the method is said to depend on the interface. 
+--> Before the Configure method is invoked, its parameters are inspected, the dependency is detected, and the application’s services are inspected to determine whether it is possible to resolve the dependency. 
+
+--> The statement in the ConfigureServices method tells the dependency injection system that a dependency on the IResponseFormatter interface can be resolved with an HtmlResponseFormatter object
+--> The object is created and used as an argument to invoke the method. 
+
+--> Because the object that resolves the dependency is provided from outside the class or function that uses it, it is said to have been injected, which is why the process is known as dependency injection.
+
+----------------------------------------------------------------------------------------
+
+6. Using a Service in a Middleware Class
+
+--> Defining a service in the ConfigureServices method and consuming it in the Configure method may not seem impressive, but once a service is defined, it can be used almost anywhere in an ASP.NET Core application
+
+----------------------------------------------------------------------------------------
+
+namespace Platform {
+
+    public class WeatherMiddleware {
+
+        private RequestDelegate next;
+        private IResponseFormatter formatter;
+
+        public WeatherMiddleware(RequestDelegate nextDelegate,
+                IResponseFormatter respFormatter) {
+            next = nextDelegate;
+            formatter = respFormatter;
+        }
+
+        public async Task Invoke(HttpContext context) {
+            if (context.Request.Path == "/middleware/class") {
+                await formatter.Format(context, "Middleware Class: It is raining in London");
+            } else {
+                await next(context);
+            }
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+7. Using a Service in an Endpoint
+
+--> The situation is more complicated in the WeatherEndpoint class, which is static and doesn’t have a constructor through which dependencies can be declared. 
+--> There are several approaches available to resolve dependencies for an endpoint class
+
+--> Services can be accessed through the HttpContext object that is received when a request is routed to an endpoint,
+
+----------------------------------------------------------------------------------------
+
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Platform {
+
+    public class WeatherEndpoint {
+
+        public static async Task Endpoint(HttpContext context) {
+
+            IResponseFormatter formatter = context.RequestServices.GetRequiredService<IResponseFormatter>();
+            await formatter.Format(context, "Endpoint Class: It is cloudy in Milan");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The HttpContext.RequestServices property returns an object that implements the IServiceProvider interfaces, which provides access to the services that have been configured in the application’s Start.ConfigureServices method. 
+
+--> The Microsoft. Extensions.DependencyInjection namespace contains extension methods for the IServiceProvider interface that allow individual services to be obtained
+
+----------------------------------------------------------------------------------------
+
+--> IServiceProvider Extension Methods
+
+1. GetService<T>()
+--> This method returns a service for the type specified by the generic type parameter or null if no such service has been defined.
+
+2. GetService(type)
+--> This method returns a service for the type specified or null if no such service has been defined.
+
+3. GetRequiredService<T>()
+--> This method returns a service specified by the generic type parameter and throws an exception if a service isn’t available.
+
+4. GetRequiredService(type)
+--> This method returns a service for the type specified and throws an exception if a service isn’t available.
+
+----------------------------------------------------------------------------------------
+
+8. Using an Adapter Function
+
+--> The drawback of using the HttpContext.RequestServices method is that the service must be resolved for every request that is routed to the endpoints. 
+--> A more elegant approach is to get the service when the endpoint’s route is created and not for each request.
+
+----------------------------------------------------------------------------------------
+
+--> WeatherEndpoint.cs
+
+using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks; 
+using Platform.Services;
+
+namespace Platform {
+
+    public class WeatherEndpoint {
+
+        public static async Task Endpoint(HttpContext context, IResponseFormatter formatter) {
+            await formatter.Format(context, "Endpoint Class: It is cloudy in Milan");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Create new class - EndPointExtensions.cs 
+
+using Microsoft.AspNetCore.Routing; 
+
+using Microsoft.Extensions.DependencyInjection; 
+using Platform.Services;
+namespace Microsoft.AspNetCore.Builder {
+
+    public static class EndpointExtensions {
+
+        public static void MapWeather(this IEndpointRouteBuilder app, string path) {
+            IResponseFormatter formatter = app.ServiceProvider.GetService<IResponseFormatter>();
+            app.MapGet(path, context => Platform.WeatherEndpoint.Endpoint(context, formatter));
+        }
+    } 
+}
+
+--> The new file creates an extension method for the IEndpointRouterBuilder interface, which is used to create routes in the Startup class. 
+-->  The extension method gets the service and uses the MapGet method to register a RequestDelegate that passes on the HttpContext object and the IResponseFormatter object to the WeatherEndpoint.Endpoint method.
+
+----------------------------------------------------------------------------------------
+
+--> In Startup.cs
+
+app.UseEndpoints(endpoints => {
+
+    //endpoints.MapGet("/endpoint/class", WeatherEndpoint.Endpoint);
+
+    endpoints.MapWeather("/endpoint/class");
+
+    endpoints.MapGet("/endpoint/function", async context => {
+        await formatter.Format(context, "Endpoint Function: It is sunny in LA");
+    }); 
+}); 
+
+--> The MapWeather extension method sets up the route and creates the adapter around the endpoint class. 
+
+----------------------------------------------------------------------------------------
+
+9. Using the Activation Utility Class
+
+--> Endpoints are classes with static methods
+--> They get service object either through HttpContext object or using Adapter function (using extension method, injecting in method)
+
+--> Now we do not use Static methods like before
+--> The most common use of dependency injection in ASP.NET Core applications is in class constructors.
+
+----------------------------------------------------------------------------------------
+
+--> WeatherEndpoint.cs
+
+using Microsoft.AspNetCore.Http; 
+using System.Threading.Tasks; 
+using Platform.Services;
+
+namespace Platform {
+
+    public class WeatherEndpoint {
+
+        private IResponseFormatter formatter;
+
+        public WeatherEndpoint(IResponseFormatter responseFormatter) {
+            formatter = responseFormatter;
+        }
+
+        public async Task Endpoint(HttpContext context) {
+            await formatter.Format(context, "Endpoint Class: It is cloudy in Milan");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+using Microsoft.AspNetCore.Http; 
+using Microsoft.AspNetCore.Routing; 
+using Microsoft.Extensions.DependencyInjection;
+using Platform.Services; 
+using System.Reflection; 
+using System.Threading.Tasks;
+
+namespace Microsoft.AspNetCore.Builder {
+
+    public static class EndpointExtensions {
+
+        public static void MapEndpoint<T> (this IEndpointRouteBuilder app, string path, string methodName = "Endpoint") {
+
+            MethodInfo methodInfo = typeof(T).GetMethod(methodName);
+
+            if (methodInfo == null || methodInfo.ReturnType != typeof(Task)) {
+                throw new System.Exception("Method cannot be used");
+            }
+
+            T endpointInstance = ActivatorUtilities.CreateInstance<T>(app.ServiceProvider);
+
+            app.MapGet(path, (RequestDelegate)methodInfo.CreateDelegate(typeof(RequestDelegate), endpointInstance));
+        }
+    } 
+	}
+
+----------------------------------------------------------------------------------------
+
+--> The extension method accepts a generic type parameter that specifies the endpoint class that will be used. 
+
+app.UseEndpoints(endpoints => {
+    endpoints.MapEndpoint<WeatherEndpoint>("/endpoint/class");
+
+
+--> The other arguments are the path that will be used to create the route and the name of the endpoint class method that processes requests.
+--> A new instance of the endpoint class is created, and a delegate to the specified method is used to create a route. 
+
+--> Like any code that uses .NET reflection, the extension method in Listing 14-20 can be difficult to read, but the key statement for the purposes of this chapter is this one:
+...
+T endpointInstance = ActivatorUtilities.CreateInstance<T>(app.ServiceProvider); ...
+
+--> The ActivatorUtilities class, defined in the Microsoft.Extensions.DependencyInjection namespace, provides methods for instantiating classes that have dependencies declared through their constructor. 
+
+----------------------------------------------------------------------------------------
+
+--> The ActivatorUtilities Methods
+
+1. CreateInstance<T>(services, args)
+--> This method creates a new instance of the class specified by the type parameter, resolving dependencies using the services and additional (optional) arguments.
+
+2. CreateInstance(services, type, args)
+--> This method creates a new instance of the class specified by the parameter, resolving dependencies using the services and additional (optional) arguments.
+
+3. GetServiceOrCreateInstance<T>(services, args)
+--> This method returns a service of the specified type, if one is available, or creates a new instance if there is no service.
+
+4. GetServiceOrCreateInstance(services, type, args)
+--> This method returns a service of the specified type, if one is available, or creates a new instance if there is no service.
+
+
+----------------------------------------------------------------------------------------
+
+--> In Startup.cs
+
+app.UseEndpoints(endpoints => {
+    endpoints.MapEndpoint<WeatherEndpoint>("/endpoint/class");
+
+    endpoints.MapGet("/endpoint/function", async context => {
+        await formatter.Format(context, "Endpoint Function: It is sunny in LA");
+    }); 
+
+}); 
+
+
+--> This approach is only for Endpoints classes
+
+----------------------------------------------------------------------------------------
+
+10. Using Service Lifecycles
+
+1. Singleton Services
+
+public void ConfigureServices(IServiceCollection services) {
+    services.AddSingleton<IResponseFormatter, HtmlResponseFormatter>(); 
+} 
+
+--> The AddSingleton method produces a service that is instantiated the first time it is used to resolve a dependency and is then reused for each subsequent dependency. 
+--> This means that any dependency on the IResponseFormatter object will be resolved using the same HtmlResponseFormatter object. 
+
+----------------------------------------------------------------------------------------
+
+--> The Extension Methods for Creating Services
+
+1. AddSingleton<T, U>()  
+--> This method creates a single object of type U that is used to resolve all dependencies on type T.
+
+2. AddTransient<T, U>()
+--> This method creates a new object of type U to resolve each dependency on type T.
+
+3. AddScoped<T, U>()
+--> This method creates a new object of type U that is used to resolve dependencies on T within a single scope, such as request.
+
+
+----------------------------------------------------------------------------------------
+
+11. Creating Transient Services
+
+--> The AddTransient method does the opposite of the AddSingleton method and creates a new instance of the implementation class for every dependency that is resolved. 
+
+--> GuidService.cs 
+
+using System; 
+using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Http;
+
+namespace Platform.Services {
+
+    public class GuidService : IResponseFormatter {
+
+        private Guid guid = Guid.NewGuid();
+
+        public async Task Format(HttpContext context, string content) {
+            await context.Response.WriteAsync($"Guid: {guid}\n{content}");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> In startup.cs
+
+public void ConfigureServices(IServiceCollection services) {
+    services.AddTransient<IResponseFormatter, GuidService>(); 
+} 
+
+--> Navigate to: /endpoint/class
+--> Navigate to: /middleware/class
+
+--> Each response will be shown with a different GUID value, confirming that transient service objects have been used to resolve the dependencies on the IResponseFormatter service for the endpoint and the middleware component.
+
+----------------------------------------------------------------------------------------
+
+12. Avoiding the Transient Service Reuse Pitfall ( For Middleware Classes)
+
+--> The previous example demonstrated that when different service objects are created, the effect is not quite as you might expect, which you can see by clicking the reload buttons. Rather than seeing new GUID values, responses contain the same value
+
+--> New service objects are created only when dependencies are resolved, not when services are used. The components and endpoints in the example application have their dependencies resolved only when the application starts and the Startup.
+
+--> Configure method is invoked. Each receives a separate service object, which is then reused for every request that is processed.
+
+----------------------------------------------------------------------------------------
+
+--> To solve this problem for the middleware component, the dependency for the service can be moved to the Invoke method
+--> WeatherMiddleware.cs
+
+using Microsoft.AspNetCore.Http; 
+using System.Threading.Tasks; 
+using Platform.Services;
+
+namespace Platform {
+
+    public class WeatherMiddleware {
+
+        private RequestDelegate next;
+        //private IResponseFormatter formatter;
+
+        public WeatherMiddleware(RequestDelegate nextDelegate) {
+            next = nextDelegate;
+            //formatter = respFormatter;
+        }
+
+        public async Task Invoke(HttpContext context, IResponseFormatter formatter) {
+            if (context.Request.Path == "/middleware/class") {
+                await formatter.Format(context, "Middleware Class: It is raining in London");
+            } else {
+                await next(context);
+            }
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The ASP.NET Core platform will resolve dependencies declared by the Invoke method every time a request is processed, which ensures that a new transient service object is created.
+
+----------------------------------------------------------------------------------------
+
+13. Avoiding the Transient Service Reuse Pitfall ( For Endpoints Classes )
+
+--> Above approach is only for Middleware classes
+--> For Endpoints Classes,
+
+--> The ActivatorUtilities class doesn’t deal with resolving dependencies for methods, and ASP.NET Core includes this feature only for middleware components. 
+--> The simplest way of solving this issue for endpoints is to explicitly request services when each request is handled, which is the approach I used earlier when showing how services are used. 
+
+--> It is also possible to enhance the extension method to request services on behalf of an endpoint
+
+----------------------------------------------------------------------------------------
+
+--> EndpointExtensions.cs
+
+namespace Microsoft.AspNetCore.Builder {
+
+    public static class EndpointExtensions {
+
+        public static void MapEndpoint<T>(this IEndpointRouteBuilder app, string path, string methodName = "Endpoint") {
+
+            MethodInfo methodInfo = typeof(T).GetMethod(methodName);
+
+            if (methodInfo == null || methodInfo.ReturnType != typeof(Task)) {
+                throw new System.Exception("Method cannot be used");
+            }
+
+            T endpointInstance = ActivatorUtilities.CreateInstance<T>(app.ServiceProvider);
+
+            ParameterInfo[] methodParams = methodInfo.GetParameters();
+
+            app.MapGet(path, context => (Task)methodInfo.Invoke(endpointInstance,
+
+                methodParams.Select(p => p.ParameterType == typeof(HttpContext)
+                ? context
+                : app.ServiceProvider.GetService(p.ParameterType)).ToArray()));
+        }
+    } 
+}
+
+
+--> The code in above isn’t as efficient as the approach taken by the ASP.NET Core platform for middleware components. 
+--> All the parameters defined by the method that handles requests are treated as services to be resolved, except for the HttpContext parameter. 
+
+--> A route is created with a delegate that resolves the services for every request and invokes the method that handles the request. 
+
+----------------------------------------------------------------------------------------
+
+--> WeatherEndpoint.cs
+
+--> WeatherEndpoint class to move the dependency on IResponseFormatter to the Endpoint method so that a new service object will be received for every request.
+
+namespace Platform {
+
+    public class WeatherEndpoint {
+
+        //private IResponseFormatter formatter;
+
+        //public WeatherEndpoint(IResponseFormatter responseFormatter) {
+        //    formatter = responseFormatter;
+        //}
+
+        public async Task Endpoint(HttpContext context, IResponseFormatter formatter) {
+            await formatter.Format(context, "Endpoint Class: It is cloudy in Milan");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> In Startup.cs,
+
+--> For the middleware and endpoint defined as lambda expressions, the service must be obtained as each request is handled because the dependency declared by the Configure method parameter is resolved only once, when the request pipeline is configured.
+
+----------------------------------------------------------------------------------------
+
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+            
+	    app.UseRouting();
+
+            app.UseMiddleware<WeatherMiddleware>();
+
+            app.Use(async (context, next) => {
+                if (context.Request.Path == "/middleware/function") {
+                    IResponseFormatter formatter = app.ApplicationServices.GetService<IResponseFormatter>();		// This Line
+                    await formatter.Format(context, "Middleware Function: It is snowing in Chicago");
+                } else {
+                    await next();
+                }
+            });
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapEndpoint<WeatherEndpoint>("/endpoint/class");
+                endpoints.MapGet("/endpoint/function", async context => {
+                    IResponseFormatter formatter = app.ApplicationServices.GetService<IResponseFormatter>();		// This Line
+                    await formatter.Format(context, "Endpoint Function: It is sunny in LA");
+                });
+            });
+
+----------------------------------------------------------------------------------------
+
+--> Restart ASP.NET Core, navigate to any of the four URLs supported by the application (http://localhost:5000/middleware/ class, /middleware/function, /endpoint/class, and /endpoint/function), and click the browser’s reload button. 
+--> Each time you reload, a new request is sent to ASP.NET Core, and the component or endpoint that handles the request receives a new service object, such that a different GUID
+
+----------------------------------------------------------------------------------------
+
+14. Using Scoped Services
+
+--> Scoped services strike a balance between singleton and transient services. 
+--> Within a scope, dependencies are resolved with the same object. 
+
+--> A new scope is started for each HTTP request, which means that a service object will be shared by all the components that handle that request. 
+
+----------------------------------------------------------------------------------------
+
+--> WeatherMiddleware.cs
+
+namespace Platform {
+
+    public class WeatherMiddleware {
+
+        private RequestDelegate next;
+
+        public WeatherMiddleware(RequestDelegate nextDelegate) {
+            next = nextDelegate;
+        }
+
+        public async Task Invoke(HttpContext context, IResponseFormatter formatter1, IResponseFormatter formatter2, IResponseFormatter formatter3) {
+
+            if (context.Request.Path == "/middleware/class") {
+                await formatter1.Format(context, string.Empty);
+                await formatter2.Format(context, string.Empty);
+                await formatter3.Format(context, string.Empty);
+            } else {
+                await next(context);
+            }
+        }
+    } 
+}
+
+--> Each dependency is resolved independently. 
+--> Since the IResponseFormatter service was created with the AddTransient method, each dependency is resolved with a different object. 
+
+--> When you reload the browser, a new set of three GUIDs is displayed.
+
+----------------------------------------------------------------------------------------
+
+--> Now, changing LifeCycle of Service to Scope
+
+public void ConfigureServices(IServiceCollection services) {
+    services.AddScoped<IResponseFormatter, GuidService>(); 
+}
+
+--> Restart ASP.NET Core and request http://localhost:5000/middleware/class again, and you will see that the same GUID is used to resolve all three dependencies declared by the middleware component
+--> When the browser is reloaded, the HTTP request sent to ASP.NET Core creates a new scope and a new service object.
+
+----------------------------------------------------------------------------------------
+
+15. Avoiding the Scoped Service Validation Pitfall
+
+----------------------------------------------------------------------------------------
+
+16. Creating Dependency Chains
+
+--> When a class is instantiated to resolve a service dependency, its constructor is inspected, and any dependencies on services are resolved. 
+--> This allows one service to declare a dependency on another service, creating a chain that is resolved automatically
+
+----------------------------------------------------------------------------------------
+
+--> TimeStamping.cs
+
+using System;
+
+namespace Platform.Services {
+
+    public interface ITimeStamper {
+        string TimeStamp { get; }
+    }
+
+    public class DefaultTimeStamper : ITimeStamper {
+        public string TimeStamp {
+            get => DateTime.Now.ToShortTimeString();
+        }
+    } 
+}
+
+--> The class file defines an interface named ITimeStamper and an implementation class named DefaultTimeStamper
+
+----------------------------------------------------------------------------------------
+
+--> TimeResponseFormatter.cs 
+
+namespace Platform.Services {
+
+    public class TimeResponseFormatter : IResponseFormatter {
+
+        private ITimeStamper stamper;
+
+        public TimeResponseFormatter(ITimeStamper timeStamper) {
+            stamper = timeStamper;
+        }
+
+        public async Task Format(HttpContext context, string content) {
+            await context.Response.WriteAsync($"{stamper.TimeStamp}: {content}");
+        }
+    } 
+}
+
+
+--> The TimeResponseFormatter class is an implementation of the IResponseFormatter interface that declares a dependency on the ITimeStamper interface with a constructor parameter.
+
+----------------------------------------------------------------------------------------
+
+--> In Startup.cs
+
+public void ConfigureServices(IServiceCollection services) {
+    services.AddScoped<IResponseFormatter, TimeResponseFormatter>();
+    services.AddScoped<ITimeStamper, DefaultTimeStamper>(); 
+} 
+
+----------------------------------------------------------------------------------------
+
+--> When a dependency on the IResponseFormatter service is resolved, the TimeResponseFormatter constructor will be inspected, and its dependency on the ITimeStamper service will be detected. 
+--> A DefaultTimeStamper object will be created and injected into the TimeResponseFormatter constructor, which allows the original dependency to be resolved
+
+----------------------------------------------------------------------------------------
+
+--> Note:
+
+--> Services don’t need to have the same lifecycle as their dependencies, but you can end up with odd effects if you mix lifecycles. 
+--> Lifecycles are applied only when a dependency is resolved, which means that if a scoped service depends on a transient service, for example, then the transient object will behave as though it was assigned the scoped lifecycle.
+
+----------------------------------------------------------------------------------------
+
+17. Accessing Services in the ConfigureServices Method
+
+--> The dependency injection feature is set up by the Platform class before the Startup class is instantiated.
+--> The most common use of the Startup constructor is to declare a dependency on the IConfiguration service, which provides access to the application’s configuration data.
+
+using Microsoft.Extensions.Configuration;
+
+namespace Platform {
+
+    public class Startup {
+
+        public Startup(IConfiguration config) {
+            Configuration = config;
+        }
+
+        private IConfiguration Configuration;
+	...
+    }
+}
+----------------------------------------------------------------------------------------
+
+18. Using Service Factory Functions
+
+--> Factory functions allow you to take control of the way that service implementation objects are created
+--> One use for factory functions is to define the implementation class for a service as a configuration setting, which is read through the IConfguration service. 
+
+----------------------------------------------------------------------------------------
+
+--> In Startup.cs
+
+public void ConfigureServices(IServiceCollection services) {
+
+            services.AddScoped<IResponseFormatter>(serviceProvider => {
+
+                string typeName = Configuration["services:IResponseFormatter"];
+                return (IResponseFormatter)ActivatorUtilities.CreateInstance(serviceProvider, typeName == null? typeof(GuidService) : Type.GetType(typeName, true));
+            });
+
+            services.AddScoped<ITimeStamper, DefaultTimeStamper>();
+        }
+
+----------------------------------------------------------------------------------------
+
+--> appSettings.Development.json
+
+"services": {
+    "IResponseFormatter": "Platform.Services.HtmlResponseFormatter"
+  }
+
+--> The factory function reads a value from the configuration data, which is converted into a type and passed to the ActivatorUtilities.CreateInstance method. 
+
+----------------------------------------------------------------------------------------
+
+19. Creating Services with Multiple Implementations
+
+--> Services can be defined with multiple implementations, which allows a consumer to select an implementation that best suits a specific problem. 
+--> This is a feature that works best when the service interface provides insight into the capabilities of each implementation class. 
+
+--> To provide information about the capabilities of the IResponseFormatter implementation classes, add the default property shown in Listing 14-39 to the interface. 
+
+----------------------------------------------------------------------------------------
+
+--> IResponseFormatter.cs
+
+namespace Platform.Services {
+
+    public interface IResponseFormatter {
+
+        Task Format(HttpContext context, string content);
+
+        public bool RichOutput => false;				// This Line
+    } 
+}
+
+--> This RichOutput property will be false for implementation classes that don’t override the default value. 
+--> To ensure there is one implementation that returns true, add the property shown in Listing 14-40 to the HtmlResponseFormatter class.
+
+----------------------------------------------------------------------------------------
+
+using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Http;
+
+namespace Platform.Services {
+
+    public class HtmlResponseFormatter : IResponseFormatter {
+
+        public async Task Format(HttpContext context, string content) {
+
+            context.Response.ContentType = "text/html";
+            await context.Response.WriteAsync($@"
+                <!DOCTYPE html>
+                <html lang=""en"">
+                <head><title>Response</title></head>
+                <body>
+                    <h2>Formatted Response</h2>
+                    <span>{content}</span>
+                </body>
+                </html>");
+        }
+
+        public bool RichOutput => true;				// This Line
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Startup.cs
+
+        public void ConfigureServices(IServiceCollection services) {
+            services.AddScoped<ITimeStamper, DefaultTimeStamper>();
+            services.AddScoped<IResponseFormatter, TextResponseFormatter>();
+            services.AddScoped<IResponseFormatter, HtmlResponseFormatter>();
+            services.AddScoped<IResponseFormatter, GuidService>();
+        }
+
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+
+            app.UseDeveloperExceptionPage();
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints => {
+
+                endpoints.MapGet("/single", async context => {
+                    IResponseFormatter formatter = context.RequestServices.GetService<IResponseFormatter>();
+                    await formatter.Format(context, "Single service");
+                });
+
+                endpoints.MapGet("/", async context => {
+                    IResponseFormatter formatter = context.RequestServices.GetServices<IResponseFormatter>().First(f => f.RichOutput);
+                    await formatter.Format(context, "Multiple services");
+                });
+            });
+        }
+
+--> Listing 14-41 registers multiple implementations for the IResponseFormatter service, which is done by making repeated calls to the Add<lifecycle> method. 
+--> The listing also replaces the existing request pipeline with two routes that demonstrate how the service can be used.
+
+----------------------------------------------------------------------------------------
+
+--> The AddScoped statements register three services for the IResponseFormatter interface, each with a different implementation class. 
+--> The route for the /single URL uses the IServiceProvider.GetService<T> method to request a service, like this:
+... context.RequestServices.GetService<IResponseFormatter>(); ...
+
+--> This is a service consumer that is unaware that there are multiple implementations available. 
+--> The service is resolved using the most recently registered implementation, which is the GuidService class.
+
+
+----------------------------------------------------------------------------------------
+
+--> The other endpoint is a service consumer that is aware that multiple implementations may be available and that requests the service using the IServiceProvider.GetServices<T> method.
+... context.RequestServices.GetServices<IResponseFormatter>().First(f => f.RichOutput); ...
+
+--> This method returns an IEnumerable<IResponseFormatter> that enumerates the implementations that are available. 
+--> These are filtered using the LINQ First method to select an implementation whose RichOutput property returns true. 
+
+--> If you request http://localhost:5000, you will see the output on the right of Figure 14-15, showing that the endpoint has selected the service implementation that best suits its needs.
+
+----------------------------------------------------------------------------------------
+
+20. Using Unbound Types in Services
+
+--> Services can be defined with generic type parameters that are bound to specific types when the service is requested
+--> In Startup.cs
+
+namespace Platform {
+    public class Startup {
+        public Startup(IConfiguration config) {
+            Configuration = config;
+        }
+        private IConfiguration Configuration;
+
+        public void ConfigureServices(IServiceCollection services) {
+            services.AddSingleton(typeof(ICollection<>), typeof(List<>));		// This Line
+        }
+        
+	public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+            app.UseDeveloperExceptionPage();
+            app.UseRouting();
+            app.UseEndpoints(endpoints => {
+
+                endpoints.MapGet("/string", async context => {
+                    ICollection<string> collection = context.RequestServices.GetService<ICollection<string>>();		// This Line
+                    collection.Add($"Request: { DateTime.Now.ToLongTimeString() }");
+                    foreach (string str in collection) {
+                        await context.Response.WriteAsync($"String: {str}\n");
+                    }
+                });
+
+                endpoints.MapGet("/int", async context => {
+                    ICollection<int> collection = context.RequestServices.GetService<ICollection<int>>();		// This Line
+                    collection.Add(collection.Count() + 1);
+                    foreach (int val in collection) {
+                        await context.Response.WriteAsync($"Int: {val}\n");
+                    }
+                });
+            });
+        }
+    } 
+}
+
+
+----------------------------------------------------------------------------------------
+
+21. Summary
+
+--> I described dependency injection, which is used to define services that are easy to use, easy to change, and easy to consume. 
+--> I showed you the different ways that services are consumed, explained the different lifecycles that services can be given, and explained some of the less frequently used features such as dependency chains and unbound service types. 
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

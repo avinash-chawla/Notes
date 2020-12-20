@@ -251,7 +251,7 @@ return View("CustomerForm", viewModel);
 --> Rename Create actionMethod to Save actionMethod
 --> Also update in CustomerForm action
 
- [HttpPost]
+ 	[HttpPost]
         public ActionResult Save(Customer customer) 
         {
             if(customer.Id == 0)

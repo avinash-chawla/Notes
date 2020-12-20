@@ -1,0 +1,763 @@
+
+----------------------------------------------------------------------------------------
+
+1. What is Built-in Tag Helpers?
+
+--> ASP.NET Core provides a set of built-in tag helpers that apply the most commonly required element transformations
+
+----------------------------------------------------------------------------------------
+
+2. Enabling the Built-in Tag Helpers
+
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+----------------------------------------------------------------------------------------
+
+3. Transforming Anchor Elements
+
+--> The a element is the basic tool for navigating around an application and sending GET requests to the application. 
+
+--> The AnchorTagHelper class is used to transform the href attribute of a elements so they target URLs generated using the routing system, which means that hard-coded URLs are not required and a change in the routing configuration will be automatically reflected in the application’s anchor elements.
+
+----------------------------------------------------------------------------------------
+
+--> Attributes for Anchor Elements
+
+asp-action	 	
+asp-controller	 	
+asp-page		
+asp-page-handler 	
+asp-fragment 	 	
+asp-host 	 	
+asp-protocol		
+asp-route		
+asp-route-*	 	
+asp-all-route-data 	
+
+----------------------------------------------------------------------------------------
+
+<a asp-action="index" asp-controller="home" asp-route-id="@Model.ProductId" class="btn btn-sm btn-info"> Select </a>
+
+--> Values for segment variables are defined using asp-route-[name] attributes, such that the asp-route-id attribute provides a value for the id segment variable that is used to provide an argument for the action method selected by the asp-action attribute.
+
+----------------------------------------------------------------------------------------
+
+4. Using Anchor Elements for Razor Pages
+
+--> The asp-page attribute is used to specify a Razor Page as the target for an anchor element’s href attribute. 
+--> The path to the page is prefixed with the / character, and values for route segments defined by the @page directive are defined using asp-route-[name] attributes
+
+<a asp-page="/suppliers/list" class="btn btn-secondary">Suppliers</a>
+
+----------------------------------------------------------------------------------------
+
+5. Generating URLs
+
+--> the tag helper generates Urls only in anchor elements. 
+--> If you need to generate a Url, rather than a link, then you can use the Url property, which is available in controllers, page models, and views. 
+
+--> This property returns an object that implements the IUrlHelper interface, which provides a set of methods and extension methods that generate Urls. 
+
+--> Here is a razor fragment that generates a Url in a view: 
+... <div>@Url.Page("/suppliers/list")</div> ...
+
+--> The same interface is used in controllers or page model classes, such as with this statement:
+... 
+string url = Url.Action("List", "Home"); ...
+
+--> The statement generates a Url that targets the List action on the Home controller and assigns it to the string variable named url.
+
+----------------------------------------------------------------------------------------
+
+6. JavaScript and CSS Tag Helpers
+
+--> ASP.NET Core provides tag helpers that are used to manage JavaScript files and CSS stylesheets through the script and link elements.
+
+asp-src-include		
+asp-src-exclude		
+asp-append-version
+asp-fallback-src	
+asp-fallback-src-include 
+asp-fallback-src-exclude 
+asp-fallback-test
+
+----------------------------------------------------------------------------------------
+
+7. Selecting JavaScript Files
+
+--> The asp-src-include attribute is used to include JavaScript files in a view using globbing patterns.
+--> The ScriptTagHelper class is the built-in tag helper for script elements and is used to manage the inclusion of JavaScript files in views using the attributes 
+
+--> Common Globbing Patterns
+
+?    - js/src?.js	- single character
+*    - js/*.js		- any file
+**   - js/**/*.js	- inside any folder
+
+----------------------------------------------------------------------------------------
+
+--> _SimpleLayout.cshtml 
+
+<script asp-src-include="lib/jquery/**/*.js"></script>
+
+--> Transformed like this:
+
+  <script src="/lib/jquery/core.js"></script>
+  <script src="/lib/jquery/jquery.js"></script>
+  <script src="/lib/jquery/jquery.min.js"></script>
+  <script src="/lib/jquery/jquery.slim.js"></script>
+  <script src="/lib/jquery/jquery.slim.min.js"></script>
+
+----------------------------------------------------------------------------------------
+
+8. Excluding Files 
+
+--> You can use the asp-src-exclude attribute to remove files from the list matched by the asp-src-include attribute
+
+    <script asp-src-include="/lib/jquery/**/*.min.js"
+         asp-src-exclude="**.slim.**">
+    </script>
+
+----------------------------------------------------------------------------------------
+
+9. Cache Busting
+
+--> Static content, such as images, Css stylesheets, and Javascript files, is often cached to stop requests for content that rarely changes from reaching the application servers
+
+--> Addressing this problem is called cache busting. the idea is to allow caches to handle static content but immediately reflect any changes that are made at the server. 
+
+<script 
+    asp-src-include="/lib/jquery/**/*.min.js"
+    asp-src-exclude="**.slim.**" 
+    asp-append-version="true"> </script>
+
+----------------------------------------------------------------------------------------
+
+--> The tag helper classes support cache busting by adding a query string to the Urls for static content that includes a checksum that acts as a version number. 
+
+<script src="/lib/jquery/dist/jquery.min.js?v=3zRSQ1HF-ocUiVcdv9yKTXqM"></script> ...
+
+--> The addition of the version number means that each time you change the file, the client will request a different Url, which caches treat as a request for new content that cannot be satisfied with the previously cached content and pass on to the application server. 
+
+----------------------------------------------------------------------------------------
+
+10. Working with Content Delivery Networks
+
+--> The ScriptTagHelper class provides the ability to fall back to local files when the CDN content cannot be loaded by the client
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+         asp-fallback-src="/lib/jquery/jquery.min.js"
+         asp-fallback-test="window.jQuery">
+    </script>
+
+
+----------------------------------------------------------------------------------------
+
+11. Managing CSS Stylesheets
+
+--> The LinkTagHelper class is the built-in tag helper for link elements
+
+asp-href-include 		
+asp-href-exclude		
+asp-append-version		
+
+asp-fallback-href	
+asp-fallback-href-include 	
+asp-fallback-href-exclude 	
+
+asp-fallback-href-test-class  	
+asp-fallback-href-test-property 	
+asp-fallback-href-test-value  
+
+----------------------------------------------------------------------------------------
+
+<link asp-href-include="/lib/twitter-bootstrap/css/*.min.css"
+          asp-href-exclude="**/*-reboot*,**/*-grid*" rel="stylesheet" />
+
+----------------------------------------------------------------------------------------
+
+12. Working with Content Delivery Networks
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"
+        asp-fallback-href="/lib/twitter-bootstrap/css/bootstrap.min.css"
+        asp-fallback-test-class="btn"
+        asp-fallback-test-property="display"
+        asp-fallback-test-value="inline-block"
+        rel="stylesheet" />
+
+----------------------------------------------------------------------------------------
+
+13. Working with Image Elements
+
+--> The ImageTagHelper class is used to provide cache busting for images
+
+<img src="/images/city.png" asp-append-version="true" class="m-2" />
+
+----------------------------------------------------------------------------------------
+
+14. Using the Data Cache
+
+--> The CacheTagHelper class allows fragments of content to be cached to speed up rendering of views or pages. 
+
+        <cache>
+            <h6 class="bg-primary text-white m-2 p-2">
+                Cached timestamp: @DateTime.Now.ToLongTimeString()
+            </h6>
+        </cache>
+
+----------------------------------------------------------------------------------------
+
+--> The content to be cached is denoted using the cache element, which is configured using the attributes
+
+enabled 	
+expires-on 	
+expires-after   
+expires-sliding 
+vary-by-header 
+vary-by-query  
+vary-by-route   
+vary-by-cookie 
+vary-by-user   
+vary-by  	
+priority 
+
+----------------------------------------------------------------------------------------
+
+15. Setting Cache Expiry
+
+        <cache expires-after="@TimeSpan.FromSeconds(15)">
+            <h6 class="bg-primary text-white m-2 p-2">
+                Cached timestamp: @DateTime.Now.ToLongTimeString()
+            </h6>
+        </cache>
+
+----------------------------------------------------------------------------------------
+
+16. Setting a Fixed Expiry Point
+
+--> You can specify a fixed time at which cached content will expire using the expires-on attribute, which accepts a DateTime value
+
+        <cache expires-on="@DateTime.Parse("2100-01-01")">
+            <h6 class="bg-primary text-white m-2 p-2">
+                Cached timestamp: @DateTime.Now.ToLongTimeString()
+            </h6>
+        </cache>
+
+----------------------------------------------------------------------------------------
+
+17. Setting a Last-Used Expiry Period
+
+--> The expires-sliding attribute is used to specify a period after which content is expired if it hasn’t been retrieved from the cache
+
+        <cache expires-sliding="@TimeSpan.FromSeconds(10)">
+            <h6 class="bg-primary text-white m-2 p-2">
+                Cached timestamp: @DateTime.Now.ToLongTimeString()
+            </h6>
+        </cache>
+
+--> You can see the effect of the express-sliding attribute by requesting http://localhost:5000/home/list and periodically reloading the page. 
+--> If you reload the page within 10 seconds, the cached content will be used. If you wait longer than 10 seconds to reload the page, then the cached content will be discarded, the view component will be used to generate new content, and the process will begin anew
+
+----------------------------------------------------------------------------------------
+
+18. Using Cache Variations
+
+--> By default, all requests receive the same cached content. 
+
+--> <cache expires-sliding="@TimeSpan.FromSeconds(10)" vary-by-route="action">
+
+--> If you use two browser tabs to request http://localhost:5000/home/index and http://localhost:5000/home/list, you will see that each window receives its own cached content with its own expiration, since each request produces a different action routing value.
+
+----------------------------------------------------------------------------------------
+
+19. Using the Hosting Environment Tag Helper
+
+--> The EnvironmentTagHelper class is applied to the custom environment element
+
+        <environment names="development">
+            <h2 class="bg-info text-white m-2 p-2">This is Development</h2>
+        </environment>
+        <environment names="production">
+            <h2 class="bg-danger text-white m-2 p-2">This is Production</h2>
+        </environment>
+
+----------------------------------------------------------------------------------------
+
+20. The End
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

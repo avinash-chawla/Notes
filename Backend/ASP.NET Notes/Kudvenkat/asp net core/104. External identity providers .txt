@@ -8,48 +8,74 @@
 
 2. External identity providers in asp.net core
 
-Most people these days have accounts already created with third party applications like Microsoft, Google, Facebook, Twitter etc. Why do these users have to create yet another account with our application. It's not a great user experience to ask the user to create yet another user account just to login to our application. We want to reuse their existing user account with Facebook, Google, Microsoft, Twitter etc.
+--> Most people these days have accounts already created with third party applications like Microsoft, Google, Facebook, Twitter etc. 
+--> Why do these users have to create yet another account with our application. 
 
-We trust these third party applications and use them to authenticate and identify who the user is. For this reason these third party applications are commonly called trusted identity providers. To be more accurate, we call them trusted external identity providers, as these third party applications are external to our own application. Windows authentication can also be used as an external identity provider.
+--> It's not a great user experience to ask the user to create yet another user account just to login to our application. 
+--> We want to reuse their existing user account with Facebook, Google, Microsoft, Twitter etc.
 
-In this video and in our upcoming videos we will discuss integrating these external identity providers in our asp.net core web application. 
+--> We trust these third party applications and use them to authenticate and identify who the user is. 
+--> For this reason these third party applications are commonly called trusted identity providers. 
+
+--> To be more accurate, we call them trusted external identity providers, as these third party applications are external to our own application. 
+--> Windows authentication can also be used as an external identity provider.
+
+--> In this video and in our upcoming videos we will discuss integrating these external identity providers in our asp.net core web application. 
 
 ------------------------------------------------------------------------------------------
 
 3. Benefits of using external identity providers
 
-Allowing users to reuse their existing accounts to log into our application benefits end users from having to remember yet another username and password. It also benefits us as application developers as we no longer have to store and maintain the highly sensitive information such as the username and password in our application database. It is now the responsibility of the external authentication provider such as Facebook or Google for example.
+--> Allowing users to reuse their existing accounts to log into our application benefits end users from having to remember yet another username and password. 
+--> It also benefits us as application developers as we no longer have to store and maintain the highly sensitive information such as the username and password in our application database. 
 
-Asp.net core has built-in support for integrating these external authentication providers. Integrating these external authentication providers follows a similar pattern. If we understand how to integrate one of the external authentication providers, implementing others is not that different.
+--> It is now the responsibility of the external authentication provider such as Facebook or Google for example.
+
+--> Asp.net core has built-in support for integrating these external authentication providers. 
+--> Integrating these external authentication providers follows a similar pattern. 
+
+--> If we understand how to integrate one of the external authentication providers, implementing others is not that different.
 
  
 
 
-In addition to using these external authentication providers, most applications these days support 2 factor or even 3 factor authentication. We will discuss implementing 2 factor authentication in our upcoming videos.
+--> In addition to using these external authentication providers, most applications these days support 2 factor or even 3 factor authentication. 
+--> We will discuss implementing 2 factor authentication in our upcoming videos.
 
-Whether we are using 
-A local username and password combination that is specific to our application 
+--> Whether we are using 
+
+--> A local username and password combination that is specific to our application 
+
 Windows login
 Facebook, Google, Microsoft, Twitter etc
-These are all different ways of essentially authenticating the same user. We are just providing him/her different options to login to our application. When a given user logs in using these different authentication providers we do not want to end up creating multiple accounts for that same user. We have to associate these different ways of logging in, to the same user account in our application. We will discuss how to do this in our upcoming videos as we progress in this course.
+
+--> These are all different ways of essentially authenticating the same user. We are just providing him/her different options to login to our application. 
+--> When a given user logs in using these different authentication providers we do not want to end up creating multiple accounts for that same user. 
+
+--> We have to associate these different ways of logging in, to the same user account in our application. We will discuss how to do this in our upcoming videos as we progress in this course.
 
 ------------------------------------------------------------------------------------------
 
 4. How external identity providers work in asp.net core
 
-If a user wants to use his/her Google account to signin to our application, they click the Google button. 
+--> If a user wants to use his/her Google account to signin to our application, they click the Google button. 
 
-external identity providers in asp.net core
+--> External identity providers in asp.net core
 
-Our application then redirects the user to Google signin page. Here the user provides his/her google login credentials. 
+--> Our application then redirects the user to Google signin page. 
+--> Here the user provides his/her google login credentials. 
 
-integrating social logins in asp.net core
+--> Integrating social logins in asp.net core
 
-Upon a successful login, google will then send the user back to our application and a pre-configured callback function is executed. The code in this callback function checks the identity received from the external identity provider and sign-in that user into our application. We will see all this in action in our upcoming videos.
+--> Upon a successful login, google will then send the user back to our application and a pre-configured callback function is executed. 
+--> The code in this callback function checks the identity received from the external identity provider and sign-in that user into our application. 
 
-To use an external identity provider like Google, we have to first register our application with Google. Upon successful registration we will be provided with Client Id and Client Secret which we need to use Google authentication.
+--> We will see all this in action in our upcoming videos.
 
-Up next : Registering our application with Google and integrating Google authentication in our asp.net core application.
+--> To use an external identity provider like Google, we have to first register our application with Google. 
+--> Upon successful registration we will be provided with --> Client Id and Client Secret which we need to use Google authentication.
+
+--> Up next : Registering our application with Google and integrating Google authentication in our asp.net core application.
 
 ------------------------------------------------------------------------------------------
 

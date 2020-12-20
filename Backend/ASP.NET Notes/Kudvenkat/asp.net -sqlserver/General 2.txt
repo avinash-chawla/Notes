@@ -56,7 +56,7 @@ _	--> specifies exactly one character
 
 ------------------------------------------------------------------------------
 
-8. Combining records
+8. Combining records using aggregate functions
 
 --> Select City, SUM(Salary) as TotalSalary from tblEmployee GROUP BY City
 --> Select City, MAX(Salary) from tblEmployee GROUP BY City

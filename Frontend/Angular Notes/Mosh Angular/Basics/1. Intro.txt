@@ -1,16 +1,25 @@
 1. Why angular if we have vanilla js and jquery
---> it provides clean structure, more testable, utility functions
 
-2. download command line interface from node npm @angular/cli
+--> It provides clean structure, more testable, utility functions
+
+--------------------------------------------------------------------------------------------
+
+2. Download command line interface from node npm @angular/cli
+
 --> npm install -g @angular/cli
---> this interface will help to generate angular project structure
+--> This interface will help to generate angular project structure
 --> ng --version
 
-3. use this cli to make angular project structure
+--------------------------------------------------------------------------------------------
+
+3. Use this cli to make angular project structure
+
 --> ng new projectName
 --> ng serve (start web server)
 
-4. structure-->
+--------------------------------------------------------------------------------------------
+
+4. Structure-->
 
 e2e (end-to-end tests)
 node modules
@@ -20,13 +29,23 @@ karma.conf.js 	--> test runner for javascript code
 tsconfig.json	--> settings for compiling typescript code to js
 tslint.json 	--> analysis tool for typescript 
 
-5. webpack--->
---> it is a build automation tools.
---> it collects all scripts and stylesheets and bind them in bundle for optimization eg. polyfills, main(src code), styles(css files), vendor(3rd party libraried). and this js bundle is compiled in browser
+--------------------------------------------------------------------------------------------
+
+5. Webpack--->
+
+--> It is a build automation tools.
+--> It collects all scripts and stylesheets and bind them in bundle for optimization 
+--> eg. polyfills, main(src code), styles(css files), vendor(3rd party libraried). and this js bundle is compiled in browser
 
 --> webpack has a feature called (HMR) hot module replacement which means with any change in any of files, it recompiles 
 
-6. angular3 --> only one library angular/routes has included in angular3 while all other in angular2 so directly version 4 with all latest 4.* versions
+--------------------------------------------------------------------------------------------
+
+6. Why Angular3 is not available
+
+--> only one library angular/routes has included in angular3 while all other in angular2 so directly version 4 with all latest 4.* versions
+
+--------------------------------------------------------------------------------------------
 
 
 

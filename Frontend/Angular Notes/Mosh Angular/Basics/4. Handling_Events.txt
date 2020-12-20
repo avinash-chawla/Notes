@@ -2,30 +2,32 @@
 
 template: `<img src="{{ imageUrl }}" />`
 
---> but property of html tag doesn't uses string interpolation for property insertion rather it uses property binding method under the hood 
+--> But property of html tag doesn't uses string interpolation for property insertion rather it uses property binding method under the hood 
 
 template: `<img [src]="imageUrl" />`
 
---> it is one way binding property means any change in imageUrl will affect change in dom but if for input onchange property, any change in input value does not affect data variable in class
+--> It is one way binding property means any change in imageUrl will affect change in dom but if for input onchange property, any change in input value does not affect data variable in class
 
---> normally we use string interpolation for text content between h1, p, div
-and property binding for src attribute
+--> Normally we use string interpolation for text content between h1, p, div (for display purposes) (to render any expression)
+--> And property binding for src attribute
 
---> we can also bind textContent property inside h1 tag
+--> We can also bind textContent property inside h1 tag
+
+--> Property binding refers to DOM Properties which are similar to Html elements but javascript objects.
+--> Property binding binds DOM Properties, not HtmlEntities.
 
 ---------------------------------------------------------------------------
 
 2. Attribute Binding-->
 
---> atttibute is 99% same as dom property. Eg. src, fontSize, body, 
---> html parses tags into dom objects and then displays in browser
---> there are some attributes which are not defined in dom eg. colspan
---> so we have to tell angular explicitly that it is attribute not property
-
+--> Attibute is 99% same as DOM property. Eg. src, fontSize, body, 
+--> Html parses tags into dom javascript objects and then displays in browser
+--> There are some attributes which are not defined in dom eg. colspan
+--> So we have to tell angular explicitly that it is attribute not property
 
 template: `<table>
 		<tr>
-			<td [attr.colspan]="colSpan"></td>
+		    <td [attr.colspan]="colSpan"></td>
 		</tr>
 	   </table>`
 
@@ -42,6 +44,15 @@ styles.css-->
 @import "~bootstrap/dist/css/bootstrap.css";	--> look into node_modules
 body { padding: 10px; }
 
+or
+
+--> angular.json file,
+
+styles: [
+   "./node_modules/bootstrap/dist/css/bootstrap.css",
+   "stlyes.css"
+]
+
 ------------------------------------------------------------------------
 
 4. Class binding-->
@@ -53,7 +64,7 @@ export class CoursesComponent{
 }
 
 
----> adding and removing class from html element is done in this way called class binding
+--> Adding and removing class from html element is done in this way called class binding
 
 ------------------------------------------------------------------------
 
@@ -81,7 +92,6 @@ onSave($event){
       $event.stopPropagation();
       console.log("button was clicked", $event);
 }
-
 
 ------------------------------------------------------------------------
 
@@ -127,6 +137,7 @@ export class CoursesComponent{
 	}
 
 ------------------------------------------------------------------
+
 --> using template variable provided by angular instead of $event object
 
 template: `<input #email (keyup.enter)="onKeyUp(email.value)" />`
@@ -135,6 +146,9 @@ export class CoursesComponent{
 	onKeyUp(email) {
 		console.log(email);
 	}
+
+--> #email is called template variable
+--> If it is defined inside html tag, then it includes this html field reference.
 
 ------------------------------------------------------------------------
 
@@ -160,11 +174,11 @@ export class CoursesComponent{
 		console.log(this.email);
 	}
 
---> above is two js statements in (keyup) property, one for setting email property and other is onKeyUp() function, don't forget ; inbetween them
+--> Above is two js statements in (keyup) property, one for setting email property and other is onKeyUp() function, don't forget ; inbetween them
 
 ----------------------------------------------------------------------------------
 
---> two way binding method in angular
+--> Two way binding method in angular
 
 template: `<input [(ngMode)]="email" (keyup)="onKeyUp()" />`
 
@@ -179,7 +193,6 @@ imports: [ FormsModule ]
 --> ngModel is special directive which is used for two-way data binding
 --> component to view and view to component
 --> this method is available in another library --> FormsModule
-
 
 ------------------------------------------------------------------------
 
@@ -243,7 +256,9 @@ export class SummaryPipe implements PipeTransform{
 
 @Pipe is a decorator which takes name in its object argument
 this custom class is implementing interface PipeTransform
+
 --------------------------------------------------------------------------
+
 ---> giving arguments to custom pipe summary
 
 template: {{ text | summary:10 }}

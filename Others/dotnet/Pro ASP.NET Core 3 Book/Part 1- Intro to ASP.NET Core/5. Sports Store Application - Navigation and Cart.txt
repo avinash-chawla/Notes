@@ -1,0 +1,1929 @@
+----------------------------------------------------------------------------------------
+
+1. Adding Navigation Controls
+
+--> The SportsStore application will be more useful if customers can navigate products by category. 
+
+1. Enhance the Index action method in the HomeController class so that it can filter the Product objects in the repository
+2. Revisit and enhance the URL scheme
+3. Create a category list that will go into the sidebar of the site, highlighting the current category and linking to others
+
+----------------------------------------------------------------------------------------
+
+2. Filtering the Product List
+
+--> ProductsListViewModel
+
+using System.Collections.Generic; 
+using SportsStore.Models;
+
+namespace SportsStore.Models.ViewModels {
+
+    public class ProductsListViewModel {
+
+        public IEnumerable<Product> Products { get; set; }
+        public PagingInfo PagingInfo { get; set; }
+        public string CurrentCategory { get; set; }
+
+    } 
+}
+
+--> I added a property called CurrentCategory. 
+--> The next step is to update the Home controller so that the Index action method will filter Product objects by category and use the property I added to the view model to indicate which category has been selected
+
+----------------------------------------------------------------------------------------
+
+3. Updating Index action Method
+
+--> Adding Category Support in the HomeController.cs 
+
+        public ViewResult Index(string category, int productPage = 1)			// This Line
+
+            => View(new ProductsListViewModel {
+                Products = repository.Products
+                    .Where(p => category == null || p.Category == category)		// This Line
+                    .OrderBy(p => p.ProductID)
+                    .Skip((productPage - 1) * PageSize)
+                    .Take(PageSize),
+
+                PagingInfo = new PagingInfo {
+                   CurrentPage = productPage,
+                   ItemsPerPage = PageSize,
+                   TotalItems = repository.Products.Count()
+                },
+
+                CurrentCategory = category
+            });
+
+--> I made three changes to the action method. First, I added a parameter called category. 
+--> This category parameter is used by the second change in the listing, which is an enhancement to the LINQ query: if category is not null, only those Product objects with a matching Category property are selected. 
+
+--> The last change is to set the value of the CurrentCategory property I added to the ProductsListViewModel class. 
+--> However, these changes mean that the value of PagingInfo.TotalItems is incorrectly calculated because it doesn’t take the category filter into account. 
+
+--> I will fix this in a while.
+
+----------------------------------------------------------------------------------------
+
+4. Check the application
+
+http://localhost:5000/?category=Soccer
+
+----------------------------------------------------------------------------------------
+
+5. Refining the URL Scheme
+
+--> No one wants to see or use ugly URLs such as /?category=Soccer. 
+--> To address this, I am going to change the routing configuration in the Configure method of the Startup class to create a more useful set of URLs
+
+            app.UseEndpoints(endpoints => {
+
+                endpoints.MapControllerRoute("catpage", "{category}/Page{productPage:int}",
+                    new { Controller = "Home", action = "Index" });
+
+                endpoints.MapControllerRoute("page", "Page{productPage:int}",
+                    new { Controller = "Home", action = "Index", productPage = 1 });
+
+                endpoints.MapControllerRoute("category", "{category}",
+                    new { Controller = "Home", action = "Index", productPage = 1 });
+
+                endpoints.MapControllerRoute("pagination", "Products/Page{productPage}",
+                    new { Controller = "Home", action = "Index", productPage = 1 });
+
+                endpoints.MapDefaultControllerRoute();
+            });
+
+	    SeedData.EnsurePopulated(app);
+
+----------------------------------------------------------------------------------------
+
+--> Urls leads to
+
+/		--> Lists the first page of products from all categories
+/Page2  	--> Lists the specified page (in this case, page 2), showing items from all categories
+/Soccer 	--> Shows the first page of items from a specific category (in this case, the Soccer category)
+/Soccer/Page2   --> Shows the specified page (in this case, page 2) of items from the specified category (in this case, Soccer)
+
+
+----------------------------------------------------------------------------------------
+
+6. Modifying Custom Tag helper class
+
+--> The IUrlHelper interface provides access to URL-generating functionality. 
+--> I used this interface and the Action method it defines in the tag helper I created in the previous chapter. 
+
+--> Now that I want to start generating more complex URLs, I need a way to receive additional information from the view without having to add extra properties to the tag helper class. 
+--> Fortunately, tag helpers have a nice feature that allows properties with a common prefix to be received all together in a single collection,
+
+----------------------------------------------------------------------------------------
+
+--> PageLinkTagHelper.cs File in the SportsStore/Infrastructure Folder
+
+using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc.Rendering; 
+using Microsoft.AspNetCore.Mvc.Routing; 
+using Microsoft.AspNetCore.Mvc.ViewFeatures; 
+using Microsoft.AspNetCore.Razor.TagHelpers; 
+using SportsStore.Models.ViewModels; 
+using System.Collections.Generic;
+
+namespace SportsStore.Infrastructure {
+
+    [HtmlTargetElement("div", Attributes = "page-model")]
+    public class PageLinkTagHelper : TagHelper {
+
+        private IUrlHelperFactory urlHelperFactory;
+
+        public PageLinkTagHelper(IUrlHelperFactory helperFactory) {
+            urlHelperFactory = helperFactory;
+        }
+
+        [ViewContext]
+        [HtmlAttributeNotBound]
+        public ViewContext ViewContext { get; set; }
+        public PagingInfo PageModel { get; set; }
+        public string PageAction { get; set; }
+
+        [HtmlAttributeName(DictionaryAttributePrefix = "page-url-")]
+        public Dictionary<string, object> PageUrlValues { get; set; } = new Dictionary<string, object>();
+
+        public bool PageClassesEnabled { get; set; } = false;
+        public string PageClass { get; set; }
+        public string PageClassNormal { get; set; }
+        public string PageClassSelected { get; set; }
+
+        public override void Process(TagHelperContext context, TagHelperOutput output) {
+
+            IUrlHelper urlHelper = urlHelperFactory.GetUrlHelper(ViewContext);
+
+            TagBuilder result = new TagBuilder("div");
+            for (int i = 1; i <= PageModel.TotalPages; i++) {
+
+                TagBuilder tag = new TagBuilder("a");
+
+                PageUrlValues["productPage"] = i;
+                tag.Attributes["href"] = urlHelper.Action(PageAction, PageUrlValues);
+
+                if (PageClassesEnabled) {
+                    tag.AddCssClass(PageClass);
+                    tag.AddCssClass(i == PageModel.CurrentPage
+                        ? PageClassSelected : PageClassNormal);
+                }
+                tag.InnerHtml.Append(i.ToString());
+                result.InnerHtml.AppendHtml(tag);
+            }
+
+            output.Content.AppendHtml(result.InnerHtml);
+        }
+    } 
+}
+
+--> Decorating a tag helper property with the HtmlAttributeName attribute allows me to specify a prefix for attribute names on the element, which in this case will be page-url-. 
+
+--> The value of any attribute whose name begins with this prefix will be added to the dictionary that is assigned to the PageUrlValues property, which is then passed to the IUrlHelper.Action method to generate the URL for the href attribute of the a elements that the tag helper produces.
+
+--> In Listing 8-5, I have added a new attribute to the div element that is processed by the tag helper, specifying the category that will be used to generate the URL. 
+
+--> I have added only one new attribute to the view, but any attribute with the same prefix would be added to the dictionary.
+
+----------------------------------------------------------------------------------------
+
+7. Index.cshtml
+
+...
+
+<div page-model="@Model.PagingInfo" page-action="Index" page-classes-enabled="true"
+     page-class="btn" page-class-normal="btn-outline-dark"
+     page-class-selected="btn-primary" 
+     page-url-category="@Model.CurrentCategory"			// This Line
+     class="btn-group pull-right m-1"> 
+</div>
+
+--> Before: http://localhost:5000/Page1
+
+--> If the user clicked a page link like this, the category filter would be lost, and the application would present a page containing products from all categories. 
+--> By adding the current category, taken from the view model, I generate URLs like this instead:
+
+--> After : http://localhost:5000/Chess/Page1
+
+--> When the user clicks this kind of link, the current category will be passed to the Index action method, and the filtering will be preserved. 
+--> To see the effect of this change, start ASP.NET Core and request http://localhost:5000/Chess, which will display just the products in the Chess category
+
+----------------------------------------------------------------------------------------
+
+8. Building a Category Navigation Menu
+
+--> I need to provide users with a way to select a category that does not involve typing in URLs. 
+
+--> ASP.NET Core has the concept of view components, which are perfect for creating items such as reusable navigation controls. 
+--> A view component is a C# class that provides a small amount of reusable application logic with the ability to select and display Razor partial views. 
+
+--> I describe view components in detail in Chapter 24.
+--> In this case, I will create a view component that renders the navigation menu and integrate it into the application by invoking the component from the shared layout. 
+
+--> This approach gives me a regular C# class that can contain whatever application logic I need and that can be unit tested like any other class. 
+
+----------------------------------------------------------------------------------------
+
+9. Creating the Navigation View Component
+
+--> I created a folder called Components, which is the conventional home of view components, in the SportsStore project and added to it a class file named NavigationMenuViewComponent.cs, which I used to define the class
+
+----------------------------------------------------------------------------------------
+
+using Microsoft.AspNetCore.Mvc;
+
+namespace SportsStore.Components {
+
+    public class NavigationMenuViewComponent : ViewComponent {
+        public string Invoke() {
+            return "Hello from the Nav View Component";
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The view component’s Invoke method is called when the component is used in a Razor view, and the result of the Invoke method is inserted into the HTML sent to the browser. 
+--> I have started with a simple view component that returns a string, but I’ll replace this with HTML shortly.
+
+--> I want the category list to appear on all pages, so I am going to use the view component in the shared layout, rather than in a specific view. 
+--> Within a view, view components are applied using a tag helper
+
+----------------------------------------------------------------------------------------
+
+--> In _Layout.cshtml,
+
+    <div class="row m-1 p-1">
+        <div id="categories" class="col-3">
+            <vc:navigation-menu />
+        </div>
+        <div class="col-9">
+            @RenderBody()
+        </div>
+    </div>
+
+--> I removed the placeholder text and replaced it with the vc:navigation-menu element, which inserts the view component. 
+--> The element omits the ViewComponent part of the class name and hyphenates it, such that vc:navigation-menu specifies the NavigationMenuViewComponent class.
+
+--> Restart ASP.NET Core and request http://localhost:5000, and you will see that the output from the Invoke method is included in the HTML sent to the browser
+
+----------------------------------------------------------------------------------------
+
+10. Generating Category Lists
+
+--> I can now return to the navigation view component and generate a real set of categories. 
+--> I could build the HTML for the categories programmatically, as I did for the page tag helper, but one of the benefits of working with view components is they can render Razor partial views. 
+
+--> That means I can use the view component to generate the list of components and then use the more expressive Razor syntax to render the HTML that will display them
+
+----------------------------------------------------------------------------------------
+
+11. NavigationMenuViewComponent.cs 
+
+using Microsoft.AspNetCore.Mvc; 
+using System.Linq; 
+using SportsStore.Models;
+
+namespace SportsStore.Components {
+
+    public class NavigationMenuViewComponent : ViewComponent {
+        private IStoreRepository  repository;
+
+        public NavigationMenuViewComponent(IStoreRepository repo) {
+            repository = repo;
+        }
+
+        public IViewComponentResult Invoke() {
+            return View(repository.Products
+                .Select(x => x.Category)
+                .Distinct()
+                .OrderBy(x => x));
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+12. Creating the View
+
+--> Razor uses different conventions for locating with views that are selected by view components. 
+--> Both the default name of the view and the locations that are searched for the view are different from those used for controllers. 
+
+--> To that end, I created the Views/Shared/Components/NavigationMenu folder in the SportsStore project and added to it a Razor view named Default.cshtml, to which I added the content shown in Listing.
+
+----------------------------------------------------------------------------------------
+
+--> Default.cshtml File in the SportsStore/Views/Shared/Components/NavigationMenu Folder
+
+@model IEnumerable<string>
+
+<a class="btn btn-block btn-outline-secondary"asp-action="Index"
+   asp-controller="Home" asp-route-category="">
+    Home </a>
+
+@foreach (string category in Model) {
+    <a class="btn btn-block btn-outline-secondary"
+       asp-action="Index" asp-controller="Home"
+       asp-route-category="@category"
+       asp-route-productPage="1">
+        @category
+    </a> 
+}
+
+--> This view uses one of the built-in tag helpers, which I describe in Chapters 25–27, to create anchor elements whose href attribute contains a URL that selects a different product category.
+
+--> Restart ASP.NET Core and request http://localhost:5000 to see the category navigation buttons.
+--> If you click a button, the list of items is updated to show only items from the selected category
+
+----------------------------------------------------------------------------------------
+
+13. Highlighting the Current Category
+
+--> There is no feedback to the user to indicate which category has been selected. 
+--> It might be possible to infer the category from the items in the list, but some clear visual feedback seems like a good idea. 
+
+--> ASP.NET Core components such as controllers and view components can receive information about the current request by asking for a context object. 
+--> Most of the time, you can rely on the base classes that you use to create components to take care of getting the context object for you, such as when you use the Controller base class to create controllers.
+
+--> The ViewComponent base class is no exception and provides access to context objects through a set of properties. 
+--> One of the properties is called RouteData, which provides information about how the request URL was handled by the routing system.
+
+
+
+--> In Listing 8-10, I use the RouteData property to access the request data in order to get the value for the currently selected category. 
+--> I could pass the category to the view by creating another view model class (and that’s what I would do in a real project), but for variety, I am going to use the view bag feature, which allows unstructured data to be passed to a view alongside the view model object. 
+
+----------------------------------------------------------------------------------------
+
+namespace SportsStore.Components {
+
+    public class NavigationMenuViewComponent : ViewComponent {
+ 
+       private IStoreRepository  repository;
+ 
+       public NavigationMenuViewComponent(IStoreRepository repo) {
+            repository = repo;
+        }
+
+       public IViewComponentResult Invoke() {
+            ViewBag.SelectedCategory = RouteData?.Values["category"];			// This Line is added
+            return View(repository.Products
+                .Select(x => x.Category)
+                .Distinct()
+                .OrderBy(x => x));
+        }
+    } 
+}
+
+--> Now that I am providing information about which category is selected, I can update the view selected by the view component and vary the CSS classes used to style the links so that the one representing the current category is distinct. 
+
+----------------------------------------------------------------------------------------
+
+--> Default.cshtml
+
+@foreach (string category in Model) {
+    <a class="btn btn-block
+       @(category == ViewBag.SelectedCategory ? "btn-primary": "btn-outline-secondary")"
+       asp-action="Index" asp-controller="Home"
+       asp-route-category="@category"
+       asp-route-productPage="1">
+        @category
+    </a> 
+}
+
+----------------------------------------------------------------------------------------
+
+14. Correcting the Page Count
+
+--> I need to correct the page links so that they work correctly when a category is selected. 
+--> Currently, the number of page links is determined by the total number of products in the repository and not the number of products in the selected category. 
+
+--> This means that the customer can click the link for page 2 of the Chess category and end up with an empty page because there are not enough chess products to fill two pages.
+
+----------------------------------------------------------------------------------------
+
+--> Index action method
+
+        public ViewResult Index(string category, int productPage = 1)
+
+            => View(new ProductsListViewModel {
+
+                Products = repository.Products
+                    .Where(p => category == null || p.Category == category)
+                    .OrderBy(p => p.ProductID)
+                    .Skip((productPage - 1) * PageSize)
+                    .Take(PageSize),
+
+                PagingInfo = new PagingInfo {
+                    CurrentPage = productPage,
+                    ItemsPerPage = PageSize,
+                    TotalItems = category == null ?				// This line
+                        repository.Products.Count() :
+                        repository.Products.Where(e =>
+                            e.Category == category).Count()
+                },
+
+                CurrentCategory = category
+            });
+
+--> If a category has been selected, I return the number of items in that category; if not, I return the total number of products. 
+--> Restart ASP.NET Core and request http://localhost:5000 to see the changes when a category is selected
+
+----------------------------------------------------------------------------------------
+
+15. Building the Shopping Cart
+
+--> An Add To Cart button will be displayed alongside each of the products in the catalog. 
+--> Clicking this button will show a summary of the products the customer has selected so far, including the total cost. 
+
+--> At this point, the user can click the Continue Shopping button to return to the product catalog or click the Checkout Now button to complete the order and finish the shopping session. 
+
+----------------------------------------------------------------------------------------
+
+16. Configuring Razor Pages
+
+services.AddRazorPages();
+
+   ...
+   endpoints.MapRazorPages();
+});
+
+----------------------------------------------------------------------------------------
+
+17. _ViewImports.cshtml
+
+--> Add a folder named Pages, which is the conventional location for Razor Pages, to the SportsStore project. 
+--> Add a Razor View Imports file named _ViewImports.cshtml to the Pages folder 
+
+@namespace SportsStore.Pages 
+@using Microsoft.AspNetCore.Mvc.RazorPages 
+@using SportsStore.Models 
+@using SportsStore.Infrastructure 
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+----------------------------------------------------------------------------------------
+
+18. _ViewStart.cshtml
+
+@{
+    Layout = "_CartLayout"; 
+}
+
+----------------------------------------------------------------------------------------
+
+19. _CartLayout.cshtml 
+
+--> Add this partial view for razor pages,
+
+<!DOCTYPE html> 
+<html> 
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>SportsStore</title>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" /> </head> 
+<body>
+    <div class="bg-dark text-white p-2">
+        <span class="navbar-brand ml-2">SPORTS STORE</span>
+    </div>
+    <div class="m-1 p-1">
+            @RenderBody()
+    </div> 
+</body> 
+
+</html>
+
+----------------------------------------------------------------------------------------
+
+20. Creating a Razor Page
+
+--> Cart.cshtml File in the SportsStore/Pages Folder
+
+@page
+<h4>This is the Cart Page</h4>
+
+
+--> Restart ASP.NET Core and request http://localhost:5000/cart 
+--> Notice that I have not had to register the page and that the mapping between the /cart URL path and the Razor Page has been handled automatically.
+
+----------------------------------------------------------------------------------------
+
+21. Creating the Add To Cart Buttons
+
+--> UrlExtensions.cs File in the SportsStore/Infrastructure Folder
+
+using Microsoft.AspNetCore.Http;
+
+namespace SportsStore.Infrastructure {
+
+    public static class UrlExtensions {
+
+        public static string PathAndQuery(this HttpRequest request) =>
+            request.QueryString.HasValue
+                ? $"{request.Path}{request.QueryString}"
+                : request.Path.ToString();
+    } 
+}
+
+--> The PathAndQuery extension method operates on the HttpRequest class, which ASP.NET Core uses to describe an HTTP request. 
+--> The extension method generates a URL that the browser will be returned to after the cart has been updated, taking into account the query string, if there is one
+
+--> In Listing 8-19, I have added the namespace that contains the extension method to the view imports file so that I can use it in the partial view.
+
+----------------------------------------------------------------------------------------
+
+22. Adding a Namespace in _ViewImports.cshtml
+
+--> _ViewImports.cshtml File in the SportsStore/Views Folder
+--> Not in pages folder
+
+@using SportsStore.Infrastructure 
+
+--> I have updated the partial view that describes each product so that it contains an Add to Cart button.
+
+----------------------------------------------------------------------------------------
+
+23. ProductSummary.cshtml Partial View
+
+--> Location: SportsStore/Views/Shared Folder
+
+@model Product
+
+<div class="card card-outline-primary m-1 p-1">
+    <div class="bg-faded p-1">
+        <h4>
+            @Model.Name
+            <span class="badge badge-pill badge-primary" style="float:right">
+                <small>@Model.Price.ToString("c")</small>
+            </span>
+        </h4>
+    </div>
+
+    <form id="@Model.ProductID" asp-page="/Cart" method="post">
+        <input type="hidden" asp-for="ProductID" />
+        <input type="hidden" name="returnUrl" value="@ViewContext.HttpContext.Request.PathAndQuery()" />
+
+        <span class="card-text p-1">
+            @Model.Description
+            <button type="submit"
+                class="btn btn-success btn-sm pull-right" style="float:right">
+                Add To Cart
+            </button>
+        </span>
+    </form> 
+</div>
+
+--> I have added a form element that contains hidden input elements specifying the ProductID value from the view model and the URL that the browser should be returned to after the cart has been updated. 
+
+--> The form element and one of the input elements are configured using built-in tag helpers, which are a useful way of generating forms that contain model values and that target controllers or Razor Pages, as described in Chapter 27. 
+
+--> The other input element uses the extension method I created to set the return URL. I also added a button element that will submit the form to the application.
+
+----------------------------------------------------------------------------------------
+
+24. Note:
+
+--> Note Notice that i have set the method attribute on the form element to post, which instructs the browser to submit the form data using an http POST request. 
+--> You can change this so that forms use the GET method, but you should think carefully about doing so. the http specification requires that GET requests must be idempotent, meaning that they must not cause changes, and adding a product to a cart is definitely a change. 
+
+----------------------------------------------------------------------------------------
+
+25. Enabling Sessions
+
+--> I am going to store details of a user’s cart using session state, which is data associated with a series of requests made by a user. 
+--> ASP. NET provides a range of different ways to store session state, including storing it in memory, which is the approach that I am going to use. 
+
+--> This has the advantage of simplicity, but it means that the session data is lost when the application is stopped or restarted. 
+--> Enabling sessions requires adding services and middleware in the Startup class,
+
+ services.AddDistributedMemoryCache();
+ services.AddSession();
+
+ app.UseStaticFiles();
+ app.UseSession();
+
+--> The AddDistributedMemoryCache method call sets up the in-memory data store. 
+--> The AddSession method registers the services used to access session data
+--> The UseSession method allows the session system to automatically associate requests with sessions when they arrive from the client.
+
+----------------------------------------------------------------------------------------
+
+26. Implementing the Cart Feature
+
+--> The Contents of the Cart.cs File in the SportsStore/Models Folder
+
+using System.Collections.Generic; 
+using System.Linq;
+
+namespace SportsStore.Models {
+
+    public class Cart {
+
+        public List<CartLine> Lines { get; set; } = new List<CartLine>();
+
+        public void AddItem(Product product, int quantity) {
+
+            CartLine line = Lines
+                .Where(p => p.Product.ProductID == product.ProductID)
+                .FirstOrDefault();
+
+            if (line == null) {
+                Lines.Add(new CartLine {
+                    Product = product,
+                    Quantity = quantity
+                });
+            } else {
+                line.Quantity += quantity;
+            }
+        }
+
+        public void RemoveLine(Product product) =>
+            Lines.RemoveAll(l => l.Product.ProductID == product.ProductID);
+
+        public decimal ComputeTotalValue() =>
+            Lines.Sum(e => e.Product.Price * e.Quantity);
+
+        public void Clear() => Lines.Clear();
+    }
+
+
+    public class CartLine {
+        public int CartLineID { get; set; }
+        public Product Product { get; set; }
+        public int Quantity { get; set; }
+    } 
+} 
+
+--> The Cart class uses the CartLine class, defined in the same file, to represent a product selected by the customer and the quantity the user wants to buy. 
+--> I defined methods to add an item to the cart, remove a previously added item from the cart, calculate the total cost of the items in the cart, and reset the cart by removing all the items. 
+
+----------------------------------------------------------------------------------------
+
+27. Defining Session State Extension Methods
+
+--> The session state feature in ASP.NET Core stores only int, string, and byte[] values. 
+--> Since I want to store a Cart object, I need to define extension methods to the ISession interface, which provides access to the session state data to serialize Cart objects into JSON and convert them back. 
+
+--> I added a class file called SessionExtensions.cs to the Infrastructure folder 
+
+----------------------------------------------------------------------------------------
+
+using Microsoft.AspNetCore.Http; 
+using System.Text.Json;
+
+namespace SportsStore.Infrastructure {
+
+    public static class SessionExtensions {
+
+        public static void SetJson(this ISession session, string key, object value) {
+            session.SetString(key, JsonSerializer.Serialize(value));
+        }
+
+        public static T GetJson<T>(this ISession session, string key) {
+            var sessionData = session.GetString(key);
+            return sessionData == null ? default(T) : JsonSerializer.Deserialize<T>(sessionData);
+        }
+    } 
+}
+
+--> These methods serialize objects into the JavaScript Object Notation format, making it easy to store and retrieve Cart objects.
+
+----------------------------------------------------------------------------------------
+
+28. Completing the Razor Page
+
+--> The Cart Razor Page will receive the HTTP POST request that the browser sends when the user clicks an Add To Cart button. 
+--> It will use the request form data to get the Product object from the database and use it to update the user’s cart, which will be stored as session data for use by future requests.
+
+----------------------------------------------------------------------------------------
+
+--> Cart.cshtml File in the SportsStore/Pages Folder
+
+@page 
+@model CartModel
+
+<h2>Your cart</h2> 
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Quantity</th>
+            <th>Item</th>
+            <th class="text-right">Price</th>
+            <th class="text-right">Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var line in Model.Cart.Lines) {
+            <tr>
+                <td class="text-center">@line.Quantity</td>
+                <td class="text-left">@line.Product.Name</td>
+                <td class="text-right">@line.Product.Price.ToString("c")</td>
+                <td class="text-right">
+                    @((line.Quantity * line.Product.Price).ToString("c"))
+                </td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="3" class="text-right">Total:</td>
+            <td class="text-right">
+                @Model.Cart.ComputeTotalValue().ToString("c")
+            </td>
+        </tr>
+    </tfoot> 
+</table>
+
+<div class="text-center">
+    <a class="btn btn-primary" href="@Model.ReturnUrl">Continue shopping</a> 
+</div>
+
+----------------------------------------------------------------------------------------
+
+--> The Contents of the Cart.cshtml.cs File in the SportsStore/Pages Folder
+
+using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc.RazorPages; using SportsStore.Infrastructure; 
+using SportsStore.Models; 
+using System.Linq;
+
+namespace SportsStore.Pages {
+
+    public class CartModel : PageModel {
+
+        private IStoreRepository repository;
+
+        public CartModel(IStoreRepository repo) {
+            repository = repo;
+        }
+
+        public Cart Cart { get; set; }
+
+        public string ReturnUrl { get; set; }
+
+        public void OnGet(string returnUrl) {
+            ReturnUrl = returnUrl ?? "/";
+            Cart = HttpContext.Session.GetJson<Cart>("cart") ?? new Cart();
+        }
+
+        public IActionResult OnPost(long productId, string returnUrl) {
+            Product product = repository.Products
+                .FirstOrDefault(p => p.ProductID == productId);
+
+            Cart = HttpContext.Session.GetJson<Cart>("cart") ?? new Cart();
+            Cart.AddItem(product, 1);
+
+            HttpContext.Session.SetJson("cart", Cart);
+            return RedirectToPage(new { returnUrl = returnUrl });
+        }
+    }
+}
+
+----------------------------------------------------------------------------------------
+
+--> The class associated with a Razor Page is known as its page model class, and it defines handler methods that are invoked for different types of HTTP requests, which update state before rendering the view. 
+
+--> The page model class in Listing 8-25, which is named CartModel, defines an OnPost hander method, which is invoked to handle HTTP POST requests. 
+
+--> It does this by retrieving a Product from the database, retrieving the user’s Cart from the session data, and updating its content using the Product. 
+
+--> The modified Cart is stored, and the browser is redirected to the same Razor Page, which it will do using a GET request (which prevents reloading the browser from triggering a duplicate POST request).
+
+
+--> The GET request is handled by the OnGet handler method, which sets the values of the ReturnUrl and Cart properties, after which the Razor content section of the page is rendered. 
+--> The expressions in the HTML content are evaluated using the CartModel  as the view model object, which means that the values assigned to the ReturnUrl and Cart properties can be accessed within the expressions. 
+
+--> The content generated by the Razor Page details the products added to the user’s cart and provides a button to navigate back to the point where the product was added to the cart.
+--> The handler methods use parameter names that match the input elements in the HTML forms produced by the ProductSummary.cshtml view. 
+
+--> This allows ASP.NET Core to associate incoming form POST variables with those parameters, meaning I do not need to process the form directly. 
+--> This is known as model binding and is a powerful tool for simplifying development
+
+----------------------------------------------------------------------------------------
+
+--> UNDERSTANDING RAZOR PAGES
+
+--> razor pages can feel a little odd when you first start using them, especially if you have previous experience with the MvC Framework features provided by aSp.Net Core. But razor pages are complementary to the MvC Framework, and i find myself using them alongside controllers and views because they are well-suited to self-contained features that don’t require the complexity of the MvC Framework. 
+
+----------------------------------------------------------------------------------------
+
+--> The result is that the basic functions of the shopping cart are in place. 
+
+--> First, products are listed along with a button to add them to the cart, which you can see by restarting ASP.NET Core and requesting http://localhost:5000, 
+--> Second, when the user clicks an Add To Cart button, the appropriate product is added to their cart, and a summary of the cart is displayed, as shown in Figure 8-11. Clicking the Continue Shopping button returns the user to the product page they came from.
+
+----------------------------------------------------------------------------------------
+
+29. Summary
+
+--> In this chapter, I started to flesh out the customer-facing parts of the SportsStore app. 
+
+--> I provided the means by which the user can navigate by category and put the basic building blocks in place for adding items to a shopping cart. 
+--> I have more work to do, and I continue the development of the application in the next chapter.
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

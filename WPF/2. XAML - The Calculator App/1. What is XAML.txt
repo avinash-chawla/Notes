@@ -1,0 +1,194 @@
+1. What is Xaml?
+
+--> It stands for Extensible Application Markup Language
+
+--> A Powerful Language for UI definitions
+
+--> Example code:
+
+<Page>
+   <StackPanel>
+	<TextBox Text="Write you name" />
+	<TextField x:Name="nameTextField" />
+	<Button Text="Save"/>
+   </StackPanel>
+</Page>
+
+-------------------------------------------------------------------------------------
+
+--> The versatility of XAML
+
+--> It has been the go to language for .NET UI definition
+--> Even works for Android and iOS apps
+--> Great for designers
+--> Powerful for animations
+
+-------------------------------------------------------------------------------------
+
+--> The code behind file
+
+--> Linked through the class definition
+--> XAML and C# both define the same partial class
+--> Provides functionality to the UI
+
+-------------------------------------------------------------------------------------
+
+2. The Xaml Structure
+
+<Grid>
+    <StackPanel>
+        <Label/>
+        <TextBox/>
+        <TextBox/>
+        <Button/>
+    </StackPanel>
+</Grid>
+
+
+--> StackPanel makes sure that all fields are one after another
+--> Without StackPanel, all fields are one above another
+
+--> By Default, Fields take full width of window, if not mentioned dimensions
+
+-------------------------------------------------------------------------------------
+
+3. Setting Property Values
+
+    Title="MainWindow" Height="450" Width="800">
+<Grid>
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Label Content="Result" Margin="0,0,0,10"/>
+        <TextBox Text="0" Margin="0,0,0,10"/>
+        <TextBox Text="0" Margin="0,0,0,10"/>
+        <Button Content="Calculate" Background="DodgerBlue" Foreground="White"/>
+    </StackPanel>
+
+</Grid>
+
+-------------------------------------------------------------------------------------
+
+--> We use properties like:
+
+Content
+Text
+Margin
+VertialAlignment
+HorizontalAlignment
+Background
+Foreground
+
+Title
+Height
+Width
+
+-------------------------------------------------------------------------------------
+
+--> Content for Label field, default position is Left side
+--> And for Button, it is Center
+
+--> Text is used to display text in Text Field
+--> Background and Foreground are used for Button Background and Color
+
+--> Margin values can be 1,2 or 4
+--> Margin="10" will set margin 10px to all sides
+--> Margin="10, 20" will set margin left and right to 10px and top and botton to 20px
+--> Margin="10, 0, 20, 5" will set margin starting from left --> top --> right --> bottom
+
+--> To change main window dimensions, use Title, Height and Width Properties
+
+-------------------------------------------------------------------------------------
+
+4. The Grid
+
+--> Create new wpf project - Calculator
+--> Change window size to - Heigth="525" and Width="350"
+
+--> There are two ways to define a property
+
+-------------------------------------------------------------------------------------
+
+<Grid Margin="10">
+    ...
+<Grid>
+
+-------------------------------------------------------------------------------------
+
+<Grid>
+    <Grid.Margin>10</Grid.Margin>
+</Grid>
+
+-------------------------------------------------------------------------------------
+
+--> Second approad is used for complex properties
+
+-------------------------------------------------------------------------------------
+
+--> 
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+

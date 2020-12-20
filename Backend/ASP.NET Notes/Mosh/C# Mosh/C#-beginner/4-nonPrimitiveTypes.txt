@@ -42,7 +42,9 @@ namespace HelloWorld
 }
 
 -------------------------------------------------------------------------------------------------------------------
+
 --> Calculator.cs-->
+
 namespace HelloWorld.Math
 {
     public class Calculator
@@ -55,6 +57,7 @@ namespace HelloWorld.Math
 }
 
 --> Program.cs -->
+
 using HelloWorld.Math;
 
 namespace HelloWorld
@@ -87,7 +90,7 @@ namespace avinash.Math;
 
     var result = Calculator.add(2,3);
 
---> that's y main method is static, compiler no need to create obj of main and has single entry point to run main
+--> that's why main method is static, compiler no need to create obj of main and has single entry point to run main
 --> just like current data-time, there should be single instance of it. other examples are Console, Math, Main, etc
 
 --> no need to export class --> shared by public keyword
@@ -222,4 +225,6 @@ class Program{
 	}	
 
 --> main difference between value and reference types is memory management
+--> Value types variables are removed from stack memory, when they get out of scope.
+--> Reference types are removed by garbage collector from heap memory, if those objects are unused.
 

@@ -1,0 +1,2164 @@
+1. Intro
+
+--> Filters inject extra logic into request processing. 
+--> Filters are like middleware that is applied to a single endpoint, which can be an action or a page handler method, and they provide an elegant way to manage a specific set of requests. 
+
+--> In this chapter, I explain how filters work, describe the different types of filter that ASP.NET Core supports, and demonstrate the use of custom filters and the filters provided by ASP.NET Core. 
+
+----------------------------------------------------------------------------------------
+
+2. Preparing for this Chapter
+
+--> HomeController.cs
+
+using Microsoft.AspNetCore.Mvc;
+
+namespace WebApp.Controllers {
+
+    public class HomeController : Controller {
+
+        public IActionResult Index() {
+            return View("Message", "This is the Index action on the Home controller");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Message.cshtml in the Views/Shared Folder
+
+@{ 
+    Layout = "_SimpleLayout"; 
+}
+
+@if (Model is string) {
+    @Model 
+} else if (Model is IDictionary<string, string>) {
+    var dict = Model as IDictionary<string, string>;
+
+    <table class="table table-sm table-striped table-bordered">
+        <thead><tr><th>Name</th><th>Value</th></tr></thead>
+        <tbody>
+            @foreach (var kvp in dict) {
+                <tr><td>@kvp.Key</td><td>@kvp.Value</td></tr>
+            }
+        </tbody>
+    </table> 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Message.cshtml File in the Pages Folder
+
+@page "/pages/message" 
+@model MessageModel 
+@using Microsoft.AspNetCore.Mvc.RazorPages 
+@using System.Collections.Generic
+
+@if (Model.Message is string) {
+    @Model.Message 
+} else if (Model.Message is IDictionary<string, string>) {
+    var dict = Model.Message as IDictionary<string, string>;
+    <table class="table table-sm table-striped table-bordered">
+        <thead><tr><th>Name</th><th>Value</th></tr></thead>
+        <tbody>
+            @foreach (var kvp in dict) {
+                <tr><td>@kvp.Key</td><td>@kvp.Value</td></tr>
+            }
+        </tbody>
+    </table> 
+}
+
+@functions {
+    public class MessageModel : PageModel {
+        public object Message { get; set; } = "This is the Message Razor Page";
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Enabling HTTPS Connections
+
+--> launchSettings.json
+
+{
+  "iisSettings": {
+    ..
+    "iisExpress": {
+      "applicationUrl": "http://localhost:5000",
+      "sslPort": 44350
+    }
+  },
+  "profiles": {..},
+    "WebApp": {..},
+      "applicationUrl": "http://localhost:5000;https://localhost:44350"
+    }
+  } 
+}
+
+--> The .NET Core runtime includes a test certificate that is used for HTTPS requests. 
+--> Run the commands shown in Listing 30-6 in the WebApp folder to regenerate and trust the test certificate. 
+
+dotnet dev-certs https --clean
+dotnet dev-certs https --trust
+
+--> Click Yes to the prompts to delete the existing certificate that has already been trusted and click Yes to trust the new certificate,
+
+----------------------------------------------------------------------------------------
+
+--> Request: http://localhost:5000				// This is the Index action on the Home controller
+--> Request http://localhost:5000/pages/message 		// This is the Message Razor Page
+
+----------------------------------------------------------------------------------------
+
+3. Using Filters
+
+--> Filters allow logic that would otherwise be applied in a middleware component or action method to be defined in a class where it can be easily reused. 
+
+--> Imagine that you want to enforce HTTPS requests for some action methods. 
+--> In Chapter 16, I showed you how this can be done in middleware by reading the IsHttps property of the HttpRequest object. 
+
+--> The problem with this approach is that the middleware would have to understand the configuration of the routing system to know how to intercept requests for specific action methods. 
+--> A more focused approach would be to read the HttpRequest.IsHttps property within action methods,
+
+----------------------------------------------------------------------------------------
+
+--> HomeController.cs
+
+using Microsoft.AspNetCore.Http;
+
+namespace WebApp.Controllers {
+    public class HomeController : Controller {
+        public IActionResult Index() {
+            if (Request.IsHttps) {
+                return View("Message", "This is the Index action on the Home controller");
+            } else {
+                return new StatusCodeResult(StatusCodes.Status403Forbidden);
+            }
+        }
+    } 
+}
+
+--> Restart ASP.NET Core and request http://localhost:5000. This method now requires HTTPS, and you will see an error response.
+
+----------------------------------------------------------------------------------------
+
+--> This approach works but has problems. 
+--> The first problem is that the action method contains code that is more about implementing a security policy than about handling the request. 
+--> A more serious problem is that including the HTTP-detecting code within the action method doesn’t scale well and must be duplicated in every action method in the controller
+
+----------------------------------------------------------------------------------------
+
+--> Using Filter
+
+--> HomeController.cs
+
+using Microsoft.AspNetCore.Http;
+namespace WebApp.Controllers {
+
+    public class HomeController : Controller {
+
+        [RequireHttps]
+        public IActionResult Index() {
+            return View("Message",
+                "This is the Index action on the Home controller");
+        }
+ 
+       [RequireHttps]
+        public IActionResult Secure() {
+            return View("Message",
+                "This is the Secure action on the Home controller");
+        }
+    } 
+}
+
+--> The RequireHttps attribute applies one of the built-in filters provided by ASP.NET Core. 
+--> This filter restricts access to action methods so that only HTTPS requests are supported and allows me to remove the security code from each method and focus on handling the successful requests.
+
+----------------------------------------------------------------------------------------
+
+--> I must still remember to apply the RequireHttps attribute to each action method, which means that I might forget. 
+--> But filters have a useful trick: applying the attribute to a controller class has the same effect as applying it to each individual action method
+
+namespace WebApp.Controllers {
+    [RequireHttps]
+    public class HomeController : Controller {
+    ...
+}
+
+----------------------------------------------------------------------------------------
+
+--> Filters can be applied with differing levels of granularity. 
+
+--> If you want to restrict access to some actions but not others, then you can apply the RequireHttps attribute to just those methods. 
+--> If you want to protect all the action methods, including any that you add to the controller in the future, then the RequireHttps attribute can be applied to the class. 
+
+--> If you want to apply a filter to every action in an application
+
+----------------------------------------------------------------------------------------
+
+4. Using Filters in Razor Pages
+
+--> Filters can also be used in Razor Pages. 
+--> To implement the HTTPS-only policy in the Message Razor Pages, for example, I would have to add a handler method that inspects the connection
+
+--> Message.cshtml in Pages folder
+
+...
+@functions {
+    public class MessageModel : PageModel {
+        public object Message { get; set; } = "This is the Message Razor Page";
+        public IActionResult OnGet() {
+            if (!Request.IsHttps) {
+                return new StatusCodeResult(StatusCodes.Status403Forbidden);
+            } else {
+                return Page();
+            }
+        }
+    } 
+}
+
+--> The handler method works, but it is awkward and presents the same problems encountered with action methods. 
+--> When using filters in Razor Pages, the attribute can be applied to the handler method
+
+----------------------------------------------------------------------------------------
+
+--> Applying a Filter in Razor Page
+
+...
+@functions {
+    [RequireHttps]
+    public class MessageModel : PageModel {
+        public object Message { get; set; } = "This is the Message Razor Page";
+    } 
+}
+
+--> When you request on http://localhost:5000/pages/messages, the filter will redirect the request, and you will see an error
+
+----------------------------------------------------------------------------------------
+
+5. Understanding Filters
+
+--> ASP.NET Core supports different types of filters, each of which is intended for a different purpose.
+
+1. Authorization filters  - This type of filter is used to apply the application’s authorization policy.
+2. Resource filters	  - This type of filter is used to intercept requests, typically to implement features such as caching.
+3. Action filters	  - This type of filter is used to modify the request before it is received by an action method or to modify the action result after it has 			    been produced. This type of filter can be applied only to controllers and actions.
+4. Page filters		  - This type of filter is used to modify the request before it is received by a Razor Page handler method or to modify the action result after 			    it has been produced. This type of filter can be applied only to Razor Pages.
+5. Result filters	  - This type of filter is used to alter the action result before it is executed or to modify the result after execution.
+6. Exception filters	  - This type of filter is used to handle exceptions that occur during the execution of the action method or page handler.
+
+----------------------------------------------------------------------------------------
+
+--> Filters have their own pipeline and are executed in a specific order
+--> Filter pipeline
+
+0. Request
+1. Authorization Filters
+2. Resource Filters
+3. Model Binding
+4. Action/Page Filters
+5. Endpoint
+6. Action/Page Filters
+7. Exception filters
+8. Result filter
+9. Resource Filters
+10. Response
+
+----------------------------------------------------------------------------------------
+
+--> Filters can short-circuit the filter pipeline to prevent a request from being forwarded to the next filter. 
+--> For example, an authorization filter can short-circuit the pipeline and return an error response if the user is unauthenticated. 
+
+--> The resource, action, and page filters are able to inspect the request before and after it has been handled by the endpoint, allowing these types of filter to short-circuit the pipeline; to alter the request before it is handled; or to alter the response. 
+
+--> Each type of filter is implemented using interfaces defined by ASP.NET Core, which also provides base classes that make it easy to apply some types of filters as attributes. 
+--> I describe each interface and the attribute classes in the sections that follow
+
+----------------------------------------------------------------------------------------
+
+--> The Filter Types, Interfaces, and Attribute Base Classes
+
+Filter type		Interfaces			Class
+
+Authorization filters   IAuthorizationFilter 		No attribute class	
+			IAsyncAuthorizationFilter
+
+Resource filters 	IResourceFilter			No attribute class
+			IAsyncResourceFilter	
+
+Action filters 		IActionFilter			ActionFilterAttribute
+			IAsyncActionFilter
+
+Page filters		IPageFilter			No attribute class
+			IAsyncPageFilter			
+
+Result filters 		IResultFilter			ResultFilterAttribute
+			IAsyncResultFilter
+			IAlwaysRunResultFilter
+			IAsyncAlwaysRunResultFilter
+
+
+Exception filters 	IExceptionFilter		ExceptionFilterAttribute
+			IAsyncExceptionFilter		
+	
+----------------------------------------------------------------------------------------
+
+6. Creating Custom Filters
+
+--> Filters implement the IFilterMetadata interface, which is in the Microsoft.AspNetCore.Mvc.Filters namespace. Here is the interface:
+
+namespace Microsoft.AspNetCore.Mvc.Filters {
+    public interface IFilterMetadata { } }
+
+--> The interface is empty and doesn’t require a filter to implement any specific behaviors. 
+--> This is because each of the categories of filter described in the previous section works in a different way. 
+
+--> Filters are provided with context data in the form of a FilterContext object. 
+
+--> For convenience, Table 30-4 describes the properties that FilterContext provides.
+
+----------------------------------------------------------------------------------------
+
+--> The FilterContext Properties
+
+1. ActionDescriptor - This property returns an ActionDescriptor object, which describes the action method.
+2. HttpContext	    - This property returns an HttpContext object, which provides details of the HTTP request and the HTTP response that will be sent in return.
+3. ModelState	    - This property returns a ModelStateDictionary object, which is used to validate data sent by the client.
+4. RouteData	    - This property returns a RouteData object that describes the way that the routing system has processed the request.
+5. Filters	    - This property returns a list of filters that have been applied to the action method, expressed as an IList<IFilterMetadata>.
+
+----------------------------------------------------------------------------------------
+
+7. Understanding Authorization Filters
+
+--> Authorization filters are used to implement an application’s security policy. 
+--> Authorization filters are executed before other types of filter and before the endpoint handles the request. 
+
+--> Here is the definition of the IAuthorizationFilter interface:
+
+namespace Microsoft.AspNetCore.Mvc.Filters {
+
+    public interface IAuthorizationFilter : IFilterMetadata {
+        void OnAuthorization(AuthorizationFilterContext context);
+    } 
+}
+
+--> The OnAuthorization method is called to provide the filter with the opportunity to authorize the request. 
+--> For asynchronous authorization filters, here is the definition of the IAsyncAuthorizationFilter interface:
+
+using System.Threading.Tasks;
+namespace Microsoft.AspNetCore.Mvc.Filters {
+
+    public interface IAsyncAuthorizationFilter : IFilterMetadata {
+        Task OnAuthorizationAsync(AuthorizationFilterContext context);
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The OnAuthorizationAsync method is called so that the filter can authorize the request. 
+--> Whichever interface is used, the filter receives context data describing the request through an AuthorizationFilterContext object, which is derived from the FilterContext class and adds one important property
+
+Result
+
+--> This IActionResult property is set by authorization filters when the request doesn’t comply with the application’s authorization policy. 
+--> If this property is set, then ASP.NET Core executes the IActionResult instead of invoking the endpoint.
+
+----------------------------------------------------------------------------------------
+
+8. Creating an Authorization Filter
+
+--> To demonstrate how authorization filters work, I created a Filters folder in the example project, added a class file called HttpsOnlyAttribute.cs, and used it to define the filter
+
+using System; 
+using Microsoft.AspNetCore.Http; 
+using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc.Filters;
+
+namespace WebApp.Filters {
+
+    public class HttpsOnlyAttribute : Attribute, IAuthorizationFilter {
+
+        public void OnAuthorization(AuthorizationFilterContext context) {
+            if (!context.HttpContext.Request.IsHttps) {
+                context.Result = new StatusCodeResult(StatusCodes.Status403Forbidden);
+            }
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> An authorization filter does nothing if a request complies with the authorization policy and inaction allows ASP.NET Core to move on to the next filter and, eventually, to execute the endpoint. 
+
+--> If there is a problem, the filter sets the Result property of the AuthorizationFilterContext object that is passed to the OnAuthorization method. 
+--> This prevents further execution from happening and provides a result to return to the client. 
+
+--> In the listing, the HttpsOnlyAttribute class inspects the IsHttps property of the HttpRequest context object and sets the Result property to interrupt execution if the request has been made without HTTPS. 
+
+--> Authorization filters can be applied to controllers, action methods, and Razor Pages. 
+--> Listing 30-16 applies the new filter to the Home controller.
+
+----------------------------------------------------------------------------------------
+
+using WebApp.Filters;
+
+namespace WebApp.Controllers {
+
+    [HttpsOnly]
+    public class HomeController : Controller {
+
+        public IActionResult Index() {
+            return View("Message", "This is the Index action on the Home controller");
+        }
+
+        public IActionResult Secure() {
+            return View("Message", "This is the Secure action on the Home controller");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> This filter re-creates the functionality that I included in the action methods in Listing 30-10. 
+--> This is less useful in real projects than doing a redirection like the built-in RequireHttps filter because users won’t understand the meaning of a 403 status code, but it does provide a useful example of how authorization filters work. 
+
+--> Restart ASP.NET Core and request http://localhost:5000, and you will see the effect of the filter, as shown in Figure 30-6. 
+--> Request https://localhost:44350, and you will receive the response from the action method
+
+----------------------------------------------------------------------------------------
+
+9. Understanding Resource Filters
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+

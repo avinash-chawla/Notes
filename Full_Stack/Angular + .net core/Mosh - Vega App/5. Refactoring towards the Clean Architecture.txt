@@ -54,7 +54,7 @@
 
 ------------------------------------------------------------------------------------------
 
---> For Create/Update API, we use
+--> For Create/Update API, we will use
 
 { 
    id: 1,
@@ -86,8 +86,8 @@ VehicleResource GetVehicle(int id)
 
 3. Refactoring
 
---> Rename VehicleResouce to SaveVehicleResource by pressing F2
---> Also change the fileName
+--> Rename VehicleResouce to SaveVehicleResource by pressing F2 (change symbol on right click)
+--> Also change the fileName to SaveVehicleResource
 
 --> Create new Resource file: VehicleResource
 
@@ -171,102 +171,561 @@ CreateMap<Vehicle, VehicleResource>()
                 .ForMember(vr => vr.Make, opt => opt.MapFrom(v => v.Model.Make))
 
 ------------------------------------------------------------------------------------------
+ 
+4. Refactoring using KeyValuePairResource
 
+--> We can see that MakeResource, ModelResource, FeatureResource, all contain same properties - Id, Name
+--> We can combine them
 
+--> Rename FeatureResource to KeyValuePairResource
+--> Also change file name
 
-------------------------------------------------------------------------------------------
+--> MakeResource Inherit From KeyValuePairResource
+--> Also, delete this two properties from this MakeResource
 
+--> Also, change all reference of ModelResource to KeyValuePairResource
+--> And delete ModelResource
 
+--> In VehicleResource, change type of Make from MakeResource to KeyValuePairResource
+--> You also need to add Mapping from Make to KeyValuePairResource
 
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
+CreateMap<Make, KeyValuePairResource>();
 
 ------------------------------------------------------------------------------------------
 
+http://localhost:5000/api/vehicles/1
 
-
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
+{
+    "id": 1,
+    "make": {
+        "id": 1,
+        "name": "Make1"
+    },
+    "model": {
+        "id": 1,
+        "name": "Make1-ModelA"
+    },
+    "isRegistered": true,
+    "contact": {
+        "name": "name",
+        "email": "email",
+        "phone": "phone"
+    },
+    "lastUpdate": "0001-01-01T00:00:00",
+    "features": [
+        {
+            "id": 1,
+            "name": "Feature1"
+        },
+        {
+            "id": 2,
+            "name": "Feature2"
+        },
+        {
+            "id": 3,
+            "name": "Feature3"
+        }
+    ]
+}
 
 ------------------------------------------------------------------------------------------
 
+5. Changing the Return Types for APIs
 
+--> While Creating or Updating a vehicle through api, we want to change return type of API
+--> From SaveVehicleResource to VehicleResource (just like Get Request API)
 
-------------------------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------------------------
-
-
+--> We are filling the vehicle object will all necessary data, with the help of eager loading.
 
 ------------------------------------------------------------------------------------------
 
+	[HttpPost]
+        public async Task<IActionResult> CreateVehicle([FromBody] SaveVehicleResource vehicleResource)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
+            var model = await context.Models.FindAsync(vehicleResource.ModelId);
+            if (model == null)
+            {
+                ModelState.AddModelError("ModelId", "Invalid ModelId");
+                return BadRequest(ModelState);
+            }
+
+            var vehicle = mapper.Map<SaveVehicleResource, Vehicle>(vehicleResource);
+            vehicle.LastUpdate = DateTime.Now;
+
+            context.Vehicles.Add(vehicle);
+            await context.SaveChangesAsync();
+
+            vehicle = await context.Vehicles
+                            .Include(v => v.Features)
+                                .ThenInclude(vf => vf.Feature)
+                            .Include(v => v.Model)
+                                .ThenInclude(m => m.Make)
+                            .SingleOrDefaultAsync(v => v.Id == vehicle.Id);
+            var result = mapper.Map<Vehicle, VehicleResource>(vehicle);
+            return Ok(result);
+        }
 
 ------------------------------------------------------------------------------------------
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateVehicle([FromQuery] int id, [FromBody] SaveVehicleResource vehicleResource)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
+            var vehicle = await context.Vehicles
+                            .Include(v => v.Features)
+                                .ThenInclude(vf => vf.Feature)
+                            .Include(v => v.Model)
+                                .ThenInclude(m => m.Make)
+                            .SingleOrDefaultAsync(v => v.Id == id);
+
+            if (vehicle == null)
+                return NotFound();
+
+            mapper.Map<SaveVehicleResource, Vehicle>(vehicleResource, vehicle);
+            vehicle.LastUpdate = DateTime.Now;
+
+            await context.SaveChangesAsync();
+
+            var result = mapper.Map<Vehicle, VehicleResource>(vehicle);
+            return Ok(result);
+
+        }
 
 ------------------------------------------------------------------------------------------
 
+--> Checking API in postman
 
+--> http://localhost:5000/api/vehicles (Post Request)
+
+{
+    "modelId": 2,
+    "isRegistered": true,
+    "contact": {
+        "name" : "name",
+        "phone": "phone",
+        "email": "email"    
+    },
+    "features": [1,2]
+}
 
 ------------------------------------------------------------------------------------------
 
-
+{
+    "id": 2,
+    "make": {
+        "id": 1,
+        "name": "Make1"
+    },
+    "model": {
+        "id": 2,
+        "name": "Make1-ModelB"
+    },
+    "isRegistered": true,
+    "contact": {
+        "name": "name",
+        "email": "email",
+        "phone": "phone"
+    },
+    "lastUpdate": "2020-09-06T13:55:01.0674271+05:30",
+    "features": [
+        {
+            "id": 1,
+            "name": "Feature1"
+        },
+        {
+            "id": 2,
+            "name": "Feature2"
+        }
+    ]
+}
 
 ------------------------------------------------------------------------------------------
 
+6. The Repository Pattern
 
+--> Create new C# class in Persistence Folder --> VehicleRepository.cs
+
+--> We are replacing this Linq query command with repo class method at all places
+--> We can also use Command/Query objects as alternative repo class
+
+http://bit.ly/repo-vs-query
 
 ------------------------------------------------------------------------------------------
+
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Vega.API.Models;
+
+namespace Vega.API.Persistence
+{
+    public class VehicleRepository
+    {
+        private readonly VegaDbContext context;
+
+        public VehicleRepository(VegaDbContext context)
+        {
+            this.context = context;
+        }
+
+        public async Task<Vehicle> GetVehicle(int id)
+        {
+            return await context.Vehicles
+                        .Include(v => v.Features)
+                            .ThenInclude(vf => vf.Feature)
+                        .Include(v => v.Model)
+                            .ThenInclude(m => m.Make)
+                        .SingleOrDefaultAsync(v => v.Id == id);
+        }
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+7. The Dependency Injection
+
+--> Create new interface in Persistence folder --> IVehicleRepository
+
+namespace Vega.API.Persistence
+{
+    public interface IVehicleRepository
+    {
+        Task<Vehicle> GetVehicle(int id);
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+--> In startup.cs
+
+services.AddScoped<IVehicleRepository, VehicleRepository>();
+
+------------------------------------------------------------------------------------------
+
+--> In VehiclesController.cs,
+
+        public VehiclesController(IMapper mapper, 
+				  VegaDbContext context, 
+				  IVehicleRepository repository)
+        {
+            this.context = context;
+            this.repository = repository;
+            this.mapper = mapper;
+        }
+
+--> Change to repository.GetVehicle(id) in GetVehicle(id), UpdateVehicle(id, ..)
+--> Change to repository.GetVehicle(Vehicle.Id) in CreateVehicle(..) actionMethod
+
+------------------------------------------------------------------------------------------
+
+--> Service Registration
+
+1. Transient
+--> A seperate instance of repository for every use
+
+2. Singleton
+--> A single instance of repository during application lifecycle
+
+3. Scoped
+--> A single instance of repository for each request.
+
+--> By using interfaces, we are decoupling our application classes from each other
+--> We can also change implementation of this interface depending upon requirements.
+
+------------------------------------------------------------------------------------------
+
+8. Decoupling from Entity Framework
+
+--> Repositories should not return IQueryable
+
+------------------------------------------------------------------------------------------
+
+--> IVehicleRepository.cs,
+
+using System.Threading.Tasks;
+using Vega.API.Models;
+
+namespace Vega.API.Persistence
+{
+    public interface IVehicleRepository
+    {
+        Task<Vehicle> GetVehicle(int id, bool includeRelated = true)
+        void AddVehicle(Vehicle vehicle);
+        void RemoveVehicle(Vehicle vehicle);
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+--> VehicleRepository.cs
+
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Vega.API.Models;
+
+namespace Vega.API.Persistence
+{
+    public class VehicleRepository : IVehicleRepository
+    {
+        private readonly VegaDbContext context;
+
+        public VehicleRepository(VegaDbContext context)
+        {
+            this.context = context;
+        }
+
+        public async Task<Vehicle> GetVehicle(int id, bool includeRelated = true)
+        {
+            if (!includeRelated)
+                return await context.Vehicles.FindAsync(id);
+
+            return await context.Vehicles
+                        .Include(v => v.Features)
+                            .ThenInclude(vf => vf.Feature)
+                        .Include(v => v.Model)
+                            .ThenInclude(m => m.Make)
+                        .SingleOrDefaultAsync(v => v.Id == id);
+        }
+
+        public void AddVehicle(Vehicle vehicle)
+        {
+            context.Vehicles.Add(vehicle);
+        }
+
+        public void RemoveVehicle(Vehicle vehicle)
+        {
+            context.Vehicles.Remove(vehicle);
+        }
+
+
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+-->  VehiclesController.cs
+
+--> In DeleteVehicle action Method,
+
+repository.GetVehicle(id, includeRelated: false);
+repository.RemoveVehicle(vehicle);	
+
+--> In UpdateVehicle action method,
+
+var vehicle = await repository.GetVehicle(id);
+
+--> In CreateVehicle action method
+
+repository.AddVehicle(vehicle);
+
+------------------------------------------------------------------------------------------
+
+9. The Unit of Work Pattern
+
+--> context.SaveChanges() should not be placed in repository class
+--> Consider following situation:
+
+orderRepository.Add(order)
+orderRepository.Save()
+shippingRepository.Add(shipping)
+shippingRepository.Save();
+
+--> Repeatations of Save
+--> What is one of Save() generate error
+
+--> For transaction purposes, we should implement in separate repository
+--> Such pattern is called Unit of Work Pattern.
+
+------------------------------------------------------------------------------------------
+
+--> IUnitOfWork.cs,
+
+namespace Vega.API.Persistence
+{
+    public interface IUnitOfWork
+    {
+        Task Complete();
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+--> UnitOfWork.cs
+
+namespace Vega.API.Persistence
+{
+    public class UnitOfWork : IUnitOfWork
+    {
+        private readonly VegaDbContext context;
+
+        public UnitOfWork(VegaDbContext context)
+        {
+            this.context = context;
+        }
+
+        public async Task Complete()
+        {
+            await context.SaveChangesAsync();
+        }
+    }
+}
+
+------------------------------------------------------------------------------------------
+
+--> In VehiclesController.cs
+
+public VehiclesController(IMapper mapper,
+                                  IVehicleRepository repository,
+                                  IUnitOfWork unitOfWork
+                                    )
+	{
+            this.repository = repository;
+            this.unitOfWork = unitOfWork;
+            this.mapper = mapper;
+        }
+
+--> Replace all context.SaveChanges() to unitOfWork.Complete()
+
+------------------------------------------------------------------------------------------
+
+10. Fixing small bugs
+
+--> In UpdateVehicle actionMethod
+
+--> First we are getting vehicle from context object
+--> Converting SaveVehicleResource to VehicleResource by mapping object
+--> Save the changes using unitOfWork object
+
+--> Again map from Vehicle to VehicleResource
+
+--> But to populate VehicleResource, we need full details from repo class, so,
+
+            vehicle = await repository.GetVehicle(vehicle.Id);
+
+            var result = mapper.Map<Vehicle, VehicleResource>(vehicle);
+            return Ok(result);
+
+------------------------------------------------------------------------------------------
+
+11. Dependency Inversion Principle
+
+--> High level modules should not depend upon low-level modules
+--> Both should depend upon abstractions.
+
+--> Both Controller and Repository should depend upon interface.
+--> Advantage: We can change implementation or refactor our code
+
+--> This will be useful when changing some implementation, after deploying our application to server.
+--> We do not need to recompile whole application, we just need to compile one namespace
+
+--> If controller and repository are tightly coupled, then we need to recompile whole application again and again deploy to server, which involves risks
+--> If we change something in repository, all coupled classes also needs to recompile.
+
+--> It is called To reduce the impact of changes.
+
+------------------------------------------------------------------------------------------
+
+--> Make a new folder in API project --> Core
+--> Place all models folder and Interfaces in this namespace --> Vega.API.Core
+
+------------------------------------------------------------------------------------------
+
+12. Layers vs Tiers
+
+--> http://bit.ly/layers-misconception
+
+------------------------------------------------------------------------------------------
+
+--> Now one trend that I have seen amongst some developers is that they create these folders PLL which stands
+
+for business logic layer and DHL which stands for data access layer and then they refer to the application
+
+as having three tiered architecture.
+
+
+--> This statement is fundamentally wrong.
+
+
+
+--> For the starter, layers are not tears.
+
+--> 
+Tears are about the physical distribution of your software.
+
+
+--> 
+So when you distribute different pieces of your software to different machines that means you have multi-tiered
+ 
+architecture as an example.
+
+
+--> 
+We have applications often have three tiered architecture so we have the client machine where the browser
+ 
+is running.
+
+--> 
+We have the web server and we have the database server.
+
+
+--> 
+Now of course all of this can be on the same machine but they can also be distributed to different machines.
+
+
+
+--> So this is tears.
+
+
+--> Business Logic tier --> Controller
+--> Data Access tier	--> Repository
+--> Presentation tier	--> Razor View 
+
+------------------------------------------------------------------------------------------
+
+--> Now a layer is something conceptual.
+
+--> 
+It's something in the developers head.
+
+
+--> A folder is another layer.
+
+Neither is a project layer represents a group of classes and packages that share the same responsibility.
+
+
+
+--> So in the classic layer architecture we have the presentation layer we have the business logic layer
+
+and the Data Access Layer.
+
+--> 
+
+Now what I want to point out here is that I think this BLL and DAL folders in your application or
+
+separating your project into multiple projects doesn't mean you have proper clean and de-coupled architecture.
+
+
+
+--> If the high level modules are not dependent upon the low level modules and they both are dependent upon
+ 
+abstractions then yes you can claim that you have a clean de-coupled architecture.
+
+
+--> So these be BLL and DAL folders or separate projects do not stop you from having high level modules that
+
+are dependent upon low level modules.
+
+
+
+--> So what matters here is the direction of dependency between your classes not folders not projects.
 
 
 

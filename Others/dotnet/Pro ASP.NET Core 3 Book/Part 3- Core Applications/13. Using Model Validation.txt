@@ -1,0 +1,2241 @@
+1. Intro
+
+--> In the previous chapter, I showed you how the model binding process creates objects from HTTP requests. 
+--> Throughout that chapter, I simply displayed the data that the application received. 
+
+--> That’s because the data that users provide should not be used until it has been inspected to ensure that the application is able to use it. 
+--> The reality is that users will often enter data that isn’t valid and cannot be used, which leads me to the topic of this chapter: model validation.
+
+----------------------------------------------------------------------------------------
+
+2. Preparing for this chapter
+
+--> Form.cshtml File 
+
+<form asp-action="submitform" method="post" id="htmlform">
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input class="form-control" asp-for="Name" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Price"></label>
+        <input class="form-control" asp-for="Price" />
+    </div>
+    <div class="form-group">
+        <label>CategoryId</label>
+        <input class="form-control" asp-for="CategoryId"  />
+    </div>
+    <div class="form-group">
+        <label>SupplierId</label>
+        <input class="form-control" asp-for="SupplierId"  />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button> 
+</form>
+
+----------------------------------------------------------------------------------------
+
+3. Understanding the Need for Model Validation
+
+--> Model validation is the process of enforcing the requirements that an application has for the data it receives from clients. 
+--> Without validation, an application will try to operate on any data it receives, which can lead to exceptions and unexpected behavior that appear immediately or long-term problems that appear gradually as the database is populated with bad, incomplete, or malicious data.
+
+----------------------------------------------------------------------------------------
+
+4. Explicitly Validating Data in a Controller
+
+--> FormController.cs
+
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+
+        [HttpPost]
+        public IActionResult SubmitForm(Product product) {
+            if (string.IsNullOrEmpty(product.Name)) {
+                ModelState.AddModelError(nameof(Product.Name), "Enter a name");
+            }
+            if (ModelState.GetValidationState(nameof(Product.Price)) == ModelValidationState.Valid && product.Price < 1) {
+                ModelState.AddModelError(nameof(Product.Price),
+                    "Enter a positive price");
+            }
+            if (!context.Categories.Any(c => c.CategoryId == product.CategoryId)) {
+                ModelState.AddModelError(nameof(Product.CategoryId), "Enter an existing category ID");
+            }
+            if (!context.Suppliers.Any(s => s.SupplierId == product.SupplierId)) {
+                ModelState.AddModelError(nameof(Product.SupplierId), "Enter an existing supplier ID");
+            }
+            if (ModelState.IsValid) {
+                TempData["name"] = product.Name;
+                TempData["price"] = product.Price.ToString();
+                TempData["categoryId"] = product.CategoryId.ToString();
+                TempData["supplierId"] = product.SupplierId.ToString();
+                return RedirectToAction(nameof(Results));
+            } else {
+                return View("Form");
+            }
+        }
+
+--> For each of the properties of the Product parameter created, I check to see the value provided by the user and record any errors I find using the ModelStateDictionary object that is returned by the ModelState property inherited from the ControllerBase class.
+
+----------------------------------------------------------------------------------------
+
+--> Selected ModelStateDictionary Members
+
+AddModelError(property, message) - This method is used to record a model validation error for the specified property.
+
+GetValidationState(property) 	 - This method is used to determine whether there are model validation errors for a specific property, expressed as a value from the 				   ModelValidationState enumeration.
+
+IsValid				 - This property returns true if all the model properties are valid and returns false otherwise.	
+
+Clear()				 - This property clears the validation state.
+
+----------------------------------------------------------------------------------------
+
+--> The GetValidationState method returns a value from the ModelValidationState enumeration
+
+Unvalidated	- This value means that no validation has been performed on the model property, usually because there was no value in the request that corresponded to 		  the property name.
+
+Valid		- This value means that the request value associated with the property is valid.
+
+Invalid		- This value means that the request value associated with the property is invalid and should not be used.
+
+Skipped		- This value means that the model property has not been processed, which usually means that there have been so many validation errors that there is no 		  point continuing to perform validation checks.
+
+----------------------------------------------------------------------------------------
+
+--> For the Price property, I check to see whether the model binding process has reported a problem parsing the value sent by the browser into a decimal value, like this:
+
+if (ModelState.GetValidationState(nameof(Product.Price)) == ModelValidationState.Valid, ..)
+
+----------------------------------------------------------------------------------------
+
+5. Displaying Validation Errors to the User
+
+--> It may seem odd to deal with a validation error by calling the View method, but the context data provided to the view contains details of the model validation errors; these details are used by the tag helper to transform the input elements. 
+
+--> Html input elements are transformed to: <input class="form-control input-validation-error" type="text" id="Name" name="Name" value="">
+
+--> The tag helper adds elements whose values have failed validation to the input-validation-error class, which can then be styled to highlight the problem to the user.
+
+----------------------------------------------------------------------------------------
+
+--> You can do this by defining custom CSS styles in a stylesheet, but a little extra work is required if you want to use the built-in validation styles that CSS libraries like Bootstrap provides. 
+
+--> The name of the class added to the input elements cannot be changed, which means that some JavaScript code is required to map between the name used by ASP.NET Core and the CSS error classes provided by Bootstrap.
+
+--> add a file named _Validation.cshtml to the Views/Shared folder 
+
+<script src="/lib/jquery/jquery.min.js"></script> <script type="text/javascript">
+    $(document).ready(function () {
+        $("input.input-validation-error").addClass("is-invalid");
+    }); 
+</script>
+
+--> Include this script in _layout.cshtml
+
+<partial name="_Validation" />
+
+----------------------------------------------------------------------------------------
+
+6. Displaying Validation Messages
+
+--> The CSS classes that the tag helpers apply to input elements indicate that there are problems with a form field, but they do not tell the user what the problem is.
+--> Providing the user with more information requires the use of a different tag helper, which adds a summary of the problems to the view
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+--> The ValidationSummaryTagHelper class detects the asp-validation-summary attribute on div elements and responds by adding messages that describe any validation errors that have been recorded. 
+
+--> The value of the asp-validation-summary attribute is a value from the ValidationSummary enumeration, which defines the values
+
+----------------------------------------------------------------------------------------
+
+--> The ValidationSummary Values
+
+All	   - This value is used to display all the validation errors that have been recorded.
+
+ModelOnly  - This value is used to display only the validation errors for the entire model, excluding those that have been recorded for individual properties, as 	     described in the “Displaying Model-Level Messages” section.
+
+None	   - This value is used to disable the tag helper so that it does not transform the HTML element.
+
+----------------------------------------------------------------------------------------
+
+7. Configuring the Default Validation Error Messages
+
+--> The model binder has a set of predefined messages that it uses for validation errors. 
+--> These can be replaced with custom messages using the methods defined by the DefaultModelBindingMessageProvider class
+
+--> The DefaultModelBindingMessageProvider Methods
+
+SetValueMustNotBeNullAccessor 		- The function assigned to this property is used to generate a validation error message when a value is null for a model 					  property that is non-nullable.
+
+SetMissingBindRequiredValueAccessor 	- The function assigned to this property is used to generate a validation error message when the request does not contain a 					  value for a required property.
+
+SetMissingKeyOrValueAccessor 		- The function assigned to this property is used to generate a validation error message when the data required for dictionary 					  model object contains null keys or values.
+
+SetAttemptedValueIsInvalidAccessor	- The function assigned to this property is used to generate a validation error message when the model binding system cannot 						  convert the data value into the required C# type.
+
+SetUnknownValueIsInvalidAccessor 	- The function assigned to this property is used to generate a validation error message when the model binding system cannot 					  	  convert the data value into the required C# type.
+
+SetValueMustBeANumberAccessor 		- The function assigned to this property is used to generate a validation error message when the data value cannot be parsed 				 	   	  into a C# numeric type.
+
+SetValueIsInvalidAccessor		- The function assigned to this property is used to generate a fallback validation error message that is used as a last resort.
+
+----------------------------------------------------------------------------------------
+
+--> Each of the methods described in the table accepts a function that is invoked to get the validation message to display to the user. 
+--> These methods are applied through the options pattern in the Startup class, as shown in Listing 29-9, in which I have replaced the default message that is displayed when a value is null or cannot be converted.
+
+using Microsoft.AspNetCore.Mvc;
+
+            services.Configure<MvcOptions>(opts => opts.ModelBindingMessageProvider
+                .SetValueMustNotBeNullAccessor(value => "Please enter a value"));
+
+--> The function that you specify receives the value that the user has supplied, although that is not especially useful when dealing with null values.
+
+----------------------------------------------------------------------------------------
+
+8. Displaying Property-Level Validation Messages
+
+--> Although the custom error message is more meaningful than the default one
+--> This can be done using the ValidationMessageTag tag helper, which looks for span elements that have the asp-validation-for attribute
+
+--> For this kind of error, it is more useful to display the validation error messages alongside the HTML elements that contain the problem data. 
+
+<div><span asp-validation-for="Name" class="text-danger"></span></div>
+<div><span asp-validation-for="Price" class="text-danger"></span></div>
+<div><span asp-validation-for="CategoryId" class="text-danger"></span></div>
+
+----------------------------------------------------------------------------------------
+
+9. Displaying Model-Level Messages
+
+--> It may seem that the validation summary message is superfluous because it duplicates the property-level messages. 
+--> But the summary has a useful trick, which is the ability to display messages that apply to the entire model 
+
+--> Changes the value of the asp-validation-summary attribute to ModelOnly, which excludes property-level errors, meaning that the summary will display only those errors that apply to the entire model
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+----------------------------------------------------------------------------------------
+
+10. Specifying Validation Rules Using Metadata
+
+--> One problem with putting validation logic into an action method is that it ends up being duplicated in every action or handler method that receives data from the user. 
+
+--> To help reduce duplication, the validation process supports the use of attributes to express model validation rules directly in the model class, ensuring that the same set of validation rules will be applied regardless of which action method is used to process a request. 
+
+--> In Listing 29-14, I have applied attributes to the Product class to describe the validation required for the Name and Price properties.
+
+	[Required]
+        [Display(Name = "Name")]
+        public string Name { get; set; }
+
+        [Column(TypeName = "decimal(8, 2)")]
+        [Required(ErrorMessage = "Please enter a price")]
+        [Range(1, 999999, ErrorMessage = "Please enter a positive price")]
+        public decimal Price { get; set; }
+
+----------------------------------------------------------------------------------------
+
+--> The Built-in Validation Attributes
+
+Compare		 - [Compare("OtherProperty")]
+
+Range		 - [Range(10, 20)]
+
+RegularExpression- [RegularExpression("pattern")]
+
+Required	 - [Required]	- This attribute ensures that the value is not empty or a string consisting only of spaces. 
+				  If you want to treat whitespace as valid, use [Required(AllowEmptyStrings = true)].
+
+StringLength	 - [StringLength(10)]
+
+----------------------------------------------------------------------------------------
+
+--> All the validation attributes support specifying a custom error message by setting a value for the ErrorMessage property
+
+[Required(ErrorMessage = "Please enter a price")] 
+[Range(1, 999999, ErrorMessage = "Please enter a positive price")]
+
+----------------------------------------------------------------------------------------
+
+--> If there is no custom error message, then the default messages will be used, but they tend to reveal details of the model class that will make no sense to the user unless you also use the Display attribute,
+
+[Display(Name = "Name")] 
+
+----------------------------------------------------------------------------------------
+
+--> VALIDATION WORK AROUNDS
+
+--> getting the validation results you require can take some care when using the validation attributes. 
+
+--> For example, you cannot use the Required attribute if you want to ensure that a user has checked a checkbox because the browser will send a false value when the checkbox is unchecked, which will always pass the checks applied by the Required attribute. 
+
+--> Instead, use the Range attribute and specify the minimum and maximum values as true, like this: 
+... 
+[Range(typeof(bool), "true", "true", ErrorMessage="You must check the box")] ...
+
+--> If this sort of workaround feels uncomfortable, then you can create custom validation attributes, as described in the next section.
+
+----------------------------------------------------------------------------------------
+
+--> UNDERSTANDING WEB SERVICE CONTROLLER VALIDATION
+
+--> Controllers that have been decorated with the ApiController attribute do not need to check the ModelState.IsValid property. 
+--> Instead, the action method is invoked only if there are no validation errors, which means you can always rely on receiving validated objects through the model binding feature. 
+
+--> If any validation errors are detected, then the request is terminated, and an error response is sent to the browser.
+
+----------------------------------------------------------------------------------------
+
+11. Creating a Custom Property Validation Attribute
+
+--> The validation process can be extended by creating an attribute that extends the ValidationAttribute class. 
+--> To demonstrate, I created the WebApp/Validation folder and added to it a class file named PrimaryKeyAttribute.cs
+
+using Microsoft.EntityFrameworkCore; 
+using System; 
+using System.ComponentModel.DataAnnotations;
+
+namespace WebApp.Validation {
+
+    public class PrimaryKeyAttribute : ValidationAttribute {
+
+        public Type ContextType { get; set; }
+
+        public Type DataType { get; set; }
+
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext) {
+            DbContext context = validationContext.GetService(ContextType) as DbContext;
+            if (context.Find(DataType, value) == null) {
+                return new ValidationResult(ErrorMessage ?? "Enter an existing key value");
+            } else {
+                return ValidationResult.Success;
+            }
+        }
+    }
+}
+
+----------------------------------------------------------------------------------------
+
+--> Custom attributes override the IsValid method, which is called with the value to check, and a ValidationContext object that provides context about the validation process and provides access to the application’s services through its GetService method.
+
+--> In Listing 29-16, the custom attribute receives the type of an Entity Framework Core database context class and the type of a model class. 
+--> In the IsValid method, the attribute obtains an instance of the context class and uses it to query the database to determine whether the value has been used as a primary key value
+
+----------------------------------------------------------------------------------------
+
+--> Custom validation attributes can also be used to perform model-level validation. 
+--> To demonstrate, I added a class file named PhraseAndPriceAttribute.cs to the Validation folder
+
+using System; 
+using System.ComponentModel.DataAnnotations; 
+using WebApp.Models;
+
+namespace WebApp.Validation {
+
+    public class PhraseAndPriceAttribute: ValidationAttribute {
+
+        public string Phrase { get; set; }
+
+        public string Price { get; set; }
+
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext) {
+            Product product = value as Product;
+            if (product != null 
+		&& product.Name.StartsWith(Phrase, StringComparison.OrdinalIgnoreCase)
+                && product.Price > decimal.Parse(Price)) 
+
+		{
+                    return new ValidationResult(ErrorMessage ?? $"{Phrase} products cannot cost more than ${Price}");
+            }
+            return ValidationResult.Success;
+        }
+    } 
+}
+
+--> This attribute is configured with Phrase and Price properties, which are used in the IsValid method to check the Name and Price properties of the model object. --> Property-level custom validation attributes are applied directly to the properties they validate, and model-level attributes are applied to the entire class
+
+----------------------------------------------------------------------------------------
+
+--> Applying Custom Validation Attributes in the Product.cs File in the Models Folder
+
+using WebApp.Validation;
+
+namespace WebApp.Models {
+
+    [PhraseAndPrice(Phrase ="Small", Price = "100")]
+    public class Product {
+
+    	[PrimaryKey(ContextType= typeof(DataContext), DataType = typeof(Category))]
+        public long CategoryId { get; set; }
+
+        [PrimaryKey(ContextType = typeof(DataContext), DataType = typeof(Category))]
+        public long SupplierId { get; set; }
+
+
+--> The custom attributes allow the remaining explicit validation statements to be removed from the Form controller’s action
+--> The validation attributes are applied automatically before the action method is invoked, which means that the validation outcome can be determined simply by reading the ModelState.IsValid property.
+
+----------------------------------------------------------------------------------------
+
+12. Performing Client-Side Validation
+
+--> The validation techniques I have demonstrated so far have all been examples of server-side validation. 
+--> This means the user submits their data to the server, and the server validates the data and sends back the results of the validation 
+
+--> In web applications, users typically expect immediate validation feedback—without having to submit anything to the server. 
+--> This is known as client-side validation and is implemented using JavaScript. 
+
+--> The data that the user has entered is validated before being sent to the server, providing the user with immediate feedback and an opportunity to correct any problems.
+
+--> ASP.NET Core supports unobtrusive client-side validation. 
+--> The term unobtrusive means that validation rules are expressed using attributes added to the HTML elements that views generate. 
+
+--> These attributes are interpreted by a JavaScript library distributed by Microsoft that, in turn, configures the jQuery Validation library, which does the actual validation work.
+
+----------------------------------------------------------------------------------------
+
+--> The first step is to install the JavaScript packages that deal with validation
+
+libman install jquery-validate@1.19.1 -d wwwroot/lib/jquery-validate 
+libman install jquery-validation-unobtrusive@3.2.11 -d wwwroot/lib/jquery-validation-unobtrusive
+
+----------------------------------------------------------------------------------------
+
+--> Include in _Layout.cshtml
+
+<script src="/lib/jquery/jquery.min.js"></script> 
+<script src="~/lib/jquery-validate/jquery.validate.min.js"></script> 
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"> </script> 
+
+----------------------------------------------------------------------------------------
+
+--> The JavaScript code looks for elements with the data-val attribute and performs local validation in the browser when the user submits the form, without sending an HTTP request to the server.
+
+--> One of the nice client-side validation features is that the same attributes that specify validation rules are applied at the client and at the server. 
+--> This means that data from browsers that do not support JavaScript are subject to the same validation as those that do, without requiring any additional effort.
+
+----------------------------------------------------------------------------------------
+
+13. Performing Remote Validation
+
+--> The validation checking is performed by sending an asynchronous HTTP request to the application to test the value entered into the form by the user.
+--> Common example: Validation for unique username or unique email
+
+--> I added a class file named ValidationController.cs to the Controllers folder 
+
+using Microsoft.AspNetCore.Mvc; using WebApp.Models;
+namespace WebApp.Controllers {
+
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ValidationController: ControllerBase {
+
+        private DataContext dataContext;
+
+        public ValidationController(DataContext context) {
+            dataContext = context;
+        }
+
+        [HttpGet("categorykey")]
+        public bool CategoryKey(string categoryId) {
+            long keyVal;
+            return long.TryParse(categoryId, out keyVal) && dataContext.Categories.Find(keyVal) != null;
+        }
+
+        [HttpGet("supplierkey")]
+        public bool SupplierKey(string supplierId) {
+            long keyVal;
+            return long.TryParse(supplierId, out keyVal) && dataContext.Suppliers.Find(keyVal) != null;
+        }
+    } 
+}
+
+
+----------------------------------------------------------------------------------------
+
+--> Validation action methods must define a parameter whose name matches the field they will validate, which allows the model binding process to extract the value to test from the request query string. 
+
+--> The response from the action method must be JSON and can be only true or false, indicating whether a value is acceptable. 
+--> The action methods in Listing 29-23 receive candidate values and check they have been used as database keys for Category or Supplier objects
+
+----------------------------------------------------------------------------------------
+
+--> Tip: i could have taken advantage of model binding so that the parameter to the action methods would be converted to a long value, 
+but doing so would mean that the validation method wouldn’t be called if the user entered a value that cannot be converted to the long 
+type. if the model binder cannot convert a value, then the MVC Framework is unable to invoke the action method and validation can’t be performed. as a rule, the best approach to remote validation is to accept a string parameter in the action method and perform any type conversion, parsing, or model binding explicitly.
+
+----------------------------------------------------------------------------------------
+
+--> To use the remote validation method, I apply the Remote attribute to the CategoryId and SupplierId properties in the Product class
+
+[Remote("CategoryKey", "Validation", ErrorMessage = "Enter an existing key")]
+public long CategoryId { get; set; }
+
+[Remote("SupplierKey", "Validation", ErrorMessage = "Enter an existing key")]
+public long SupplierId { get; set; }
+
+--> The arguments to the Remote attribute specify the name of the validation controller and its action method. 
+--> I have also used the optional ErrorMessage argument to specify the error message that will be displayed when validation fail
+
+----------------------------------------------------------------------------------------
+
+--> Caution
+
+the validation action method will be called when the user first submits the form and again each time the data is edited. For text input elements, every keystroke will lead to a call to the server. For some applications, this can be a significant number of requests and must be accounted for when specifying the server capacity and bandwidth that an application requires in production. also, you might choose not to use remote validation for properties that are expensive to validate (the example repeatedly queries the database for key values, which may not be sensible for all applications or databases).
+
+----------------------------------------------------------------------------------------
+
+14. Performing Remote Validation in Razor Pages
+
+--> Remote validation works in Razor Pages, but attention must be paid to the names used in the asynchronous HTTP request used to validate values. For the controller example in the previous section, the browser will send requests to URLs like this:
+
+http://localhost:5000/api/Validation/categorykey?CategoryId=1
+
+--> But for the example Razor Page, the URL will be like this, reflecting the use of the page model:
+
+http://localhost:5000/api/Validation/categorykey?Product.CategoryId=1
+
+--> The way I prefer to address this difference is by adding parameters to the validation action methods that will accept both types of request, which is easy to do using the model binding features 
+
+----------------------------------------------------------------------------------------
+
+--> Adding Parameters in the ValidationController.cs File in the Controllers Folder
+
+using Microsoft.AspNetCore.Mvc; using WebApp.Models;
+namespace WebApp.Controllers {
+
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ValidationController: ControllerBase {
+
+        private DataContext dataContext;
+
+        public ValidationController(DataContext context) {
+            dataContext = context;
+        }
+
+        [HttpGet("categorykey")]
+        public bool CategoryKey(string categoryId, [FromQuery] KeyTarget target) {
+            long keyVal;
+            return long.TryParse(categoryId ?? target.CategoryId, out keyVal)
+                && dataContext.Categories.Find(keyVal) != null;
+        }
+
+        [HttpGet("supplierkey")]
+        public bool SupplierKey(string supplierId, [FromQuery] KeyTarget target) {
+            long keyVal;
+            return long.TryParse(supplierId ?? target.SupplierId, out keyVal)
+                && dataContext.Suppliers.Find(keyVal) != null;
+        }
+    }
+
+    [Bind(Prefix = "Product")]
+    public class KeyTarget {
+        public string CategoryId { get; set; }
+        public string SupplierId{ get; set; }
+    }
+}
+
+--> The KeyTarget class is configured to bind to the Product part of the request, with properties that will match the two types of remote validation request. Each action method has been given a KeyTarget parameter, which is used if no value is received for existing parameters. This allows the same action method to accommodate both types of request, which you can see by restarting ASP.NET Core, navigating to http://localhost:5000/pages/form, entering a nonexistent key value, and clicking the Submit button, which will produce the response 
+
+----------------------------------------------------------------------------------------
+
+15. Summary
+
+--> I described the ASP.NET Core data validation features. 
+--> I explained how to explicitly perform validation, how to use attributes to describe validation constraints, and how to validate individual properties and entire objects. 
+
+--> I showed you how to display validation messages to the user and how to improve the user’s experience of validation with client-side and remote validation.
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+

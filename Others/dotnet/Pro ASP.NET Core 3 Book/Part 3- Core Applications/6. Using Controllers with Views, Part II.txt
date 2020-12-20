@@ -1,0 +1,2044 @@
+----------------------------------------------------------------------------------------
+
+1. Intro
+
+--> In this chapter, I describe more of the features provided by Razor views. 
+
+--> I show you how to pass additional data to a view using the view bang and how to use layouts and layout sections to reduce duplication. 
+--> I also explain how the results from expressions are encoded and how to disable the encoding process. 
+
+----------------------------------------------------------------------------------------
+
+2. Preparing for this Chapter
+
+--> Startup.cs
+
+            services.AddDistributedMemoryCache();
+            services.AddSession(options => {
+                options.Cookie.IsEssential = true;
+            });
+
+        public void Configure(IApplicationBuilder app, DataContext context) {
+            app.UseDeveloperExceptionPage();
+            app.UseStaticFiles();
+            app.UseSession();
+	    app.UseRouting();
+	    app.UseEndpoints(..);
+
+--> We are using the same HomeController.cs
+
+----------------------------------------------------------------------------------------
+
+3. Using the View Bag
+
+--> Action methods provide views with data to display with a view model, but sometimes additional information is required. 
+--> Action methods can use the view bag to provide a view with extra data
+
+        public async Task<IActionResult> Index(long id = 1) {
+            ViewBag.AveragePrice = await context.Products.AverageAsync(p => p.Price);
+            return View(await context.Products.FindAsync(id));
+        }
+
+--> The ViewBag property is inherited from the Controller base class and returns a dynamic object. 
+
+--> This allows action methods to create new properties just by assigning values to them, as shown in the listing. 
+--> The values assigned to the ViewBag property by the action method are available to the view through a property also called ViewBag
+
+----------------------------------------------------------------------------------------
+
+--> Index.cshtml
+
+                    <td>
+                        @Model.Price.ToString("c")
+                        (@(((Model.Price / ViewBag.AveragePrice)
+                            * 100).ToString("F2"))% of average price)
+                    </td>
+
+--> The ViewBag property conveys the object from the action to the view, alongside the view model object.
+
+----------------------------------------------------------------------------------------
+
+4. Using Temp Data
+
+--> The temp data feature allows a controller to preserve data from one request to another, which is useful when performing redirections. 
+--> Temp data is stored using a cookie unless session state is enabled when it is stored as session data. 
+
+--> Unlike session data, temp data values are marked for deletion when they are read and removed when the request has been processed. 
+
+----------------------------------------------------------------------------------------
+
+--> Add a class file called CubedController.cs 
+
+using Microsoft.AspNetCore.Mvc; 
+using System;
+
+namespace WebApp.Controllers {
+
+    public class CubedController: Controller {
+
+        public IActionResult Index() {
+            return View("Cubed");
+        }
+
+        public IActionResult Cube(double num) {
+            TempData["value"] = num.ToString();
+            TempData["result"] = Math.Pow(num, 3).ToString();
+            return RedirectToAction(nameof(Index));
+        }
+    } 
+}
+
+--> The Cubed controller defines an Index method that selects a view named Cubed. 
+--> There is also a Cube action, which relies on the model binding process to obtain a value for its num parameter from the request. 
+
+--> The Cubed action method performs its calculation and stores the num value and the calculation result using TempData property, which returns a dictionary that is used to store key/value pairs.  
+
+--> Since the temp data feature is built on top of the sessions feature, only values that can be serialized to strings can be stored, which is why I convert both double values to strings in Listing 22-7. 
+
+--> Once the values are stored as temp data, the Cube method performs a redirection to the Index method
+
+----------------------------------------------------------------------------------------
+
+--> Cubed.cshtml 
+
+<!DOCTYPE html> 
+<html> 
+<head>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" /> </head> 
+<body>
+    <h6 class="bg-secondary text-white text-center m-2 p-2">Cubed</h6>
+    <form method="get" action="/cubed/cube" class="m-2">
+        <div class="form-group">
+            <label>Value</label>
+            <input name="num" class="form-control" value="@(TempData["value"])" />
+        </div>
+        <button class="btn btn-primary" type="submit">Submit</button>
+    </form>
+    @if (TempData["result"] != null) {
+        <div class="bg-info text-white m-2 p-2">
+            The cube of @TempData["value"] is @TempData["result"]
+        </div>
+    } 
+</body> 
+</html>
+
+----------------------------------------------------------------------------------------
+
+--> The base class used for Razor views provides access to the temp data through a TempData property, allowing values to be read within expressions. 
+--> In this case, temp data is used to set the content of an input element and display a results summary. 
+
+--> Reading a temp data value doesn’t remove it immediately, which means that values can be read repeatedly in the same view. 
+--> It is only once the request has been processed that the marked values are removed.
+
+--> To see the effect, restart ASP.NET Core, use a browser to navigate to http://localhost:5000/cubed, enter a value into the form field, and click the Submit button. --> The browser will send a request that will set the temp data and trigger the redirection. 
+
+--> The temp data values are preserved for the new request, and the results are displayed to the user. 
+--> But reading the data values marks them for deletion, and if you reload the browser, the contents of the input element and the results summary are no longer displayed.
+
+----------------------------------------------------------------------------------------
+
+--> Tips:
+
+--> The object returned by the TempData property provides a Peek method, which allows you to get a data value without marking it for deletion, and a Keep method, which can be used to prevent a previously read value from being deleted. 
+
+--> The Keep method doesn’t protect a value forever. 
+--> If the value is read again, it will be marked for removal once more. 
+
+--> Use session data if you want to store items so that they won’t be removed when the request is processed. 
+
+----------------------------------------------------------------------------------------
+
+5. USING THE TEMP DATA ATTRIBUTE
+
+--> Controllers can define properties that are decorated with the TempData attribute, which is an alternative to using the TempData property, like this:
+
+using Microsoft.AspNetCore.Mvc; 
+using System;
+
+namespace WebApp.Controllers {
+    public class CubedController: Controller {
+        public IActionResult Index() {
+            return View("Cubed");
+        }
+        public IActionResult Cube(double num) {
+            Value = num.ToString();
+            Result = Math.Pow(num, 3).ToString();
+            return RedirectToAction(nameof(Index));
+        }
+        [TempData]
+        public string Value { get; set; }
+        [TempData]
+        public string Result { get; set; }
+    } 
+}
+
+--> The values assigned to these properties are automatically added to the temp data store, and there is no difference in the way they are accessed in the view. 
+--> My preference is to use the TempData dictionary to store values because it makes the intent of the action method obvious to other developers.
+--> However, both approaches are entirely valid, and choosing between them is a matter of preference.
+
+----------------------------------------------------------------------------------------
+
+6. Working with Layouts
+
+--> The views in the example application contain duplicate elements that deal with setting up the HTML document, defining the head section, loading the Bootstrap CSS file, and so on. Razor supports layouts, which avoid this sort of duplication by consolidating common content in a single file that can be used by any view.
+
+----------------------------------------------------------------------------------------
+
+--> _Layout.cshtml
+
+<!DOCTYPE html> <html> 
+<head>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" /> </head> 
+<body>
+    <h6 class="bg-primary text-white text-center m-2 p-2">Shared View</h6>
+    @RenderBody() 
+</body> 
+</html>
+
+----------------------------------------------------------------------------------------
+
+--> The layout contains the common content that will be used by multiple views. 
+--> The content that is unique to each view is inserted into the response by calling the RenderBody method, which is inherited by the RazorPage<T> class
+
+----------------------------------------------------------------------------------------
+
+--> Index.cshtml
+
+@model Product 
+@{
+    Layout = "_Layout"; 
+} 
+
+----------------------------------------------------------------------------------------
+
+7. Configuring Layouts Using the View Bag
+
+--> The view can provide the layout with data values, allowing the common content provided by the view to be customized. 
+--> The view bag properties are defined in the code block that selects the layout
+
+@model Product @{
+    Layout = "_Layout";
+    ViewBag.Title = "Product Table"; 
+}
+
+----------------------------------------------------------------------------------------
+
+--> _Layout.cshtml 
+
+<head>
+    <title>@ViewBag.Title</title>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" /> </head> 
+<body>
+    <h6 class="bg-primary text-white text-center m-2 p-2">
+        @(ViewBag.Title ?? "Layout")
+    </h6>
+    ..
+
+----------------------------------------------------------------------------------------
+
+8. Using a View Start File
+
+--> Instead of setting the Layout property in every view, you can add a view start file to the project that provides a default Layout value. 
+--> _ViewStart.cshtml
+
+@{
+    Layout = "_Layout"; 
+}
+
+----------------------------------------------------------------------------------------
+
+9. Overriding the Default Layout
+
+@model Product @{
+    Layout = "_ImportantLayout";
+    ViewBag.Title = ViewBag.Title ?? "Product Table"; 
+}
+
+or
+ 
+--> If you need to use a different layout for all the actions of a single controller, then add a view start file to the Views/ [controller] folder that selects the view you require. 
+--> The razor engine will use the layout specified by the controller-specific view  start file.
+
+----------------------------------------------------------------------------------------
+
+10. SELECTING A LAYOUT PROGRAMMATICALLY
+
+@model Product @{
+    Layout = Model.Price > 100 ? "_ImportantLayout" : "_Layout";
+    ViewBag.Title = ViewBag.Title ?? "Product Table"; 
+} 
+
+----------------------------------------------------------------------------------------
+
+11. Disabling Layouts
+
+@model IEnumerable<Product> 
+@{
+    Layout = null; 
+} 
+
+----------------------------------------------------------------------------------------
+
+12. Using Layout Sections
+
+--> The Razor view engine supports the concept of sections, which allow you to provide regions of content within a layout. 
+--> Razor sections give greater control over which parts of the view are inserted into the layout and where they are placed.
+
+----------------------------------------------------------------------------------------
+
+-->  Index.cshtml 
+
+@model Product 
+
+@{
+    Layout = "_Layout";
+    ViewBag.Title = ViewBag.Title ?? "Product Table"; 
+}
+
+@section Header {
+    Product Information 
+}
+
+<tr>
+    <th>Name</th>
+        <td>@Model.Name</td></tr> <tr>
+    <th>Price</th>
+    <td>@Model.Price.ToString("c")</td> 
+</tr> 
+<tr><th>Category ID</th><td>@Model.CategoryId</td></tr>
+
+@section Footer {
+    @(((Model.Price / ViewBag.AveragePrice)
+        * 100).ToString("F2"))% of average price 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Sections are defined using the Razor @section expression followed by a name for the section. 
+--> Listing 22-19 defines sections named Header and Footer, and sections can contain the same mix of HTML content and expressions, just like the main part of the view. Sections are applied in a layout with the @RenderSection expression
+
+----------------------------------------------------------------------------------------
+
+--> _Layout.cshtml File
+
+<!DOCTYPE html> <html> 
+<head>
+    <title>@ViewBag.Title</title>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" /> 
+</head> 
+
+<body>
+    <div class="bg-info text-white m-2 p-1">
+        This is part of the layout
+    </div>
+
+    <h6 class="bg-primary text-white text-center m-2 p-2">
+        @RenderSection("Header")
+    </h6>
+
+    <div class="bg-info text-white m-2 p-1">
+        This is part of the layout
+    </div>
+
+    <div class="m-2">
+        <table class="table table-sm table-striped table-bordered">
+            <tbody>
+                @RenderBody()
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-info text-white m-2 p-1">
+        This is part of the layout
+    </div>
+
+    <h6 class="bg-primary text-white text-center m-2 p-2">
+        @RenderSection("Footer")
+    </h6>
+
+    <div class="bg-info text-white m-2 p-1">
+        This is part of the layout
+    </div> 
+
+</body> 
+</html>
+
+--> When the layout is applied, the RenderSection expression inserts the content of the specified section into the response. 
+--> The regions of the view that are not contained within a section are inserted into the response by the RenderBody method. 
+
+----------------------------------------------------------------------------------------
+
+13. Using Optional Layout Sections
+
+--> By default, a view must contain all the sections for which there are RenderSection calls in the layout, and an exception will be thrown if the layout requires a section that the view hasn’t defined.
+
+--> Adding a Section in the _Layout.cshtml
+
+@RenderSection("Summary")
+
+--> There are two ways to solve this problem. 
+--> The first is to create an optional section, which will be rendered only if it is defined by the view. 
+--> Optional sections are created by passing a second argument to the RenderSection method
+
+----------------------------------------------------------------------------------------
+
+--> _Layout.cshtml File
+
+@RenderSection("Header", false)
+@RenderSection("Footer", false)
+@RenderSection("Summary", false)
+
+----------------------------------------------------------------------------------------
+
+14. Testing for Layout Sections
+
+--> The IsSectionDefined method is used to determine whether a view defines a specified section and can be used in an if expression to render fallback content
+--> _Layout.cshtml
+
+    @if (IsSectionDefined("Summary")) {
+        @RenderSection("Summary", false)
+    } else {
+        <div class="bg-info text-center text-white m-2 p-2">
+            This is the default summary
+        </div>
+    }
+
+----------------------------------------------------------------------------------------
+
+15. Using Partial Views
+
+--> You will often need to use the same set of HTML elements and expressions in several different places. 
+--> Partial views are views that contain fragments of content that will be included in other views to produce complex responses without duplication. 
+
+----------------------------------------------------------------------------------------
+
+--> Enabling Partial Views
+
+--> Partial views are applied using a feature called tag helpers
+--> Tag helpers are configured in the view imports file
+
+--> To enable the feature required for partial views, add the statement shown in Listing 22-25 to the _ViewImports.cshtml file. 
+
+@using WebApp.Models 
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+----------------------------------------------------------------------------------------
+
+16. Creating a Partial View
+
+--> _RowPartial.cshtml File 
+
+@model Product
+<tr>
+    <td>@Model.Name</td>
+    <td>@Model.Price</td> 
+</tr>
+
+----------------------------------------------------------------------------------------
+
+--> Applying a Partial View
+
+--> Partial views are applied by adding a partial element in another view or layout.
+--> List.cshtml File
+
+..
+            <tbody>
+                @foreach (Product p in Model) {
+                    <partial name="_RowPartial" model="p" />
+                }
+            </tbody>
+..
+
+----------------------------------------------------------------------------------------
+
+17. The partial Element Attributes
+
+name		- This property specifies the name of the partial view, which is located using the same search process as regular views.
+model		- This property specifies the value that will be used as the view model object for the partial view.
+for		- This property is used to define an expression that selects the view model object for the partial view, as explained next.
+view-data	- This property is used to provide the partial view with additional data.
+
+----------------------------------------------------------------------------------------
+
+18. USING THE HTML HELPER TO APPLY PARTIAL VIEWS
+
+--> In earlier versions of asp.net Core, partial views were applied using the Html property that is added to the C# class generated from the view
+--> The object returned by the Html property implements the IHtmlHelper interface, through which views can be applied, like this:
+... @Html.Partial("_RowPartial")
+
+--> This type of expression works and is still supported, but the partial element provides a more elegant approach that is consistent with the rest of the htMl elements in the view.
+
+----------------------------------------------------------------------------------------
+
+19. Selecting the Partial View Model Using an Expression
+
+--> The for attribute is used to set the partial view’s model using an expression that is applied to the view’s model, which is a feature more easily demonstrated than described.
+
+----------------------------------------------------------------------------------------
+
+--> Add a partial view named _CellPartial.cshtml 
+
+@model string
+<td class="bg-info text-white">@Model</td>
+
+----------------------------------------------------------------------------------------
+
+--> This partial view has a string view model object, which it uses as the contents of a table cell element; the table cell element is styled using the Bootstrap CSS framework. 
+
+--> I have added a partial element to the _RowPartial.cshtml file that uses the _CellPartial partial view to display the table cell for the name of the Product object.
+
+----------------------------------------------------------------------------------------
+
+--> _RowPartial.cshtml File
+
+@model Product
+<tr>
+    <partial name="_CellPartial" for="Name" />
+    <td>@Model.Price</td> 
+</tr>
+
+--> The for attribute selects the Name property as the model for the _CellPartial partial view. 
+
+----------------------------------------------------------------------------------------
+
+20. USING TEMPLATED DELEGATES
+
+--> Templated delegates are an alternative way of avoiding duplication in a view. 
+--> Templated delegates are defined in a code block, like this:
+
+... @{
+    Func<Product, object> row
+        = @<tr><td>@item.Name</td><td>@item.Price</td></tr>; } 
+...
+
+--> The template is a function that accepts a Product input object and returns a dynamic result. w
+--> Within the template expression, the input object is referred to as item in expressions. 
+
+--> The templated delegate is invoked as a method expression to generate content.
+... 
+<tbody>
+    @foreach (Product p in Model) {
+        @row(p)
+    } 
+</tbody>
+
+----------------------------------------------------------------------------------------
+
+21. Understanding Content-Encoding
+
+--> Razor views provide two useful features for encoding content. 
+
+--> The HTML content-encoding feature ensures that expression responses don’t change the structure of the response sent to the browser, which is an important security feature. 
+
+--> The JSON encoding feature encodes an object as JSON and inserts it into the response, which can be a useful debugging feature and can also be useful when providing data to JavaScript applications. 
+
+----------------------------------------------------------------------------------------
+
+22. Understanding HTML Encoding
+
+--> The Razor view engine encodes expression results to make them safe to include in an HTML document without changing its structure. 
+--> This is an important feature when dealing with content that is provided by users, who may try to subvert the application or accidentally enter dangerous content.
+
+----------------------------------------------------------------------------------------
+
+--> HomeController.cs        
+
+	public IActionResult Html() {
+            return View((object)"This is a <h3><i>string</i></h3>");
+        }
+
+--> Notice that i cast the string passed to the View method as an object, without which the string is assumed to be the name of a view and not the view model object.
+
+----------------------------------------------------------------------------------------
+
+--> Html.cshtml
+
+@model string 
+@{
+    Layout = null; 
+} 
+<!DOCTYPE html> <html> 
+<head>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" /> 
+</head> 
+<body>
+    <div class="bg-secondary text-white text-center m-2 p-2">@Model</div> 
+</body> 
+</html>
+
+----------------------------------------------------------------------------------------
+
+--> The response, shows how the potentially dangerous characters in the view model string have been escaped.
+--> To include the result of an expression without safe encoding, you can invoke the Html.Raw method. 
+
+--> The Html property is one of the properties added to the generated view class, which returns an object that implements the IHtmlHelper interface
+
+----------------------------------------------------------------------------------------
+
+--> Disabling Encoding
+
+<div class="bg-secondary text-white text-center m-2 p-2">@Html.Raw(Model)</div>
+
+--> Now it is then interpreted by the browser as part of the HTML document,
+
+----------------------------------------------------------------------------------------
+
+23. Understanding JSON Encoding
+
+--> The Json property, which is added to the class generated from the view, can be used to encode an object as JSON. 
+
+--> The most common use for JSON data is in RESTful web services, as described in earlier chapters, but I find the Razor JSON encoding feature useful as a debugging aid when I don’t get the output I expect from a view. 
+
+--> Listing 22-33 adds a JSON representation of the view model object to the output produced by the Index view. 
+
+
+----------------------------------------------------------------------------------------
+
+--> Index.cshtml
+
+@section Summary {
+    <div class="bg-info text-white m-2 p-2">
+        @Json.Serialize(Model)
+    </div> 
+}
+
+--> The Json property returns an implementation of the IJsonHelper interface, whose Serialize method produces a JSON representation of an object. 
+
+----------------------------------------------------------------------------------------
+
+24. Summary
+
+--> I showed you how to use the view bag, how to use layouts and partial views to deal with common content, and how to manage the encoding process for expression results.
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

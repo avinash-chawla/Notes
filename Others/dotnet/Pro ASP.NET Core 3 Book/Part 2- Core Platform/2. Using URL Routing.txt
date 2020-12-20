@@ -1,0 +1,1831 @@
+
+----------------------------------------------------------------------------------------
+
+0. Topics
+
+--> Handling requests for a specific set of URLs
+--> Extracting values from URLs
+--> Generating URLs
+--> Matching URLs with different number of segments
+--> Restricting matches
+--> Fallback routes
+--> Routing Context data
+
+----------------------------------------------------------------------------------------
+
+1. Using URL Routing
+
+--> What is it? 
+
+--> URL routing consolidates the processing and matching of URLs, allowing components known as endpoints to generate responses.
+
+----------------------------------------------------------------------------------------
+
+--> Why is it useful? 
+
+--> URL routing obviates the need for each middleware component to process the URL to see whether the request will be handled or passed along the pipeline. The result is more efficient and easier to maintain.
+
+----------------------------------------------------------------------------------------
+
+--> How is it used? 
+
+The URL routing middleware components are added to the request pipeline and configured with a set of routes. Each route contains a URL path and a delegate that will generate a response when a request with the matching path is received.
+
+----------------------------------------------------------------------------------------
+
+2. Handling requests for a specific set of URLs 
+
+--> Create new class for handling specific requests
+
+Population.cs File
+
+----------------------------------------------------------------------------------------
+
+using Microsoft.AspNetCore.Http; 
+using System; 
+using System.Threading.Tasks;
+
+namespace Platform {
+
+    public class Population {
+
+        private RequestDelegate next;
+
+        public Population() { }
+
+        public Population(RequestDelegate nextDelegate) {
+            next = nextDelegate;
+        }
+
+        public async Task Invoke(HttpContext context) {
+
+            string[] parts = context.Request.Path.ToString().Split("/", StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length == 2 && parts[0] == "population") {
+
+                string city = parts[1];
+                int? pop = null;
+
+                switch (city.ToLower()) {
+                    case "london":
+                        pop = 8_136_000;
+                        break;
+                    case "paris":
+                        pop = 2_141_000;
+                        break;
+                    case "monaco":
+                        pop = 39_000;
+                        break;
+                }
+
+                if (pop.HasValue) {
+                    await context.Response
+                        .WriteAsync($"City: {city}, Population: {pop}");
+                    return;
+                }
+
+            }
+            if (next != null) {
+                await next(context);
+            }
+        }
+    } 
+}
+
+--> This middleware component responds to requests for /population/<city> where <city> is london, paris, or monaco. 
+--> The middleware component splits up the URL path string, checks that it has the expected length, and uses a switch statement to determine it is a request for a URL that it can respond to. 
+
+--> If the URL matches the pattern the middleware is looking for, then a response is generated; otherwise, the request is passed along the pipeline.
+
+----------------------------------------------------------------------------------------
+
+--> Similar other Example
+
+Capital.cs
+
+using Microsoft.AspNetCore.Http; using System; 
+using System.Threading.Tasks;
+namespace Platform {
+    public class Capital {
+        private RequestDelegate next;
+        public Capital() { }
+        public Capital(RequestDelegate nextDelegate) {
+            next = nextDelegate;
+        }
+        public async Task Invoke(HttpContext context) {
+
+            string[] parts = context.Request.Path.ToString().Split("/", StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length == 2 && parts[0] == "capital") {
+                string capital = null;
+                string country = parts[1];
+                switch (country.ToLower()) {
+                    case "uk":
+                        capital= "London";
+                        break;
+                    case "france":
+                        capital = "Paris";
+                        break;
+                    case "monaco":
+                        context.Response.Redirect($"/population/{country}");
+                        return;
+                }
+                if (capital != null) {
+                    await context.Response
+                        .WriteAsync($"{capital} is the capital of {country}");
+                    return;
+                }
+            }
+            if (next != null) {
+                await next(context);
+            }
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+
+            app.UseDeveloperExceptionPage();
+
+            app.UseMiddleware<Population>();
+            app.UseMiddleware<Capital>();
+
+            app.Use(async (context, next) => {
+                await context.Response.WriteAsync("Terminal Middleware Reached");
+            });
+        }
+
+----------------------------------------------------------------------------------------
+
+3. Understanding URL Routing
+
+--> Each middleware component decides whether to act on a request as it passes along the pipeline. 
+--> Some components are looking for a specific header or query string value, but most components—especially terminal and short-circuiting components—are trying to match URLs.
+
+--> Each middleware component has to repeat the same set of steps as the request works its way along the pipeline. 
+--> You can see this in the middleware defined in the prevision section, where both components go through the same process: split up the URL, check the number of parts, inspect the first part, and so on.
+
+--> This approach is inefficient, it is difficult to maintain, and it breaks easily when changed. 
+
+----------------------------------------------------------------------------------------
+
+--> URL routing solves these problems by introducing middleware that takes care of matching request URLs so that components, called endpoints, can focus on responses. --> The mapping between endpoints and the URLs they require is expressed in a route. 
+
+--> The routing middleware processes the URL, inspects the set of routes and finds the endpoint to handle the request, a process known as routing.
+
+----------------------------------------------------------------------------------------
+
+4. Adding the Routing Middleware and Defining an Endpoint
+
+--> The routing middleware is added using two separate methods: UseRouting and UseEndpoints. 
+
+--> The UseRouting method adds the middleware responsible for processing requests to the pipeline. 
+--> The UseEndpoints method is used to define the routes that match URLs to endpoints. 
+
+--> URLs are matched using patterns that are compared to the path of request URLs, and each route creates a relationship between one URL pattern and one endpoint. 
+
+----------------------------------------------------------------------------------------
+
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapGet("routing", async context => {
+                    await context.Response.WriteAsync("Request Was Routed");
+                });
+            });
+
+--> There are no arguments to the UseRouting method. 
+--> The UseEndpoints method receives a function that accepts an IEndpointRouteBuilder object and uses it to create routes using the extension methods 
+
+--> The above pattern will match the url: http://localhost:5000/routing 
+
+----------------------------------------------------------------------------------------
+
+5. Extension methods of IEndpointRouteBuilder class
+
+MapGet(pattern, endpoint) 	- This method routes HTTP GET requests that match the URL pattern to the endpoint.
+MapPost(pattern, endpoint) 	- This method routes HTTP POST requests that match to the URL pattern to the endpoint.
+MapPut(pattern, endpoint) 	- This method routes HTTP PUT requests that match to the URL pattern to the endpoint.
+MapDelete(pattern, endpoint) 	- This method routes HTTP DELETE requests that match to the URL pattern to the endpoint.
+
+MapMethods(pattern, methods, endpoint)  - This method routes requests made with one of the specified HTTP methods that match the URL pattern to the endpoint.
+Map(pattern, endpoint)		- This method routes all HTTP requests that match the URL pattern to the endpoint.
+
+----------------------------------------------------------------------------------------
+
+--> Endpoints are defined using RequestDelegate, which is the same delegate used by conventional middleware, so endpoints are asynchronous methods that receive an HttpContext object and use it to generate a response.
+
+----------------------------------------------------------------------------------------
+
+--> Endpoints generate responses in the same way as the middleware components demonstrated in earlier chapters: they receive an HttpContext object that provides access to the request and response through HttpRequest and HttpResponse objects. 
+--> This means that any middleware component can also be used as an endpoint. 
+
+----------------------------------------------------------------------------------------
+
+	public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+            
+	    app.UseDeveloperExceptionPage();
+            
+	    // app.UseMiddleware<Population>();
+            // app.UseMiddleware<Capital>();
+
+     	    app.UseEndpoints(endpoints => {
+                endpoints.MapGet("routing", async context => {
+                    await context.Response.WriteAsync("Request Was Routed");
+                });
+                endpoints.MapGet("capital/uk", new Capital().Invoke);
+                endpoints.MapGet("population/paris", new Population().Invoke);
+            });
+
+            app.Use(async (context, next) => {
+                await context.Response.WriteAsync("Terminal Middleware Reached");
+            });
+        }
+
+--> Using middleware components like this is awkward because I need to create new instances of the classes to select the Invoke method as the endpoint. 
+--> The URL patterns used by the routes support only some of the URLs that the middleware components support, but it is useful to understand that endpoints rely on features that are familiar from earlier chapters. 
+
+----------------------------------------------------------------------------------------
+
+6. Using Segment Variables in URL Patterns
+
+--> The URL pattern used in Above uses literal segments, also known as static segments, which match requests using fixed strings. 
+
+--> Segment variables, also known as route parameters, expand the range of path segments that a pattern segment will match, allowing more flexible routing. 
+--> Segment variables are given a name and are denoted by curly braces (the { and } characters),
+
+----------------------------------------------------------------------------------------
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapGet("{first}/{second}/{third}", async context => {
+
+                    await context.Response.WriteAsync("Request Was Routed\n");
+
+                    foreach (var kvp in context.Request.RouteValues) {
+                        await context.Response
+                            .WriteAsync($"{kvp.Key}: {kvp.Value}\n");
+                    }
+                });
+
+--> The URL pattern {first}/{second}/{third} matches URLs whose path contains three segments, regardless of what those segments contain. 
+--> When a segment variable is used, the routing middleware provides the endpoint with the contents of the URL path segment they have matched. 
+
+--> This content is available through the HttpRequest.RouteValues property, which returns a RouteValuesDictionary object. 
+--> There are some reserved words that cannot be used as the names for segment variables: action, area, controller, handler, and page.
+
+----------------------------------------------------------------------------------------
+
+--> Useful RouteValuesDictionary Members
+
+[key]		- The class defines an indexer that allows values to be retrieved by key. 
+Keys		- This property returns the collection of segment variable names.
+Values		- This property returns the collection of segment variable values.
+Count		- This property returns the number of segment variables.
+ContainsKey(key)- This method returns true if the route data contains a value for the specified key.
+
+----------------------------------------------------------------------------------------
+
+--> Output:
+
+http://localhost:5000/apples/oranges/cherries
+
+first: apples
+second: oranges
+third: cherries
+
+----------------------------------------------------------------------------------------
+
+--> UNDERSTANDING ROUTE SELECTION
+
+--> When processing a request, the middleware finds all the routes that can match the request and gives each a score, and the route with the lowest score is selected to handle the route. 
+--> The scoring process is complex, but the effect is that the most specific route receives the request. 
+
+--> This means that literal segments are given preference over segment variables and that segment variables with constraints are given preference over those without (constraints are described in the “Constraining Segment Matching” section later in this chapter). 
+--> The scoring system can produce surprising results, and you should check to make sure that the URLs supported by your application are matched by the routes you expect. 
+
+--> If two routes have the same score, meaning they are equally suited to routing the request, then an exception will be thrown, indicating an ambiguous routing selection.
+
+----------------------------------------------------------------------------------------
+
+7. Refactoring Middleware into an Endpoint
+
+--> Endpoints usually rely on the routing middleware to provide specific segment variables, rather than enumerating all the segment variables. 
+--> By relying on the URL pattern to provide a specific value, I can refactor the Capital and Population classes to depend on the route data
+
+----------------------------------------------------------------------------------------
+
+using Microsoft.AspNetCore.Http; 
+using System; 
+using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Routing;
+
+namespace Platform {
+
+    public static class Capital {
+
+        public static async Task Endpoint(HttpContext context) {
+
+            string capital = null;
+            string country = context.Request.RouteValues["country"] as string;
+
+            switch ((country ?? "").ToLower()) {
+                case "uk":
+                    capital = "London";
+                    break;
+                case "france":
+                    capital = "Paris";
+                    break;
+                case "monaco":
+                    context.Response.Redirect($"/population/{country}");
+                    return;
+            }
+
+            if (capital != null) {
+                await context.Response
+                    .WriteAsync($"{capital} is the capital of {country}");
+            } else {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+            }
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The indexer returns an object value that is cast to a string using the as keyword. 
+--> The listing removes the statements that pass the request along the pipeline, which the routing middleware handles on behalf of endpoints.
+
+--> The use of the segment variable means that requests may be routed to the endpoint with values that are not supported, so I added a statement that returns a 404 status code for countries the endpoint doesn’t understand.
+
+--> I also removed the constructors and replaced the Invoke instance method with a static method named Endpoint, which better fits with the way that endpoints are used in routes.
+
+----------------------------------------------------------------------------------------
+
+--> Also, Population Class,
+
+namespace Platform {
+    public class Population {
+
+        public static async Task Endpoint(HttpContext context) {
+
+            string city = context.Request.RouteValues["city"] as string;
+
+            int? pop = null;
+            switch ((city ?? "").ToLower()) {
+                case "london":
+                    pop = 8_136_000;
+                    break;
+                case "paris":
+                    pop = 2_141_000;
+                    break;
+                case "monaco":
+                    pop = 39_000;
+                    break;
+            }
+            if (pop.HasValue) {
+                await context.Response
+                    .WriteAsync($"City: {city}, Population: {pop}");
+            } else {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+            }
+        }
+    } 
+}
+
+--> The change to static methods tidies up the use of the endpoints when defining routes
+
+app.UseEndpoints(endpoints => {
+    endpoints.MapGet("{first}/{second}/{third}", async context => {
+        await context.Response.WriteAsync("Request Was Routed\n");
+        foreach (var kvp in context.Request.RouteValues) {
+            await context.Response.WriteAsync($"{kvp.Key}: {kvp.Value}\n");
+        }
+    });
+    endpoints.MapGet("capital/{country}", Capital.Endpoint);
+    endpoints.MapGet("population/{city}", Population.Endpoint); 
+});
+
+
+--> These changes address two of the problems I described at the start of the chapter. 
+--> Efficiency has improved because the URL is processed only once by the routing middleware and not by multiple components. 
+
+--> And it is easier to see the URLs that each endpoint supports because the URL patterns show how requests will be matched. 
+
+----------------------------------------------------------------------------------------
+
+8. Generating URLs from Routes
+
+--> The final problem was the difficulty in making changes. 
+--> The Capital endpoint still has a hardwired dependency on the URL that the Population endpoint supports. 
+
+case "monaco":
+     context.Response.Redirect($"/population/{country}");
+     return;
+
+--> To break this dependency, the routing system allows URLs to be generated by supplying data values for segment variables. 
+--> The first step is to assign a name to the route that will be the target of the URL that is generated
+
+----------------------------------------------------------------------------------------
+
+using Microsoft.AspNetCore.Routing;
+
+	public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+            
+	    app.UseRouting();
+
+            app.UseEndpoints(endpoints => {
+
+                endpoints.MapGet("{first}/{second}/{third}", async context => {
+                    await context.Response.WriteAsync("Request Was Routed\n");
+                    foreach (var kvp in context.Request.RouteValues) {
+                        await context.Response.WriteAsync($"{kvp.Key}: {kvp.Value}\n");
+                    }
+                });
+
+                endpoints.MapGet("capital/{country}", Capital.Endpoint);
+                endpoints.MapGet("population/{city}", Population.Endpoint)
+                    .WithMetadata(new RouteNameMetadata("population"));			// This Line
+            });
+
+            app.Use(async (context, next) => {
+                await context.Response.WriteAsync("Terminal Middleware Reached");
+            });
+        }
+
+--> The WithMetadata method is used on the result from the MapGet method to assign metadata to the route. 
+--> The only metadata required for generating URLs is a name, which is assigned by passing a new RouteNameMetadata object, whose constructor argument specifies the name that will be used to refer to the route. 
+
+--> Naming routes helps to avoid links being generated that target a route other than the one you expect, but they can be omitted, in which case the routing system will try to find the best matching route
+
+----------------------------------------------------------------------------------------
+
+--> Capital.cs 
+
+using Microsoft.Extensions.DependencyInjection;
+
+..
+
+	    case "monaco":
+                    LinkGenerator generator = context.RequestServices.GetService<LinkGenerator>();
+                    string url = generator.GetPathByRouteValues(context, "population", new { city = country });
+                    context.Response.Redirect(url);
+                    return;
+            }
+
+--> URLs are generated using the LinkGenerator class.
+
+--> The LinkGenerator class provides the GetPathByRouteValues method, which is used to generate the URL that will be used in the redirection.
+
+--> The arguments to the GetPathByRouteValues method are the endpoint’s HttpContext object, the name of the route that will be used to generate the link, and an object that is used to provide values for the segment variables. 
+
+--> The GetPathByRouteValues method returns a URL that will be routed to the Population endpoint
+
+----------------------------------------------------------------------------------------
+
+--> The benefit of this approach is that the URL is generated from the URL pattern in the named route, which means a change in the URL pattern is reflected in the generated URLs, without the need to make changes to endpoints
+
+app.UseEndpoints(endpoints => {
+    endpoints.MapGet("{first}/{second}/{third}", async context => {
+        await context.Response.WriteAsync("Request Was Routed\n");
+        foreach (var kvp in context.Request.RouteValues) {
+            await context.Response.WriteAsync($"{kvp.Key}: {kvp.Value}\n");
+        }
+    });
+
+    endpoints.MapGet("capital/{country}", Capital.Endpoint);
+
+    endpoints.MapGet("size/{city}", Population.Endpoint)		// This Line
+        .WithMetadata(new RouteNameMetadata("population")); 
+
+}); 
+
+
+--> The name assigned to the route is unchanged, which ensures that the same endpoint is targeted by the generated URL
+
+----------------------------------------------------------------------------------------
+
+9. Complex matches
+
+--> eg. "files/{filename}.{ext}"
+
+----------------------------------------------------------------------------------------
+
+app.UseEndpoints(endpoints => {
+    endpoints.MapGet("files/{filename}.{ext}", async context => {
+        await context.Response.WriteAsync("Request Was Routed\n");
+        foreach (var kvp in context.Request.RouteValues) {
+            await context.Response.WriteAsync($"{kvp.Key}: {kvp.Value}\n");
+        }
+    });
+    endpoints.MapGet("capital/{country}", Capital.Endpoint);
+    endpoints.MapGet("size/{city}", Population.Endpoint)
+        .WithMetadata(new RouteNameMetadata("population")); 
+}); 
+
+----------------------------------------------------------------------------------------
+
+--> Output:
+
+localhost:5000/files/myfile.txt 
+
+Request Was Routed
+ext: txt
+filenaem: myfile
+
+----------------------------------------------------------------------------------------
+
+10. Using Default Values for Segment Variables
+
+--> Patterns can be defined with default values that are used when the URL doesn’t contain a value for the corresponding segment, increasing the range of URLs that a route can match. 
+
+--> endpoints.MapGet("capital/{country=France}", Capital.Endpoint);
+
+URL Path	Description
+
+/capital	Matches
+/capital/uk	Matches
+
+--> Output:
+
+localhost:5000/capital
+
+Paris is the capital of France
+
+----------------------------------------------------------------------------------------
+
+11. Using Optional Segments in a URL Pattern
+
+--> This is alternative to Default Values
+
+----------------------------------------------------------------------------------------
+
+--> Population.cs
+
+namespace Platform {
+    public class Population {
+
+        public static async Task Endpoint(HttpContext context) {
+
+            string city = context.Request.RouteValues["city"] as string ?? "london";		// This Line
+
+            int? pop = null;
+            switch (city.ToLower()) {
+                case "london":
+                    pop = 8_136_000;
+                    break;
+                case "paris":
+                    pop = 2_141_000;
+                    break;
+                case "monaco":
+                    pop = 39_000;
+                    break;
+            }
+            if (pop.HasValue) {
+                await context.Response
+                    .WriteAsync($"City: {city}, Population: {pop}");
+            } else {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+            }
+        }
+    } 
+}
+
+--> The change uses london as the default value because there is no city segment variable available.
+
+----------------------------------------------------------------------------------------
+
+--> Startup.cs
+
+endpoints.MapGet("capital/{country=France}", Capital.Endpoint);
+
+endpoints.MapGet("size/{city?}", Population.Endpoint)
+        .WithMetadata(new RouteNameMetadata("population"));
+
+--> Matching URLs
+
+/size
+/size/paris
+
+----------------------------------------------------------------------------------------
+
+12. Using a catchall Segment Variable
+
+--> Optional segments allow a pattern to match shorter URL paths. 
+--> A catchall segment does the opposite and allows routes to match URLs that contain more segments than the pattern. 
+
+-->  A catchall segment is denoted with an asterisk before the variable name
+
+----------------------------------------------------------------------------------------
+
+app.UseEndpoints(endpoints => {
+
+    endpoints.MapGet("{first}/{second}/{*catchall}", async context => {		// This Line
+
+        await context.Response.WriteAsync("Request Was Routed\n");
+        foreach (var kvp in context.Request.RouteValues) {
+            await context.Response.WriteAsync($"{kvp.Key}: {kvp.Value}\n");
+        }
+    });
+
+    endpoints.MapGet("capital/{country=France}", Capital.Endpoint);
+    endpoints.MapGet("size/{city?}", Population.Endpoint)
+        .WithMetadata(new RouteNameMetadata("population")); }); 
+
+----------------------------------------------------------------------------------------
+
+--> The new pattern contains two-segment variables and a catchall, and the result is that the route will match any URL whose path contains two or more segments. 
+
+--> There is no upper limit to the number of segments that the URL pattern in this route will match, and the contents of any additional segments are assigned to the segment variable named catchall. 
+
+-->  http://localhost:5000/one/two/three/four
+
+--> Output:
+
+Request Was Routed
+first: one
+second: two
+catchal: three/four
+
+----------------------------------------------------------------------------------------
+
+13. Constraining Segment Matching
+
+--> Constraints are applied by a colon (the : character) and a constraint type after a segment variable name
+
+app.UseEndpoints(endpoints => {
+    endpoints.MapGet("{first:int}/{second:bool}", async context => {
+    ...
+}
+
+--> This example constrains the first segment variable so it will match only the path segments that can be parsed to an int value, and it constrains the second segment so it will match only the path segments that can be parsed to a bool. 
+--> Values that don’t match the constraints won’t be matched by the route. 
+
+----------------------------------------------------------------------------------------
+
+--> Constraints Supported
+
+1. alpha	This constraint matches the letters a to z (and is case-insensitive).
+2. bool
+3. datetime
+4. decimal
+5. double
+6. file		Matches in the form name.ext
+7. float
+8. guid
+9. int
+10. length(len)
+11. length(min, max)
+12. long
+13. max(val)
+14. maxlength(len)
+15. min(val)
+16. minlength(len)
+17. nonfile
+18. range(min,max)
+19. regex(expression)
+
+--> Apress book - Page 300 (Pro Asp.net Core 3)
+
+----------------------------------------------------------------------------------------
+
+--> Constraints can be combined to further restrict matching
+
+app.UseEndpoints(endpoints => {
+    endpoints.MapGet("{first:alpha:length(3)}/{second:bool}", async context => {
+    ...
+}
+
+----------------------------------------------------------------------------------------
+
+--> Regex Constraints
+
+endpoints.MapGet("capital/{country:regex(^uk|france|monaco$)}",
+        Capital.Endpoint);
+
+----------------------------------------------------------------------------------------
+
+14. Defining Fallback Routes
+
+--> Fallback routes direct a request to an endpoint only when no other route matches a request. 
+
+--> Fallback routes prevent requests from being passed further along the request pipeline by ensuring that the routing system will always generate a response,
+
+app.UseEndpoints(endpoints => {
+    ...
+
+    endpoints.MapFallback(async context => {
+        await context.Response.WriteAsync("Routed to fallback endpoint");
+    }); 
+
+}); 
+
+----------------------------------------------------------------------------------------
+
+15. Creating Custom Constraints
+
+--> To create custom constraint, you must inherit IRouteConstraint interface
+
+----------------------------------------------------------------------------------------
+
+--> CountryRouteConstraint.cs 
+
+using System; 
+using Microsoft.AspNetCore.Http; 
+using Microsoft.AspNetCore.Routing;
+
+namespace Platform {
+
+    public class CountryRouteConstraint: IRouteConstraint {
+
+        private static string[] countries = { "uk", "france", "monaco" };
+
+        public bool Match(HttpContext httpContext, IRouter route, string routeKey,
+                RouteValueDictionary values, RouteDirection routeDirection) {
+            string segmentValue = values[routeKey] as string ?? "";
+            return Array.IndexOf(countries, segmentValue.ToLower()) > -1;
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The IRouteConstraint interface defines the Match method, which is called to allow a constraint to decide whether a request should be matched by the route. 
+--> The parameters for the Match method provide the HttpContext object for the request, the route, the name of the segment, the segment variables extracted from the URL, and whether the request is to check for an incoming or outgoing 
+
+--> URL. The Match method returns true if the constraint is satisfied by the request and false if it is not. 
+
+--> The constraint in Listing 13-23 defines a set of countries that are compared to the value of the segment variable to which the constraint has been applied. 
+--> The constraint is satisfied if the segment matches one of the countries. 
+
+--> Custom constraints are set up using the options pattern
+
+----------------------------------------------------------------------------------------
+
+--> In Startup.cs
+
+        public void ConfigureServices(IServiceCollection services) {
+
+            services.Configure<RouteOptions>(opts => {
+               opts.ConstraintMap.Add("countryName",
+                   typeof(CountryRouteConstraint));
+            });
+
+        }
+
+
+----------------------------------------------------------------------------------------
+
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+            
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints => {
+
+                endpoints.MapGet("{first:alpha:length(3)}/{second:bool}",
+                    async context => {
+                        await context.Response.WriteAsync("Request Was Routed\n");
+                        foreach (var kvp in context.Request.RouteValues) {
+                            await context.Response
+                                .WriteAsync($"{kvp.Key}: {kvp.Value}\n");
+                        }
+                    });
+
+                endpoints.MapGet("capital/{country:countryName}", Capital.Endpoint);		// This Line
+
+----------------------------------------------------------------------------------------
+
+--> The options pattern is applied to the RouteOptions class, which defines the ConstraintMap property. 
+
+--> Each constraint is registered with a key that allows it to be applied in URL patterns. 
+--> In Listing 13-24, the key for the CountryRouteConstraint class is countyName, which allows me to constraint a route like this:
+
+... 
+endpoints.MapGet("capital/{country:countryName}", Capital.Endpoint);
+
+----------------------------------------------------------------------------------------
+
+16. Avoiding Ambiguous Route Exceptions
+
+--> eg.
+
+            app.UseEndpoints(endpoints => {
+                endpoints.Map("{number:int}", async context => {
+                    await context.Response.WriteAsync("Routed to the int endpoint");
+                });
+                endpoints.Map("{number:double}", async context => {
+                    await context.Response
+                        .WriteAsync("Routed to the double endpoint");
+                });
+            });
+
+--> When you navigate to: http://localhost:5000/23.5.
+--> The path segment 23.5 can be parsed to a double and produces the response.
+
+--> when you navigate to: http://localhost:5000/23
+--> You will see the exception because the segment 23 can be parsed as both an int and a double
+
+--> For these situations, preference can be given to a route by defining its order relative to other matching routes
+
+app.UseEndpoints(endpoints => {
+
+
+    endpoints.Map("{number:int}", async context => {
+        await context.Response.WriteAsync("Routed to the int endpoint");
+    }).Add(b => ((RouteEndpointBuilder)b).Order = 1);
+
+
+    endpoints.Map("{number:double}", async context => {
+        await context.Response.WriteAsync("Routed to the double endpoint");
+    }).Add(b => ((RouteEndpointBuilder)b).Order = 2); }); 
+
+
+--> The process is awkward and requires a call to the Add method, casting to a RouteEndpointBuilder and setting the value of the Order property. 
+--> Precedence is given to the route with the lowest Order value
+
+----------------------------------------------------------------------------------------
+
+17. Accessing the Endpoint in a Middleware Component
+
+--> As earlier chapters demonstrated, not all middleware generates responses. 
+--> Some components provide features used later in the request pipeline, such as the session middleware, or enhance the response in some way, such as status code middleware.
+
+----------------------------------------------------------------------------------------
+
+--> One limitation of the normal request pipeline is that a middleware component at the start of the pipeline can’t tell which of the later components will generate a response. 
+--> The routing middleware does something different. 
+
+--> Although routes are registered in the UseEndpoints method, the selection of a route is done in the UseRouting method, and the endpoint is executed to generate a response in the UseEndpoints method. 
+--> Any middleware component that is added to the request pipeline between the UseRouting method and the UseEndpoints method can see which endpoint has been selected before the response is generated and alter its behavior accordingly.
+
+----------------------------------------------------------------------------------------
+
+	    app.UseRouting();
+
+            app.Use(async (context, next) => {
+                Endpoint end = context.GetEndpoint();
+                if (end != null) {
+                    await context.Response.WriteAsync($"{end.DisplayName} Selected \n");
+                } else {
+                    await context.Response.WriteAsync("No Endpoint Selected \n");
+                }
+                await next();
+            });
+
+            app.UseEndpoints(endpoints => {
+
+                endpoints.Map("{number:int}", async context => {
+                    await context.Response.WriteAsync("Routed to the int endpoint");
+                })
+                .WithDisplayName("Int Endpoint")
+                .Add(b => ((RouteEndpointBuilder)b).Order = 1);
+
+
+                endpoints.Map("{number:double}", async context => {
+                    await context.Response
+                        .WriteAsync("Routed to the double endpoint");
+                })
+                .WithDisplayName("Double Endpoint")
+                .Add(b => ((RouteEndpointBuilder)b).Order = 2);
+
+            });
+
+            app.Use(async (context, next) => {
+                await context.Response.WriteAsync("Terminal Middleware Reached");
+            });
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The GetEndpoint extension method on the HttpContext class returns the endpoint that has been selected to handle the request, described through an Endpoint object. 
+
+--> The Endpoint class defines the properties:
+
+DisplayName
+--> This property returns the display name associated with the endpoint, which can be set using the WithDisplayName method when creating a route.
+
+Metadata
+--> This property returns the collection of metadata associated with the endpoint.
+
+RequestDelegate
+--> This property returns the delegate that will be used to generate the response.
+
+----------------------------------------------------------------------------------------
+
+Caution: 
+--> There is also a SetEndpoint method that allows the endpoint chosen by the routing middleware to be changed before the response is generated. 
+--> This should be used with caution and only when there is a compelling need to interfere with the normal route selection process.
+
+----------------------------------------------------------------------------------------
+
+--> To make it easier to identify the endpoint that the routing middleware has selected, I used the WithDisplayName method to assign names to the routes 
+--> The new middleware component adds a message to the response reporting the endpoint that has been selected
+
+----------------------------------------------------------------------------------------
+
+--> Output:
+
+Int Endpoint Selected
+Routed to the int endpoint
+
+----------------------------------------------------------------------------------------
+
+18. Summary
+
+-->  I introduced the endpoint routing system and explained how it deals with some common problems arising in regular middleware. 
+
+--> I showed you how to define routes, how to match and generate URLs, and how to use constraints to restrict the use of routes. 
+
+--> I also showed you some of the advanced uses of the routing system, including custom constraints and avoiding route ambiguity.
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

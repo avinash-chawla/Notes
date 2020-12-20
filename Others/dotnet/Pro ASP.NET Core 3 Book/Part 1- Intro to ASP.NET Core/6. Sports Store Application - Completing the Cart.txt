@@ -1,0 +1,968 @@
+----------------------------------------------------------------------------------------
+
+1. Refining the Cart Model with a Service
+
+----------------------------------------------------------------------------------------
+
+--> Now, only one class CartModel (Razor page) has access to Users Cart, not any other class.
+--> This class is hardly binded to session variables and save and retrieve data from session
+
+--> We will make service which will be available throughout the application
+--> Means any class has access to these session variables.
+
+----------------------------------------------------------------------------------------
+
+--> I defined a Cart model class in the previous chapter and demonstrated how it can be stored using the session feature, allowing the user to build up a set of products for purchase. 
+--> The responsibility for managing the persistence of the Cart class fell to the Cart Razor Page, which has to deal with getting and storing Cart objects as session data.
+
+--> The problem with this approach is that I will have to duplicate the code that obtains and stores Cart objects in any other Razor Page or controller that uses them. --> In this section, I am going to use the services feature that sits at the heart of ASP.NET Core to simplify the way that Cart objects are managed, freeing individual components such as the Cart controller from needing to deal with the details directly.
+
+
+--> Services are commonly used to hide details of how interfaces are implemented from the components that depend on them. But services can be used to solve lots of other problems as well and can be used to shape and reshape an application, even when you are working with concrete classes such as Cart. 
+
+----------------------------------------------------------------------------------------
+
+2. Creating a Storage-Aware Cart Class
+
+--> The first step in tidying up the way that the Cart class is used will be to create a subclass that is aware of how to store itself using session state. 
+--> To prepare, I apply the virtual keyword to the Cart class, as shown in Listing 9-1, so that I can override the members. 
+
+----------------------------------------------------------------------------------------
+
+public class Cart {
+        public List<CartLine> Lines { get; set; } = new List<CartLine>();
+
+        public virtual void AddItem(Product product, int quantity) { ... }
+
+	public virtual void RemoveLine(Product product) => {...}
+
+	public virtual void Clear() => Lines.Clear();
+}
+
+
+----------------------------------------------------------------------------------------
+
+--> Contents of the SessionCart.cs File in the SportsStore/Models Folder
+
+using System; 
+using System.Text.Json.Serialization; 
+using Microsoft.AspNetCore.Http; 
+using Microsoft.Extensions.DependencyInjection; 
+using SportsStore.Infrastructure;
+
+namespace SportsStore.Models {
+
+    public class SessionCart : Cart {
+
+        public static Cart GetCart(IServiceProvider services) {
+
+            ISession session = services.GetRequiredService<IHttpContextAccessor>()?
+                .HttpContext.Session;
+            SessionCart cart = session?.GetJson<SessionCart>("Cart")
+                ?? new SessionCart();
+            cart.Session = session;
+            return cart;
+        }
+
+        [JsonIgnore]
+        public ISession Session { get; set; }
+  
+        public override void AddItem(Product product, int quantity) {
+            base.AddItem(product, quantity);
+            Session.SetJson("Cart", this);
+        }
+
+        public override void RemoveLine(Product product) {
+            base.RemoveLine(product);
+            Session.SetJson("Cart", this);
+        }
+
+        public override void Clear() {
+            base.Clear();
+            Session.Remove("Cart");
+        }
+    } 
+}
+
+--> The SessionCart class subclasses the Cart class and overrides the AddItem, RemoveLine, and Clear methods so they call the base implementations and then store the updated state in the session using the extension methods on the ISession interface. 
+
+--> The static GetCart method is a factory for creating SessionCart objects and providing them with an ISession object so they can store themselves.
+
+--> Getting hold of the ISession object is a little complicated. I obtain an instance of the IHttpContextAccessor service, which provides me with access to an HttpContext object that, in turn, provides me with the ISession. 
+
+--> This indirect approach is required because the session isn’t provided as a regular service.
+
+----------------------------------------------------------------------------------------
+
+3. Registering the Service
+
+--> The next step is to create a service for the Cart class. My goal is to satisfy requests for Cart objects with SessionCart objects that will seamlessly store themselves. 
+
+--> Creating the Cart Service in the Startup.cs File in the SportsStore Folder
+
+services.AddScoped<Cart>(sp => SessionCart.GetCart(sp));
+services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+----------------------------------------------------------------------------------------
+
+--> The AddScoped method specifies that the same object should be used to satisfy related requests for Cart instances. 
+--> How requests are related can be configured, but by default, it means that any Cart required by components handling the same HTTP request will receive the same object.
+
+--> Rather than provide the AddScoped method with a type mapping, as I did for the repository, I have specified a lambda expression that will be invoked to satisfy Cart requests. 
+--> The expression receives the collection of services that have been registered and passes the collection to the GetCart method of the SessionCart class. 
+
+--> The result is that requests for the Cart service will be handled by creating SessionCart objects, which will serialize themselves as session data when they are modified.
+--> I also added a service using the AddSingleton method, which specifies that the same object should always be used. 
+
+--> The service I created tells ASP.NET Core to use the HttpContextAccessor class when implementations of the IHttpContextAccessor interface are required. 
+--> This service is required so I can access the current session in the SessionCart class.
+
+----------------------------------------------------------------------------------------
+
+4. Simplifying the Cart Razor Page
+
+--> The benefit of creating this kind of service is that it allows me to simplify the code where Cart objects are used. 
+--> In Listing 9-4, I have reworked the page model class for the Cart Razor Page to take advantage of the new service.
+
+----------------------------------------------------------------------------------------
+--> Before: Cart.cshtml.cs
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using SportsStore.Infrastructure;
+using SportsStore.Models;
+using System.Linq;
+namespace SportsStore.Pages
+{
+    public class CartModel : PageModel
+    {
+        private IStoreRepository repository;
+        public CartModel(IStoreRepository repo)
+        {
+            repository = repo;
+        }
+        public Cart Cart { get; set; }
+        public string ReturnUrl { get; set; }
+        public void OnGet(string returnUrl)
+        {
+            ReturnUrl = returnUrl ?? "/";
+            Cart = HttpContext.Session.GetJson<Cart>("cart") ?? new Cart();
+        }
+        public IActionResult OnPost(long productId, string returnUrl)
+        {
+            Product product = repository.Products.FirstOrDefault(p => p.ProductID == productId);
+            Cart = HttpContext.Session.GetJson<Cart>("cart") ?? new Cart();
+            Cart.AddItem(product, 1);
+            HttpContext.Session.SetJson("cart", Cart);
+            return RedirectToPage(new { returnUrl = returnUrl });
+        }
+    }
+}
+
+----------------------------------------------------------------------------------------
+--> After:Cart.cshtml.cs
+
+--> Cart Service in the Cart.cshtml.cs File in the SportsStore/Pages Folder
+
+using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc.RazorPages; using SportsStore.Infrastructure; 
+using SportsStore.Models; 
+using System.Linq;
+
+namespace SportsStore.Pages {
+
+    public class CartModel : PageModel {
+
+        private IStoreRepository repository;
+
+        public CartModel(IStoreRepository repo, Cart cartService) {
+            repository = repo;
+            Cart = cartService;
+        }
+
+        public Cart Cart { get; set; }
+
+        public string ReturnUrl { get; set; }
+
+        public void OnGet(string returnUrl) {
+            ReturnUrl = returnUrl ?? "/";
+        }
+
+        public IActionResult OnPost(long productId, string returnUrl) {
+            Product product = repository.Products
+                .FirstOrDefault(p => p.ProductID == productId);
+            Cart.AddItem(product, 1);
+            return RedirectToPage(new { returnUrl = returnUrl });
+        }
+    } 
+}
+
+--> The page model class indicates that it needs a Cart object by declaring a constructor argument, which has allowed me to remove the statements that load and store sessions from the handler methods. 
+--> The result is a simpler page model class that focuses on its role in the application without having to worry about how Cart objects are created or persisted. And, since services are available throughout the application, any component can get hold of the user’s cart using the same technique.
+
+----------------------------------------------------------------------------------------
+
+5. Completing the Cart Functionality
+
+--> Now that I have introduced the Cart service, it is time to complete the cart functionality by adding two new features. 
+--> The first will allow the customer to remove an item from the cart. The second feature will display a summary of the cart at the top of the page.
+
+----------------------------------------------------------------------------------------
+
+6. Removing Items from the Cart
+
+--> To remove items from the cart, I need to add a Remove button to the content rendered by the Cart Razor Page that will submit an HTTP POST request.
+
+--> Removing Cart Items in the Cart.cshtml File in the SportsStore/Pages Folder
+
+@page 
+@model CartModel
+<h2>Your cart</h2> 
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Quantity</th>
+            <th>Item</th>
+            <th class="text-right">Price</th>
+            <th class="text-right">Subtotal</th>
+            <th></th>
+        </tr>
+    </thead>
+
+       <tbody>
+        @foreach (var line in Model.Cart.Lines) {
+            <tr>
+                <td class="text-center">@line.Quantity</td>
+                <td class="text-left">@line.Product.Name</td>
+                <td class="text-right">@line.Product.Price.ToString("c")</td>
+                <td class="text-right">
+                    @((line.Quantity * line.Product.Price).ToString("c"))
+                </td>
+                <td class="text-center">
+                    <form asp-page-handler="Remove" method="post">
+                        <input type="hidden" name="ProductID"
+                               value="@line.Product.ProductID" />
+                        <input type="hidden" name="returnUrl"
+                               value="@Model.ReturnUrl" />
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            Remove
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="3" class="text-right">Total:</td>
+            <td class="text-right">
+                @Model.Cart.ComputeTotalValue().ToString("c")
+            </td>
+        </tr>
+    </tfoot> 
+</table>
+
+<div class="text-center">
+    <a class="btn btn-primary" href="@Model.ReturnUrl">Continue shopping</a> 
+</div>
+
+--> The button requires a new handler method in the page model class that will receive the request and modify the cart,
+
+----------------------------------------------------------------------------------------
+
+--> Removing an Item in the Cart.cshtml.cs File in the SportsStore/Pages Folder
+
+using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc.RazorPages; using SportsStore.Infrastructure; 
+using SportsStore.Models; 
+using System.Linq;
+
+namespace SportsStore.Pages {
+
+    public class CartModel : PageModel {
+
+        private IStoreRepository repository;
+
+        public CartModel(IStoreRepository repo, Cart cartService) {
+            repository = repo;
+            Cart = cartService;
+        }
+
+
+        public Cart Cart { get; set; }
+
+        public string ReturnUrl { get; set; }
+
+        public void OnGet(string returnUrl) {
+            ReturnUrl = returnUrl ?? "/";
+        }
+
+        public IActionResult OnPost(long productId, string returnUrl) {
+            Product product = repository.Products
+                .FirstOrDefault(p => p.ProductID == productId);
+            Cart.AddItem(product, 1);
+            return RedirectToPage(new { returnUrl = returnUrl });
+        }
+
+        public IActionResult OnPostRemove(long productId, string returnUrl) {
+            Cart.RemoveLine(Cart.Lines.First(cl =>
+                cl.Product.ProductID == productId).Product);
+            return RedirectToPage(new { returnUrl = returnUrl });
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The new HTML content defines an HTML form. 
+--> The handler method that will receive the request is specified with the asp-page-handler tag helper attribute, like this:
+
+<form asp-page-handler="Remove" method="post"> ...
+
+--> The specified name is prefixed with On and given a suffix that matches the request type so that a value of Remove selects the OnRemovePost handler method. 
+--> The handler method uses the value it receives to locate the item in the cart and remove it.
+
+--> Restart ASP.NET Core and request http://localhost:5000. 
+--> Click the Add To Cart buttons to add items to the cart and then click a Remove button. The cart will be updated to remove the item you specified,
+
+----------------------------------------------------------------------------------------
+
+7. Adding the Cart Summary Widget
+
+--> I may have a functioning cart, but there is an issue with the way it is integrated into the interface. 
+--> Customers can tell what is in their cart only by viewing the cart summary screen. 
+
+--> And they can view the cart summary screen only by adding a new item to the cart.
+
+--> To solve this problem, I am going to add a widget that summarizes the contents of the cart and that can be clicked to display the cart contents throughout the application. 
+--> I will do this in much the same way that I added the navigation widget—as a view component whose output I can include in a Razor layout.
+
+----------------------------------------------------------------------------------------
+
+8. Adding the Font Awesome Package
+
+--> libman install font-awesome@5.12.0 -d wwwroot/lib/font-awesome
+
+----------------------------------------------------------------------------------------
+
+9. Creating the View Component Class and View
+
+--> I added a class file called CartSummaryViewComponent.cs in the Components folder and used it to define the view component shown in Listing 9-8.
+
+--> The Contents of the CartSummaryViewComponent.cs File in the SportsStore/Components Folder
+
+using Microsoft.AspNetCore.Mvc; 
+using SportsStore.Models;
+
+namespace SportsStore.Components {
+
+    public class CartSummaryViewComponent : ViewComponent {
+
+        private Cart cart;
+
+        public CartSummaryViewComponent(Cart cartService) {
+            cart = cartService;
+        }
+
+        public IViewComponentResult Invoke() {
+            return View(cart);
+        }
+    } 
+}
+
+--> This view component is able to take advantage of the service that I created earlier in the chapter to receive a Cart object as a constructor argument. 
+--> The result is a simple view component class that passes on the Cart to the View method to generate the fragment of HTML that will be included in the layout. 
+
+--> To create the view for the component, I created the Views/Shared/ Components/CartSummary folder and added to it a Razor View named Default.cshtml with the content shown in Listing 9-9
+
+----------------------------------------------------------------------------------------
+
+--> The Default.cshtml File in the Views/Shared/Components/CartSummary Folder
+
+@model Cart
+<div class="">
+    @if (Model.Lines.Count() > 0) {
+        <small class="navbar-text">
+            <b>Your cart:</b>
+            @Model.Lines.Sum(x => x.Quantity) item(s)
+            @Model.ComputeTotalValue().ToString("c")
+        </small>
+    }
+    <a class="btn btn-sm btn-secondary navbar-btn" asp-page="/Cart"
+       asp-route-returnurl="@ViewContext.HttpContext.Request.PathAndQuery()">
+        <i class="fa fa-shopping-cart"></i>
+    </a> </div>
+
+--> The view displays a button with the Font Awesome cart icon and, if there are items in the cart, provides a snapshot that details the number of items and their total value. 
+--> Now that I have a view component and a view, I can modify the layout so that the cart summary is included in the responses generated by the Home controller, as shown in Listing 9-10.
+
+----------------------------------------------------------------------------------------
+
+--> Adding the Cart Summary in the _Layout.cshtml File in the Views/Shared Folder
+
+<!DOCTYPE html> <html> 
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>SportsStore</title>
+    <link href="/lib/twitter-bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/lib/font-awesome/css/all.min.css" rel="stylesheet" /> </head> 
+<body>
+    <div class="bg-dark text-white p-2">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col navbar-brand">SPORTS STORE</div>
+                <div class="col-6 text-right">
+                    <vc:cart-summary />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row m-1 p-1">
+        <div id="categories" class="col-3">
+            <vc:navigation-menu />
+        </div>
+        <div class="col-9">
+            @RenderBody()
+        </div>
+    </div> 
+</body> 
+</html>
+
+--> You can see the cart summary by starting the application. 
+--> When the cart is empty, only the checkout button is shown. 
+
+--> If you add items to the cart, then the number of items and their combined cost are shown, as illustrated in Figure 9-2. 
+--> With this addition, customers know what is in their cart and have an obvious way to check out from the store.
+
+----------------------------------------------------------------------------------------
+
+10. Submitting Orders
+
+--> I have now reached the final customer feature in SportsStore: the ability to check out and complete an order. 
+--> In the following sections, I will extend the data model to provide support for capturing the shipping details from a user and add the application support to process those details.
+
+----------------------------------------------------------------------------------------
+
+11. Creating the Model Class
+
+--> I added a class file called Order.cs to the Models folder and used it to define the class shown in Listing 9-11. 
+--> This is the class I will use to represent the shipping details for a customer.
+
+--> The Contents of the Order.cs File in the SportsStore/Models Folder
+
+using System.Collections.Generic; 
+using System.ComponentModel.DataAnnotations; 
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+
+namespace SportsStore.Models {
+
+    public class Order {
+
+        [BindNever]
+        public int OrderID { get; set; }
+
+        [BindNever]
+        public ICollection<CartLine> Lines { get; set; }
+
+        [Required(ErrorMessage = "Please enter a name")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "Please enter the first address line")]
+        public string Line1 { get; set; }
+        public string Line2 { get; set; }
+        public string Line3 { get; set; }
+
+        [Required(ErrorMessage = "Please enter a city name")]
+        public string City { get; set; }
+
+        [Required(ErrorMessage = "Please enter a state name")]
+        public string State { get; set; }
+        public string Zip { get; set; }
+
+        [Required(ErrorMessage = "Please enter a country name")]
+        public string Country { get; set; }
+        public bool GiftWrap { get; set; }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> I am using the validation attributes from the System.ComponentModel.DataAnnotations namespace, just as I did in Chapter 3. 
+--> I describe validation further in Chapter 29.
+
+--> I also use the BindNever attribute, which prevents the user from supplying values for these properties in an HTTP request. 
+--> This is a feature of the model binding system, which I describe in Chapter 28, and it stops ASP.NET Core using values from the HTTP request to populate sensitive or important model properties.
+
+----------------------------------------------------------------------------------------
+
+12. Adding the Checkout Process
+
+--> The goal is to reach the point where users are able to enter their shipping details and submit an order. 
+--> To start, I need to add a Checkout button to the cart view.
+
+--> Adding a Button in the Cart.cshtml File in the SportsStore/Pages Folder
+
+... 
+<div class="text-center">
+    <a class="btn btn-primary" href="@Model.ReturnUrl">Continue shopping</a>
+    <a class="btn btn-primary" asp-action="Checkout" asp-controller="Order">
+        Checkout
+    </a> </div> ...
+
+--> This change generates a link that I have styled as a button and that, when clicked, calls the Checkout action method of the Order controller, which I create in the following section. 
+--> To show how Razor Pages and controllers can work together, I am going to handle the order processing in a controller and then return to a Razor Page at the end of the process. 
+
+--> To see the Checkout button, restart ASP.NET Core, request http://localhost:5000, and click one of the Add To Cart buttons. 
+--> The new button is shown as part of the cart summary, as shown in Figure 9-3.
+
+----------------------------------------------------------------------------------------
+
+13. Creating the Controller and View
+
+--> I now need to define the controller that will deal with the order. 
+--> I added a class file called OrderController.cs to the Controllers folder and used it to define the class shown in Listing 9-13.
+
+-->  The Contents of the OrderController.cs File in the SportsStore/Controllers Folder
+
+using Microsoft.AspNetCore.Mvc; 
+using SportsStore.Models;
+
+namespace SportsStore.Controllers {
+
+    public class OrderController : Controller {
+        public ViewResult Checkout() => View(new Order());
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The Checkout method returns the default view and passes a new Order object as the view model. 
+--> To create the view, I created the Views/Order folder and added to it a Razor View called Checkout.cshtml with the markup
+
+--> The Contents of the Checkout.cshtml File in the SportsStore/Views/Order Folder
+
+@model Order
+<h2>Check out now</h2> 
+<p>Please enter your details, and we'll ship your goods right away!</p>
+<form asp-action="Checkout" method="post">
+    <h3>Ship to</h3>
+<div class="form-group">
+        <label>Name:</label><input asp-for="Name" class="form-control" />
+    </div>
+    <h3>Address</h3>
+    <div class="form-group">
+        <label>Line 1:</label><input asp-for="Line1" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Line 2:</label><input asp-for="Line2" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Line 3:</label><input asp-for="Line3" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>City:</label><input asp-for="City" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>State:</label><input asp-for="State" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Zip:</label><input asp-for="Zip" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Country:</label><input asp-for="Country" class="form-control" />
+    </div>
+    <h3>Options</h3>
+    <div class="checkbox">
+        <label>
+            <input asp-for="GiftWrap" /> Gift wrap these items
+        </label>
+    </div>
+    <div class="text-center">
+        <input class="btn btn-primary" type="submit" value="Complete Order" />
+    </div> 
+
+</form>
+
+----------------------------------------------------------------------------------------
+
+--> For each of the properties in the model, I have created a label and input elements to capture the user input, styled with Bootstrap and configured using a tag helper. 
+--> The asp-for attribute on the input elements is handled by a built-in tag helper that generates the type, id, name, and value attributes based on the specified model property, as described in Chapter 27.
+
+--> You can see the form, shown in Figure 9-4, by restarting ASP.NET Core, requesting http://localhost:5000, adding an item to the basket, and clicking the Checkout button. 
+--> Or, more directly, you can request http://localhost:5000/order/checkout.
+
+----------------------------------------------------------------------------------------
+
+14. Implementing Order Processing
+
+--> I will process orders by writing them to the database. 
+--> Most e-commerce sites would not simply stop there, of course, and I have not provided support for processing credit cards or other forms of payment. 
+
+--> But I want to keep things focused on ASP.NET Core, so a simple database entry will do.
+
+----------------------------------------------------------------------------------------
+
+--> Extending the Database
+
+--> Adding a new kind of model to the database is simple because of the initial setup I went through in Chapter 7. 
+--> First, I added a new property to the database context class
+
+--> Adding a Property in the StoreDbContext.cs File in the SportsStore/Models Folder
+
+using Microsoft.EntityFrameworkCore;
+
+namespace SportsStore.Models {
+
+    public class StoreDbContext: DbContext {
+        public StoreDbContext(DbContextOptions<StoreDbContext> options)
+            : base(options) { }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Order> Orders { get; set; }
+    } 
+}
+----------------------------------------------------------------------------------------
+
+--> This change is enough for Entity Framework Core to create a database migration that will allow Order objects to be stored in the database. 
+--> To create the migration, use a PowerShell command prompt to run the command shown in Listing 9-16 in the SportsStore folder.
+
+dotnet ef migrations add Orders
+
+--> This command tells Entity Framework Core to take a new snapshot of the application data model, work out how it differs from the previous database version, and generate a new migration called Orders. 
+--> The new migration will be applied automatically when the application starts because the SeedData calls the Migrate method provided by Entity Framework Core.
+
+https://www.timesjobs.com/candidate/inbox-home.html?from=home&tab=2&msg=Your%2520request%2520sent%2520successfully.&target=ShowInterest&from=applyNowForTJTemp&isnew=true&templateId=1800612&sentDate=1602830104837&bc=INT&alt=rGxUtycexBOsQGh8FTe__SLASH__MKkxomR55Rew&elid=PGK5pUsD2wo=&mailTrackSeqNo=5Z4dGQcLuaFzpSvf__PLUS__uAgZw==&rm=V6MJQKVkaZqI5iBlsZ3EJx1dygVCBooH&resumeid=sld__PLUS__s3Zo6wGBS742BEL6Lw==&featureId=my7NNLgslGo=&subject=Vacancy%2520%257C%2520Urgent%2520opening%2520for%2520the%2520post%2520of%2520Junior%2520&%2520Senior.Net%2520Developer&utm_source=avinashchawla199632058_1800612&utm_medium=email&utm_campaign=hire_massmail&utm_content=interest&featureName=CONTACTBYTJMAIL
+
+----------------------------------------------------------------------------------------
+
+15. RESETTING THE DATABASE
+
+--> When you are making frequent changes to the model, there will come a point when your migrations and your database schema get out of sync. 
+--> The easiest thing to do is delete the database and start over. 
+
+--> however, this applies only during development, of course, because you will lose any data you have stored. run this command to delete the database:
+
+dotnet ef database drop --force --context StoreDbContext
+
+--> once the database has been removed, run the following command from the SportsStore folder to re-create the database and apply the migrations you have created by running the following command:
+
+dotnet ef database update --context StoreDbContext
+
+--> the migrations will also be applied by the SeedData class if you just start the application. either way, the database will be reset so that it accurately reflects your data model and allows you to return to developing your application.
+
+----------------------------------------------------------------------------------------
+
+16. Creating the Order Repository
+
+--> I am going to follow the same pattern I used for the product repository to provide access to the Order objects. 
+--> I added a class file called IOrderRepository.cs to the Models folder and used it to define the interface
+
+----------------------------------------------------------------------------------------
+
+using System.Linq;
+
+namespace SportsStore.Models {
+
+    public interface IOrderRepository {
+        IQueryable<Order> Orders { get; }
+        void SaveOrder(Order order);
+    } 
+}
+
+--> To implement the order repository interface, I added a class file called EFOrderRepository.cs to the Models folder and defined the class shown in Listing 9-18.
+
+----------------------------------------------------------------------------------------
+
+--> The Contents of the EFOrderRepository.cs File in the SportsStore/Models Folder
+
+using Microsoft.EntityFrameworkCore; 
+using System.Linq;
+
+namespace SportsStore.Models {
+
+    public class EFOrderRepository : IOrderRepository {
+
+        private StoreDbContext context;
+
+        public EFOrderRepository(StoreDbContext ctx) {
+            context = ctx;
+        }
+
+        public IQueryable<Order> Orders => context.Orders
+                            .Include(o => o.Lines)
+                            .ThenInclude(l => l.Product);
+
+        public void SaveOrder(Order order) {
+            context.AttachRange(order.Lines.Select(l => l.Product));
+            if (order.OrderID == 0) {
+                context.Orders.Add(order);
+            }
+            context.SaveChanges();
+        }
+    } 
+}
+
+--> This class implements the IOrderRepository interface using Entity Framework Core, allowing the set of Order objects that have been stored to be retrieved and allowing for orders to be created or changed.
+
+
+----------------------------------------------------------------------------------------
+
+17. UNDERSTANDING THE ORDER REPOSITORY
+
+--> Entity Framework Core requires instruction to load related data if it spans multiple tables. in listing 9-18, i used the Include and ThenInclude methods to specify that when an Order object is read from the database, the collection associated with the Lines property should also be loaded along with each Product object associated with each collection object.
+
+... 
+public IQueryable<Order> Orders => context.Orders
+    .Include(o => o.Lines)
+    .ThenInclude(l => l.Product); ...
+
+--> This ensures that i receive all the data objects that i need without having to perform separate queries and then assemble the data myself.
+--> An additional step is also required when i store an Order object in the database. 
+
+--> When the user’s cart data is de-serialized from the session store, new objects are created that are not known to entity Framework Core, which then tries to write all the objects into the database. 
+--> For the Product objects associated with an Order, this means that entity Framework Core tries to write objects that have already been stored, which causes an error. 
+
+--> To avoid this problem, i notify entity Framework Core that the objects exist and shouldn’t be stored in the database unless they are modified, as follows:
+
+... 
+context.AttachRange(order.Lines.Select(l => l.Product)); ...
+
+--> This ensures that entity Framework Core won’t try to write the de-serialized Product objects that are associated with the Order object.
+
+----------------------------------------------------------------------------------------
+
+18. Registering the Order Repository Service in the Startup.cs File
+
+services.AddScoped<IOrderRepository, EFOrderRepository>();
+
+----------------------------------------------------------------------------------------
+
+19. Completing the Order Controller
+
+--> To complete the OrderController class, I need to modify the constructor so that it receives the services it requires to process an order and add an action method that will handle the HTTP form POST request when the user clicks the Complete Order button. 
+
+--> Listing 9-20 shows both changes.
+
+----------------------------------------------------------------------------------------
+
+--> Completing the Controller in the OrderController.cs File in the SportsStore/Controllers Folder
+
+using Microsoft.AspNetCore.Mvc; 
+using SportsStore.Models; 
+using System.Linq;
+
+namespace SportsStore.Controllers {
+
+    public class OrderController : Controller {
+
+        private IOrderRepository repository;
+
+        private Cart cart;
+
+        public OrderController(IOrderRepository repoService, Cart cartService) {
+            repository = repoService;
+            cart = cartService;
+        }
+
+        public ViewResult Checkout() => View(new Order());
+
+        [HttpPost]
+        public IActionResult Checkout(Order order) {
+            if (cart.Lines.Count() == 0) {
+                ModelState.AddModelError("", "Sorry, your cart is empty!");
+            }
+            if (ModelState.IsValid) {
+                order.Lines = cart.Lines.ToArray();
+                repository.SaveOrder(order);
+                cart.Clear();
+                return RedirectToPage("/Completed", new { orderId = order.OrderID });
+            } else {
+                return View();
+            }
+        }
+    } 
+}
+
+--> The Checkout action method is decorated with the HttpPost attribute, which means that it will be used to handle POST requests—in this case, when the user submits the form.
+--> In Chapter 8, I use the ASP.NET Core model binding feature to receive simple data values from the request. 
+
+--> This same feature is used in the new action method to receive a completed Order object. 
+--> When a request is processed, the model binding system tries to find values for the properties defined by the Order class. 
+
+--> This works on a best-effort basis, which means I may receive an Order object lacking property values if there is no corresponding data item in the request.
+--> To ensure I have the data I require, I applied validation attributes to the Order class. 
+
+--> ASP.NET Core checks the validation constraints that I applied to the Order class and provides details of the result through the ModelState property. 
+--> I can see whether there are any problems by checking the ModelState.IsValid property. 
+
+--> I call the ModelState.AddModelError method to register an error message if there are no items in the cart. 
+--> I will explain how to display such errors shortly, and I have much more to say about model binding and validation in Chapters 28 and 29.
+
+----------------------------------------------------------------------------------------
+
+20. Displaying Validation Errors
+
+--> ASP.NET Core uses the validation attributes applied to the Order class to validate user data, but I need to make a simple change to display any problems. 
+--> This relies on another built-in tag helper that inspects the validation state of the data provided by the user and adds warning messages for each problem that has been discovered. 
+
+--> Listing 9-21 shows the addition of an HTML element that will be processed by the tag helper to the Checkout.cshtml file. 
+
+--> Listing 9-21. Adding a Validation Summary to the Checkout.cshtml File in the SportsStore/Views/Order Folder
+
+@model Order
+<h2>Check out now</h2> 
+<p>Please enter your details, and we'll ship your goods right away!</p>
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<form ... >
+
+----------------------------------------------------------------------------------------
+
+21. Displaying a Summary Page
+
+--> To complete the checkout process, I am going to create a Razor Page that displays a thank-you message with a summary of the order. 
+--> Add a Razor Page named Completed.cshtml to the Pages folder with the contents.
+
+--> The Contents of the Completed.cshtml File in the SportsStore/Pages Folder
+
+@page
+<div class="text-center">
+    <h2>Thanks!</h2>
+    <p>Thanks for placing order #@OrderId</p>
+    <p>We'll ship your goods as soon as possible.</p>
+    <a class="btn btn-primary" asp-controller="Home">Return to Store</a> </div>
+@functions {
+    [BindProperty(SupportsGet = true)]
+    public string OrderId { get; set; } }
+
+
+--> Although Razor Pages usually have page model classes, they are not a requirement, and simple features can be developed without them. 
+--> In this example, I have defined a property named OrderId and decorated it with the BindProperty attribute, which specifies that a value for this property should be obtained from the request by the model binding system
+
+--> Now customers can go through the entire process, from selecting products to checking out. 
+--> If they provide valid shipping details (and have items in their cart), they will see the summary page when they click the Complete Order button
+
+----------------------------------------------------------------------------------------
+
+22. Summary
+
+--> Notice the way the application moves between controllers and Razor Pages. 
+--> The application features that ASP.NET Core provides are complementary and can be mixed freely in projects.
+
+--> I have completed all the major parts of the customer-facing portion of SportsStore. It might not be enough to worry Amazon, but I have a product catalog that can be browsed by category and page, a neat shopping cart, and a simple checkout process.
+The approach I have taken means I can easily change the behavior of any piece of the application without causing problems 
+or inconsistencies elsewhere. For example, I could change the way that orders are stored, and it would not have any impact on the shopping cart, the product catalog, or any other area of the application. In the next chapter, I add the features required to administer the SportsStore application.
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

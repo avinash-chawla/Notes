@@ -1,0 +1,422 @@
+----------------------------------------------------------------------------------------
+
+9. Essential C# Features
+
+--> Managing null values			--> null conditional or null coalescing operators
+--> Creating properties with get and set	--> automatically implemented properties
+--> Mixing static and dynamic value in string	--> string interpolation
+--> extending functionality of class		--> use extension method
+--> define a variable without type		--> use var
+--> performing work asynchronously		--> async/await
+
+----------------------------------------------------------------------------------------
+
+10. Null Conditional
+
+--> It protects from NullReferenceException
+
+public ViewResult Index() {
+
+   List<string> results = new List<string>();
+   
+   foreach(Product p in Product.GetProducts()) {
+	string name = p?.Name;
+	decimal? price = p?.Price;
+	results.Add(string.Format("Name: {0}, Price: {1}", name, price));
+    }
+
+    return View(results);
+}
+
+--> It is possible that both object in the array or value of properties could be null.
+--> Which means I can't just refer to p.Name or p.Price within the foreach loop without causing a NullReferenceException.
+
+--> If p is null, then name will be set to null as well.
+--> If p is not null, then name will be set to the value of the Person.
+
+string name = p?.Name;
+decimal? price = p?.Price;
+
+--> This is more used when assigning value to a variable and it will assign even if it is null.
+
+----------------------------------------------------------------------------------------
+
+11. Null Coalescing Operator
+
+string name = p?.Name ?? "<No Name>";
+decimal? price = p?.Price ?? 0;
+
+--> This makes sure that browser returns something, instead of nothing
+
+----------------------------------------------------------------------------------------
+
+12. Auto-Implemented Properties
+
+public string Name { get; set; }
+
+is equivalent to the following code:
+
+public string Name {
+   get { return name; }
+   set { name = value; }
+}
+
+----------------------------------------------------------------------------------------
+
+13. Using Auto-implemented Property Initializers
+
+--> It has been supported since C# 3.0
+--> It allows an initial value to be set without having to use the constructor
+
+public string Category { get; set; } = "Watersports";
+
+----------------------------------------------------------------------------------------
+
+14. String Interpolation
+
+results.Add($"Name: {name}, Price: {price}, Related: {relatedName}");
+
+$"Price: {price:C2}"  
+
+// String interpolation supports all the format specifieres that are available with the string.Format
+
+----------------------------------------------------------------------------------------
+
+15. Using Object and Collection Initializers
+
+Product kayak = new Product {
+   Name = "kayak",
+   Category = "Water Craft",
+   Price = 275M
+};
+
+var names = new string[] {"Bob", "Joi", "Alice"};
+
+----------------------------------------------------------------------------------------
+
+16. Using an Index Initializer
+
+--> It makes Dictionary Initializers syntax very Easy.
+
+--> Tradional Way:
+
+var products = new Dictionary<string, Product> {
+   { "kayak", new Product { Name = "kayak", Price = 275 }},
+   { "lifeJacket", new Product{ Name = "LifeJacket", Price = 47}}
+};
+
+
+--> New Way:
+
+var products = new Dictionary<string, Product> {
+   ["kayak"] = new Product { Name = "kayak", Price = 275 },
+   ["LifeJacket" ] = new Product{ Name = "LifeJacket", Price = 47}}
+}
+
+----------------------------------------------------------------------------------------
+
+17. Pattern Matching
+
+--> It is the new feature of C# for pattern matching
+--> It is used to test that an object is of a specific type of has specific characteristics
+
+object[] data = new object[] { 275M, 29.95M, "apple", "orange", 100, 10 };
+decimal total = 0;
+
+for(int i = 0; i < data.Length; i++) {
+   if(data[i] is decimal d) {
+	total += d;
+   }
+}
+
+----------------------------------------------------------------------------------------
+
+18. Pattern Matching with switch case
+
+object[] data = new object[] { 275M, 29.95M, "apple", "orange", 100, 10 };
+decimal total = 0;
+
+for(int i = 0; i < data.Length; i++) {
+   switch(data[i]) {
+      case decimal decimalValue:
+	  total += decimalValue;
+  	  break;
+
+      case int intValue when intValue > 50:
+	  total += intValue;
+	  break;
+   }   
+}
+
+--> To match any value of a specific type, use the type and variable name in the case statement
+
+--> This case statement matches any decimal value and assigns it to a new variable called decimalValue.
+
+----------------------------------------------------------------------------------------
+
+19. Extension Methods
+
+public class ShoppingCart { 
+	public IEnumerable<Product> Products { get; set; }
+}
+
+--> Suppose I need to be able to determine the total value of the Product objects in the ShoppingCart class, but I cannot modify the class because it comes from a third party and I do not have the source code.
+
+----------------------------------------------------------------------------------------
+
+public static class MyExtensionMethods {
+
+   public static decimal TotalPrices(this ShoppingCart cartParam) {
+       decimal total = 0;
+       foreach (Product prod in cartParam.Products) {
+	    total += prod?.Price ?? 0;
+       }
+   }
+}	
+
+----------------------------------------------------------------------------------------
+
+ShoppingCart cart = new ShoppingCart { Products = Product.GetProducts() };
+decimal cartTotal = cart.TotalPrices();
+
+----------------------------------------------------------------------------------------
+
+20. Applying Extension Methods to an Interface
+
+--> This allows us to call the extension method on all the classes that implement the interface.
+
+--> eg. ShoppingCart : IEnumerable<Product>
+--> eg. Product[]    : IEnumerable<Product>
+
+----------------------------------------------------------------------------------------
+
+public static class MyExtensionMethods {
+
+   public static decimal TotalPrices(this IEnumerable<Product> products) {
+       decimal total = 0;
+       foreach (Product prod in cartParam.Products) {
+	    total += prod?.Price ?? 0;
+       }
+   }
+}	
+
+----------------------------------------------------------------------------------------
+
+ShoppingCart cart = new ShoppingCart { Products = Product.GetProducts() };
+
+Product[] productArray = {
+    new Product { Name = "Kayak", Price = 275},
+    new Product { Name = "LifeJacket", Price = 27}
+};
+
+decimal cartTotal = cart.TotalPrices();
+decimal arrayTotal = productArray.TotalPrices();
+
+
+----------------------------------------------------------------------------------------
+
+21. Creating Filtering Extension Methods
+
+--> Need to be learn more.
+
+public static IEnumerable<Product> FilterByPrice(this IEnumerable<Product> productEnum, decimal minimumPrice) {
+
+   foreach(Product prod in productEnum) {	
+	if(( prod?.Price ?? 0 ) >= minimumPrice) {
+	    yield return prod;
+        }
+   }
+}
+
+----------------------------------------------------------------------------------------
+
+decimal arrayTotal = productArray.FilterByPrice(20).TotalPrices();
+
+----------------------------------------------------------------------------------------
+
+22. Lambda Functions
+
+public static IEnumerable<Product> FilterByPrice(
+   this IEnumerable<Product> productEnum, decimal minimumPrice) {
+
+   foreach(Product prod in productEnum) {	
+	if(( prod?.Price ?? 0 ) >= minimumPrice) {
+	    yield return prod;
+        }
+   }
+}
+
+public static IEnumerable<Product> FilterByName(
+   this IEnumerable<Product> productEnum, char firstLetter) {
+
+   foreach(Product prod in productEnum) {	
+	if((prod?.Name?[0] == firstletter) {
+	    yield return prod;
+        }
+   }
+}
+
+----------------------------------------------------------------------------------------
+
+decimal priceFilterTotal = productArray.FilterByPrice(20).TotalPrices();
+decimal nameFilterTotal  = productArray.FilterByName('S').TotalPrices();
+
+----------------------------------------------------------------------------------------
+
+--> I can repeat this process indefinitely to create filter methods for every property and every combination of properties.
+--> A more elegant approach is to seperate the code that processes the enumeration from the selection criteria.
+
+----------------------------------------------------------------------------------------
+
+public static IEnumerable<Product> Filter( 	
+	this IEnumerable<Product> productEnum,
+	Func<Product, bool> selector) {
+	
+   foreach(Product prod in productEnum) {
+	if(selector(prod) {
+	   yield return prod;
+    	}
+   }
+}
+
+--> The second argument to the Filter method is a function that accepts a Product object and that returns a bool value.
+--> The Filter method calls the functino for each Product object and includes it in the result if the function returns true.
+
+----------------------------------------------------------------------------------------
+
+bool FilterByPrice(Product p) {
+    return (p?.Price ?? 0) >= 20;
+}
+
+Func<Product, bool> nameFilter = delegate (Product prod) {	
+    return prod?.Name?[0] == 'S';
+};
+
+
+decimal priceFilterTotal = productArray
+	.Filter(FilterByPrice)
+	.TotalPrices();
+
+decimal nameFilterTotal = productArray
+	.Filter(nameFilter)
+	.TotalPrices();
+
+--> Neither approach is ideal
+--> Defining methods clutters up a class definition.
+--> Defining delicates uses an awkward syntax which is hard to read and hard to maintain.
+
+----------------------------------------------------------------------------------------
+
+--> Using lambda expressions,
+
+decimal priceFilterTotal = productArray
+	.Filter(p => (p?.Price ?? 0) >= 20)
+	.TotalPrices();
+
+decimal nameFilterTotal = productArray
+	.Filter(p => (p?.Name?[0] == 'S')
+	.TotalPrices();
+
+----------------------------------------------------------------------------------------
+
+23. Property using Lambda expression
+
+public bool NameBeginsWithS => Name?[0] == 'S';
+
+----------------------------------------------------------------------------------------
+
+24. Using Type Inference and Anonymous Types
+
+var names = new [] { "kayak", "Lifejacket", "Soccer ball" };
+
+var products = new [] {
+	new { Name = "kayak", Price = 275 },
+	new { Name = "Lifejacket", Price = 48 },
+	new { Name = "Soccer ball", Price = 19 },
+	new { Name = "Corner flag", Price = 34 },
+};
+
+--> This does not mean that it is dynamic in the sense that Javascript variables are dynamic
+--> It just means that the type definition will be created automatically by the compiler.
+--> Strong typing is still enforced.
+
+--> You need to use 'var' keyword in anonymous types.
+
+----------------------------------------------------------------------------------------
+
+25. Using Default Implementations in Interfaces
+
+--> Not much understood
+
+----------------------------------------------------------------------------------------
+
+26. Using Asynchronous Methods
+
+--> Asynchronous methods perform work in the background and notify you when they are complete, allowing your code to take care of other business while the background work is performed.
+
+--> They help in removing bottlenecks from code and allow applications to take advantage of multiple processors and processor cores to perform work in parallel. 
+
+----------------------------------------------------------------------------------------
+
+using System.Net.Http;
+using System.Threading.Tasks;
+
+public static Task<long?> GetPageLength() {
+
+    HttpClient client = new HttpClient();
+
+    var httpTask = client.GetAsync("http://apress.com");
+
+    return httpTask.ContinueWith((Task<HttpResponseMessage> antecendent) => {
+	return antecendent.Result.Content.Headers.ContentLength;
+    });
+}
+
+--> client.GetAsync returns Task<HttpResponseMessage
+--> This tells me that request will be performed in the background.
+--> To get the result from that object when it gets ready, we use ContinueWith method
+
+----------------------------------------------------------------------------------------
+
+public async static Task<long?> GetPageLength() {
+
+    HttpClient client = new HttpClient();
+
+    var httpMessage = await client.GetAsync("http://apress.com");
+
+    return httpMessage.Content.Headers.ContentLength;
+}
+
+----------------------------------------------------------------------------------------
+
+27. Using an Asynchronous Enumerable
+
+public static async Task<IEnumerable<long?>> GetPageLengths(
+	List<string> output, params string[] urls) {
+
+	List<long?> results = new List<long?>();
+	
+	HttpClient client = new HttpClient();
+
+ 	foreach(string url in urls) {
+	    output.Add($"Started request for {url}");
+	    var httpMessage = await client.GetAsync($"http://{url}");
+	    output.Add($"Completed request for {url}");
+	    yield return httpMessage.Content.Headers.ContentLength;
+	}
+
+	return results;
+}
+
+----------------------------------------------------------------------------------------
+
+List<string> output = new List<string>();
+
+await foreach(long? len in await MyAsyncMethods.GetPageLengths(output, "apress.com",
+		"microsoft.com", "amazon.com" )) {
+	output.Add($"Page Length: {len}");
+
+}
+return View(output);
+
+----------------------------------------------------------------------------------------

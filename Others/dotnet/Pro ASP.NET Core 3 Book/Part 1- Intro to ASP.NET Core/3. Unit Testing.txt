@@ -1,0 +1,247 @@
+----------------------------------------------------------------------------------------
+
+1. What is Unit testing?
+
+--> It is a form of testing in which individuals components are isolated from the rest of the application so their behaviour can the thoroughly validated.
+
+----------------------------------------------------------------------------------------
+
+2. Chapter Summary
+
+--> Creating a unit test project 	--> use dotnet new command
+--> Creating an XUnit test		--> Create a class with methods decorated with the Fact attribute and use the Assert class to inspect the test results
+
+--> Running unit tests			--> Use test runners or dotnet test command
+--> Isolating a component 		--> Create mock implementations of the objects
+
+----------------------------------------------------------------------------------------
+
+3. Create new project
+
+dotnet new global.json --sdk-version 3.1.400 --output Testing/SimpleApp
+dotnet new web --no-https --output Testing/SimpleApp --framework netcoreapp3.1
+dotnet new sln -o Testing
+
+dotnet sln Testing add Testing/SimpleApp
+
+
+services.AddControllersWithViews();
+
+app.UseEndpoints(endpoints => 
+	endpoints.MapDefaultControllerRoute();
+);
+
+----------------------------------------------------------------------------------------
+
+4. Model
+
+namespace SimpleApp.Models
+{
+    public class Product
+    {
+        public string Name { get; set; }
+        public decimal? Price { get; set; }
+        public static Product[] GetProducts()
+        {
+            Product kayak = new Product
+            {
+                Name = "Kayak",
+                Price = 275M
+            };
+
+            Product lifeJacket = new Product
+            {
+                Name = "LifeJacket",
+                Price = 48.95M
+            };
+
+            return new Product[] { kayak, lifeJacket };
+        }
+    }
+}
+
+----------------------------------------------------------------------------------------
+
+5. Controller
+
+namespace SimpleApp.Controllers
+{
+    public class HomeController : Controller
+    {
+        public IActionResult Index()
+        {
+            return View(Product.GetProducts());
+        }
+    }
+}
+
+----------------------------------------------------------------------------------------
+
+6. Index View
+
+@using SimpleApp.Models
+@model IEnumerable<Product>
+@{ Layout = null; }
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=content-width" />
+    <title>Simple App</title>
+</head>
+<body>
+    <ul>
+    @foreach(var p in @Model)
+    {
+        <li>Name: @p.Name, Price: @p.Price</li>
+    }
+    </ul>
+</body>
+</html>
+
+----------------------------------------------------------------------------------------
+
+7. Creating a Unit Test Project
+
+--> You generally craete a seperate project to hold the unit tests, so that you can deploy your application without also deploying the tests.
+
+--> The .net core includes templates for 3 popular test tools
+1. mstest
+2. nunit
+3. xunit
+
+----------------------------------------------------------------------------------------
+
+--> It is a convention to name the unit test project <ApplicationName>.Tests
+
+dotnet new xunit -o SimpleApp.Tests --framework netcoreapp3.1
+dotnet sln add SimpleApp.Tests
+dotnet add SimpleApp.Tests reference SimpleApp
+
+
+----------------------------------------------------------------------------------------
+
+--> Removing the default test class
+
+--> remove-item SimpleApp.Tests/UnitTest1.cs
+
+----------------------------------------------------------------------------------------
+
+--> Create a new class in Test Project --> ProductTests.cs
+
+namespace SimpleApp.Tests
+{
+    public class ProductTests
+    {
+        [Fact]
+        public void canChangeProductName()
+        {
+            var p = new Product { Name = "Test", Price = 100M };
+            p.Name = "New Name";
+
+            Assert.Equal("New Name", p.Name);
+        }
+
+        [Fact]
+        public void canChangeProductPrice()
+        {
+            var p = new Product { Name = "Test", Price = 100M };
+            p.Price = 200M;
+
+            Assert.Equal(100M, p.Price);
+        }
+    }
+}
+
+
+----------------------------------------------------------------------------------------
+
+--> There are two unit tests in the ProductTests class, each of which tests a behavior of the Product model class from the SimpleApp project. 
+-->  A test project can contain many classes, each of which can contain many unit tests.
+
+
+--> Conventionally, the name of the test methods describes what the test does, and the name of the class describes what is being tested. 
+--> This makes it easier to structure the tests in a project and to understand what the results of all the tests are when they are run by Visual Studio. 
+
+--> The name ProductTests indicates that the class contains tests for the Product class, and the method names indicate that they test the ability to change the name and price of a Product object.
+--> The Fact attribute is applied to each method to indicate that it is a test. Within the method body, a unit test follows a pattern called arrange, act, assert (A/A/A). Arrange refers to setting up the conditions for the test, act refers to performing the test, and assert refers to verifying that the result was the one that was expected.
+
+
+--> The arrange and act sections of these tests are regular C# code, but the assert section is handled by xUnit.net, which provides a class called Assert, whose methods are used to check that the outcome of an action is the one that is expected.
+
+
+----------------------------------------------------------------------------------------
+
+--> The Fact attribute and the Asset class are defined in the Xunit namespace, for which there must be a using statement in every test class.
+
+----------------------------------------------------------------------------------------
+
+--> There are different static methods to Asset class
+
+--> Equal
+--> NotEqual
+--> True
+--> False
+--> IsType
+--> IsNotType
+--> IsNull
+--> IsNotNull
+--> InRange
+--> NotInRange
+--> Throws
+
+----------------------------------------------------------------------------------------
+
+--> To Run the Tests
+
+--> Test menu --> Test Explorer
+--> Find all tests
+--> Run all tests
+
+--> From command Line
+
+--> dotnet test
+
+----------------------------------------------------------------------------------------
+
+--> Writing unit tests for model classes like Product is easy.
+
+----------------------------------------------------------------------------------------
+
+8. 
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

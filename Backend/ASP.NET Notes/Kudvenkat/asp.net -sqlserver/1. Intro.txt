@@ -4,7 +4,7 @@
 --> Install SSMS  --> Sql Server Management Studio 2018
 --> sql server is where all the data and tables are stored and ssms is client tool to talk with sql server
 
---> Connet ssms to sql server with connect to database option in starting of ssms
+--> Connect ssms to sql server with connect to database option in starting of ssms
 --> Click new Query in menu bar
 
 ---------------------------------------------------------------------------------------------------------
@@ -100,7 +100,7 @@ Insert into tblPerson (ID, Name, Email) Values (7, 'Richi', r@r.com)
 2. Query-->
 
 Alter table ForeignKeyTable add constraint ForeignKeyTable_ForeignKeyColumn_FK	
-Foreign key (ForeignKeyColumn) referces PrimaryKeyTable(PrimaryKeyColumn)
+Foreign key (ForeignKeyColumn) references PrimaryKeyTable(PrimaryKeyColumn)
 
 Alter table tblPerson add constraint tblPerson_GenderId_FK
 Foreign key (GenderId) references tblGender(ID)

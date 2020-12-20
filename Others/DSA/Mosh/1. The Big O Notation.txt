@@ -1,0 +1,391 @@
+1. What is Big O
+
+--> It is used to describe the performace of an algorithm.
+--> Data Structures are also algorithms to manage sequence of data.
+
+--> Performance means Is the given algorithm scale well as the input grows really large.
+--> It has symbolic representation as: O(n)
+
+--> Certain Operations can be more or less costly depending upon the data structure we use.
+--> Like Array advantage is accessing an item through index is very fast.
+--> Disadvantage: Array got a fixed size
+
+--> Like Linked List has advantage when you want to frequently add or remove item and it is very fast and it has no problem of resizing.
+--> Disadvantage: Accessing of an item using an index is slow.
+
+----------------------------------------------------------------------------------------
+
+2. O(1)
+
+--> When an Algorithm takes constant time and independent on the number of inputs.
+--> eg.
+
+public void log(int[] numbers) {
+   Console.WriteLine(numbers[0]);
+}
+
+--> Runtime Complexity of this method: O(1)
+
+----------------------------------------------------------------------------------------
+
+3. O(2)
+
+public void log(int[] numbers) {
+   Console.WriteLine(numbers[0]);
+   Console.WriteLine(numbers[0]);
+}
+
+--> We do not measure runtime complexity based on number of operations
+--> We will consider runtime complexity as O(1) even if the number of operations is 1 million.
+
+----------------------------------------------------------------------------------------
+
+4. O(n)
+
+--> Consider an example:
+
+public void log(int[] numbers) {
+   for (int i = 0; i < numbers.length; i++)
+	Console.WriteLine(numbers[i]);
+}
+
+--> This method prints output in each loop
+--> In this method, size of input data does matter 
+
+--> So, cost of this algorithm grows linearly and in direct relation to the size of input.
+--> So, we represent runtime complexity of this method as O(n) where n is size of input
+
+----------------------------------------------------------------------------------------
+
+5. O(2 + n)
+
+public void log(int[] numbers) {
+   Console.WriteLine();
+   for (int i = 0; i < numbers.length; i++)
+	Console.WriteLine(numbers[i]);
+   Console.WriteLine();
+}
+
+--> Runtime complexity: O(2 + n)
+--> But We will consider it as O(n) because if n is in millions, then 2 is negligible to it. So we drop 2.
+
+----------------------------------------------------------------------------------------
+
+6. O(n + n) or O(n) 
+
+public void log(int[] numbers) {
+
+   for (int i = 0; i < numbers.length; i++)
+	Console.WriteLine(numbers[i]);
+
+   for (int i = 0; i < numbers.length; i++)
+	Console.WriteLine(numbers[i]);
+}
+
+--> In this also, we drop 2 and we are measuring approximation of algorithm that scale well with number of inputs
+--> Means Algorithm cost grows linearly with size of input
+--> So runtime complexity: O(n) for this method.
+
+----------------------------------------------------------------------------------------
+
+7. O(n + m)
+
+public void log(int[] numbers, string[] names) {
+
+   foreach(var number in numbers) 	// O(n)
+	Console.WriteLine(number);
+
+   foreach(var name in names)		// O(m)
+	Console.WriteLine(name);
+}
+
+--> Here, we are dealing with two different inputs: n and m
+--> So runtime complexity will be: O(n + m)
+--> But cost of algorithm still will be linear in relation to size of input so it is considered: O(n) once again
+
+--> Remember, Runtime complexity or BigO notation only specifies relation between cost of an algorithm with size of input data 
+
+----------------------------------------------------------------------------------------
+
+8. O(n^2) or O(n * n)
+
+--> In previous examples, we have seen normal loops takes linear increment in cost of algorithm.
+--> Lets see an example,
+
+public void log(int[] numbers)
+   foreach(var first in numbers)			// O(n)
+	foreach(var second in numbers)			// O(n)
+	   Console.WriteLine($"{first}, {second}"); 
+
+--> Runtime Complexity: O(n * n) or O(n^2)
+
+--> We say this algorithm runs on Quadratic time.
+--> This Quadratic graph is slower than liner time.
+
+----------------------------------------------------------------------------------------
+
+9. O(n + n^2)
+
+ public void log(int[] numbers)
+   foreach(int number in numbers)			// O(n)
+	Console.WriteLine(number);
+
+   foreach(var first in numbers)			// O(n)
+	foreach(var second in numbers)			// O(n)
+	   Console.WriteLine($"{first}, {second}"); 
+
+--> Runtime Complexity will be: O(n + n^2)
+--> But as we measuring approximation, n is negligible to n^2, so we drop n and consider RC as O(n^2)
+
+----------------------------------------------------------------------------------------
+
+10. O(log n)
+
+--> It runs as Logarithmic curve
+--> As compare to O(n) linear curve, it is faster and more efficient
+
+--> Linear curve grows linearly with the amount of input
+--> Logarthmic curve grows with amount of input, then becomes constant.
+
+--> Mostly, you will see the work gets half in every step in logarthmic algorithm
+--> eg.
+
+--> Linear Search and Binary Search
+--> If the input is a sorted array of 1M items,
+--> Linear Search will use for loop to search the target item
+--> While Binary Search will start looking through middle of array and compare the target element with middle element
+
+--> Binary Search at most take 19 comparison to find target element in 1M data input.
+--> While Linear Search will take 1M at most, if the target element is at last position.
+
+--> Other examples of logarithm algorithm is Trees and Graphs.
+--> Note point: Logarithm is more scalable than linear algorithm.
+
+----------------------------------------------------------------------------------------
+
+11. O(2 ^ n)
+
+--> It has growth rate of exponential
+--> It is completely opposite of logarithmic growth rate.
+
+--> Example in later part of tutorial
+
+----------------------------------------------------------------------------------------
+
+12. Popular Growth Rates
+
+--> Constant	O(1)
+--> Logarithmic O(log n)
+--> Linear	O(n)
+--> Quadratic	O(n^2)
+--> Exponential O(2^n)
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

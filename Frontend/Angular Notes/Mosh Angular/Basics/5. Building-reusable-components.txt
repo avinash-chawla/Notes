@@ -1,4 +1,7 @@
-in this section, topics are-->
+0. Intro
+
+--> In this section, We are going to learn -->
+
 1. Pass data to components
 2. raise custom events
 3. apply styles
@@ -6,6 +9,7 @@ in this section, topics are-->
 5. view encapsulation
 
 ------------------------------------------------------------------------
+
 1. Passing input to components and components raising events as outputs-->
 
 --> Passing data from parent component to child component
@@ -23,7 +27,9 @@ few things-->
 --> input and output property to this component is defined in child component 		--> favorite.component.ts
 
 -------------------------------------------------------------------------------------------------------
+
 --> parent component
+
 app.component.ts-->
 
 import { Component } from '@angular/core';
@@ -57,6 +63,7 @@ app.component.html-->
 --> custom component is added in app.component.html
 --> here input is [isFavorite] and output is (change)
 --> everything is custom here--> tags, attributes, event emitter
+
 ---------------------------------------------------------------------------------------------------------
 
 favorite.component.html-->
@@ -65,6 +72,7 @@ favorite.component.html-->
     (click)="onClick()"></span>
 
 --> favorite template is here
+
 --------------------------------------------------------------------------------------------------------
 
 
@@ -83,7 +91,6 @@ export class FavoriteComponent {
     this.isFavorite = !this.isFavorite;
     this.change.emit();
   }
-
 }
 
 --> 

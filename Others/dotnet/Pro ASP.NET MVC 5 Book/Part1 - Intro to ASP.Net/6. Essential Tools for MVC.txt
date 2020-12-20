@@ -1,0 +1,2042 @@
+
+1. Intro
+
+--> I am going to look at three tools that should be part of every MVC programmer’s arsenal: 
+
+1. a dependency injection (DI) container
+2. a unit test framework
+3. a mocking tool.
+
+-------------------------------------------------------------------------------------
+
+--> The third tool I selected is Moq, which is a mocking tool kit. 
+--> I use Moq to create implementations of interfaces to use in unit tests. 
+
+--> Programmers either love or hate Moq; there is nothing in the middle. 
+--> Either you will find the syntax elegant and expressive, or you will be cursing every time you try to use it. 
+
+--> If you just cannot get along with it, I suggest looking at Rhino Mocks, which is a nice alternative.
+
+-------------------------------------------------------------------------------------
+
+2. Preparing for this Chapter
+
+namespace EssentialTools.Models {
+    public class Product {
+        public int ProductID { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public decimal Price { get; set; }
+        public string Category { set; get; }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+namespace EssentialTools.Models {
+
+    public class LinqValueCalculator {
+
+        public decimal ValueProducts(IEnumerable<Product> products) {
+            return products.Sum(p => p.Price);
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+using System.Collections.Generic;
+
+namespace EssentialTools.Models {
+
+    public class ShoppingCart {
+
+        private LinqValueCalculator calc;
+
+        public ShoppingCart(LinqValueCalculator calcParam) {
+            calc = calcParam;
+        }
+
+        public IEnumerable<Product> Products { get; set; }
+
+        public decimal CalculateProductTotal() {
+            return calc.ValueProducts(Products);
+        }
+    } 
+} 
+
+-------------------------------------------------------------------------------------
+
+namespace EssentialTools.Controllers {
+
+    public class HomeController : Controller {
+
+        private Product[] products = {
+            new Product {Name = "Kayak", Category = "Watersports", Price = 275M},
+            new Product {Name = "Lifejacket", Category = "Watersports", Price = 48.95M},
+            new Product {Name = "Soccer ball", Category = "Soccer", Price = 19.50M},
+            new Product {Name = "Corner flag", Category = "Soccer", Price = 34.95M}
+        };
+
+        public ActionResult Index() {
+
+            LinqValueCalculator calc = new LinqValueCalculator();
+            ShoppingCart cart = new ShoppingCart(calc) { Products = products };
+            decimal totalValue = cart.CalculateProductTotal();
+            return View(totalValue);
+        }
+    } 
+} 
+
+-------------------------------------------------------------------------------------
+
+--> Index.cshtml 
+
+@model decimal
+
+    <div>
+        Total value is $@Model
+    </div>
+
+-------------------------------------------------------------------------------------
+
+--> Output:
+
+Total value is $378.40
+
+-------------------------------------------------------------------------------------
+
+3. Using Ninject
+
+--> To recap, the idea is to decouple the components in an MVC application, with a combination of interfaces and DI container that creates instances of objects by creating implementations of the interfaces they depend on and injecting them into the constructor.
+
+-------------------------------------------------------------------------------------
+
+--> Understanding the Problem
+
+--> In the example app, I created an example of the basic problem that DI addresses: tightly coupled classes. 
+--> The ShoppingCart class is tightly coupled to the LinqValueCalculator class and the HomeController class is tightly coupled to both ShoppingCart and LinqValueCalculator.
+
+--> This means that if I want to replace the LinqValueCalculator class, I have to locate and the change the references in the classes that are tightly coupled to it. --> This is not a problem with such a simple project, but it becomes a tedious and error-prone process in a real project, especially if I want to switch between different calculator implementations (for testing, for example), rather than just replace one class with another.
+
+-------------------------------------------------------------------------------------
+
+4. Applying an Interface
+
+--> I can solve part of the problem by using a C# interface to abstract the definition of the calculator functionality from  its implementation. 
+
+using System.Collections.Generic;
+
+namespace EssentialTools.Models {
+
+    public interface IValueCalculator {
+        decimal ValueProducts(IEnumerable<Product> products);
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+namespace EssentialTools.Models {
+    public class LinqValueCalculator : IValueCalculator {		// This Line
+
+        public decimal ValueProducts(IEnumerable<Product> products) {
+            return products.Sum(p => p.Price);
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+namespace EssentialTools.Models {
+    public class ShoppingCart {
+
+        private IValueCalculator calc;
+
+        public ShoppingCart(IValueCalculator calcParam) {
+            calc = calcParam;
+        }
+
+        public IEnumerable<Product> Products { get; set; }
+
+        public decimal CalculateProductTotal() {
+            return calc.ValueProducts(Products);
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+public ActionResult Index() {
+
+    IValueCalculator calc = new LinqValueCalculator();
+
+    ShoppingCart cart = new ShoppingCart(calc) { Products = products };
+
+    decimal totalValue = cart.CalculateProductTotal();
+    return View(totalValue); 
+} 
+
+-------------------------------------------------------------------------------------
+
+--> My goal with Ninject is to reach the point where I specify that I want to instantiate an implementation of the IValueCalculator interface, but the details of which implementation is required are not part of the code in  the Home controller.
+
+-------------------------------------------------------------------------------------
+
+5. Installing Ninject 
+
+Install-Package Ninject -version 3.0.1.10
+Install-Package Ninject.Web.Common -version 3.0.0.7 
+Install-Package Ninject.MVC3 -Version 3.0.0.6
+
+
+--> The first command installs the Ninject core package and the others install extensions to the core that makes Ninject work nicely with ASP.NET applications
+--> Do not be put off by the reference to MVC3 in the last package name–it works just fine with MVC 5
+
+-------------------------------------------------------------------------------------
+
+6. Getting Started with Ninject
+
+--> HomeController.cs
+
+using Ninject;
+
+        public ActionResult Index() {
+
+            IKernel ninjectKernel = new StandardKernel();
+
+            ninjectKernel.Bind<IValueCalculator>().To<LinqValueCalculator>();
+
+            IValueCalculator calc = ninjectKernel.Get<IValueCalculator>();
+
+            ShoppingCart cart = new ShoppingCart(calc) { Products = products };
+
+            decimal totalValue = cart.CalculateProductTotal();
+            return View(totalValue);
+        }
+
+-------------------------------------------------------------------------------------
+
+--> The first stage is to prepare Ninject for use. To do this, I create an instance of a Ninject kernel, which is the object that is responsible for resolving dependencies and creating new objects. 
+
+--> When I need an object, I will use the kernel instead of the new keyword.
+
+--> I need to create an implementation of the Ninject.IKernel interface, which I do by creating a new instance of the StandardKernel class. 
+--> Ninject can be extended and customized to use different kinds of kernel, but I only need the built-in StandardKernel in this chapter.
+
+
+-------------------------------------------------------------------------------------
+
+--> The second stage of the process is to configure the Ninject kernel so that it understands which implementation objects I want to use for each interface I am working with. Here is the statement from the listing that does that:
+
+... ninjectKernel.Bind<IValueCalculator>().To<LinqValueCalculator>();
+
+-------------------------------------------------------------------------------------
+
+--> Ninject uses C# type parameters to create a relationship: I set the interface I want to work with as the type parameter for the Bind method and call the To method on the result it returns. 
+
+--> I set the implementation class I want instantiated as the type parameter for the To method. 
+--> This statement tells Ninject that dependencies on the IValueCalculator interface should be resolved by creating an instance of the LinqValueCalculator class. 
+
+--> The last step is to use Ninject to create an object, which I do through the kernel Get method, like this:
+
+...
+IValueCalculator calc = ninjectKernel.Get<IValueCalculator>();
+
+--> The type parameter used for the Get method tells Ninject which interface I am interested in and the result from this method is an instance of the implementation type I specified with the To method a moment ago.
+
+-------------------------------------------------------------------------------------
+
+7. Creating the Dependency Resolver
+
+--> The first change I am going to make is to create a custom dependency resolver. 
+--> The MVC Framework uses a dependency resolver to create instances of the classes it needs to service requests. 
+
+--> By creating a custom resolver, I can ensure that the MVC Framework uses Ninject whenever it creates an object–including instances of controllers
+
+--> To set up the resolver, I created a new folder called Infrastructure, which is the folder that I use to put classes that do not fit into the other folders in an MVC application. 
+
+--> I added a new class file to the folder called NinjectDependencyResolver.cs,
+
+-------------------------------------------------------------------------------------
+
+--> NinjectDependencyResolver.cs
+
+using Ninject;
+namespace EssentialTools.Infrastructure {
+    public class NinjectDependencyResolver : IDependencyResolver {
+        private IKernel kernel;
+        public NinjectDependencyResolver(IKernel kernelParam) {
+            kernel = kernelParam;
+            AddBindings();
+        }
+        public object GetService(Type serviceType) {
+            return kernel.TryGet(serviceType);
+        }
+        public IEnumerable<object> GetServices(Type serviceType) {
+            return kernel.GetAll(serviceType);
+        }
+        private void AddBindings() {
+            kernel.Bind<IValueCalculator>().To<LinqValueCalculator>();
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> The NinjectDependencyResolver class implements the IDependencyResolver interface, which is part of the System.Mvc namespace and which the MVC Framework uses to get the objects it needs. 
+
+--> The MVC Framework will call the GetService or GetServices methods when it needs an instance of a class to service an incoming request. 
+--> The job of a dependency resolver is to create that instance, a task that I perform by calling the Ninject TryGet and GetAll methods. 
+
+--> The TryGet method works like the Get method I used previously, but it returns null when there is no suitable binding rather than throwing an exception. 
+--> The GetAll method supports multiple bindings for a single type, which is used when there are several different implementation objects available.
+
+--> My dependency resolver class is also where I set up my Ninject binding. 
+--> In the AddBindings method, I use the Bind and To methods to configure up the relationship between the IValueCalculator interface and the LinqValueCalculator class
+
+-------------------------------------------------------------------------------------
+
+8. Register the Dependency Resolver
+
+--> It is not enough to simply create an implementation of the IDependencyResolver interface–I also have to tell the MVC Framework that I want to use it. 
+--> The Ninject packages I added with NuGet created a file called NinjectWebCommon.cs in the App_Start folder that defines methods called automatically when the application starts, in order to integrate into the  ASP.NET request lifecycle. (This is to provide the scopes feature that I describe later in the chapter.) 
+
+--> In the RegisterServices method of the NinjectWebCommon class, I add a statement that creates an instance of my NinjectDependencyResolver class and uses the static SetResolver method defined by the System.Web.Mvc.DependencyResolver class to register the resolver with the MVC Framework, as shown in Listing 6-12. 
+
+--> Do not worry if this does not make complete sense. 
+--> The effect of this statement is to create a bridge between Ninject and the MVC Framework support for DI.
+
+-------------------------------------------------------------------------------------
+
+--> NinjectWebCommon.cs File
+
+private static void RegisterServices(IKernel kernel) {
+    System.Web.Mvc.DependencyResolver.SetResolver(new EssentialTools.Infrastructure.NinjectDependencyResolver(kernel)); 
+} 
+
+-------------------------------------------------------------------------------------
+
+--> Refactoring the Home Controller
+
+    public class HomeController : Controller {
+
+        private IValueCalculator calc;
+
+        private Product[] products = {
+            new Product {Name = "Kayak", Category = "Watersports", Price = 275M},
+            new Product {Name = "Lifejacket", Category = "Watersports", Price = 48.95M},
+            new Product {Name = "Soccer ball", Category = "Soccer", Price = 19.50M},
+            new Product {Name = "Corner flag", Category = "Soccer", Price = 34.95M}
+        };
+
+        public HomeController(IValueCalculator calcParam) {
+            calc = calcParam;
+        }
+
+        public ActionResult Index() {
+            ShoppingCart cart = new ShoppingCart(calc) { Products = products };
+            decimal totalValue = cart.CalculateProductTotal();
+            return View(totalValue);
+        }
+    }
+
+
+--> The main change I have made is to add a class constructor that accepts an implementation of the IValueCalculator interface, changing the HomeController class so that it declares a dependency. 
+
+--> Ninject will provide an object that implements the IValueCalculator interface when it creates an instance of the controller, using the configuration I set up in the NinjectDependencyResolver class in Listing 6-10.
+
+--> The other change I made is to remove any mention of Ninject or the LinqValueCalculator class from the controller. 
+--> At last, I have broken the tight coupling between the HomeController and LinqValueCalculator class.
+
+-------------------------------------------------------------------------------------
+
+--> Here is what happened when you ran the example app 
+
+1.The MVC Framework received the request and figured out that the request is intended for the Home controller. (I will explain how the MVC framework figures this out in Chapter 17).
+
+2.The MVC Framework asked my custom dependency resolver class to create a new instance of the HomeController class, specifying the class using the Type parameter of the GetService method.
+
+3.My dependency resolver asked Ninject to create a new HomeController class, passing on the Type object to the TryGet method.
+
+4.Ninject inspected the HomeController constructor and found that it has declared a dependency on the IValueCalculator interface, for which it has a binding.
+
+5.Ninject creates an instance of the LinqValueCalculator class and uses it to create a new instance of the HomeController class.
+
+6.Ninject passes the HomeController instance to the custom dependency resolver, which returns it to the MVC Framework. The MVC Framework uses the controller instance to service the request.
+
+-------------------------------------------------------------------------------------
+
+9. Creating Chains of Dependency
+
+--> When you ask Ninject to create a type, it examines the dependencies that the type has declared. 
+
+--> It also looks at those dependencies to see if they rely on other types–or, put another way, if they declare their own dependencies. 
+--> If there are additional dependencies, Ninject automatically resolves them and creates instances of all of the classes that are required, working its way along the chain of dependencies so that it can ultimately create an instance of the type you asked for.
+
+-------------------------------------------------------------------------------------
+
+--> Discount.cs 
+
+    public interface IDiscountHelper {
+        decimal ApplyDiscount(decimal totalParam);
+    }
+    public class DefaultDiscountHelper : IDiscountHelper {
+        public decimal ApplyDiscount(decimal totalParam) {
+            return (totalParam - (10m / 100m * totalParam));
+        }
+    }
+
+-------------------------------------------------------------------------------------
+
+--> LinqValueCalculator.cs
+
+    public class LinqValueCalculator: IValueCalculator {
+        private IDiscountHelper discounter;
+        public LinqValueCalculator(IDiscountHelper discountParam) {
+            discounter = discountParam;
+        }
+        public decimal ValueProducts(IEnumerable<Product> products) {
+            return discounter.ApplyDiscount(products.Sum(p => p.Price));
+        }
+    }
+
+--> The new constructor declares a dependency on the IDiscountHelper interface. 
+--> I assign the implementation object that the constructor receives to a field and use it in the ValueProducts method to apply a discount to the cumulative value of the Product objects.
+
+--> I bind the IDiscountHelper interface to the implementation class with the Ninject kernel in the NinjectDependencyResolver class, just as I did for IValueCalculator
+
+-------------------------------------------------------------------------------------
+
+--> NinjectDependencyResolver.cs
+
+private void AddBindings() {
+    kernel.Bind<IValueCalculator>().To<LinqValueCalculator>();
+    kernel.Bind<IDiscountHelper>().To<DefaultDiscountHelper>(); 
+} 
+
+-------------------------------------------------------------------------------------
+
+--> I have created a dependency chain. My Home controller depends on the IValueCalculator interface, which I have told Ninject to resolve using the LinqValueCalculator class. 
+
+--> The LinqValueCalculator class depends on the IDiscountHelper interface, which I have told Ninject to resolve using the DefaultDiscountHelper class.
+--> Ninject resolves the chain of dependencies seamlessly, creating the objects it needs to resolve every dependency and, ultimately in this example, create an instance of the HomeController class to service an HTTP request.
+
+-------------------------------------------------------------------------------------
+
+10. Specifying Property and Constructor Parameter Values
+
+--> I can configure the objects that Ninject creates by providing details of values I want applied to properties when I bind the interface to its implementation. 
+--> To demonstrate this feature, I have revised the DefaultDiscountHelper class so that it defines a DiscountSize property, which I use to calculate the discount amount,
+
+-------------------------------------------------------------------------------------
+
+--> Discount.cs
+
+namespace EssentialTools.Models {
+
+    public interface IDiscountHelper {
+        decimal ApplyDiscount(decimal totalParam);
+    }
+
+    public class DefaultDiscountHelper : IDiscountHelper {
+        public decimal DiscountSize { get; set; }
+
+        public decimal ApplyDiscount(decimal totalParam) {
+            return (totalParam - (DiscountSize / 100m * totalParam));
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> When I tell Ninject which class to use for an interface, I can use the WithPropertyValue method to set the value for the DiscountSize property in the DefaultDiscountHelper class. 
+
+--> You can see the change I made to the AddBindings method in the NinjectDependencyResolver class to set this up, as shown in Listing 6-18. 
+--> Notice that  I supply the name of the property to set as a string value.
+
+
+private void AddBindings() {
+    kernel.Bind<IValueCalculator>().To<LinqValueCalculator>();
+    kernel.Bind<IDiscountHelper>().To<DefaultDiscountHelper>().WithPropertyValue("DiscountSize", 50M); 
+} 
+
+--> The property value is set following construction of the DefaultDiscountHelper class, and has the effect of halving the total value of the items
+
+-------------------------------------------------------------------------------------
+
+--> If you have more than one property value you need to set, you can chain calls to the WithPropertyValue method to cover them all. 
+--> I can do the same thing with constructor parameters. 
+
+--> Listing 6-19 shows the DefaultDiscounterHelper class reworked so that the size of the discount is passed as a constructor parameter.
+
+namespace EssentialTools.Models {
+    public interface IDiscountHelper {
+        decimal ApplyDiscount(decimal totalParam);
+    }
+    public class DefaultDiscountHelper : IDiscountHelper {
+
+        public decimal discountSize;
+
+        public DefaultDiscountHelper(decimal discountParam) {
+            discountSize = discountParam;
+        }
+
+        public decimal ApplyDiscount(decimal totalParam) {
+            return (totalParam - (discountSize / 100m * totalParam));
+        }
+    } 
+}
+
+
+--> To bind this class using Ninject, I specify the value of the constructor parameter using the WithConstructorArgument method in the AddBindings method
+
+-------------------------------------------------------------------------------------
+
+private void AddBindings() {
+    kernel.Bind<IValueCalculator>().To<LinqValueCalculator>();
+    kernel.Bind<IDiscountHelper>().To<DefaultDiscountHelper>().WithConstructorArgument("discountParam", 50M); 
+} 
+
+--> Once again, I can chain these method calls together to supply multiple values and mix and match with dependencies. 
+--> Ninject will figure out what I need and create it accordingly.
+
+-------------------------------------------------------------------------------------
+
+11. Using Conditional Binding
+
+--> Ninject supports a number of conditional binding methods that allow me to specify which classes the kernel should use to respond to requests for particular interfaces. 
+
+--> To demonstrate this feature, I have added a new file to the Models folder of the example project called FlexibleDiscountHelper.cs
+
+-------------------------------------------------------------------------------------
+
+namespace EssentialTools.Models {
+
+    public class FlexibleDiscountHelper : IDiscountHelper {
+
+        public decimal ApplyDiscount(decimal totalParam) {
+            decimal discount = totalParam > 100 ? 70 : 25;
+            return (totalParam - (discount / 100m * totalParam));
+        }
+    } 
+}
+
+--> The FlexibleDiscountHelper class applies different discounts based on the magnitude of the total. 
+--> Now that I have a choice of classes that implement the IDiscountHelper interface, I can modify the AddBindings method of the NinjectDependencyResolver to tell Ninject when I want to use each of them
+
+
+-------------------------------------------------------------------------------------
+
+private void AddBindings() {
+    kernel.Bind<IValueCalculator>().To<LinqValueCalculator>();
+    kernel.Bind<IDiscountHelper>()
+        .To<DefaultDiscountHelper>().WithConstructorArgument("discountParam", 50M);
+    kernel.Bind<IDiscountHelper>().To<FlexibleDiscountHelper>().WhenInjectedInto<LinqValueCalculator>();
+} 
+
+-------------------------------------------------------------------------------------
+
+--> The new binding specifies that the Ninject kernel should use the FlexibleDiscountHelper class as the implementation of the IDiscountHelper interface when it is creating a LinqValueCalculator object. 
+
+--> Notice that I have left the original binding for IDiscountHelper in place. Ninject tries to find the best match and it helps to have a default binding for the same class or interface, so that Ninject has a fallback if the criteria for a conditional binding are not satisfied.
+
+-------------------------------------------------------------------------------------
+
+--> Ninject Conditional Binding Methods
+
+When(predicate) 	- Binding is used when the predicate—a lambda expression—evaluates to true.
+WhenClassHas<T>() 	- Binding is used when the class being injected is annotated with the attribute whose type is specified by T.
+WhenInjectedInto<T>() 	- Binding is used when the class being injected into is of type T.
+
+-------------------------------------------------------------------------------------
+
+12. Setting the Object Scope
+
+--> The last Ninject feature helps tailor the lifecycle of the objects that Ninject creates to match the needs of your application. 
+--> By default, Ninject will create a new instance of every object needed to resolve every dependency each time you request an object.
+
+--> To demonstrate what happens, I have modified the constructor for the LinqValueCalculator class so that it writes a message to the Visual Studio Output window when a new instance is created,
+
+-------------------------------------------------------------------------------------
+
+--> LinqValueCalculator.cs
+
+namespace EssentialTools.Models {
+    public class LinqValueCalculator : IValueCalculator {
+
+        private IDiscountHelper discounter;
+
+        private static int counter = 0;
+
+        public LinqValueCalculator(IDiscountHelper discountParam) {
+            discounter = discountParam;
+            System.Diagnostics.Debug.WriteLine(
+                 string.Format("Instance {0} created", ++counter));
+        }
+
+        public decimal ValueProducts(IEnumerable<Product> products) {
+            return discounter.ApplyDiscount(products.Sum(p => p.Price));
+        }
+    } 
+}
+
+
+--> The System.Diagnostics.Debug class contains a number of methods that can be used to write out debugging messages and I find them useful when following code through to see how it works. 
+
+--> I am, sadly, old enough that debuggers were not sophisticated when I started writing code and I still find myself going back to basics when it comes to debugging
+
+-------------------------------------------------------------------------------------
+
+--> I have modified the Home controller so that it demands two implementations of the IValueCalculator interface from Ninject.
+
+public HomeController(IValueCalculator calcParam, IValueCalculator calc2) {
+    calc = calcParam; 
+}
+
+--> I do not perform any useful task with the object that Ninject provides–what is important it that I asked for two implementations of the interface. 
+--> If you run the example and look at the Visual Studio Output window, you will see messages that show Ninject created two instances of the LinqValueCalculator class 
+
+Instance 1 created
+Instance 2 created
+
+-------------------------------------------------------------------------------------
+
+--> The LinqValueCalculator can be instantiated repeatedly without any problems–but that is not true for all classes. 
+--> For some classes, you will want to share a single instance throughout the entire application and for others, you will want to create a new instance for each HTTP request that the ASP.NET platform receives. 
+
+--> Ninject lets you control the lifecycle of the objects you create using a feature called a scope, which is expressed using a method call when setting up the binding between an interface and its implementation type. 
+
+--> In Listing 6-25, you can see how I applied the most useful scope for MVC Framework applications: the request scope to the LinqValueCalculator class in the NinjectDependencyResolver
+
+
+-------------------------------------------------------------------------------------
+
+--> Using the Request Scope in the NinjectDependencyResolver.cs File
+
+using Ninject; 
+using Ninject.Web.Common;
+
+        private void AddBindings() {
+            kernel.Bind<IValueCalculator>().To<LinqValueCalculator>().InRequestScope();		// This Line
+            kernel.Bind<IDiscountHelper>()
+              .To<DefaultDiscountHelper>().WithConstructorArgument("discountParam", 50M);
+            kernel.Bind<IDiscountHelper>().To<FlexibleDiscountHelper>()
+              .WhenInjectedInto<LinqValueCalculator>();
+        }
+
+-------------------------------------------------------------------------------------
+
+--> The InRequestScope extension method, which is in the Ninject.Web.Common namespace, tells Ninject that it should only create one instance of the LinqValueCalculator class for each HTTP request that ASP.NET receives. 
+
+--> Each request will get its own separate object, but multiple dependencies resolved within the same request will be resolved using a single instance of the class. --> You can see the effect of this change by starting the application and looking at the Visual Studio Output window, which will show that Ninject has created only one instance of the LinqValueCalculator class. 
+
+--> If you reload the browser window without restarting the application, you will see Ninject create a second object. 
+--> Ninject provides a range of different object scopes and I have summarized the most useful in Table 6-3.
+
+-------------------------------------------------------------------------------------
+
+--> Ninject Scope Methods
+
+InTransientScope() 	-  This is the same as not specifying a scope and creates a new object for each dependency that is resolved.
+
+InSingletonScope()	- Creates a single instance which is shared throughout the application. Ninject will create the instance if you use InSingletonScope or you ToConstant(object)	  can provide it with the ToConstant method.
+
+InThreadScope() 	- Creates a single instance which is used to resolve dependencies for objects requested by a single thread.
+
+InRequestScope() 	- Creates a single instance which is used to resolve dependencies for objects requested by a single HTTP request.
+
+-------------------------------------------------------------------------------------
+
+13. The End
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+

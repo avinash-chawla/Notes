@@ -1,0 +1,93 @@
+
+5. Creating new Project
+
+--> Open Visual Studio
+--> Search for WPF (.net framework) (C#) template
+
+--> Name it: HelloWPF
+
+-------------------------------------------------------------------------------------
+
+6. Structure of Project
+
+--> When you create new project, you will two windows are opened
+--> Mainwindow.xaml and Mainwindow.xaml.cs
+
+--> You can also see App.xaml in Server Explorer which is similar to Mainwindow.xaml
+
+--> To the xaml file, two windows are opened
+--> One showing design and other showing code behind design.
+
+-------------------------------------------------------------------------------------
+
+7. Hello World
+
+--> In xaml file, you will see two windows -> design and xaml code
+--> There are buttons on top right corner -> vertical and horizontal line to change the orientation/position of these windows
+
+--> There is a toolbar tab on left --> Open it
+
+--> Common tab contains common toolbars
+--> All WPF contains all toolbars
+
+--> Drag Label from toolbar to design window
+--> You can either change the text, margin, width, height of label from design tab or xaml code tab
+
+--> Manually
+
+<Label Content="Hello World" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+--> This is an xaml
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+

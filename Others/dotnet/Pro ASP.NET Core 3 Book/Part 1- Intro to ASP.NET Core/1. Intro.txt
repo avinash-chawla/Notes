@@ -1,0 +1,180 @@
+1. Check the installed dotnet sdks
+
+dotnet --list-sdks
+
+----------------------------------------------------------------------------------------
+
+2. Create new project
+
+dotnet new globaljson --sdk-version 3.1.400 --output MySolution/FirstProject
+dotnet new mvc --no-https --output MySolution/FirstProject --framework netcoreapp3.1
+dotnet new sln -o MySolution
+
+dotnet sln MySolution add MySolution/FirstProject
+
+----------------------------------------------------------------------------------------
+
+3. Compiling and running the application
+
+dotnet watch run
+
+----------------------------------------------------------------------------------------
+
+4. Command Line Tools for working with project
+
+--> create a project     		--> dotnet new
+--> building and running the project 	--> dotnet built and dotnet run
+--> adding packages to project		--> dotnet add 
+--> installing tool commands		--> dotnet tool
+--> managing client-side packages	--> libman command
+
+----------------------------------------------------------------------------------------
+
+5. global.json
+
+--> This file ensures that the right version of .net core sdk will be used by the project.
+
+{
+    "sdk" : {
+	"version" : "3.1.400"
+    }
+}
+
+----------------------------------------------------------------------------------------
+
+6. Managing nuget packages
+
+--> dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 3.1.1
+--> dotnet remove package Microsoft.EntityFrameworkCore.SqlServer --version 3.1.1
+
+--> dotnet list package
+
+----------------------------------------------------------------------------------------
+
+7. Managing Tool Packages
+
+--> Tool packages install commands that can be used from the command line
+--> One eg. EntityFrameworkCore tools package --> dotnet-ef
+
+--> dotnet tool install --global dotnet-ef --version 3.1.1
+--> dotnet tool uninstall --global dotnet-ef
+
+--> dotnet ef --help
+
+----------------------------------------------------------------------------------------
+
+--> Other example is to include libman tool package
+
+--> dotnet tool uninstall --global Microsoft.Web.LibraryManager.Cli
+--> dotnet tool install --global Microsoft.Web.LibraryManager.Cli --version 2.0.96
+
+--> libman init -p cdnjs	
+
+// cdn stands for url https://cdnjs.com
+// It contains various repository for client-side development
+// Above code is used set up connection to cdnjs, so that packages can be installed.
+
+--> libman install twitter-bootstrap@4.3.1 -d wwwroot/lib/twitter-bootstrap
+
+----------------------------------------------------------------------------------------
+
+8. Dubbuging
+
+--> Use debugger or System.Console.WriteLine
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

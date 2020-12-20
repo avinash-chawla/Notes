@@ -1,0 +1,217 @@
+1. Middleware Components
+
+--> It can be used for both - handling request or providing features like session
+--> custom middlewares - they have access to httpContext object and alter the response based on request
+
+--> Invoke method
+
+---------------------------------------------------------------------------------------
+
+2. Options pattern
+
+--> Configuring class properties while providing service
+
+--> services.Configure<MessageOptions>(options => ..);
+--> IOptions<MessageOptions> msgOptions
+
+---------------------------------------------------------------------------------------
+
+3. Endpoints
+
+--> Have access to route segment variables using context.Request.RouteValues["key"]
+--> Have access to HttpContext object
+--> Means can write a response
+
+---------------------------------------------------------------------------------------
+
+4. Url Generator
+
+  LinkGenerator generator = context.RequestServices.GetService<LinkGenerator>();
+  string url = generator.GetPathByRouteValues(context, "population", new { city = country });
+  context.Response.Redirect(url);
+
+---------------------------------------------------------------------------------------
+
+5. Dependency Injection
+
+services.AddSingleton<IResponseFormatter, TextResponseFormatter>();
+
+services.AddSingleton(typeof(ICollection<>), typeof(List<>));
+
+context.RequestServices.GetRequiredService<IResponseFormatter>();
+
+---------------------------------------------------------------------------------------
+
+6. Configuration
+
+Configuration.GetSection("Location")
+Configuration["Logging:LogLevel:Default"]
+
+---------------------------------------------------------------------------------------
+
+7. Environment
+
+IWebHostEnvironment env
+
+---------------------------------------------------------------------------------------
+
+8. Logging
+
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  }
+
+--> Default at custom namespace, Microsoft and other at system namespace
+
+ILogger<Startup> logger
+logger.LogDebug("Response for / started");
+
+---------------------------------------------------------------------------------------
+
+9. Cookies
+
+context.Request.Cookies["counter1"]
+context.Response.Cookies.Append("counter1", counter1.ToString(),
+                        new CookieOptions {
+                            MaxAge = TimeSpan.FromMinutes(30)
+                        });
+
+context.Response.Cookies.Delete("counter1");
+
+---------------------------------------------------------------------------------------
+
+10. Sessions
+
+            services.AddSession(options => {
+                options.IdleTimeout = TimeSpan.FromMinutes(30);		
+                options.Cookie.IsEssential = true;				
+            });
+
+            app.UseSession();
+            app.UseRouting();
+
+
+context.Session.GetInt32("counter1")
+context.Session.SetInt32("counter1", counter1);
+
+---------------------------------------------------------------------------------------
+
+11. Enable https
+
+Enable ssl in properties
+dotnet dev-certs https --clean
+dotnet dev-certs https --trust
+
+app.UseHttpsRedirection();
+
+---------------------------------------------------------------------------------------
+
+12. Exception Handler
+
+app.UseDeveloperExceptionPage()
+app.UseExceptionHandler("/error.html");
+app.UseStatusCodePages("text/html", Responses.DefaultResponse);
+
+---------------------------------------------------------------------------------------
+
+13. Multi-line String
+
+@"
+..
+"
+
+---------------------------------------------------------------------------------------
+
+14. Allowed Domain
+
+            services.Configure<HostFilteringOptions>(opts => {
+                opts.AllowedHosts.Clear();
+                opts.AllowedHosts.Add("*.example.com");
+            });
+
+---------------------------------------------------------------------------------------
+
+15.
+
+---------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

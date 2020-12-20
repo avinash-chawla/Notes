@@ -107,7 +107,7 @@ IEnumerable<Student> students = Student.GetAllStudents()
 
 IEnumerable<Student> students = from student in Student.GetAllStudents()
                                 where student.Gender == "Male"
-                                                           select student;
+                                select student;
 
 ---------------------------------------------------------------------------------
 

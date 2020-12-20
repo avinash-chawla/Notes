@@ -14,7 +14,7 @@
 
 
 --> All methods above are helper methods inherited from base Controller class.
---> You do not to create view object to pass model to view
+--> You do not want to create view object to pass model to view
 --> You can also do this,
 
 return new ViewResult(modelName);

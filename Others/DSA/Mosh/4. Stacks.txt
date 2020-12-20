@@ -1,0 +1,537 @@
+1. What are Stacks
+
+--> It is very powerful data structure
+--> It solves many complex problems
+
+--> Some Applications:
+1. Implement the undo feature
+2. Build compilers (eg. syntax checking)
+3. Evaluate expressions (eg. 1 + 2 * 3 )
+4. Build navigation (eg. forward/back)
+
+--> To understand the structure of stack, consider the stack of books one above each other.
+--> This is called Last In First Out Principle (LIFO)
+
+--> Imagine each object in a stack represents an action that the user performs in a text editor
+--> Action1, Action2, Action3
+
+--> So to undo these actions, we start with the last Action3
+
+--> We can take out this Action3 object from stack and call one of its method to undo its Action
+
+--> Normally, we use Arrays and LinkedList to store objects in a stack
+--> Stack is basically a wrapper around Arrays and LinkedList that gives us different way of storing and accessing objects 
+ 
+----------------------------------------------------------------------------------------
+
+--> Operations
+
+1. push(item)
+2. pop()
+3. peek()
+4. isEmpty()
+
+--> All above operations have Runtime Complexity of O(1).
+--> There is no Lookups bec. stacks are not for storing list of objects 
+
+----------------------------------------------------------------------------------------
+
+2. Working with Stacks
+
+static void Main(string[] args)
+{
+    Stack<int> stack = new Stack<int>();
+
+    stack.Push(10);
+    stack.Push(20);
+    stack.Push(30);
+
+    var top = stack.Pop();
+    // Console.WriteLine(top);
+
+    top = stack.Peek();
+    Console.WriteLine(top);
+} 
+
+----------------------------------------------------------------------------------------
+
+3. Exercise - Reversing a String
+
+--> Stacks are your best friends when you want to go back in time like undo operations
+
+----------------------------------------------------------------------------------------
+
+4. Solution - Reversing a String
+
+static String Reverse(string input)
+{
+    if (input == null)
+        throw new ArgumentNullException();
+
+    var stack = new Stack<Char>();
+    var str = input.ToCharArray();
+    foreach (var item in str)
+    {
+        stack.Push(item);
+    }
+
+    StringBuilder reversed = new StringBuilder();
+    while(stack.Any())
+        reversed.Append(stack.Pop());
+    return reversed.ToString();
+}
+
+----------------------------------------------------------------------------------------
+
+5. Exercise - Balanced Expressions
+
+String str = "(([1] + <2>))[a]";
+
+--> You have been given string with brackets
+--> You have to make sure those having open brackets, should have closing brackets
+
+--> Hint:
+
+--> We will use stack
+--> While iterating, when we see open bracket, we will push to our stack
+--> When we find closing bracket, we will use pop method of stack
+--> If any items remains in stack, then UnBalanced Expression
+
+--> (([ 	--> push
+--> ]		--> pop
+--> ))		--> pop
+
+--> <		--> push  
+--> >		--> pop
+
+--> [		--> push
+--> ]		--> pop
+
+----------------------------------------------------------------------------------------
+
+6. Solution - A Basic Implementation
+
+static bool IsBalanced(String input)
+{
+    var stack = new Stack<Char>();
+
+    foreach(var item in input.ToCharArray())
+    {
+        if (item == '(')
+            stack.Push(item);
+        
+	if (item == ')')
+        {
+            if (!stack.Any()) return false;
+            stack.Pop();
+        }
+    }
+    return !stack.Any();
+}
+
+----------------------------------------------------------------------------------------
+
+7. Solution: Supporting Multiple Brackets
+
+static bool IsBalanced(String input)
+{
+    var stack = new Stack<Char>();
+
+    foreach (var ch in input.ToCharArray())
+    {
+        if (ch == '(' || ch == '[' || ch == '<' || ch == '{')
+            stack.Push(ch);
+
+        if (ch == ')' || ch == '>' || ch == ']' || ch=='}')
+        {
+            if (!stack.Any()) return false;
+            var top = stack.Pop();
+            if (
+                (ch == ')' && top != '(') ||
+                (ch == ']' && top != '[') ||
+                (ch == '>' && top != '<') ||
+                (ch == '}' && top != '{')
+            ) return false;
+        }
+    }
+    return !stack.Any();
+}
+
+----------------------------------------------------------------------------------------
+
+8. Solution - First Refactoring
+
+static bool IsBalanced(String input)
+{
+    var stack = new Stack<Char>();
+
+    foreach (var ch in input.ToCharArray())
+    {
+        if (IsLeftBracket(ch))
+            stack.Push(ch);
+
+        if (IsRightBracket(ch))
+        {
+            if (!stack.Any()) return false;
+            var top = stack.Pop();
+            if (BracketsMatch(top, ch)) return false;
+        }
+    }
+    return !stack.Any();
+}
+
+static bool IsLeftBracket(char ch)
+{
+    return ch == '(' || ch == '[' || ch == '<' || ch == '{';
+}
+
+static bool IsRightBracket(char ch)
+{
+    return ch == ')' || ch == '>' || ch == ']' || ch == '}';
+}
+
+static bool BracketsMatch(char left, char right)
+{
+    return (left == ')' && right != '(') ||
+                (left == ']' && right != '[') ||
+                (left == '>' && right != '<') ||
+                (left == '}' && right != '{');
+}
+
+--> This is called Beautiful Code
+
+----------------------------------------------------------------------------------------
+
+9. Solution- Second Refactoring
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace ConsoleApp2
+{
+    class Stacks
+    {
+        private List<Char> LeftBrackets = new List<Char> { '(', '[', '{', '<'};
+        private List<Char> RightBrackets = new List<Char> { '}', ']', '}', '>'};
+
+        public bool IsBalanced(String input)
+        {
+            var stack = new Stack<Char>();
+
+            foreach (var ch in input.ToCharArray())
+            {
+                if (IsLeftBracket(ch))
+                    stack.Push(ch);
+
+                if (IsRightBracket(ch))
+                {
+                    if (!stack.Any()) return false;
+                    var top = stack.Pop();
+                    if (BracketsMatch(top, ch)) return false;
+                }
+            }
+            return !stack.Any();
+        }
+
+        public bool IsLeftBracket(char ch)
+        {
+            return LeftBrackets.Contains(ch);
+        }
+
+        public bool IsRightBracket(char ch)
+        {
+            return RightBrackets.Contains(ch);
+        }
+
+        public bool BracketsMatch(char left, char right)
+        {
+            return LeftBrackets.IndexOf(left) == RightBrackets.IndexOf(right);
+        }
+    }
+} 
+
+----------------------------------------------------------------------------------------
+
+10. Exercise - Building a Stack using an Array
+
+--> Stack datastructure can be built on top of normal Arrays or ArrayList 
+--> We will use Normal Arrays here
+
+--> Implement methods like:
+
+Push
+Pop
+Peek
+IsEmpty
+
+--> And use int[] 
+
+----------------------------------------------------------------------------------------
+
+11. Solution
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace ConsoleApp2
+{
+    class Stack
+    {
+        private int[] Items = new int[5];
+        public int Count { get; set; } = 0;
+        public void Push(int item)
+        {
+            if (Count == Items.Length)
+                throw new StackOverflowException();
+            Items[Count] = item;
+            Count++;
+        }
+
+        public int Pop()
+        {
+            if (Count == 0)
+                throw new InvalidOperationException();
+
+            Count--;
+            return Items[Count];
+        }
+
+        public int Peek()
+        {
+            if (Count == 0)
+                throw new InvalidOperationException();
+            return Items[Count-1];
+        }
+
+        public bool IsEmpty()
+        {
+            return Count == 0;
+        }
+        public override string ToString()
+        {
+            int[] content = new int[Count];
+            System.Array.Copy(Items, content, Count);
+            return String.Join(",", content);
+        }
+
+    }
+}
+
+ 
+
+----------------------------------------------------------------------------------------
+
+12. Summary
+
+--> Last-In-First-Out (LIFO)
+--> Can be implemented using Arrays/LinkedLists
+--> All operations run in O(1) 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

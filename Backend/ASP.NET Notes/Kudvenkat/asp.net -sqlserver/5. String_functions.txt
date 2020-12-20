@@ -1,6 +1,6 @@
 1. Intro-->
 
---> there are two types in string functions --> userdefined and system
+--> There are two types in string functions --> userdefined and system
 --> expand database --> programmability --> Functions --> System functions
 
 ---------------------------------------------------------------------------------
@@ -153,7 +153,7 @@ Select Email, Replace(Email, '.com', '.net') as Email from tblEmployee
 
 18. STUFF() -->
 
---> he is brother of replace() method
+--> He is brother of replace() method
 --> stuff(replacement_expression, start_position(first char is 1 here), len of characters to be replaced with, newExpression which is replacint
 
 --> email = Sam@aaa.com

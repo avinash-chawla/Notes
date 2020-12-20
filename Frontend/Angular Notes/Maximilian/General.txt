@@ -1,0 +1,78 @@
+1. What is main.js?
+2. What is bootstrap array
+
+3. What are components
+4. Why app is root-component
+
+5. Know about Component decorator
+6. Know about template selector - element, attribute, class
+
+7. How to include bootstrap
+8. imports and decorators in app.module (new modules and new components)
+
+9. String Interpolation
+10. Property Binding
+11. Event Binding
+12. Event object from input type="text"
+13. Two-way binding
+
+14. Model class
+15. Using object and looping over it.
+
+16. Directives like *ngIf, *ngFor, ngStyle, ngClass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

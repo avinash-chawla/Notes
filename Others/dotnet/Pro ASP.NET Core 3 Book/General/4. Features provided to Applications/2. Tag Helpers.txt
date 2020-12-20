@@ -1,0 +1,1123 @@
+
+----------------------------------------------------------------------------------------
+
+1. What are Tag Helpers?
+
+--> Tag helpers are C# classes that transform HTML elements in a view or page.
+--> Tag helpers allow view content to be generated or transformed using C# logic, ensuring that the HTML sent to the client reflects the state of the application.
+
+--> Common uses for tag helpers include generating URLs for forms using the application’s routing configuration
+
+----------------------------------------------------------------------------------------
+
+2. Creating a Tag helper
+
+using Microsoft.AspNetCore.Razor.TagHelpers;
+
+namespace WebApp.TagHelpers {
+
+    public class TrTagHelper: TagHelper {
+
+        public string BgColor { get; set; } = "dark";
+        public string TextColor { get; set; } = "white";
+
+        public override void Process(TagHelperContext context, TagHelperOutput output) {
+            output.Attributes.SetAttribute("class", $"bg-{BgColor} text-center text-{TextColor}");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> TagHelper is a base class
+--> It has process method which is overriden
+
+--> Convention for name tag helper class is modifying element suffixed by TagHelper
+
+----------------------------------------------------------------------------------------
+
+3. TagHelperContext
+
+--> Tag helpers receive information about the element they are transforming through an instance of the TagHelperContext class, which is received as an argument to the Process method
+
+--> It has 3 properties:
+
+1. AllAttributes
+2. Items
+3. UniqueId
+
+--> Although you can access details of the element’s attributes through the AllAttributes dictionary, a more convenient approach is to define a property whose name corresponds to the attribute you are interested in, like this:
+... 
+public string BgColor { get; set; } = "dark"; 
+public string TextColor { get; set; } = "white";
+
+----------------------------------------------------------------------------------------
+
+4. TagHelperOutput
+
+--> The Process method transforms an element by configuring the TagHelperOutput object that is received as an argument. 
+--> It has following properties:
+
+1. TagName
+2. Attributes
+3. Content
+4. GetChildContentAsync()
+5. PreElement
+6. PostElement
+7. PreContent
+8. PostContent
+9. TagMode
+10. SupressOutput()
+
+
+----------------------------------------------------------------------------------------
+
+5. Registering Tag Helpers
+
+@addTagHelper *, WebApp
+
+--> This @addTagHelper directive uses the wildcard to select all namespaces in the WebApp assembly, with the effect that tag helpers defined anywhere in the project can be used in any controller view. 
+
+----------------------------------------------------------------------------------------
+
+6. Narrowing the Scope of a Tag Helper
+
+namespace WebApp.TagHelpers {
+
+    [HtmlTargetElement("tr", Attributes = "bg-color,text-color", ParentTag ="thead")]		// This Line
+    public class TrTagHelper: TagHelper {
+
+        public string BgColor { get; set; } = "dark";
+        public string TextColor { get; set; } = "white";
+
+        public override void Process(TagHelperContext context, TagHelperOutput output) {
+            output.Attributes.SetAttribute("class", $"bg-{BgColor} text-center text-{TextColor}");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+7. Widening the Scope of a Tag Helper
+
+[HtmlTargetElement("*", Attributes = "bg-color,text-color")]
+
+----------------------------------------------------------------------------------------
+
+8. Balancing Scope
+
+[HtmlTargetElement("tr", Attributes = "bg-color,text-color")]
+[HtmlTargetElement("td", Attributes = "bg-color")]
+
+--> Applied to any which follows
+
+----------------------------------------------------------------------------------------
+
+9. Another Example
+
+using Microsoft.AspNetCore.Razor.TagHelpers; 
+using System.Threading.Tasks;
+
+namespace WebApp.TagHelpers {
+
+    [HtmlTargetElement("tablehead")]
+    public class TableHeadTagHelper: TagHelper {
+
+        public string BgColor { get; set; } = "light";
+
+        public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output) {
+            output.TagName = "thead";
+            output.TagMode = TagMode.StartTagAndEndTag;
+            output.Attributes.SetAttribute("class", $"bg-{BgColor} text-white text-center");
+            string content = (await output.GetChildContentAsync()).GetContent();
+            output.Content.SetHtmlContent($"<tr><th colspan=\"2\">{content}</th></tr>");
+        }
+    } 
+}
+
+--> The Content property is used to set the element content.
+
+--> The existing content of the element is obtained through the asynchronous GetChildContentAsync method, which returns a TagHelperContent object. 
+--> This is the same object that is returned by the TagHelperOutput.Content property and allows the content of the element to be inspected and changed using the same type, through the methods
+
+--> The existing content of the element is read through the GetContent element and then set using the SetHtmlContent method. 
+--> The effect is to wrap the existing content in the transformed element in tr and th elements.
+
+----------------------------------------------------------------------------------------
+
+<table class="table table-striped table-bordered table-sm">
+    <tablehead bg-color="dark">Product Summary</tablehead>
+
+----------------------------------------------------------------------------------------
+
+<tablehead bg-color="dark">Product Summary</tablehead> ...
+
+transformed into these elements:
+... 
+<thead class="bg-dark text-white text-center">
+    <tr>
+        <th colspan="2">Product Summary</th>
+    </tr> 
+</thead>
+
+----------------------------------------------------------------------------------------
+
+10. TagHelperContent Methods
+
+1. GetContent()
+2. SetContent(text) 
+3. SetHtmlContent(html) 
+4. Append(text) 
+5. AppendHtml(html) 
+6. Clear()
+
+
+----------------------------------------------------------------------------------------
+
+11. Creating Elements Programmatically
+
+--> For this, TagBuilder class is used
+
+using Microsoft.AspNetCore.Razor.TagHelpers; 
+using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace WebApp.TagHelpers {
+
+    [HtmlTargetElement("tablehead")]
+    public class TableHeadTagHelper: TagHelper {
+
+        public string BgColor { get; set; } = "light";
+        public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output) {
+
+            output.TagName = "thead";
+            output.TagMode = TagMode.StartTagAndEndTag;
+            output.Attributes.SetAttribute("class", $"bg-{BgColor} text-white text-center");
+
+            string content = (await output.GetChildContentAsync()).GetContent();
+
+            TagBuilder header = new TagBuilder("th");
+
+            header.Attributes["colspan"] = "2";
+
+            header.InnerHtml.Append(content);
+
+            TagBuilder row = new TagBuilder("tr");
+
+            row.InnerHtml.AppendHtml(header);
+
+            output.Content.SetHtmlContent(row);
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+12. Prepending and Appending Content and Elements
+
+--> The TagHelperOutput class provides four properties that make it easy to inject new content into a view so that it surrounds an element or the element’s content
+
+PreElement	
+PostElement
+PreContent
+PostContent 	
+
+----------------------------------------------------------------------------------------
+
+using Microsoft.AspNetCore.Mvc.Rendering; 
+using Microsoft.AspNetCore.Razor.TagHelpers;
+
+namespace WebApp.TagHelpers {
+
+    [HtmlTargetElement("*", Attributes = "[wrap=true]")]
+    public class ContentWrapperTagHelper: TagHelper {
+        public override void Process(TagHelperContext context, TagHelperOutput output) {
+
+            TagBuilder elem = new TagBuilder("div");
+            elem.Attributes["class"] = "bg-primary text-white p-2 m-2";
+            elem.InnerHtml.AppendHtml("Wrapper");
+
+            output.PreElement.AppendHtml(elem);
+            output.PostElement.AppendHtml(elem);
+        }
+    } 
+
+----------------------------------------------------------------------------------------
+
+<div class="m-2" wrap="true">Inner Content</div>
+
+----------------------------------------------------------------------------------------
+
+<div class="m-2" wrap="true">Inner Content</div> ...
+
+has been transformed into these elements:
+... 
+
+<div class="bg-primary text-white p-2 m-2">Wrapper</div> <div class="m-2" wrap="true">Inner Content</div> 
+<div class="bg-primary text-white p-2 m-2">Wrapper</div>
+
+----------------------------------------------------------------------------------------
+
+13. Inserting Content Inside the Output Element
+
+using Microsoft.AspNetCore.Razor.TagHelpers;
+
+namespace WebApp.TagHelpers {
+
+    [HtmlTargetElement("*", Attributes = "[highlight=true]")]
+    public class HighlightTagHelper: TagHelper {
+
+        public override void Process(TagHelperContext context, TagHelperOutput output) {
+            output.PreContent.SetHtmlContent("<b><i>");
+            output.PostContent.SetHtmlContent("</i></b>");
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+<tr><th>Name</th><td highlight="true">@Model.Name</td></tr>
+
+----------------------------------------------------------------------------------------
+
+<td highlight="true">@Model.Name</td> ...
+
+has been transformed into these elements:
+... 
+
+<td highlight="true"><b><i>Kayak</i></b></td>
+
+----------------------------------------------------------------------------------------
+
+14. Getting View Context Data
+
+namespace WebApp.TagHelpers {
+
+    [HtmlTargetElement("div", Attributes="[route-data=true]")]
+    public class RouteDataTagHelper: TagHelper {
+
+        [ViewContext]
+        [HtmlAttributeNotBound]
+        public ViewContext Context { get; set; }
+
+        public override void Process(TagHelperContext context, TagHelperOutput output) {
+
+            output.Attributes.SetAttribute("class", "bg-primary m-2 p-2");
+
+            TagBuilder list = new TagBuilder("ul");
+
+            list.Attributes["class"] = "list-group";
+
+            RouteValueDictionary rd = Context.RouteData.Values;
+
+            if (rd.Count > 0) {
+                foreach (var kvp in rd) {
+                    TagBuilder item = new TagBuilder("li");
+                    item.Attributes["class"] = "list-group-item";
+                    item.InnerHtml.Append($"{kvp.Key}: {kvp.Value}");
+                    list.InnerHtml.AppendHtml(item);
+                }
+                output.Content.AppendHtml(list);
+            } else {
+                output.Content.Append("No route data");
+            }
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The tag helper transforms div elements that have a route-data attribute whose value is true and populates the output element with a list of the segment variables obtained by the routing system. 
+
+--> To get the route data, I added a property called Context and decorated it with two attributes, like this:
+... 
+[ViewContext] 
+[HtmlAttributeNotBound] 
+public ViewContext Context { get; set; } ...
+
+--> The ViewContext attribute denotes that the value of this property should be assigned a ViewContext object when a new instance of the tag helper class is created, which provides details of the view that is being rendered, including the routing data, as described in Chapter 13.
+
+--> The HtmlAttributeNotBound attribute prevents a value from being assigned to this property if there is a matching attribute defined on the div element. 
+
+----------------------------------------------------------------------------------------
+
+<div route-data="true"></div>
+
+----------------------------------------------------------------------------------------
+
+15. Working with Model Expressions
+
+--> The ModelExpression class is used when you want to operate on part of the view model
+--> Consider it as a dynamic type, which detects type of property at runtime.
+
+----------------------------------------------------------------------------------------
+
+--> Index.cshtml
+
+<table class="table table-striped table-bordered table-sm">
+    <tablehead bg-color="dark">Product Summary</tablehead>
+    <tbody>
+        <tr for="Name" />
+        <tr for="Price" format="c" />
+        <tr for="CategoryId" />
+    </tbody> 
+</table>
+
+----------------------------------------------------------------------------------------
+
+using Microsoft.AspNetCore.Mvc.Rendering; 
+using Microsoft.AspNetCore.Mvc.ViewFeatures; 
+using Microsoft.AspNetCore.Razor.TagHelpers;
+
+namespace WebApp.TagHelpers {
+
+    [HtmlTargetElement("tr", Attributes = "for")]
+    public class ModelRowTagHelper : TagHelper {
+
+        public string Format { get; set; }
+        public ModelExpression For { get; set; }
+
+        public override void Process(TagHelperContext context, TagHelperOutput output) {
+
+            output.TagMode = TagMode.StartTagAndEndTag;
+
+            TagBuilder th = new TagBuilder("th");
+            th.InnerHtml.Append(For.Name);
+
+            output.Content.AppendHtml(th);
+            TagBuilder td = new TagBuilder("td");
+
+            if (Format != null && For.Metadata.ModelType == typeof(decimal)) {
+                td.InnerHtml.Append(((decimal)For.Model).ToString(Format));
+            } else {
+                td.InnerHtml.Append(For.Model.ToString());
+            }
+            output.Content.AppendHtml(td);
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> This tag helper transforms tr elements that have a for attribute
+--> The ModelExpression class is used when you want to operate on part of the view model
+
+
+--> The ModelExpression feature can be used only on view models or page models. 
+--> It cannot be used on variables that are created within a view, such as with an @foreach expression.
+
+--> The value of the for attribute is the name of a property defined by the view model class. 
+--> When the tag helper is created, the type of the For property is detected and assigned a ModelExpression object that describes the selected property.
+
+----------------------------------------------------------------------------------------
+
+The first is to get the name of the model property so that I can include it in the output element, like this:
+... th.InnerHtml.Append(For.Name); ...
+
+--> The Name property returns the name of the model property. The second feature is to get the type of the model property so that I can determine whether to format the value, like this:
+... 
+if (Format != null && For.Metadata.ModelType == typeof(decimal)) { ...
+
+--> The third feature is to get the value of the property so that it can be included in the response.
+
+----------------------------------------------------------------------------------------
+
+16. Coordinating Between Tag Helpers
+
+--> The TagHelperContext.Items property provides a dictionary used by tag helpers that operate on elements and those that operate on their descendants. 
+--> To demonstrate the use of the Items collection, add a class file named CoordinatingTagHelpers.cs to the WebApp/TagHelpers folder
+
+using Microsoft.AspNetCore.Razor.TagHelpers;
+namespace WebApp.TagHelpers {
+
+    [HtmlTargetElement("tr", Attributes = "theme")]
+    public class RowTagHelper: TagHelper {
+
+        public string Theme { get; set; }
+        public override void Process(TagHelperContext context, TagHelperOutput output) {
+            context.Items["theme"] = Theme;
+        }
+    }
+
+    [HtmlTargetElement("th")]
+    [HtmlTargetElement("td")]
+    public class CellTagHelper : TagHelper {
+        public override void Process(TagHelperContext context, TagHelperOutput output) {
+            if (context.Items.ContainsKey("theme")) {
+                output.Attributes.SetAttribute("class", $"bg-{context.Items["theme"]} text-white");
+            }
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+
+--> The first tag helper operates on tr elements that have a theme attribute. 
+--> Coordinating tag helpers can transform their own elements, but this example simply adds the value of the theme attribute to the Items dictionary so that it is available to tag helpers that operate on elements contained within the tr element. 
+
+--> The second tag helper operates on th and td elements and uses the theme value from the Items dictionary to set the Bootstrap style for its output elements.
+
+----------------------------------------------------------------------------------------
+
+--> Index.cshtml 
+
+	<tr theme="primary">
+            <th>Name</th><td>@Model.Name</td>
+        </tr>
+        <tr theme="secondary">
+            <th>Price</th><td>@Model.Price.ToString("c")</td>
+        </tr>
+        <tr theme="info">
+            <th>Category</th><td>@Model.CategoryId</td>
+        </tr>
+
+----------------------------------------------------------------------------------------
+
+17. Suppressing the Output Element
+
+--> Tag helpers can be used to prevent an element from being included in the HTML response by calling the SuppressOuput method on the TagHelperOutput object
+
+----------------------------------------------------------------------------------------
+
+--> Index.cshtml
+
+<div show-when-gt="500" for="Price">
+    <h5 class="bg-danger text-white text-center p-2">
+        Warning: Expensive Item
+    </h5> 
+</div>
+
+----------------------------------------------------------------------------------------
+
+-->  SelectiveTagHelper.cs
+
+using Microsoft.AspNetCore.Mvc.ViewFeatures; 
+using Microsoft.AspNetCore.Razor.TagHelpers;
+
+namespace WebApp.TagHelpers {
+
+    [HtmlTargetElement("div", Attributes = "show-when-gt, for")]
+    public class SelectiveTagHelper: TagHelper {
+
+        public decimal ShowWhenGt { get; set; }
+        public ModelExpression For { get; set; }
+        public override void Process(TagHelperContext context, TagHelperOutput output) {
+            if (For.Model.GetType() == typeof(decimal) && (decimal)For.Model <= ShowWhenGt) {
+                output.SuppressOutput();
+            }
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> Request http://localhost:5000/home/index/1 and http://localhost:5000/home/index/5
+
+--> The value for the Price property of the Product selected by the first URL is less than the threshold, so the element is suppressed. 
+--> The value for the Price property of the Product selected by the second URL is more than the threshold, so the element is displayed.
+
+----------------------------------------------------------------------------------------
+
+18. Creating a Tag Helper Component
+
+--> Tag helper components provide an alternative approach to applying tag helpers as services.
+--> This class is derived from the TagHelperComponent class
+
+--> It is implemented in same way as TagHelper base class
+--> Suppose class file name is TimeTagHelperComponent
+
+--> It is implemented as service:
+
+services.AddTransient<ITagHelperComponent, TimeTagHelperComponent>();
+
+----------------------------------------------------------------------------------------
+
+19. Expanding Tag Helper Component Element Selection
+
+--> By default, only the head and body elements are processed by the tag helper components, but additional elements can be selected by creating a class derived from the terribly named TagHelperComponentTagHelper class. 
+
+----------------------------------------------------------------------------------------
+
+20. The End
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

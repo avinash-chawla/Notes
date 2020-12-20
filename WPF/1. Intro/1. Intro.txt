@@ -1,0 +1,42 @@
+1. What is WPF
+
+-- WPF stands for Windows Presentation Foundation
+-- It is framework for building Windows Desktop Applications
+
+-- Previous version used was WinForms
+
+-------------------------------------------------------------------------------------
+
+2. How it works
+
+-- There are two types of files
+
+1. C# code base
+-- Respond to interactions
+-- Perform logic operations
+-- Access information
+
+2. XAML UI definition
+-- Create the user interface
+-- Build animations
+-- Communicate with the user
+
+
+-------------------------------------------------------------------------------------
+
+3. What you'll need
+
+-- visual studio
+-- Windows 10
+-- Blend for Visual Studio
+
+-------------------------------------------------------------------------------------
+
+4. Projects
+
+-- Calculator app
+-- Contacts app
+-- Computer vision app
+-- Evernote clone
+
+-------------------------------------------------------------------------------------

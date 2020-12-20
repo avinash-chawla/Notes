@@ -1,0 +1,625 @@
+1. Form
+
+--> Create new file in project --> add.php
+
+-----------------------------------------------------------------------------------------
+
+<html>
+
+<?php include( './templates/header.php' );
+?>
+
+<section class='container grey-text'>
+    <h4 class='center'>Add a Pizza</h4>
+    <form class='white' action='add.php' method='GET'>
+
+        <label>Your Email:</label>
+        <input type='text' name='email'>
+        <label>Pizza Title:</label>
+        <input type='text' name='title'>
+        <label>Ingredients ( comma separated ):</label>
+        <input type='text' name='ingredients'>
+
+        <div class='center'>
+            <input type='submit' name='submit' value='submit' class='btn brand z-depth-0'>
+        </div>
+
+    </form>
+</section>
+
+<?php include( './templates/footer.php' );
+?>
+
+</html>
+
+-----------------------------------------------------------------------------------------
+
+--> We have set form method="GET"
+--> We have to set action for form where this form will be handled
+--> action="add.php"
+
+--> This php is itself the handler
+--> To get the values of form, we use global variable $_GET
+--> $_GET is associated array of form fieldsi
+
+--> Similarly for post request, we have $_POST
+
+-----------------------------------------------------------------------------------------
+
+--> Paste this code above in this file
+
+<?php
+if (isset( $_GET['submit'] ) )
+ {
+    echo $_GET['email'] . '<br />';
+    echo $_GET['title'] . '<br />';
+    echo $_GET['ingredients'] . '<br />';
+}
+
+?>
+
+--> isset is a global function which returns boolean value
+--> It checks whether the value is set or not
+
+--> Every form field is provided with name attribute, even button
+--> isset will check for key 'name' attribute value for button
+
+--> If we send empty form, email, title, ingredients will be null
+
+-----------------------------------------------------------------------------------------
+
+--> For POST request,
+
+<?php
+if ( isset( $_POST['submit'] ) )
+ {
+    echo $_POST['email'] . '<br />';
+    echo $_POST['title'] . '<br />';
+    echo $_POST['ingredients'] . '<br />';
+}
+
+?>
+
+<form class='white' action='add.php' method='POST'> 
+
+-----------------------------------------------------------------------------------------
+
+2. Cross-Site Origin Attack
+
+--> To prevent this XSS Attach, we use function htmlspecialchars
+--> This function converts any malicius code to normal html string code which is harmless
+
+<?php
+if ( isset( $_GET['submit'] ) )
+ {
+    echo htmlspecialchars( $_GET['email'] ) . '<br />';
+    echo htmlspecialchars( $_GET['title'] ) . '<br />';
+    echo htmlspecialchars( $_GET['ingredients'] ) . '<br />';
+}
+
+?>
+
+-----------------------------------------------------------------------------------------
+
+3. Basic Validation
+
+<?php
+
+if ( isset( $_GET['submit'] ) ) 
+{
+
+
+    if (empty( $_GET['email'] ) ) {
+        echo 'Email is required';
+    } else {
+        echo htmlspecialchars( $_GET['email'] ) . '<br />';
+    }
+
+    if (empty( $_GET['title'] ) ) {
+        echo 'title is required';
+    } else {
+        echo htmlspecialchars( $_GET['title'] ) . '<br />';
+    }
+
+    if (empty( $_GET['ingredients'] ) ) {
+        echo 'ingredients is required';
+    } else {
+        echo htmlspecialchars( $_GET['ingredients'] ) . '<br />';
+    }
+
+?>
+
+--> empty function checks for emptyness of fields
+
+--> isset checks for only null, undefined
+--> empty function checks for all falsy values --> "", 0, "0", null, false, undefined, 
+
+-----------------------------------------------------------------------------------------
+
+4. Filters and Validation
+
+    if ( empty( $_GET['email'] ) ) {
+        echo 'Email is required';
+    } else {
+        $email = htmlspecialchars( $_GET['email'] );
+        if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+            echo "Email must be a valid email address";
+        }
+    }
+
+    if ( empty( $_GET['title'] ) ) {
+        echo 'title is required';
+    } else {
+        $title = htmlspecialchars( $_GET['title'] );
+        if(!preg_match('/^[a-zA-Z\s]+$/', $title)){
+            echo 'Titles must be letters and spaces only';
+        }
+    }
+
+--> For Filters, we use filter_var and preg_match function
+
+-----------------------------------------------------------------------------------------
+
+5. Showing Errors
+
+<?php 
+
+	$email = $title = $ingredients = '';
+	$errors = array('email' => '', 'title' => '', 'ingredients' => '');
+
+	if(isset($_POST['submit'])){
+		
+		// check email
+		if(empty($_POST['email'])){
+			$errors['email'] = 'An email is required';
+		} else{
+			$email = $_POST['email'];
+			if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+				$errors['email'] = 'Email must be a valid email address';
+			}
+		}
+
+		// check title
+		if(empty($_POST['title'])){
+			$errors['title'] = 'A title is required';
+		} else{
+			$title = $_POST['title'];
+			if(!preg_match('/^[a-zA-Z\s]+$/', $title)){
+				$errors['title'] = 'Title must be letters and spaces only';
+			}
+		}
+
+		// check ingredients
+		if(empty($_POST['ingredients'])){
+			$errors['ingredients'] = 'At least one ingredient is required';
+		} else{
+			$ingredients = $_POST['ingredients'];
+			if(!preg_match('/^([a-zA-Z\s]+)(,\s*[a-zA-Z\s]*)*$/', $ingredients)){
+				$errors['ingredients'] = 'Ingredients must be a comma separated list';
+			}
+		}
+
+	} // end POST check
+
+?>
+
+<form>
+..
+
+<input type="text" name="email" value="<?php echo htmlspecialchars($email) ?>">
+<div class="red-text"><?php echo $errors['email']; ?></div>
+
+--> We have provided value attribute in input fields
+--> Bec. we do not want to clear all form fields when user gets any validation error.
+--> As $email is used in form fields, we have to define it at global scope with empty strings, if not get undefined variable exception.
+
+-----------------------------------------------------------------------------------------
+
+--> Most common errors
+
+1. forget to put '$' before variable
+2. forget to put 'echo' to display something.
+
+-----------------------------------------------------------------------------------------
+
+6. Checking for Errors and Redirect
+
+<?php 
+
+	$email = $title = $ingredients = '';
+	$errors = array('email' => '', 'title' => '', 'ingredients' => '');
+
+	if(isset($_POST['submit'])){
+		
+		// validate for form fields
+        
+       		if(array_filter($errors)){
+			// echo 'Errors in form';
+        	} else {
+			// save to database
+            		header('location: index.php');
+        	}
+	} 
+?>
+
+--> array_filter is a method which iterates through array and based on some condition given, it will retrive array items
+--> But when used without parameter, it returns booleans value
+
+--> It iterates through array and if cannot find any item, it will return false
+--> If single item is found, it will return true
+
+--> header is a function for redirection.
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

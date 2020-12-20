@@ -62,7 +62,7 @@ public class StringHelper
 
 ----------------------------------------------------------------------------------
 
---> Now using this static method or extension method in main method
+--> Now using this static method in main method
 
 class Program{
    static void Main()

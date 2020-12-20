@@ -1,7 +1,7 @@
 0. jQuery-->
 
 --> It is javascript library
---> It makes things like dom manipulation
+--> It makes dom manipulation easier.
 --> It uses much less code
 --> Topics: selectors, events, methods, dom manipulation, effects & animatiion, ajax
 
@@ -124,15 +124,17 @@
 
 	$('p.para1').css('color', 'red');
 	$('p.para1').css({'color':'red', background: '#ccc'});
+
 	$('p.para2').addClass('myClass'); 
 	$('p.para2').removeClass('myClass'); 
+
 	$('#btn1').click(function(){
 		$('p.para2').toggleClass('myClass'); 	
 	});
 
 	$('#myDiv').text('Hello world');		--> set text/content
 	$('#myDiv').html('<h3>Hello world</h3>');	
-	alert($('#myDiv').text());			--> get text
+	$('#myDiv').text();				--> get text
 
 	$('ul').append('<li>Append List item</li>');	--> Create Child Element at last
 	$('ul').prepend('<li>Append List item</li>');	--> Create Child Element and place at first of all childs
@@ -147,7 +149,7 @@
 	$('ul').detach();			--> remove element
 
 	$('a').attr('target', '_blank')		--> add any attribute
-	alert($('a').attr('href'));		--> get any attribute
+	$('a').attr('href');			--> get any attribute
 	$('a').removeAttr('target')		--> remove any attribute
 	
 	$('p').wrap('<h1>');			--> first p wrap inside h1
@@ -277,8 +279,7 @@
 <div id="result"></div>
 <script>
    $(document).ready(function(){
-	$("#result").load("test.html", function(
-	   responseTxt, statusTxt, xhr){
+	$("#result").load("test.html", function(responseTxt, statusTxt, xhr){
 		if(statusTxt == "success"){
 		   alert("It went fine");
 		} else if(statusTxt == "error"){

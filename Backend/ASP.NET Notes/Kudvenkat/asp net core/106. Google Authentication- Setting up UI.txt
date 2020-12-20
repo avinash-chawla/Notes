@@ -17,6 +17,10 @@ services.AddAuthentication().AddGoogle(options =>
         options.ClientSecret = "YYYYY";
     });
 
+--> If you are unable to find such credentials on google api, then go to credentials tab 
+--> download button 
+--> this will download json file containing clientId and clientSecret
+
 --> You need to install Install-Package Microsoft.AspNetCore.Authentication.Google -Version 3.1.7
 
 --> The code required for Google authentication including this AddGoogle() method is present in Microsoft.AspNetCore.Authentication.Google nuget package. 
@@ -42,7 +46,7 @@ public class LoginViewModel
     public string Password { get; set; }
 
     [Display(Name = "Remember me")]
-    public bool RememberMe { get; set; }
+    public bool RememberMe { get; set; } 
 
     public string ReturnUrl { get; set; }
 

@@ -1,0 +1,697 @@
+1. Communication between Components
+
+--> Consider an example
+
+1. There is an form
+2. There is list table showing list
+
+--> One will get the data and one will print the data
+
+--> We can do in same one component
+--> But sometimes we need to break into multiple components
+
+------------------------------------------------------------------------------------
+
+2. Make two components
+
+--> cockpit		--> form
+--> server-element	--> single record
+
+--> parent component	--> Receive form data from cockpit and pass information to server-element
+
+------------------------------------------------------------------------------------
+
+3. First work on Receiver Component
+
+--> We use decorator - Input() on property
+--> Property will receive information from parent
+
+--> Normally property in ts class either public/private will be used in same component by default
+--> To make it receive from other components, we use Input decorator
+
+--> Now this property is allowed to receive information from outside component
+--> Means this property becomes global
+
+  @Input() element : {type: string, name: string, content: string}
+
+
+--> In html file,
+
+element.type
+element.name
+element.content
+
+
+--> Any information came will be displayed on screen
+
+------------------------------------------------------------------------------------
+
+4. Parent Component sending information to child
+
+    <div class="col-xs-12">
+      <app-server-element 
+        *ngFor="let server of serverElements"
+        [element]="server"
+      ></app-server-element>
+    </div>
+
+
+--> Passing information to child component
+--> We are using property binding --> Bec. it is property of child class and we are using inside child tag only
+
+------------------------------------------------------------------------------------
+
+5. Now work on Information Emitter Component
+
+--> That is form
+
+<p>Add new Servers or blueprints!</p>
+<label>Server Name</label>
+<input type="text" class="form-control" [(ngModel)]="newServerName">
+<label>Server Content</label>
+<input type="text" class="form-control" [(ngModel)]="newServerContent">
+<br>
+<button
+class="btn btn-primary"
+(click)="onAddServer()">Add Server</button>
+<button
+class="btn btn-primary"
+(click)="onAddBlueprint()">Add Server Blueprint</button>
+
+
+--> There are two two-way binders - connecting form data-fields with variable
+--> On click event, we will emit information received from two-way binders to parent using Output Property
+
+------------------------------------------------------------------------------------
+
+  @Output() serverCreated = new EventEmitter<{serverName:string, serverContent:string}>();
+  @Output() blueprintCreated = new EventEmitter<{serverName:string, serverContent:string}>();
+  newServerName = '';
+  newServerContent = '';
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+
+  onAddServer() {
+    this.serverCreated.emit({
+      serverName: this.newServerName,
+      serverContent: this.newServerContent
+    });
+  }
+
+  onAddBlueprint() {
+    this.blueprintCreated.emit({
+      serverName: this.newServerName,
+      serverContent: this.newServerContent
+    });
+  }
+
+
+
+--> EventEmitter is generic class
+--> To make normal property as event emitter, we use this object/class.
+
+--> We send information with two variables: serverName and serverContent which will be received at parent
+
+------------------------------------------------------------------------------------
+
+--> Binding custom event to event handlers in parent
+--> Such custom events contain information and triggered when emitters use emit method.
+
+      <app-cockpit
+        (serverCreated)="onServerAdded($event)"
+        (blueprintCreated)="onBlueprintAdded($event)"
+      ></app-cockpit>
+
+--> To receive information, we use $event property of Angular
+
+------------------------------------------------------------------------------------
+
+--> Handlers
+
+
+  onServerAdded(data: {serverName: string, serverContent: string}) {
+    this.serverElements.push({
+      type: 'server',
+      name: data.serverName,
+      content: data.serverContent
+    });
+  }
+
+  onBlueprintAdded(data: {serverName: string, serverContent: string}) {
+    this.serverElements.push({
+      type: 'blueprint',
+      name: data.serverName,
+      content: data.serverContent
+    });
+  }
+
+------------------------------------------------------------------------------------
+
+--> So we get the data and push to the list
+--> List will use property binding to each single elemnet to pass information
+
+------------------------------------------------------------------------------------
+
+--> At last,
+
+--> We use property binding to send information
+--> We use event binding to receive information
+
+------------------------------------------------------------------------------------
+
+6. Using Alias
+
+--> element property (Input) and serverName, serverContent event emitters (Output) property can have different names than at parent which is receiving and sending information
+
+------------------------------------------------------------------------------------
+
+  @Output('bpCreated') blueprintCreated = new EventEmitter<{serverName:string, serverContent:string}>();
+
+        (bpCreated)="onBlueprintAdded($event)"
+
+------------------------------------------------------------------------------------
+
+  @Input('srvElement') element : {type: string, name: string, content: string}
+
+        [srvElement]="server"
+
+------------------------------------------------------------------------------------
+
+7. View Encapsulation
+
+--> Each element renderend by compoent is assinged attribute
+--> Any style, you would apply to component, will target elements by that attribute name elements and apply to all elements in that component
+
+_ngcontent-aua-c47		--> eg. applied to all elements in one component
+
+------------------------------------------------------------------------------------
+
+8. Configure View Encapsulation
+
+--> View Encapsulation is concept of shadow dom, in which each element is specifically targetted with attribute
+--> But most browsers don't support shadow dom, so angular manually created feature for dom shadow and uses it in building app 
+--> By default, it is implemented
+
+--> We can turn it off in Component decorator
+
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+
+@Component({
+  selector: 'app-server-element',
+  templateUrl: './server-element.component.html',
+  styleUrls: ['./server-element.component.css'],
+  encapsulation: ViewEncapsulation.Native			None, Emulated, Native
+})
+
+
+--> None		--> Will disable this functionality and does not add any random attribute to any element in that component
+--> Native/Emulated	--> Both have same functionality
+
+--> Native		--> will Only support in browser that support shadow dom
+--> Emulated		--> Work in any browser
+
+--> None		--> This component will now implement global styles which are applied to it
+
+--> Any style applied globally, would affect this component, if this component is in component tree.
+
+------------------------------------------------------------------------------------
+
+9. Using Local Reference in Templates
+
+--> This is variable which will reference element 
+
+<input type="text" class="form-control" #serverNameInput>
+
+<button
+class="btn btn-primary"
+(click)="onAddServer(serverNameInput)">Add Server</button>
+
+  onAddServer(nameInput: HTMLInputElement) {
+    console.log(nameInput.value);
+    this.serverCreated.emit({
+      serverName: nameInput.value,
+      serverContent: this.newServerContent
+    });
+  }
+
+--> Note Points:
+
+1. You can only use template reference in template only
+2. You can use this element reference anywhere - toDisplay, toGetValue, toValidate
+
+------------------------------------------------------------------------------------
+
+10. Getting access to Template and DOM with @ViewChild
+
+--> Earlier, we have access to local reference in template only
+--> What if we have reference in ts file also
+
+--> We use @ViewChild decorator
+
+--> It provide access to template reference or any element reference from template to ts file
+
+<input type="text" class="form-control" #serverContentInput>
+
+@ViewChild('serverContentInput') serverContentInput : ElementRef;
+
+------------------------------------------------------------------------------------
+
+import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
+
+------------------------------------------------------------------------------------
+
+--> This ViewChild will return ElementRef object which is angular own property which stores the reference to this element
+--> It has a property -> nativeElement which provide real element access.
+
+
+  onAddServer(nameInput: HTMLInputElement) {
+    console.log(nameInput.value);
+    this.serverCreated.emit({
+      serverName: nameInput.value,
+      serverContent: this.serverContentInput.nativeElement.value		--> This Line
+    });
+  }
+
+--> This feature shouldn't be used to render something out
+
+------------------------------------------------------------------------------------
+
+--> To get reference of Custom html element that is component from ViewChild
+
+@ViewChild(ChildComponent) childComponent
+
+--> You wouldn't put string around it.
+
+------------------------------------------------------------------------------------
+
+11. Projecting Content into Components with ng-content
+
+--> There is another way other than Input Property to pass data from parent to child component that is --> ng-content
+
+--> Anything you put between child component tags can be rendered at particular place in child component using ng-content
+
+--> If you don't put ng-content, Angular will discard everything between opening and closing tags.
+
+------------------------------------------------------------------------------------
+
+--> Parent component
+
+<child-component>
+   <form>...</form>
+</child-component)
+
+--> Child Component
+
+..
+<div>
+     <ng-content></ng-content>
+</div>
+
+------------------------------------------------------------------------------------
+
+--> Note points
+
+1. ng-content is a directive which has a selector like html elements
+2. Alternative to Input Properties
+
+------------------------------------------------------------------------------------
+
+12. Understanding the Component Lifecycle
+
+--> When Angular sees any selector, it renders its component
+--> During creation of component, component goes through different phases during its creation
+
+--> Angular provides some hooks inbetween phases to which we can apply our code means we can hook our code during component creation
+--> The way we implement these, is by using special methods
+
+--> Angular will see if any such methods are present and will implement the code
+
+------------------------------------------------------------------------------------
+
+--> Lifecycle Methods
+
+1. ngOnChanges
+
+--> Called after a bound input property changes
+--> Means any input element has got new value
+--> Called multiple times
+
+
+2. ngOnInit
+
+--> Called once the component is initialised
+--> Dom object is ready to render but not rendered yet.
+--> Called once during component creation
+
+--> Called after constructor
+
+3. ngDoCheck
+
+--> Called during every change detection
+--> This is the method which is called everytime, something is changed like button click
+
+
+4. ngAfterContentInit
+
+--> Called after content(ng-content) has been projected into view
+
+5. ngAfterContentChecked
+
+--> Called every time the projected content has been checked
+--> Means it is check event, checking for content rendering is done or not.
+
+6. ngAfterViewInit
+
+--> Called  after the component's view(and child views) has been initialised
+
+7. ngAfterViewChecked
+
+--> Called every time the view (and child views) have been checked
+--> Means it is check event
+
+8. ngOnDestroy
+
+--> Called once the component is about to be destroyed
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------
+
+
+vvvv
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

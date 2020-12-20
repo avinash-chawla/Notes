@@ -252,7 +252,7 @@ Print @TotalCount
 
 6. Stored Procedure with return -->
 
---> in output parameter, variable is used to store output (result)
+--> In output parameter, variable is used to store output (result)
 --> in return, sp returns an integer status variable, 0 for success and non-zero for failure
 
 1. Output Paramter-->

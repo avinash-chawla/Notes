@@ -1,0 +1,2582 @@
+----------------------------------------------------------------------------------------
+
+1. What are Web Services?
+
+--> Web services accept HTTP requests and generate responses that contain data. 
+
+----------------------------------------------------------------------------------------
+
+What are they? 
+--> Web services provide access to an application’s data, typically expressed in the JSON format.
+
+Why are they useful? 
+--> Web services are most often used to provide rich client-side applications with data.
+
+How are they used? 
+--> The combination of the URL and an HTTP method describes an operation that is handled by an action method defined by an ASP.NET Core controller.
+
+Are there any pitfalls or limitations?
+--> There is no widespread agreement about how web services should be implemented, and care must be taken to produce just the data the client expects.
+
+Are there any alternatives?
+--> There are a number of different approaches to providing clients with data, although RESTful web services are the most common.
+
+----------------------------------------------------------------------------------------
+
+2. Chapter Summary
+
+Defining a web service
+--> Create a controller with action methods that correspond to the operations that you require
+
+Generating data sequences over time
+--> Use the IAsyncEnumerable<T> response, which will prevent the request thread from blocking while results are generated.
+
+Preventing request values being used for sensitive data properties
+--> Use a binding target to restrict the model binding process to only safe properties 
+
+Expressing nondata outcomes 
+--> Use action results to describe the response that ASP.NET Core should send 
+
+Validating data
+--> Use the ASP.NET Core model binding and model validation features
+
+Automatically validating requests 
+--> Use the ApiController attribute
+
+Omitting null values from data responses
+--> Map the data objects to filter out properties or configure the JSON serializer to ignore null properties
+
+----------------------------------------------------------------------------------------
+
+3. Understanding RESTful Web Services
+
+--> Web services respond to HTTP requests with data that can be consumed by clients, such as JavaScript applications. 
+--> There are no hard-and-fast rules for how web services should work, but the most common approach is to adopt the Representational State Transfer (REST) pattern. 
+
+----------------------------------------------------------------------------------------
+
+4. Understanding Request URLs and Methods
+
+--> The core premise of REST—and the only aspect for which there is broad agreement—is that a web service defines an API through a combination of URLs and HTTP methods such as GET and POST, which are also known as the HTTP verbs. 
+--> The method specifies the type of operation, while the URL specifies the data object or objects that the operation applies to
+
+----------------------------------------------------------------------------------------
+
+5. Understanding JSON
+
+--> Most RESTful web services format the response data using the JavaScript Object Notation (JSON) format. 
+--> JSON has become popular because it is simple and easily consumed by JavaScript clients. 
+
+----------------------------------------------------------------------------------------
+
+6. UNDERSTANDING THE ALTERNATIVES TO RESTFUL WEB SERVICES
+
+--> REST isn’t the only way to design web services, and there are some popular alternatives. 
+
+--> GraphQL is most closely associated with the react JavaScript framework, but it can be used more widely. unlike reSt web services, which provide specific queries through individual combinations of a url and an http method, graphQl provides access to all an application’s data and lets clients query for just the data they require in the format they require. 
+
+--> graphQl can be complex to set up—and can require more sophisticated clients—but the result is a more flexible web service that puts the developers of the client in control of the data they consume. 
+--> GraphQl isn’t supported directly by aSp.net Core, but there are .net implementations available. See https:// graphql.org for more detail. 
+
+--> A new alternative is grpC, a full remote procedure call framework that focuses on speed and efficiency. at the time of writing, grpC cannot be used in web browsers, such as by the angular or react framework, because browsers don’t provide the fine-grained access that grpC requires to formulate its http requests.
+
+----------------------------------------------------------------------------------------
+
+7. Creating a Web Service Using a Custom Endpoint
+
+--> To create a simple web service, add a file named WebServiceEndpoint.cs to the WebApp folder and use it to define the class
+
+----------------------------------------------------------------------------------------
+
+using Microsoft.AspNetCore.Http; 
+using Microsoft.AspNetCore.Routing; 
+using Microsoft.Extensions.DependencyInjection; 
+using System.Collections.Generic;
+using System.Text.Json; 
+using WebApp.Models;
+
+namespace Microsoft.AspNetCore.Builder {
+
+    public static class WebServiceEndpoint {
+
+        private static string BASEURL = "api/products";
+
+        public static void MapWebService(this IEndpointRouteBuilder app) {
+
+            app.MapGet($"{BASEURL}/{{id}}", async context => {
+
+                long key = long.Parse(context.Request.RouteValues["id"] as string);
+                DataContext data = context.RequestServices.GetService<DataContext>();
+                Product p = data.Products.Find(key);
+                if (p == null) {
+                    context.Response.StatusCode = StatusCodes.Status404NotFound;
+                } else {
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsync(JsonSerializer.Serialize<Product>(p));
+                }
+            });
+
+            app.MapGet(BASEURL, async context => {
+
+                DataContext data = context.RequestServices.GetService<DataContext>();
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize<IEnumerable<Product>>(data.Products));
+            });
+
+            app.MapPost(BASEURL, async context => {
+
+                DataContext data = context.RequestServices.GetService<DataContext>();
+                Product p = await JsonSerializer.DeserializeAsync<Product>(context.Request.Body);
+                await data.AddAsync(p);
+                await data.SaveChangesAsync();
+                context.Response.StatusCode = StatusCodes.Status200OK;
+            });
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The MapWebService extension method creates three routes that form a basic web service using only the features that have been described in earlier chapters. 
+--> The routes match URLs that start with /api, which is the conventional URL prefix for web services. 
+
+--> The endpoint for the first route receives a value from a segment variable that is used to locate a single Product object in the database. 
+--> The endpoint for the second route retrieves all the Product objects in the database. 
+--> The third endpoint handles POST requests and reads the request body to get a JSON representation of a new object to add to the database.
+
+--> There are better ASP.NET Core features for creating web services, which you will see shortly, but the code in Listing 19-3 shows how the HTTP method and the URL can be combined to describe an operation. 
+--> Listing 19-4 uses the MapWebService extension method to add the endpoints to the example application’s routing configuration.
+
+----------------------------------------------------------------------------------------
+
+--> Startup.cs
+
+public void Configure(IApplicationBuilder app, DataContext context) {
+
+    app.UseDeveloperExceptionPage();
+    app.UseRouting();
+    app.UseMiddleware<TestMiddleware>();
+
+    app.UseEndpoints(endpoints => {
+        endpoints.MapGet("/", async context => {
+            await context.Response.WriteAsync("Hello World!");
+        });
+        endpoints.MapWebService();
+    });
+
+    SeedData.SeedDatabase(context); 
+} 
+
+----------------------------------------------------------------------------------------
+
+--> To test the web service, restart ASP.NET Core and request http://localhost:5000/api/products/1. 
+--> The request will be matched by the first route defined in Listing 19-4 and will produce the response shown on the left of Figure 19-2. 
+
+--> Next, request http://localhost:5000/api/products, which will be matched by the second route and produce the response 
+
+----------------------------------------------------------------------------------------
+
+--> To Test third route for POST request
+--> Write following command in powershell
+
+Invoke-RestMethod http://localhost:5000/api/products -Method POST -Body  (@{ Name="Swimming Goggles"; Price=12.75; CategoryId=1; SupplierId=1} | ConvertTo-Json) -ContentType "application/json"
+
+----------------------------------------------------------------------------------------
+
+8. Creating a Web Service Using a Controller
+
+--> The drawback of using endpoints to create a web service is that each endpoint has to duplicate a similar set of steps to produce a response: get the Entity Framework Core service so that it can query the database, set the Content-Type header for the response, serialize the objects into JSON, and so on. 
+
+--> As a result, web services created with endpoints are difficult to understand and awkward to maintain.
+
+--> A more elegant approach is to use a controller, which allows a web service to be defined in a single class. 
+
+--> Controllers are part of the MVC Framework, which builds on the ASP.NET Core platform and takes care of handling data in the same way that endpoints take care of processing URLs.
+
+----------------------------------------------------------------------------------------
+
+--> Enabling the MVC Framework
+
+--> The first step to creating a web service using a controller is to configure the MVC framework, which requires a service and an endpoint
+--> Startup.cs
+
+	public void ConfigureServices(IServiceCollection services) {
+        
+	    services.AddDbContext<DataContext>(opts => {
+                opts.UseSqlServer(Configuration["ConnectionStrings:ProductConnection"]);
+                opts.EnableSensitiveDataLogging(true);
+            });
+        
+	    services.AddControllers();							// This Line
+        }
+
+        public void Configure(IApplicationBuilder app, DataContext context) {
+            app.UseDeveloperExceptionPage();
+            app.UseRouting();
+            app.UseMiddleware<TestMiddleware>();
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapGet("/", async context => {
+                    await context.Response.WriteAsync("Hello World!");
+                });
+                //endpoints.MapWebService();
+                endpoints.MapControllers();						// This Line
+            });
+
+            SeedData.SeedDatabase(context);
+        }
+
+--> The AddControllers method defines the services that are required by the MVC framework, and the MapControllers method defines routes that will allow controllers to handle requests. 
+
+----------------------------------------------------------------------------------------
+
+9. Creating a Controller
+
+--> Controllers are classes whose methods, known as actions, can process HTTP requests. 
+--> Controllers are discovered automatically when the application is started. 
+
+--> The basic discovery process is simple: any public class whose name ends with Controller is a controller, and any public method a controller defines is an action. --> To demonstrate how simple a controller can be, create the WebApp/Controllers folder and add to it a file named ProductsController.cs 
+
+----------------------------------------------------------------------------------------
+
+--> ProductsController.cs 
+
+using Microsoft.AspNetCore.Mvc; 
+using System.Collections.Generic; 
+using WebApp.Models;
+
+namespace WebApp.Controllers {
+
+    [Route("api/[controller]")]
+    public class ProductsController: ControllerBase {
+
+        [HttpGet]
+        public IEnumerable<Product> GetProducts() {
+            return new Product[] {
+                new Product() { Name = "Product #1" },
+                new Product() { Name = "Product #2" },
+            };
+        }
+
+        [HttpGet("{id}")]
+        public Product GetProduct() {
+            return new Product() {
+                ProductId = 1, Name = "Test Product"
+            };
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+10. Understanding the Base Class
+
+--> Controllers are derived from the ControllerBase class, which provides access to features provided by the MVC Framework and the underlying ASP.NET Core platform.
+--> apply the NonController attribute to classes that meet these criteria but that should not receive http requests
+
+----------------------------------------------------------------------------------------
+
+--> Useful ControllerBase Properties
+
+1. HttpContext
+--> This property returns the HttpContext object for the current request.
+
+2. ModelState
+--> This property returns details of the data validation process, as demonstrated in the “Validating Data” section later in the chapter and described in detail in Chapter 29.
+
+3. Request
+--> This property returns the HttpRequest object for the current request.
+
+4. Response
+--> This property returns the HttpResponse object for the current response.
+
+5. RouteData
+--> This property returns the data extracted from the request URL by the routing middleware, as described in Chapter 13.
+
+6. User
+--> This property returns an object that describes the user associated with the current request, as described in Chapter 38.
+
+--> A new instance of the controller class is created each time one of its actions is used to handle a request, which means the properties in Table 19-4 describe only the current request
+
+----------------------------------------------------------------------------------------
+
+11. Understanding the Controller Attributes
+
+--> The HTTP methods and URLs supported by the action methods are determined by the combination of attributes that are applied to the controller. 
+--> The URL for the controller is specified by the Route attribute, which is applied to the class,
+
+----------------------------------------------------------------------------------------
+
+[Route("api/[controller]")] 
+public class ProductsController: ControllerBase {
+
+--> The [controller] part of the attribute argument is used to derive the URL from the name of the controller class. 
+--> The Controller part of the class name is dropped, which means that the attribute in Listing 19-7 sets the URL for the controller to /api/ products.
+
+----------------------------------------------------------------------------------------
+
+[HttpGet] 
+public Product[] GetProducts() {
+
+--> The HttpGet attribute tells the MVC framework that the GetProducts action method will handle HTTP GET requests. 
+
+----------------------------------------------------------------------------------------
+ 
+[HttpGet("{id}")] 
+public Product GetProduct() {
+
+--> This attribute tells the MVC framework that the GetProduct action method handles GET requests for the URL pattern api/ products/{id}. 
+--> During the discovery process, the attributes applied to the controller are used to build the set of URL patterns that the controller can handle
+
+----------------------------------------------------------------------------------------
+
+--> The HTTP Method Attributes
+
+HttpGet
+HttpPost
+HttpPut
+HttpPatch
+HttpDelete
+HttpHead	- This attribute specifies that the action can be invoked only by HTTP requests that use the HEAD verb.
+AcceptVerbs	- This attribute is used to specify multiple HTTP verbs.
+
+----------------------------------------------------------------------------------------
+
+--> When writing a controller, it is important to ensure that each combination of the http method and url pattern that the controller supports is mapped to only one action method. an exception will be thrown when a request can be handled by multiple actions because the MvC framework is unable to decide which to use.
+
+----------------------------------------------------------------------------------------
+
+--> GET AND POST: PICK THE RIGHT ONE
+
+--> The rule of thumb is that get requests should be used for all read-only information retrieval, while POST requests should be used for any operation that changes the application state. 
+--> In standards-compliance terms, GET requests are for safe interactions (having no side effects besides information retrieval), and POST requests are for unsafe interactions (making a decision or changing something).
+
+--> Unfortunately, many web developers had ignored the http conventions and placed simple links to “delete item” or “add to shopping cart” in their applications. Chaos ensued. 
+
+----------------------------------------------------------------------------------------
+
+12. Understanding Action Method Results
+
+--> One of the main benefits provided by controllers is that the MVC Framework takes care of setting the response headers and serializing the data objects that are sent to the client
+
+--> When I used an endpoint, I had to work directly with the JSON serializer to create a string that can be written to the response and set the Content-Type header to tell the client that the response contained JSON data. 
+--> The action method returns a Product object, which is processed automatically.
+
+----------------------------------------------------------------------------------------
+
+13. Using Dependency Injection in Controllers
+
+--> A new instance of the controller class is created each time one of its actions is used to handle a request. 
+--> The application’s services are used to resolve any dependencies the controller declares through its constructor and any dependencies that the action method defines. 
+--> This allows services that are required by all actions to be handled through the constructor while still allowing individual actions to declare their own dependencies
+
+----------------------------------------------------------------------------------------
+
+--> ProductsController.cs 
+
+using System.Collections.Generic; 
+using Microsoft.Extensions.Logging; 
+using System.Linq;
+
+namespace WebApp.Controllers {
+
+    [Route("api/[controller]")]
+    public class ProductsController: ControllerBase {
+
+        private DataContext context;
+
+        public ProductsController(DataContext ctx) {
+            context = ctx;
+        }
+
+        [HttpGet]
+        public IEnumerable<Product> GetProducts() {
+            return context.Products;
+        }
+
+        [HttpGet("{id}")]
+        public Product GetProduct([FromServices] ILogger<ProductsController> logger) {
+            logger.LogDebug("GetProduct Action Invoked");
+            return context.Products.FirstOrDefault();
+        }
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The GetProducts action method uses the DataContext to request all the Product objects in the database. 
+--> The GetProduct method also uses the DataContext service, but it declares a dependency on ILogger<T>, which is the logging service described in Chapter 15. 
+--> Dependencies that are declared by action methods must be decorated with the FromServices attribute
+
+----------------------------------------------------------------------------------------
+
+--> THE ENTITY FRAMEWORK CORE CONTEXT SERVICE LIFECYCLE
+
+--> A new entity framework Core context object is created for each controller. 
+--> Behind the scenes, entity framework Core efficiently manages the connections to the database, and you should not try to store or reuse context objects outside of the controller for which they are created.
+
+----------------------------------------------------------------------------------------
+
+14. Using Model Binding to Access Route Data
+
+--> I noted that the MVC Framework uses the request URL to find values for action method parameters, a process known as model binding. 
+
+        [HttpGet("{id}")]
+        public Product GetProduct(long id, [FromServices] ILogger<ProductsController> logger) {
+            logger.LogDebug("GetProduct Action Invoked");
+            return context.Products.Find(id);
+        }
+
+--> The listing adds a long parameter named id to the GetProduct method. 
+--> When the action method is invoked, the MVC Framework injects the value with the same name from the routing data, automatically converting it to a long value, which is used by the action to query the database using the LINQ Find method. 
+
+----------------------------------------------------------------------------------------
+
+15. Model Binding from the Request Body
+
+--> The model binding feature can also be used on the data in the request body, which allows clients to send data that is easily received by an action method. 
+--> Listing 19-10 adds a new action method that responds to POST requests and allows clients to provide a JSON representation of the Product object in the request body.
+
+--> Adding an Action in the ProductsController.cs File
+
+using Microsoft.AspNetCore.Mvc; 
+using WebApp.Models; 
+using System.Collections.Generic; 
+using Microsoft.Extensions.Logging; 
+using System.Linq;
+
+namespace WebApp.Controllers {
+
+    [Route("api/[controller]")]
+    public class ProductsController: ControllerBase {
+
+        private DataContext context;
+
+        public ProductsController(DataContext ctx) {
+            context = ctx;
+        }
+
+        [HttpGet]
+        public IEnumerable<Product> GetProducts() {
+            return context.Products;
+        }
+
+        [HttpGet("{id}")]
+        public Product GetProduct(long id, [FromServices] ILogger<ProductsController> logger) {
+            logger.LogDebug("GetProduct Action Invoked");
+            return context.Products.Find(id);
+        }
+
+        [HttpPost]
+        public void SaveProduct([FromBody] Product product) {
+            context.Products.Add(product);
+            context.SaveChanges();
+        }
+    }
+}
+
+----------------------------------------------------------------------------------------
+
+--> The new action relies on two attributes. 
+--> The HttpPost attribute is applied to the action method and tells the MVC Framework that the action can process POST requests. 
+
+--> The FromBody attribute is applied to the action’s parameter, and it specifies that the value for this parameter should be obtained by parsing the request body. --> When the action method is invoked, the MVC Framework will create a new Product object and populate its properties with the values in the request body. 
+
+--> The model binding process can be complex and is usually combined with data validation
+
+----------------------------------------------------------------------------------------
+
+16. Adding Additional Actions
+
+        [HttpPut]
+        public void UpdateProduct([FromBody]Product product) {
+            context.Products.Update(product);
+            context.SaveChanges();
+        }
+
+        [HttpDelete("{id}")]
+        public void DeleteProduct(long id) {
+            context.Products.Remove(new Product() { ProductId = id });
+            context.SaveChanges();
+        }
+
+----------------------------------------------------------------------------------------
+
+17. Improving the Web Service
+
+--> SUPPORTING CROSS-ORIGIN REQUESTS
+
+--> If you are supporting third-party JavaScript clients, you may need to enable support for cross-origin requests (Cors). 
+--> Browsers protect users by only allowing JavaScript code to make http requests within the same origin, which means to urls that have the same scheme, host, and port as the url used to load the JavaScript code. 
+
+--> Cors loosens this restriction by performing an initial http request to check that the server will allow requests originating from a specific url, helping prevent malicious code using your service without the user’s consent.
+--> Asp.net Core provides a built-in service that handles Cors, which is enabled by adding the following statement to the ConfigureServices method in the Startup class:
+
+... Services.AddCors(); ...
+
+--> The options pattern is used to configure Cors with the CorsOptions class defined in the Microsoft.AspNetCore.Cors.Infrastructure namespace. 
+
+----------------------------------------------------------------------------------------
+
+--> Using Asynchronous Actions
+
+--> The ASP.NET Core platform processes each request by assigning a thread from a pool. 
+--> The number of requests that can be processed concurrently is limited to the size of the pool, and a thread can’t be used to process any other request while it is waiting for an action to produce a result.
+
+--> Actions that depend on external resources can cause a request thread to wait for an extended period. A database server, for example, may have its own concurrency limits and may queue up queries until they can be executed. 
+--> The ASP.NET Core request thread is unavailable to process any other requests until the database produces a result for the action, which then produces a response that can be sent to the HTTP client.
+
+--> This problem can be addressed by defining asynchronous actions, which allow ASP.NET Core threads to process other requests when they would otherwise be blocked, increasing the number of HTTP requests that the application can process simultaneously.
+
+----------------------------------------------------------------------------------------
+
+--> ProductsController.cs
+
+using System.Threading.Tasks;
+
+namespace WebApp.Controllers {
+
+    [Route("api/[controller]")]
+    public class ProductsController: ControllerBase {
+
+        private DataContext context;
+
+        public ProductsController(DataContext ctx) {
+            context = ctx;
+        }
+
+        [HttpGet]
+        public IAsyncEnumerable<Product> GetProducts() {
+            return context.Products;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<Product> GetProduct(long id) {
+            return await context.Products.FindAsync(id);
+        }
+
+        [HttpPost]
+        public async Task SaveProduct([FromBody]Product product) {
+            await context.Products.AddAsync(product);
+            await context.SaveChangesAsync();
+        }
+
+        [HttpPut]
+        public async Task UpdateProduct([FromBody]Product product) {
+            context.Update(product);
+            await context.SaveChangesAsync();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task DeleteProduct(long id) {
+            context.Products.Remove(new Product() { ProductId = id });
+            await context.SaveChangesAsync();
+        }
+    } 
+}
+
+--> Entity Framework Core provides asynchronous versions of some methods, such as FindAsync, AdddAsync, and SaveChangesAsync, and I have used these with the await keyword. Not all operations can be performed asynchronously, which is why the Update and Remove methods are unchanged.
+
+--> There is no change to the responses produced by the controller, but the threads that ASP.NET Core assigns to process each request are not necessarily blocked by the action methods.
+
+----------------------------------------------------------------------------------------
+
+18. Preventing Over-Binding
+
+--> Some of the action methods use the model binding feature to get data from the response body so that it can be used to perform database operations. 
+
+--> The Request body in Postman includes a value for the ProductId property. 
+--> When Entity Framework Core sends the data to the database, the following exception is thrown:
+...
+Microsoft.Data.SqlClient.SqlException (0x80131904): Cannot insert explicit value for identity column in table 'Products' when IDENTITY_INSERT is set to OFF. 
+
+--> By default, Entity Framework Core configures the database to assign primary key values when new objects are stored. 
+--> This means the application doesn’t have to worry about keeping track of which key values have already been assigned and allows multiple applications to share the same database without the need to coordinate key allocation. 
+
+--> The Product data model class needs a ProductId property, but the model binding process doesn’t understand the significance of the property and adds any values that the client provides to the objects it creates, which causes the exception in the SaveProduct action method.
+
+--> This is known as over-binding, and it can cause serious problems when a client provides values that the developer wasn’t expecting. 
+--> At best, the application will behave unexpectedly, but this technique has been used to subvert application security and grant users more access than they should have.
+
+--> The safest way to prevent over-binding is to create separate data model classes that are used only for receiving data through the model binding process.
+
+----------------------------------------------------------------------------------------
+
+--> ProductBindingTarget.cs
+
+namespace WebApp.Models {
+
+    public class ProductBindingTarget {
+
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public long CategoryId { get; set; }
+        public long SupplierId { get; set; }
+        public Product ToProduct() => new Product() {
+            Name = this.Name, 
+	    Price = this.Price,
+            CategoryId = this.CategoryId, 
+	    SupplierId = this.SupplierId
+        };
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The ProductBindingTarget class defines only the properties that the application wants to receive from the client when storing a new object. 
+--> The ToProduct method creates a Product that can be used with the rest of the application, ensuring that the client can only provide properties for the Name, Price, CategoryId, and SupplierId properties.
+
+[HttpPost] 
+public async Task SaveProduct([FromBody]ProductBindingTarget target) {
+    await context.Products.AddAsync(target.ToProduct());
+    await context.SaveChangesAsync(); 
+}
+
+--> The client has included the ProductId value, but it is ignored by the model binding process, which discards values for read-only properties.  
+
+----------------------------------------------------------------------------------------
+
+19. Using Action Results
+
+--> The MVC Framework sets the status code for responses automatically, but you won’t always get the result you desire, in part because there are no firm rules for RESTful web services, and the assumptions that Microsoft makes may not match your expectations.
+--> eg. http://localhost:5000/api/products/1000 (GET Request)
+
+StatusCode -------- 204
+
+--> There is no matching object in the database, which means that the GetProduct action method returns null. 
+--> When the MVC Framework receives null from an action method, it returns the 204 status code, which indicates a successful request that has produced no data. 
+
+--> Not all web services behave this way, and a common alternative is to return a 404 response, indicating not found.
+--> Similarly, the SaveProducts action will return a 200 response when it stores an object, but since the primary key isn’t generated until the data is stored, the client doesn’t know what key value was assigned.
+
+----------------------------------------------------------------------------------------
+
+--> Action methods can direct the MVC Framework to send a specific response by returning an object that implements the IActionResult interface, which is known as an action result. 
+--> This allows the action method to specify the type of response that is required without having to produce it directly using the HttpResponse object.
+
+--> The ControllerBase class provides a set of methods that are used to create action result objects, which can be returned from action methods. 
+
+----------------------------------------------------------------------------------------
+
+1. Ok
+--> The IActionResult returned by this method produces a 200 OK status code and sends an optional data object in the response body.
+
+2. NoContent
+--> The IActionResult returned by this method produces a 204 NO CONTENT status code.
+
+3. BadRequest
+--> The IActionResult returned by this method produces a 400 BAD REQUEST status code. The method accepts an optional model state object that describes the problem to the client, as demonstrated in the “Validating Data” section.
+
+4. File
+--> The IActionResult returned by this method produces a 200 OK response, sets the Content-Type header to the specified type, and sends the specified file to the client.
+
+5. NotFound
+--> The IActionResult returned by this method produces a 404 NOT FOUND status code.
+
+6. Redirect
+RedirectPermanent
+--> The IActionResult returned by these methods redirects the client to a specified URL.
+
+7. RedirectToRoute
+RedirectToRoutePermanent
+--> The IActionResult returned by these methods redirects the client to the specified URL that is created using the routing system, using convention routing, as described in the “Redirecting Using Route Values” sidebar.
+
+8. LocalRedirect 
+LocalRedirectPermanent
+--> The IActionResult returned by these methods redirects the client to the specified URL that is local to the application.
+
+9. RedirectToAction 
+RedirectToActionPermanent
+--> The IActionResult returned by these methods redirects the client to an action method. The URL for the redirection is created using the URL routing system.
+
+10. RedirectToPage
+RedirectToPagePermanent
+--> The IActionResult returned by these methods redirects the client to a Razor Page, described in Chapter 23.
+
+11. StatusCode
+--> The IActionResult returned by this method produces a response with a specific status code.
+
+
+----------------------------------------------------------------------------------------
+
+--> ProductsController.cs
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetProduct(long id) {
+            Product p = await context.Products.FindAsync(id);
+            if (p == null) {
+                return NotFound();
+            }
+            return Ok(p);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveProduct([FromBody]ProductBindingTarget target) {
+            Product p = target.ToProduct();
+            await context.Products.AddAsync(p);
+            await context.SaveChangesAsync();
+            return Ok(p);
+        }
+
+----------------------------------------------------------------------------------------
+
+20. Performing Redirections
+
+--> Many of the action result methods relate to redirections, which direct the client to another URL. 
+--> The most basic way to perform a direction is to call the Redirect method
+
+--> the LocalRedirect and LocalRedirectPermanent methods throw an exception if a controller tries to perform a redirection to any url that is not local. 
+--> This is useful when you are redirecting to urls provided by users, where an open redirection attack is attempted to redirect another user to an untrusted site.
+
+----------------------------------------------------------------------------------------
+
+        [HttpGet("redirect")]
+        public IActionResult Redirect() {
+            return Redirect("/api/products/1");
+        }
+
+--> The redirection URL is expressed as a string argument to the Redirect method, which produces a temporary redirection
+--> Send a GET request to url: http://localhost:5000/api/products/redirect
+
+--> The Invoke-RestMethod command will receive the redirection response from the web service and send a new request to the URL it is given, producing the following response:
+
+productId  : 1 
+name       : GreenKayak 
+price      : 275.00 
+categoryId : 1 
+category   : 
+supplierId : 1 
+supplier   :
+
+----------------------------------------------------------------------------------------
+
+21. Redirecting to an Action Method
+
+--> You can redirect to another action method using the RedirectToAction method (for temporary redirections) or the RedirectToActionPermanent method (for permanent redirections).
+
+-->     [HttpGet("redirect")]
+        public IActionResult Redirect() {
+            return RedirectToAction(nameof(GetProduct), new { Id = 1 });
+        }
+
+----------------------------------------------------------------------------------------
+
+22. REDIRECTING USING ROUTE VALUES
+
+--> The RedirectToRoute and RedirectToRoutePermanent methods redirect the client to a url that is created by providing the routing system with values for segment variables and allowing it to select a route to use. 
+
+--> This can be useful for applications with complex routing configurations, and caution should be used because it is easy to create a redirection to the wrong url. 
+
+--> Here is an example of redirection with the RedirectToRoute method:
+
+[HttpGet("redirect")] 
+public IActionResult Redirect() {
+    return RedirectToRoute(new {
+        controller = "Products", action = "GetProduct", Id = 1
+    }); 
+} 
+
+----------------------------------------------------------------------------------------
+
+23. Validating Data
+
+--> When you accept data from clients, you must assume that a lot of the data will be invalid and be prepared to filter out values that the application can’t use. 
+--> I am going to focus on only one problem: ensuring that the client provides values for the properties that are required to store data in the database. 
+
+--> The first step in model binding is to apply attributes to the properties of the data model class
+
+----------------------------------------------------------------------------------------
+
+--> ProductBindingTarget.cs
+
+using System.ComponentModel.DataAnnotations;
+
+namespace WebApp.Models {
+
+    public class ProductBindingTarget {
+
+        [Required]
+        public string Name { get; set; }
+
+        [Range(1, 1000)]
+        public decimal Price { get; set; }
+
+        [Range(1, long.MaxValue)]
+        public long CategoryId { get; set; }
+
+        [Range(1, long.MaxValue)]
+        public long SupplierId { get; set; }
+
+        public Product ToProduct() => new Product() {
+            Name = this.Name, 
+	    Price = this.Price,
+            CategoryId = this.CategoryId, 
+	    SupplierId = this.SupplierId
+        };
+    } 
+}
+
+----------------------------------------------------------------------------------------
+
+--> The Required attribute denotes properties for which the client must provide a value and can be applied to properties that are assigned null when there is no value in the request. 
+--> The Range attribute requires a value between upper and lower limits and is used for primitive types that will default to zero when there is no value in the request.
+
+----------------------------------------------------------------------------------------
+
+[HttpPost] 
+public async Task<IActionResult> SaveProduct([FromBody]ProductBindingTarget target) {
+    if (ModelState.IsValid) {
+        Product p = target.ToProduct();
+        await context.Products.AddAsync(p);
+        await context.SaveChangesAsync();
+        return Ok(p);
+    }
+    return BadRequest(ModelState); 
+} 
+
+----------------------------------------------------------------------------------------
+
+--> The ModelState property is inherited from the ControllerBase class, and the IsValid property returns true if the model binding process has produced data that meets the validation criteria. 
+
+--> If the data received from the client is valid, then the action result from the Ok method is returned. 
+--> If the data sent by the client fails the validation check, then the IsValid property will be false, and the action result from the BadRequest method is used instead. 
+
+--> The BadRequest method accepts the object returned by the ModelState property, which is used to describe the validation errors to the client. 
+(There is no standard way to describe validation errors, so the client may rely only on the 400 status code to determine that there is a problem.)
+
+----------------------------------------------------------------------------------------
+
+ "Price":["The field Price must be between 1 and 1000."],
+ "CategoryId":["The field CategoryId must be between 1 and 9.223372036854776E+18."],
+ "SupplierId":["The field SupplierId must be between 1 and 9.223372036854776E+18."] }
+
+----------------------------------------------------------------------------------------
+
+24. Applying the API Controller Attribute
+
+--> The ApiController attribute can be applied to web service controller classes to change the behavior of the model binding and validation features. 
+--> The use of the FromBody attribute to select data from the request body and explicitly checking the ModelState. 
+
+--> IsValid property is not required in controllers that have been decorated with the ApiController attribute. 
+--> Getting data from the body and validating data are required so commonly in web services that they are applied automatically when the attribute is used, restoring the focus of the code in the controller’s action to dealing with the application features
+
+----------------------------------------------------------------------------------------
+
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ProductsController : ControllerBase {
+    	...
+
+	[HttpPost]
+        public async Task<IActionResult> SaveProduct(ProductBindingTarget target) {
+            Product p = target.ToProduct();
+            await context.Products.AddAsync(p);
+            await context.SaveChangesAsync();
+            return Ok(p);
+        }
+
+        [HttpPut]
+        public async Task UpdateProduct(Product product) {
+            context.Update(product);
+            await context.SaveChangesAsync();
+        }
+
+----------------------------------------------------------------------------------------
+
+25. Omitting Null Properties
+
+--> The request was handled by the GetProduct action method, and the category and supplier values in the response will always be null because the action doesn’t ask Entity Framework Core to populate these properties.
+
+----------------------------------------------------------------------------------------
+
+26. Projecting Selected Properties
+
+--> The first approach is to return just the properties that the client requires. 
+--> This gives you complete control over each response, but it can become difficult to manage and confusing for client developers if each action returns a different set of values. 
+
+--> Listing 19-30 shows how the Product object obtained from the database can be projected so that the navigation properties are omitted.
+
+[HttpGet("{id}")] 
+public async Task<IActionResult> GetProduct(long id) {
+
+    Product p = await context.Products.FindAsync(id);
+    if (p == null) {
+        return NotFound();
+    }
+    return Ok(new {
+        ProductId = p.ProductId, 
+	Name = p.Name,
+        Price = p.Price, 
+	CategoryId = p.CategoryId,
+        SupplierId = p.SupplierId
+    }); 
+} 
+
+----------------------------------------------------------------------------------------
+
+27. Configuring the JSON Serializer
+
+--> The JSON serializer can be configured to omit properties whose value is null when it serializes objects. 
+--> The serializer is configured using the options pattern in the Startup class
+
+using Microsoft.AspNetCore.Mvc;
+
+        public void ConfigureServices(IServiceCollection services) {
+
+            services.AddDbContext<DataContext>(opts => {
+                opts.UseSqlServer(Configuration[
+                    "ConnectionStrings:ProductConnection"]);
+                opts.EnableSensitiveDataLogging(true);
+            });
+
+            services.AddControllers();
+
+            services.Configure<JsonOptions>(opts => {
+                opts.JsonSerializerOptions.IgnoreNullValues = true;
+            });
+        }
+
+----------------------------------------------------------------------------------------
+
+--> The JSON serializer is configured using the JsonSerializerOptions property of the JsonOptions class, and null values are discarded when the IgnoreNullValues property is true.
+--> This configuration change affects all JSON responses and should be used with caution, especially if any of your data model classes use null values to impart information to the client. 
+
+--> To see the effect of the change, restart ASP.NET Core and use a browser to request http://localhost:5000/api/products, which will produce the response 
+
+----------------------------------------------------------------------------------------
+
+28. Summary
+
+--> In this chapter, I showed you how to use the MVC Framework to create RESTful web services. 
+--> I explained that the MVC Framework is built on top of the ASP.NET Core platform and showed you how a single controller class can define multiple action methods, each of which can process a different combination of URL and HTTP method. 
+
+--> I showed you how to use dependency injection to consume services, how to use model binding to access request data, how to validate request data, and how to take control of the responses that are returned to the client. 
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

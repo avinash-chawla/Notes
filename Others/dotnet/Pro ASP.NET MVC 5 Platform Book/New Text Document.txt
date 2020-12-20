@@ -1,0 +1,1957 @@
+
+1. What is the ASP.NET Platform?
+
+--> It provides set of features and services to Frameworks
+--> Frameworks like Web forms, MVC, SignalR, Web Api
+
+-------------------------------------------------------------------------------------
+
+2. The ASP.NET Life Cycles
+
+--> The ASP.NET platform defines two important life cycles that underpin the MVC framework. 
+
+--> The first is the application life cycle, which tracks the life of a web application from the moment it starts to the moment it is terminated. 
+--> The second is the request life cycle, which defines the path that an HTTP request follows as it moves through the ASP.NET platform from the point at which the initial request is received until the response is sent. 
+
+--> In this chapter, I describe both life cycles and the context objects that the ASP.NET platform uses to describe them and the overall state of the application
+
+-------------------------------------------------------------------------------------
+
+3. Application Life Cycle
+
+What is it? 
+--> The application life-cycle notifications allow you to perform actions when the application starts and when it is shut down in a controlled way.
+
+Why should I care? 
+--> The notifications are useful if you have one-off configuration tasks or if you need to release resources when the application is stopped. The most common use of the application life cycle by MVC framework developers is to configure a dependency injection container.
+
+How is it used by the MVC framework?
+--> The MVC framework uses the application life cycle to perform configuration tasks that affect all requests, such as setting up routes, areas, and content bundles.
+
+-------------------------------------------------------------------------------------
+
+4. Understanding Application Life Cycle
+
+--> The life cycle of an ASP.NET application begins the moment the application is started and continues while HTTP requests are received from clients and processed to generate responses. 
+
+--> It includes matching requests to controllers and actions and rendering content from Razor views. 
+--> The life cycle ends when the application is stopped.
+
+
+--> The ASP.NET platform provides notifications of the two stages of the life cycle through methods defined by the global application class. 
+--> The global application class has been around since the earliest versions of ASP.NET and consists of two files: Global.asax and Global.asax.cs.
+
+--> Strictly speaking, the Global.asax file is the global application class, and the Global.asax.cs file is the associated code-behind file. 
+--> This is the classic Web Forms approach to splitting declarative and programmatic code and is an artifact of the origins of ASP.NET. 
+
+--> The Global.asax file used to be more important in ASP.NET applications, but it is just there for compatibility these days, even in Web Forms projects. 
+
+-------------------------------------------------------------------------------------
+
+--> Listing 3-1 shows the content of the Global.asax file from the example project, although you will never need to edit this file for an MVC framework project.
+
+<%@ Application Codebehind="Global.asax.cs" Inherits="SimpleApp.MvcApplication" Language="C#" %> 
+
+-------------------------------------------------------------------------------------
+
+--> This is an example of a Web Forms directive that tells ASP.NET that the associated code file is called  Global.asax.cs and that it is written in C#.
+
+-------------------------------------------------------------------------------------
+
+--> The Global.asax file may be a mildly interesting artifact left over from earlier versions of ASP.NET, but for this chapter it is the Global.asax.cs file that is important. 
+
+--> The role of these files has gradually changed as ASP.NET has matured, and now the term global application class is usually used to refer to the Global.asax.cs file to the extent that when you double-click Global.asax in the Solution Explorer, it is the Global.asax.cs file that opens in the editor.
+
+-------------------------------------------------------------------------------------
+
+--> Global.asax.cs File
+
+namespace SimpleApp {
+    public class MvcApplication : System.Web.HttpApplication {
+        protected void Application_Start() {
+            AreaRegistration.RegisterAllAreas();
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> The default global application class is called MvcApplication and is derived from the  System.Web.HttpApplication class. 
+--> You’ll see many more classes from the System.Web namespace in this  book because it is the home of the bulk of the ASP.NET platform functionality.
+
+--> The MvcApplication class is instantiated by the ASP.NET framework, and the methods it defines are called at key moments in the application life cycle (and, as you’ll learn, in the request life cycle).
+
+--> The default implementation of the MvcApplication class contains only one method, called Application_Start, but there is another method available, and I describe them both in the following sections.
+
+-------------------------------------------------------------------------------------
+
+5. Receiving Notifications When the Application Starts and Ends
+
+--> The global application class supports two special methods that define the start and end of the application life cycle
+
+Application_Start()	- Called when the application is started
+Application_End() 	- Called when the application is about to be terminated
+
+-------------------------------------------------------------------------------------
+
+--> The Application_Start method is called when the application is first started and provides an opportunity to perform one-off configuration tasks that affect the entire application. In Listing 3-2, you can see that Visual Studio has added statements to the Application_Start method that set up MVC areas and URL routes. When I created the example project in Chapter 2, I selected the option for the minimal initial project content, but additional statements would have been added to the Application_Start method if I had selected one of the other template options.
+
+--> The Application_End method is called just before the application is terminated and is an opportunity to release any resources that the application maintains and to generally tidy up. The usual reason given for using this method 
+is to release persistent database connections, but most modern web applications don’t manage connections directly, and I rarely find it necessary to implement the Application_End method in my own projects. Databases are pretty good at managing their own connections these days, which is good because the Application_End method is called only when the application is shut down in an orderly manner. You can’t rely on the method being called if the server fails or there is some other kind of sudden, unexpected problem such as a power outage.
+
+--> I refer to these methods as being special because they are implemented in an odd way. These methods are not defined by the base for the global application class (which is System.Web.HttpApplication), so you don’t have to use the override keyword to implement them. In fact, the ASP.NET framework uses reflection to look for the methods 
+by name. You won’t receive an error if you mistype the method names; ASP.NET just assumes you don’t want to be notified when the application starts or stops. For this reason, it is important to ensure that you test that your code is being called, which I demonstrate later in this chapter.
+
+-------------------------------------------------------------------------------------
+
+--> you will sometimes see the Application_Start and Application_End methods defined with object Object and EventArgs arguments, following the convention for a C# event handler method. this is optional, and the aSp.Net framework is able to locate and call these methods with or without these arguments.
+
+-------------------------------------------------------------------------------------
+
+--> Calls to the Application_Start and Application_End methods bookend the life cycle of the application, and between those method calls ASP.NET receives and processes requests
+
+-------------------------------------------------------------------------------------
+
+6. Testing the Start and Stop Notifications
+
+--> You can use the Application_Start and Application_End methods directly in your applications to perform one-off  startup and shutdown activities, just as the MVC framework does. In this section, I’ll show you how to use the debugger to ensure that the methods are being called—something that is important when your custom code doesn’t work the way you expect.
+
+--> The simplest way to check that these methods are being called is to use the Visual Studio debugger. In Listing 3-3 you can see how I have added calls to the static System.Diagnostics.Debugger.Break method to the  Application_Start and Application_End methods, which has the same effect as setting a breakpoint using the Visual Studio code editor, but with the benefit of ensuring that you will get the same result I describe here if you  re-create this example.
+
+-------------------------------------------------------------------------------------
+
+--> Global.asax.cs
+
+namespace SimpleApp {
+    public class MvcApplication : System.Web.HttpApplication {
+        protected void Application_Start() {
+            AreaRegistration.RegisterAllAreas();
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+            System.Diagnostics.Debugger.Break();
+        }
+        protected void Application_End() {
+            System.Diagnostics.Debugger.Break();
+        }
+    } }
+
+--> I have added a call to the Break method in the existing Application_Start method and added the  Application_End method (which contains only a call to Break since my application doesn’t have any cleanup code and none is required by the MVC framework).
+
+-------------------------------------------------------------------------------------
+
+7. Testing the Start Notification
+
+--> Testing the Application_Start method is simple. Select Start Debugging from the Visual Studio Debug menu, and Visual Studio will open a browser window. The ASP.NET framework begins initializing the application, creates an instance of the global application class, discovers the Application_Start method, and invokes it, which leads to the Break method being called. The execution of the application is halted, and control is passed to the debugger, as shown in Figure 3-2.
+
+--> Select Continue from the Visual Studio Debug menu, and execution of the application will resume. The request from the browser is processed, generating an HTML response that allows the user to vote for a color.
+
+-------------------------------------------------------------------------------------
+
+8. Testing the Stop Notification 
+
+--> Testing the Application_End method is a little trickier because selecting Stop Debugging detaches the debugger from the application before the Application_End method is called. The browser window is closed, the debugger is terminated, and Visual Studio returns to its default state—but the Debugger.Break method isn’t invoked.
+
+--> To test the code in the Application_End method, you must work with IIS Express directly, rather than through Visual Studio. IIS Express is a cut-down version of the IIS application server included with Visual Studio and is used to run ASP.NET applications during development.
+
+--> Execution of the application will continue, and the time and day of the week will be displayed by the browser. Locate the IIS Express icon on the Windows taskbar and right-click to make the pop-up menu appear. You will 
+see a menu item for the SimpleApp project, and when you select it, you will see a Stop Site menu item, as shown  in Figure 3-3.
+
+--> When you select Stop Site, IIS Express will stop the application, and as part of this process, the Application_End method will be called. For my example, this means the Debugger.Break call is executed, as shown in Figure 3-4
+
+-------------------------------------------------------------------------------------
+
+9. The ASP.NET Request Life Cycle
+
+--> The global application class is also used to track the life cycle of individual requests, allowing you to follow each request as it passes through the ASP.NET platform into the MVC framework. The ASP.NET framework creates instances of the MvcApplication class defined in the Global.asax.cs file and uses the events it defines to shepherd the request through until the point where the response is generated and sent back to the browser. These events are not just for use by the application developer; they are used by the ASP.NET framework and the MVC framework to perform request handling (this will become clearer as I dig deeper into the detail). Table 3-4 puts the request life cycle in context.
+
+-------------------------------------------------------------------------------------
+
+What is it?
+--> The request life cycle is described by a series of events that describe the progress of a request from when it is received through until the response is sent.
+
+Why should I care?
+--> The events are used when creating your own modules and handlers (which I introduce later in this chapter and describe properly in Chapters 4 and 5). You can also use these events to debug complex problems caused by interactions between ASP.NET components.
+
+How is it used by the MVC framework?
+--> The MVC framework includes a module and a handler. The module blocks requests for view files, and the handler is the component that locates the controller and action method that will process the request and renders the view that the action method selects.
+
+
+-------------------------------------------------------------------------------------
+
+10. Understanding the Request Life Cycle
+
+--> The Application_Start and Application_End methods are not called on the MvcApplication instances that  ASP.NET creates to handle requests. Instead, the ASP.NET framework triggers the sequence of events described in  Table 3-5. These events describe the request life cycle.
+
+-------------------------------------------------------------------------------------
+
+1. BeginRequest
+--> This is triggered as the first event when a new request is received.
+
+2. AuthenticateRequest PostAuthenticateRequest
+--> The AuthenticateRequest event is triggered to identify the user who has made the request. When all of the event handlers have been processed, PostAuthenticateRequest is triggered.
+
+
+3. AuthorizeRequest
+--> AuthorizeRequest is triggered to authorize the request. When all of the event handlers have been processed, PostAuthorizeRequest is triggered.
+
+
+4. ResolveRequestCache PostResolveRequestCache
+--> ResolveRequestCache is triggered to resolve the request from cached data. I describe the caching features in Chapters 11 and 12. When the event handlers have been processed, PostResolveRequestCache is triggered.
+
+
+5. MapRequestHandler PostMapRequestHandler
+--> MapRequestHandler is triggered when the ASP.NET framework wants to locate a handler for the request. I introduce handlers later in this chapter and cover them in depth in Chapter 5. The PostMapRequestHandler event is triggered once the handler has been selected.
+
+
+6. AcquireRequestState PostAcquireRequestState
+--> AcquireRequestState is triggered to obtain the state data associated with the request (such as session state). When all of the event handlers are processed, PostAcquireRequestState is triggered. I explain the different kinds of state data in Chapter 10.
+
+
+7. PreRequestHandlerExecute PostRequestHandlerExecute
+--> These events are triggered immediately before and immediately after the handler is asked to process the request.
+
+
+8. ReleaseRequestState PostReleaseRequestState
+--> ReleaseRequestState is triggered when the state data associated with the request is no longer required for request processing. When the event handlers have been processed, the PostReleaseRequestState event is triggered.
+
+
+9. UpdateRequestCache 
+--> This event is triggered so that modules responsible for caching can update their state. I introduce the role of modules later in this chapter and describe them in depth in Chapter 4. I describe the built-in support for caching in Chapters 11 and 12.
+
+
+10. LogRequest PostLogRequest
+--> This event is triggered to provide an opportunity for details of the request to be logged. When all of the event handlers have been processed, PostLogRequest is triggered.
+
+
+11. EndRequest
+--> This event is triggered when the request has been processed and the response is ready to be sent to the browser.
+
+
+12. PreSendRequestHeaders PreSendRequestContent
+--> This event is triggered just before the HTTP headers are sent to the browser.
+This event is triggered after the headers have been sent but before the content is sent to the browser.
+
+
+13. Error
+--> This event is triggered when an error is encountered; this can happen at any point in the request process. See Chapter 6 for details about error handling.
+
+
+-------------------------------------------------------------------------------------
+
+--> The ASP.NET framework triggers these events to chart the path of a request through the processing life cycle. You can handle these events in the global application class, in a module, or in a handler. I introduce modules and handlers in the following section and describe them in depth in Chapters 4 and 5.
+
+-------------------------------------------------------------------------------------
+
+11. The Life of a Request Life Cycle httpApplication Object
+
+--> The Asp.Net framework will create multiple instances of the MvcApplication class to process requests, and these instances can be reused so that they process several requests over their lifetime. The Asp.Net framework has complete freedom to create MvcApplication instances as and when they are required and to destroy them when they are no longer needed. This means your global application class must be written so that multiple instances can exist concurrently and that these instances can be used to process several requests sequentially before they are destroyed. the only thing you can rely on is that each instance will be used to process one request at a time, meaning you have to worry only about concurrent access to data objects that are shared  
+(i show you an example of this issue when i introduce application-wide state data in Chapter 10).
+
+-------------------------------------------------------------------------------------
+
+12. Understanding Modules and Handlers
+
+--> In the following sections, I show you how to respond to the request life-cycle events directly in the global application class. This is a good start for exploring the life-cycle events, but it is suitable for only the simplest of interactions 
+with requests. Any serious request handling functionality tends to consume a number of life-cycle events, which means that the global application class quickly becomes a morass of code that handles the same events to handle requests in different ways. The ASP.NET framework deals with this by supporting modules, which are self-contained classes that receive the life-cycle events and can monitor and manipulate requests. Many of the most important ASP. NET platform services rely on the module functionality to prepare a request early in its life cycle. Examples are the state data and security services, which include modules that respond to events such as AcquireRequestState and AuthenticateRequest to add data to a request before it is handled by the MVC framework. Modules can interact with requests—and the associated responses—at any point in the life cycle, and I describe them in detail in Chapter 4.
+
+--> The ASP.NET framework also supports a component called a handler. Handlers are responsible for generating a response for a request. The handler for the MVC framework is the component responsible for locating a controller and action method to service a request and rendering the view that the action method specifies. The ASP.NET framework supports multiple handlers, which is why it is possible to mix and match development frameworks such as MVC, Web API, and Web Forms within the same application. The handler is linked to four of the request life-cycle events. The MapRequestHandler and PostMapRequestHandler events are triggered before and after a handler is selected for the request, and the PreRequestHandlerExecute and PostRequestHandlerExecute events are triggered before and after the handler is asked to generate a response for the request. I describe how handlers work in detail in Chapter 5.
+
+
+-------------------------------------------------------------------------------------
+
+--> Request Life Cycle
+
+1. Application Starts
+
+-------------------------------------------------------------------------------------
+
+2. Global Application Class instantiated
+3. Application_Start
+4. Request Received
+
+-------------------------------------------------------------------------------------
+
+5. Global Application Class Instantiated
+6. Module Classes Instantiated
+7. Request Lifecycle Events (BeginRequest to MapRequestHandler)
+8. Handler Selected
+9. Request Lifecycle Events (PostMapRequestHandler to PreRequestHandlerExecute)
+10. Handler Executed
+11. Request Lifecycle Events (PostRequestHandlerExecute to PreSendRequestContent)
+
+-------------------------------------------------------------------------------------
+
+12. Response Sent to Browser/Client
+13. Application_End
+
+-------------------------------------------------------------------------------------
+
+14. Application Exits
+ 
+-------------------------------------------------------------------------------------
+
+--> Don’t worry if this seems complex; it will start to make sense as I explain how these events are handled and as you see how various ASP.NET platform services are implemented.
+
+--> Notice that the global application class is instantiated by both the application and request life cycles. Not only does the ASP.NET framework create multiple instances to service parallel requests, but it also creates separate instances to support each life cycle. You will see the practical impact of this in the “Handling Property Exceptions” section later in this chapter.
+
+-------------------------------------------------------------------------------------
+
+13. Handling Request Life-Cycle Events Using Special Methods
+
+--> To handle these events in the global application class, you create a method with a name that starts with Application_, followed by the event name, such as Application_BeginRequest, for example. As with the Application_Start 
+and Application_End methods, the ASP.NET framework finds the methods and invokes them when the event they correspond to is triggered. In Listing 3-4, you can see how I have updated the global application class so it handles some of the events in the table (and removed the statements that cause the debugger to break).
+
+-------------------------------------------------------------------------------------
+
+--> Handling Request life-Cycle Events in the Global.asax.cs File
+
+namespace SimpleApp {
+    public class MvcApplication : System.Web.HttpApplication {
+        protected void Application_Start() {
+            AreaRegistration.RegisterAllAreas();
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+        }
+        protected void Application_BeginRequest() {
+            RecordEvent("BeginRequest");
+        }
+        protected void Application_AuthenticateRequest() {
+            RecordEvent("AuthenticateRequest");
+        }
+        protected void Application_PostAuthenticateRequest() {
+            RecordEvent("PostAuthenticateRequest");
+        }
+        private void RecordEvent(string name) {
+            List<string> eventList = Application["events"] as List<string>;
+            if (eventList == null) {
+                Application["events"] = eventList = new List<string>();
+            }
+            eventList.Add(name);
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> I have defined a method called RecordEvent that accepts the name of an event and stores it using one of the ASP.NET state management features. I describe these features in detail in Chapter 10, but the one I have used in this example—accessed via the Application property of the HttpApplication class—stores data in a way that makes it available throughout the application.
+
+-------------------------------------------------------------------------------------
+
+--> I call the RecordEvent method from three other methods I added to the global application class. These events  will be called when the BeginRequest, AuthenticateRequest, and PostAuthenticateRequest events are triggered.  
+I don’t have to explicitly register these methods as event handlers; the ASP.NET framework locates and invokes these methods automatically.
+
+
+-------------------------------------------------------------------------------------
+
+14. Displaying the Event Information
+
+--> To display information about the events that my code receives, I need to make changes to the Home controller and its Index view. In Listing 3-5, you can see how I retrieve the event state data and pass it to the view as the model object in the Home controller.
+
+-------------------------------------------------------------------------------------
+
+--> Getting the Event Information in the Controllers/HomeController.cs File
+
+namespace SimpleApp.Controllers {
+    public class HomeController : Controller {
+        public ActionResult Index() {
+            return View(HttpContext.Application["events"]);
+        }
+        [HttpPost]
+        public ActionResult Index(Color color) {
+            Color? oldColor = Session["color"] as Color?;
+            if (oldColor != null) {
+                Votes.ChangeVote(color, (Color)oldColor);
+            } else {
+                Votes.RecordVote(color);
+            }
+            ViewBag.SelectedColor = Session["color"] = color;
+            return View(HttpContext.Application["events"]);
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> To access the data I stored in the global application class, I have to use the HttpContext.Application property, which I describe later in this chapter as part of the context objects that the ASP.NET framework provides and whose functionality I describe in Chapter 10. In Listing 3-6, you can see how I have updated the Razor view associated with the controller so that details of the events are displayed in the browser.
+
+-------------------------------------------------------------------------------------
+
+--> Displaying the Event Information in the Views/Home/Index.cshtml File
+
+@model List<string> 
+
+    <div class="panel panel-primary">
+        <h5 class="panel-heading">Events</h5>
+        <table class="table table-condensed table-striped">
+            @foreach (string eventName in Model) {
+                <tr><td>@eventName</td></tr>
+            }
+        </table>
+    </div>
+
+
+--> The list of event names is passed to the view as the model object, and I use a Razor foreach loop to generate rows in an HTML table element. The result is that the view generates HTML that describes the events that have been recorded by the global application class
+
+-------------------------------------------------------------------------------------
+
+--> this technique can be used only for events up to PreRequestHandlerExecute in the sequence shown in  table 3-5. this is because the action method in the controller is called between the PreRequestHandlerExecute and PostRequestHandlerExecute events and so subsequent events are triggered after the response has been produced.
+
+-------------------------------------------------------------------------------------
+
+15. Handling Request Life-Cycle Events Without Special Methods
+
+--> The HttpApplication class, which is the base for the global application class, defines regular C# events that can be used instead of special methods, as shown in Listing 3-7. The choice between the standard C# events and the special methods is a personal one, and you can mix and match techniques if you want.
+
+-------------------------------------------------------------------------------------
+
+--> Using C# Events in the Global.asax.cs File
+
+namespace SimpleApp {
+    public class MvcApplication : System.Web.HttpApplication {
+        public MvcApplication() {
+            BeginRequest += (src, args) => RecordEvent("BeginRequest");
+            AuthenticateRequest += (src, args) => RecordEvent("AuthentucateRequest");
+            PostAuthenticateRequest += (src, args) =>
+                RecordEvent("PostAuthenticateRequest");
+        }
+        protected void Application_Start() {
+            AreaRegistration.RegisterAllAreas();
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+        }
+        private void RecordEvent(string name) {
+            List<string> eventList = Application["events"] as List<string>;
+            if (eventList == null) {
+                Application["events"] = eventList = new List<string>();
+            }
+            eventList.Add(name);
+        }
+    } 
+}
+
+-------------------------------------------------------------------------------------
+
+--> I have added a constructor to the MvcApplication class and have used it to set up event handlers for three of the request life-cycle events. For all three events I have used lambda expressions that call the RecordEvent method, storing the name of the event so that it can be read back by the controller, just as in the previous example.
+
+-->  there are no standard C# events to replace the Application_Start and Application_End methods. you can receive these notifications only via special methods.
+
+-------------------------------------------------------------------------------------
+
+
+16. Using a Single Method to Handle Multiple Events
+
+--> 
+
+-------------------------------------------------------------------------------------
+
+17. The ASP.NET Context Objects
+
+What are they? 
+--> The context objects provide information about the application, the current request, and the response that is being prepared for it. They also provide access to the most important ASP.NET platform services such as security and state data.
+
+
+Why should I care? 
+--> You use the context objects within MVC framework controllers and views to vary your application responses based on the request or the state of the application. You also use these objects when creating modules and handlers, which I describe in Chapters 4 and 5.
+
+
+How are they used by the MVC framework?
+--> The MVC framework uses the context objects to process requests and build on ASP.NET services such as mobile device detection (which I describe in Chapter 7).
+
+-------------------------------------------------------------------------------------
+
+18. Understanding the ASP.NET Context Objects
+
+--> The class at the heart of the context is System.Web.HttpContext. 
+--> It is universally available throughout the  ASP.NET framework and the MVC framework, and it acts as a gateway to other context objects and to ASP.NET platform features and services. 
+
+-------------------------------------------------------------------------------------
+
+--> HttpContext Members
+
+1. Application		- Returns the HttpApplicationState object used to manage application state data
+
+2. ApplicationInstance	- Returns the HttpApplication object associated with the current request (described later in this chapter).
+
+3. Cache		- Returns a Cache object used to cache data. See Chapter 11 for details.
+
+4. Current		- (Static.) Returns the HttpContext object for the current request.
+
+5. CurrentHandler	- Returns the IHttpHandler instance that will generate content for the request. See Chapter 5 for details of handlers and Chapter 6 for 			  information about how to preempt the handler selection process used by the ASP.NET platform.
+
+6. IsDebuggingEnabled	- Returns true if the debugger is attached to the ASP.NET application. You can use this to perform debug-specific activities, but if you do, 			  take care to test thoroughly without the debugger before deployment.
+
+7. Items		- Returns a collection that can be used to pass state data between ASP.NET framework components that participate in processing a request.
+	
+8. GetSection(name)	- Gets the specified configuration section from the Web.config file. I show you how to work with the Web.config files in Chapter 9.
+
+9. Request		- Returns an HttpRequest object that provides details of the request being processed.  I describe the HttpRequest class later in this chapter.
+
+10. Response		- Returns an HttpResponse object that provides details of the response that is being constructed and that will be sent to the browser. I 			  describe the HttpResponse object later in this chapter.
+
+11. Session		- Returns an HttpSession state object that provides access to the session state. This property will return null until the 			  PostAcquireRequestState application event has been triggered. See Chapter 10 for details.
+
+12. Server		- Returns an HttpServerUtility object that can contain utility functions, the most useful being the ability to control request handler 			  execution (see Chapter 6).
+
+13. Timestamp		- Returns a DateTime object that contains the time at which the HttpContext object  was created.
+
+14. Trace		- Used to record diagnostic information. See Chapter 8.
+
+-------------------------------------------------------------------------------------
+
+19. Obtaining an HttpContext in Different ASP.NET/MVC Components
+
+1. Controller		
+--> Use the HttpContext property defined by Controller, which is the base class for MVC framework controllers.
+
+2. View
+--> Use the Context property defined by WebViewPage, which is the base class used to compile Razor views.
+
+3. Global Application Class 
+--> Use the Context convenience property defined by the HttpApplication class (which is the base for the global application class).
+
+4. Module
+--> The Init method is passed an HttpContext object when it is invoked, and the  life-cycle event handlers are passed an HttpApplication object, which defines a Context property. See Chapter 4 for details of modules.
+
+5. Handler
+--> The ProcessRequest method is passed an HttpContext object when it is invoked. See Chapter 5 for details of handlers.
+
+-------------------------------------------------------------------------------------
+
+--> Notice that I have not included the model in the list of application components in Table 3-10. You can obtain the HttpContext object for the current request in the model through the static HttpContext.Current property, but I suggest that you don’t because it blurs the separation of concerns between the model and the controller. 
+--> If the model needs information about a request, then obtain this information from the context objects in the controller and pass it as method arguments to the model. 
+--> This will ensure that the model doesn’t meddle in the business of controllers and will allow the model to be unit tested without any reference to ASP.NET or the MVC framework.
+
+-------------------------------------------------------------------------------------
+
+20. Working with HttpApplication Objects
+
+--> Many of the classes that you will use in the ASP.NET framework provide convenience properties that are mapped to those defined by the HttpContext class. 
+--> A good example of this overlap can be seen in HttpApplication, which is the base for the global application class. 
+
+--> In Table 3-11, you can see the properties and methods defined by the HttpApplication class, many of which are similar to those defined by HttpContext.
+
+-------------------------------------------------------------------------------------
+
+--> The Members Defined by the HttpApplication Class
+
+1. Application		- Maps to the HttpContext.Application property, which provides access to  application-wide state data, as described in Chapter 10.
+
+2. CompleteRequest()	- Abandons the life cycle for the current request and moves directly to the LogRequest event. See Chapter 6 for details.
+
+3. Context		- Returns the HttpContext object for the current request.
+
+4. Init()		- Called when the Init method has been called on each of the registered modules; see Chapter 4 for details of modules.
+
+5. Modules		- Returns an HttpModuleCollection object that details the modules in the application; see Chapter 4 for details of modules.
+
+6. RegisterModule(type)	- Static method that registers a new module; see Chapter 4 for an example.
+
+7. Request		- Returns the HttpContext.Request value, but throws an HttpException if the value is null.
+
+8. Response		- Returns the HttpContext.Response value, but throws an HttpException if the value is null.
+
+9. Server		- Maps to the HttpContext.Server property
+
+10. Session		- Returns the HttpContext.Session value, but throws an HttpException if the value is null. 
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------
+
+

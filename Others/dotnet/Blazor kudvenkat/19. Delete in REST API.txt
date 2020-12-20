@@ -1,0 +1,594 @@
+1. Intro
+
+--> In this video we will discuss, how to delete a resource, i.e implement HTTP DELETE in ASP.NET Core REST API.
+
+--> To delete a resource, issue an HTTP DELETE request to the URI /api/employees/ID. 
+-> The ID of the employee to delete must be passed in the URI.
+
+-----------------------------------------------------------------------------------------
+
+2. ASP.NET Core REST API - HTTP DELETE Example
+ 
+[Route("api/[controller]")]
+[ApiController]
+public class EmployeesController : ControllerBase
+{
+    private readonly IEmployeeRepository employeeRepository;
+
+    public EmployeesController(IEmployeeRepository employeeRepository)
+    {
+        this.employeeRepository = employeeRepository;
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult<Employee>> DeleteEmployee(int id)
+    {
+        try
+        {
+            var employeeToDelete = await employeeRepository.GetEmployee(id);
+
+            if (employeeToDelete == null)
+            {
+                return NotFound($"Employee with Id = {id} not found");
+            }
+
+            return await employeeRepository.DeleteEmployee(id);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "Error deleting data");
+        }
+    }
+}
+
+-----------------------------------------------------------------------------------------
+
+3. Code Explanation
+
+--> It is the DELETE request that is used to delete an existing employee. 
+--> This is the reason DeleteEmployee() method is decorated with the HttpDelete attribute.
+
+--> The id of the employee to delete is passed as a parameter to the HttpDelete attribute. 
+--> This id will be appended to the URL /api/employees. 
+--> So the URL becomes /api/employees/id
+
+-----------------------------------------------------------------------------------------
+
+[HttpDelete("{id:int}")]
+
+-----------------------------------------------------------------------------------------
+
+--> public async Task<ActionResult<Employee>> DeleteEmployee(int id)
+
+--> The employee id value in the URL is automatically mapped to the id parameter on the DeleteEmployee(int id) method. 
+
+--> As we are using the int route constraint on the id route parameter, the id value in the URL is mapped to the method parameter, only if the value is an integer.
+
+-----------------------------------------------------------------------------------------
+
+--> ASP.NET Core Web API CRUD Operations Example
+ 
+The following is the complete EmployeesController code. We have all the CRUD operations (i.e Create, Read, Update and Delete) implemented.
+
+using EmployeeManagement.Api.Models;
+using EmployeeManagement.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
+
+namespace EmployeeManagement.Api.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class EmployeesController : ControllerBase
+    {
+        private readonly IEmployeeRepository employeeRepository;
+
+        public EmployeesController(IEmployeeRepository employeeRepository)
+        {
+            this.employeeRepository = employeeRepository;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> GetEmployees()
+        {
+            try
+            {
+                return Ok(await employeeRepository.GetEmployees());
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error retrieving data from the database");
+            }
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<Employee>> GetEmployee(int id)
+        {
+            try
+            {
+                var result = await employeeRepository.GetEmployee(id);
+
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return result;
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error retrieving data from the database");
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Employee>> CreateEmployee(Employee employee)
+        {
+            try
+            {
+                if(employee == null)
+                {
+                    return BadRequest();
+                } 
+                
+                var emp = employeeRepository.GetEmployeeByEmail(employee.Email);
+                
+                if(emp != null)
+                {
+                    ModelState.AddModelError("email", "Employee email already in use");
+                    return BadRequest(ModelState);
+                }
+
+                var createdEmployee = await employeeRepository.AddEmployee(employee);
+
+                return CreatedAtAction(nameof(GetEmployee), new { id = createdEmployee.EmployeeId },
+                    createdEmployee);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error retrieving data from the database");
+            }
+        }
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<Employee>> UpdateEmployee(int id, Employee employee)
+        {
+            try
+            {
+                if(id != employee.EmployeeId)
+                {
+                    return BadRequest("Employee ID mismatch");
+                }
+
+                var employeeToUpdate = await employeeRepository.GetEmployee(id);
+
+                if(employeeToUpdate == null)
+                {
+                    return NotFound($"Employee with Id = {id} not found");
+                }
+
+                return await employeeRepository.UpdateEmployee(employee);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error updating data");
+            }
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult<Employee>> DeleteEmployee(int id)
+        {
+            try
+            {
+                var employeeToDelete = await employeeRepository.GetEmployee(id);
+
+                if (employeeToDelete == null)
+                {
+                    return NotFound($"Employee with Id = {id} not found");
+                }
+
+                return await employeeRepository.DeleteEmployee(id);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error deleting data");
+            }
+        }
+    }
+}
+
+-----------------------------------------------------------------------------------------
+
+--> EmployeeRepository
+
+--> EmployeeRepository uses entity framework core to store and retrieve data from SQL Server database.
+
+public class EmployeeRepository : IEmployeeRepository
+{
+    private readonly AppDbContext appDbContext;
+
+    public EmployeeRepository(AppDbContext appDbContext)
+    {
+        this.appDbContext = appDbContext;
+    }
+        
+    public async Task<Employee> AddEmployee(Employee employee)
+    {
+        var result = await appDbContext.Employees.AddAsync(employee);
+        await appDbContext.SaveChangesAsync();
+        return result.Entity;
+    }
+
+    public async Task<Employee> DeleteEmployee(int employeeId)
+    {
+        var result = await appDbContext.Employees
+            .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
+        if (result != null)
+        {
+            appDbContext.Employees.Remove(result);
+            await appDbContext.SaveChangesAsync();
+            return result;
+        }
+
+        return null;
+    }
+
+    public async Task<Employee> GetEmployee(int employeeId)
+    {
+        return await appDbContext.Employees
+            .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
+    }
+
+    public async Task<Employee> GetEmployeeByEmail(string email)
+    {
+        return await appDbContext.Employees
+            .FirstOrDefaultAsync(e => e.Email == email);
+    }
+
+    public async Task<IEnumerable<Employee>> GetEmployees()
+    {
+        return await appDbContext.Employees.ToListAsync();
+    }
+
+    public async Task<Employee> UpdateEmployee(Employee employee)
+    {
+        var result = await appDbContext.Employees
+            .FirstOrDefaultAsync(e => e.EmployeeId == employee.EmployeeId);
+
+        if (result != null)
+        {
+            result.FirstName = employee.FirstName;
+            result.LastName = employee.LastName;
+            result.Email = employee.Email;
+            result.DateOfBrith = employee.DateOfBrith;
+            result.Gender = employee.Gender;
+            result.DepartmentId = employee.DepartmentId;
+            result.PhotoPath = employee.PhotoPath;
+
+            await appDbContext.SaveChangesAsync();
+
+            return result;
+        }
+
+        return null;
+    }
+}
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

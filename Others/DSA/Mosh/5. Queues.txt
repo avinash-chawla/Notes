@@ -1,0 +1,439 @@
+1. Intro
+
+--> Queues have a lots of applications
+1. Printers - jobs
+2. Operating Systems - processes
+3. Web Servers - Incoming Requests
+4. Live support systems
+
+--> Basically anywhere where you want to process jobs
+
+----------------------------------------------------------------------------------------
+
+2. What are Queues
+
+--> It is the data structure 
+--> It follows FIFO Principle --> First In First Out
+
+--> Operations supported by Queues
+
+1. enqueue  - To add an item in queue
+2. dequeue  - To remove an item from front of queue
+3. peek	    - To see the front item in queue
+4. isEmpty  - To check whether the queue is empty
+5. isFull   - To check whether the queue is full
+
+----------------------------------------------------------------------------------------
+
+3. Working with Queues
+
+static void Main(string[] args)
+{
+    Queue<int> queue = new Queue<int>();
+ 
+    queue.Enqueue(10);
+    queue.Enqueue(20);
+    queue.Enqueue(30);
+ 
+    var front = queue.Dequeue();
+
+    Console.WriteLine(front);
+} 
+
+--> In Java, Queue is an interface
+--> There are other classes which implements Queue interface
+--> Two popular ones are: LinkedList and ArrayDeque
+
+--> This interface has methods like:
+
+1. add(e) 
+2. offer(e)
+
+3. remove()
+4. poll()
+
+5. element()
+6. peek()
+
+--> add(e) would throw exception when adding new item in full queue while offer() would not.
+
+--> remove() would throw exception in empty queue while poll() would not.
+
+--> element() would throw exception when getting front item when queue is empty while peek() would return null
+
+----------------------------------------------------------------------------------------
+
+4.  Exercise - Reversing a Queue
+
+--> Hint: It is similar to reversal of string
+--> You have to use only 3 methods:
+1. add
+2. remove
+3. isEmpty
+
+----------------------------------------------------------------------------------------
+
+5. Solution - Reveresing a Queue
+
+--> Always remember, Stack is a popular data structure for reversal or going in past from end
+
+static void Main(string[] args)
+{
+    Queue<int> queue = new Queue<int>();
+    queue.Enqueue(10);
+    queue.Enqueue(20);
+    queue.Enqueue(30);
+
+    Reverse(queue);
+    Print(queue);
+    // var front = queue.Dequeue();
+    // Console.WriteLine(queue.ToString());
+}
+
+public static void Reverse(Queue<int> queue)
+{
+    Stack<int> stack = new Stack<int>();
+    while (queue.Any())
+    {
+        stack.Push(queue.Dequeue());
+    }
+    while(stack.Any())
+    {
+        queue.Enqueue(stack.Pop());
+    }
+} 
+
+----------------------------------------------------------------------------------------
+
+6. Exercise - Building a Queue using an Array
+
+--> Create a class - ArrayDeque
+--> Deque stands for Double ended queue
+
+--> You have to implement methods like
+1. enqueue
+2. dequeue
+3. peek
+4. isEmpty
+5. isFull
+
+--> Hint
+--> You need to use pointer indicating first and last item in queue
+
+[10, 20, 30, 40, 0]
+ F=0	     R=3
+
+--> F for Front and R for Rear
+
+--> When you add an item, pointer R will be moved
+--> When removing an item from front, pointer F will be moved
+
+[10, 20, 30, 40, 50]
+      F		  R
+
+----------------------------------------------------------------------------------------
+
+7. Solution - A Basic Implementation
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+
+namespace ConsoleApp2
+{
+    class ArrayQueue : IEnumerable
+    {
+        public int Front { get; set; } = 0;
+        public int Rear { get; set; } = 0;
+        public int[] Items { get; set; } 
+        public int Count { get; set; } = 0;
+
+        public ArrayQueue(int capacity = 5)
+        {
+            Items = new int[capacity];
+        }
+
+        public void Enqueue(int item)
+        {
+            if(Items.Length == Count)
+            {
+                throw new ArgumentException();
+            }
+
+            Items[Rear++] = item;
+            Count++;
+        }
+
+        public int Dequeue()
+        {
+            // return Items[Front++];
+            var item = Items[Front];
+            Items[Front] = 0;
+            Front++;
+            Count--;
+            return item;
+        }
+
+        public void Print()
+        {
+            System.Array.ForEach(Items, Console.WriteLine);
+        }
+
+    
+        public IEnumerator GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+   }
+}
+
+--> Front and Rear are just pointers
+--> Count for calculating total number of items in queue.
+
+----------------------------------------------------------------------------------------
+
+static void Main(string[] args)
+{
+    ArrayQueue queue = new ArrayQueue(5);
+    queue.Enqueue(10);
+    queue.Enqueue(20);
+    queue.Enqueue(30);
+
+    queue.Dequeue();
+    var front = queue.Dequeue();
+
+    Console.WriteLine(front);
+    queue.Print();
+} 
+
+--> Output:
+
+[0, 0, 30, 0, 0]
+
+----------------------------------------------------------------------------------------
+
+--> Now, when we try to Enque 3 more items, it will throw IndexOutOfBoundsException
+--> Because, Rear pointer gets ahead of array length
+ 
+----------------------------------------------------------------------------------------
+
+8. 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

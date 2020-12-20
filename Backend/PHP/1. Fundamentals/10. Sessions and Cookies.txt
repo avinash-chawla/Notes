@@ -1,0 +1,201 @@
+1. Sessions
+
+--> A session is a way to store information (in variables) to be used across multiple pages.
+--> This session lasts over till the client closes the browser.
+
+-----------------------------------------------------------------------------------------
+
+--> sandbox.php
+
+<?php 
+    if(isset($_POST['submit'])){
+        session_start();
+
+        $_SESSION['name'] = $_POST['name'];
+        echo $_SESSION['name'];
+    }
+?>
+
+<html>
+<?php include('./templates/header.php'); ?>
+<form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="POST">
+    <input type="text" name="name" />
+    <input type="submit" name="submit" value="submit" />
+</form>
+
+<?php include('./templates/footer.php'); ?>
+
+</html>
+
+--> We created a form field and passed it to same form using POST method
+--> We save this form value in session
+
+--> session_start() and $_SESSION['name']
+
+--> Now this session variable is available across multiple pages during the current session.
+
+
+-----------------------------------------------------------------------------------------
+
+--> sandbox.php
+
+<?php 
+    if(isset($_POST['submit'])){
+        session_start();
+
+        $_SESSION['name'] = $_POST['name'];
+        
+	header('Location: index.php');
+    }
+?>
+
+--> header.php
+
+<?php
+    session_start();
+    $name = $_SESSION['name'];
+?>
+
+..
+
+<li class="grey-text">Hello <?php echo htmlspecialchars($name) ?></li>
+
+
+-----------------------------------------------------------------------------------------
+
+--> To unset the session
+
+<?php
+    session_start();
+    $name = $_SESSION['name'];
+
+    if($_SERVER['QUERY_STRING'] == 'noname'){
+        unset($_SESSION['name']);
+        session_unset();
+    }
+?>
+
+--> http://localhost/tuts/index.php?noname	--> session variable will be deleted.
+
+-----------------------------------------------------------------------------------------
+
+2. Null Coalescing
+
+--> header.php
+
+<?php
+    session_start();
+
+    if($_SERVER['QUERY_STRING'] == 'noname'){
+        unset($_SESSION['name']);
+    }
+
+    $name = $_SESSION['name'] ?? 'Guest';
+	
+?>
+
+-----------------------------------------------------------------------------------------
+
+3. Cookie
+
+<?php 
+    if(isset($_POST['submit'])){
+
+        // cookie for gender
+        setcookie('gender', $_POST['gender'], time() + 3600);			--> (name of cookie, value of cookie, expiry of cookie)
+
+        session_start();
+
+        $_SESSION['name'] = $_POST['name'];
+        
+        header('location: index.php');
+    }
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="POST">
+        <input type="text" name="name" />
+
+        <select name="gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+        </select>
+
+        <input type="submit" name="submit" value="submit" />
+    </form>
+</body>
+
+</html>
+
+-----------------------------------------------------------------------------------------
+
+--> header.php
+
+<?php
+    session_start();
+    $name = $_SESSION['name'] ?? 'Guest';
+
+    $gender = $_COOKIE['gender'] ?? 'Unknown';
+?>
+
+..
+                <li class="grey-text">Hello <?php echo htmlspecialchars($name) ?></li>
+                <li class="grey-text">(<?php echo htmlspecialchars($gender) ?>)</li>
+
+-----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

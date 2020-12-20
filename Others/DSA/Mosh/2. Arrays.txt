@@ -1,0 +1,557 @@
+1. Intro
+
+--> It is first data structure that we are learning
+--> It is built into most programming languages
+
+--> It is used to store the items sequentially
+
+----------------------------------------------------------------------------------------
+
+2. Arrays
+
+--> This is the simplest data structure
+--> It is used to store numbers, strings, object.
+
+--> Items are stored sequentially
+
+----------------------------------------------------------------------------------------
+
+--> If we allocate an array of 5 integers
+
+--> These integers will save in memory like this
+--> Suppose memory location of first integer is 100
+--> Then sequence of other integer memory location will be 104, 108, .. bec. each int takes 4 bytes of memory
+
+--> Therefore, accessing an item in array is superfast
+--> It only needs to calculate the memory location (there is no need to loop over an array) 
+
+--> So, Runtime Complexity of this operation is O(1)
+
+----------------------------------------------------------------------------------------
+
+--> In most programming languages, arrays are static
+--> Means you need to decide the size of an array before time
+
+--> If the decided size is too large, it will lead of wastage of memory
+--> If the decided size is too small, you will to make new array with larger size and copy all items from previous array to newly created array
+
+--> Runtime complexity for this operation will be: O(n)
+ 
+----------------------------------------------------------------------------------------
+
+--> Removing an item from an array
+
+--> Best case: Remove an item from last position - O(1)
+--> Worst case: Remove an item from first position, bec in that every element needs to shift to left to fill the gap - O(n)
+
+--> We always worst case for Runtime complexity: O(n)
+
+----------------------------------------------------------------------------------------
+
+--> Lookup 	--> O(1)
+--> Insert	--> O(n)
+--> Remove	--> O(n) 
+
+----------------------------------------------------------------------------------------
+
+3. Working with Arrays
+
+public static void Main(string[] args)
+{
+    int[] numbers = new int[5];
+
+    // int[] numbers = { 1, 2, 3 };
+
+    // Printing the whole Array
+    Array.ForEach(numbers, Console.WriteLine);
+
+    // numbers.ToList().ForEach(e => Console.WriteLine(e.ToString());
+} 
+
+----------------------------------------------------------------------------------------
+
+4. Exercise: Array class
+
+public static void Main(string[] args)
+{
+    Array numbers = new Array(3);
+    numbers.Insert(10);
+    numbers.Insert(20);
+    numbers.Insert(30);
+    numbers.RemoveAt(0);
+    numbers.Print();
+}
+
+----------------------------------------------------------------------------------------
+
+5. Solution: Creating the Array class
+
+class Array
+{
+    public int[] Items { get; set; }
+    public int Count { get; set; }
+
+    public Array(int Length)
+    {
+        this.Items = new int[Length];
+    }
+
+    public void Print()
+    {
+        for(int i = 0; i < Count; i++)
+        {
+            Console.WriteLine(Items[i]);
+        }
+    }
+}
+
+----------------------------------------------------------------------------------------
+
+6. Solution: Insert()
+
+public void Insert(int item)
+{
+    // If the Array is full, resize it
+        // Create the new array with twize size
+        // Copy all the existing items
+        // Set "items" to this new array
+        
+    // Add the new item at the end
+}
+
+----------------------------------------------------------------------------------------
+
+public void Insert(int item)
+{
+    // If the Array is full, resize it
+    if(Items.Length == Count)
+    {
+        // Create the new array with twize size
+        int[] newItems = new int[Count * 2];
+        // Copy all the existing items
+        for (int i = 0; i < Count; i++)
+        {
+            newItems[i] = Items[i];
+        }
+
+        // Set "items" to this new array
+        Items = newItems;
+    }
+
+    // Add the new item at the end
+    Items[Count++] = item;
+}
+
+----------------------------------------------------------------------------------------
+
+7. Solution: RemoveAt()
+
+public void RemoveAt(int index)
+{
+    // Validate the index
+    if(index < 0 || index >= Count)
+    {
+        throw new Exception("IllegalArgumentException");
+    }
+
+    // Shift the items to the left to fill the gap
+    for(int i = index; i < Count - 1; i++)
+    {
+        Items[i] = Items[i + 1];
+    }
+
+    Count--;
+}
+
+----------------------------------------------------------------------------------------
+
+8. Solution: IndexOf()
+
+public int IndexOf(int item)
+{
+    // If we find it, return index
+    // Otherwise, return -1;
+    for(int i = 0; i < Count; i++)
+    {
+        if(Items[i] == item)
+        {
+            return i;
+        }
+    }
+    return -1;
+} 
+
+----------------------------------------------------------------------------------------
+
+9. Dynamic Arrays
+
+--> There are two types of Arrays: Static and Dynamic
+
+--> A static array has a fixed size and defined when an array is declared
+--> A dynamic array does not have a predefined size. The size of a dynamic array increases as you add new items to the array. 
+
+--> There are some inbuilt data structure which provide this functionality
+--> ArrayList class
+
+--> Size of ArrayList increases with n+n/2+1 always. 
+--> Default capacity of ArrayList is 10. 
+
+--> Once the Capacity reaches its maximum capacity, Size of the ArrayList will be 16, once the capacity reaches its maximum capacity of 16, size of the ArrayList will be 25 and keep on increasing based on Data size
+
+----------------------------------------------------------------------------------------
+
+--> Create an ArrayList 
+
+using System.Collections;
+
+ArrayList arlist = new ArrayList(); 
+// or 
+var arlist = new ArrayList();
+
+----------------------------------------------------------------------------------------
+
+--> Adding Elements in ArrayList
+
+--> An ArrayList can be used to add unknown data where you don't know the types and the size of the data.
+--> An ArrayList can contain multiple null and duplicate values.
+
+var arlist1 = new ArrayList();
+
+arlist1.Add(1);
+arlist1.Add("Bill");
+arlist1.Add(" ");
+arlist1.Add(true);
+arlist1.Add(4.5);
+arlist1.Add(null);
+
+----------------------------------------------------------------------------------------
+
+var arlist2 = new ArrayList()
+                {
+                    2, "Steve", " ", true, 4.5, null
+                };
+
+----------------------------------------------------------------------------------------
+
+--> Adding Entire Array/ArrayList into ArrayList
+
+var arlist1 = new ArrayList();
+
+var arlist2 = new ArrayList()
+                    {
+                        1, "Bill", " ", true, 4.5, null
+                    };
+
+int[] arr = { 100, 200, 300, 400 };
+
+Queue myQ = new Queue();
+myQ.Enqueue("Hello");
+myQ.Enqueue("World!");
+
+arlist1.AddRange(arlist2); //adding arraylist in arraylist 
+arlist1.AddRange(arr); //adding array in arraylist 
+arlist1.AddRange(myQ); //adding Queue in arraylist  
+
+----------------------------------------------------------------------------------------
+
+--> Accessing an ArrayList
+
+--> The ArrayList class implements the IList interface. 
+--> So, elements can be accessed using indexer, in the same way as an array. 
+--> Index starts from zero and increases by one for each subsequent element. 
+
+//Access individual item using indexer
+int firstElement = (int) arlist[0]; //returns 1
+string secondElement = (string) arlist[1]; //returns "Bill"
+//int secondElement = (int) arlist[1]; //Error: cannot cover string to int
+
+//using var keyword without explicit casting
+var firstElement = arlist[0]; //returns 1
+var secondElement = arlist[1]; //returns "Bill"
+//var fifthElement = arlist[5]; //Error: Index out of range
+
+----------------------------------------------------------------------------------------
+
+--> Iterate an ArrayList
+
+foreach (var item in arlist)
+    Console.Write(item + ", "); //output: 1, Bill, 300, 4.5, 
+            
+for(int i = 0 ; i < arlist.Count; i++)
+    Console.Write(arlist[i] + ", "); //output: 1, Bill, 300, 4.5, 
+
+----------------------------------------------------------------------------------------
+
+--> Insert Elements in ArrayList
+
+arlist.Insert(1, "Second Item"); 
+
+----------------------------------------------------------------------------------------
+
+--> Remove Elements from ArrayList
+
+arList.Remove(null); //Removes first occurance of null
+arList.RemoveAt(4); //Removes element at index 4
+arList.RemoveRange(0, 2);//Removes two elements starting from 1st item (0 index)
+
+----------------------------------------------------------------------------------------
+
+--> Check Element in ArrayList
+
+Console.WriteLine(arList.Contains(300)); // true 
+
+----------------------------------------------------------------------------------------
+
+10. Data Structure Example:
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace ConsoleApp2
+{
+    class Array
+    {
+        public int[] Items { get; set; }
+        public int Count { get; set; }
+        public Array(int Length)
+        {
+            this.Items = new int[Length];
+        }
+
+        public void Insert(int item)
+        {
+            // If the Array is full, resize it
+            if(Items.Length == Count)
+            {
+                // Create the new array with twize size
+                int[] newItems = new int[Count * 2];
+                // Copy all the existing items
+                for (int i = 0; i < Count; i++)
+                {
+                    newItems[i] = Items[i];
+                }
+
+                // Set "items" to this new array
+                Items = newItems;
+            }
+
+            // Add the new item at the end
+            Items[Count++] = item;
+        }
+
+        public void RemoveAt(int index)
+        {
+            // Validate the index
+            if(index < 0 || index >= Count)
+            {
+                throw new Exception("IllegalArgumentException");
+            }
+
+            // Shift the items to the left to fill the gap
+            for(int i = index; i < Count - 1; i++)
+            {
+                Items[i] = Items[i + 1];
+            }
+
+            Count--;
+        }
+
+        public int IndexOf(int item)
+        {
+            // If we find it, return index
+            // Otherwise, return -1;
+            for(int i = 0; i < Count; i++)
+            {
+                if(Items[i] == item)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public void Print()
+        {
+            for(int i = 0; i < Count; i++)
+            {
+                Console.WriteLine(Items[i]);
+            }
+        }
+    }
+}
+
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+----------------------------------------------------------------------------------------
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -2,7 +2,8 @@
 
 1. User Authorization
 
---> Authorization is the process of determining what the logged-in user can and cannot do. Based on our application authorization requirements we could use Roles, Claims or a combination of both.
+--> Authorization is the process of determining what the logged-in user can and cannot do. 
+--> Based on our application authorization requirements we could use Roles, Claims or a combination of both.
 
 -----------------------------------------------------------------------------------------
 
@@ -36,7 +37,9 @@ public class AdministrationController : Controller
 --> For example username, email, age, gender etc are all claims. 
 --> How you use these claims for authorization checks in your application is up to your application business and authorization requirements. 
 
---> For example, if you are building an employee portal you may allow the logged-in user to apply for a maternity leave if the gender claim value is female. Similarly, if you are building an ecommerce application, you may allow the logged-in user to submit an order if the age claim value is greater than or equal to 18.
+--> For example, if you are building an employee portal you may allow the logged-in user to apply for a maternity leave if the gender claim value is female. 
+--> Similarly, if you are building an ecommerce application, you may allow the logged-in user to submit an order if the age claim value is greater than or equal to 18.
+--> Moreover to implement some logic.
 
 --> Claims are policy based. 
 --> We create a policy and include one or more claims in that policy. 

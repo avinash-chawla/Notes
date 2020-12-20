@@ -1,0 +1,884 @@
+1. What is OOP?
+
+--> It is a coding methodology / style
+--> Make our code more modular and reusable
+--> Makes our code easier to maintain
+--> Makes it easier to debug when things go wrong
+
+-----------------------------------------------------------------------------------------
+
+2. Classes
+
+--> Classes are like blueprints for objects
+
+<?php
+	class User {}
+
+	$userOne = new User();
+?>
+
+-----------------------------------------------------------------------------------------
+
+3. Properties and Methods
+
+<?php
+	
+   class User { 
+	public $username = 'ryu';
+	public $email = 'ryu@gmail.com';
+
+	public function addFriend(){
+	   return "added a new friend";
+	}
+
+	public function greet(){
+	   return "Hello $this->username";
+	}
+   }
+
+   $userOne = new User();			// instantiates a class called object
+
+   echo $userOne->username;			// accessing property of class
+
+   echo $userOne->addFriend();			// accessing method of class
+   echo $userOne->greet();
+
+   print_r(get_class_vars('User'));		// return all class variables
+   print_r(get_class_methods('User'));		// return all class methods
+
+   $userTwo = new User();
+
+   $userTwo->username = 'yoshi';
+   $userTwo->email = 'yoshi@gmail.com';
+
+   $userTwo->greet();
+   
+?>
+
+-----------------------------------------------------------------------------------------
+
+4. Constructors
+
+<?php
+
+   class User {
+	public $username;
+	public $email;
+
+	public function __construct($username, $email){		// constructor (__contruct)
+	   $this->username = $username;
+	   $this->email = $email;
+	}
+
+	public function greet(){
+	   return "Hello $this->username";
+	}
+   }
+
+   $userOne = new User("shaun","shaun@gmail.com");
+
+   echo $userOne->username;
+
+?>
+
+-----------------------------------------------------------------------------------------
+
+5. Access Modifiers
+
+   class User {
+	private $username;
+	private $email;
+   }
+
+-----------------------------------------------------------------------------------------
+
+6. Getters and Setters
+
+<?php
+
+class User {
+    private $username;					// private properties
+    private $email;
+
+    public function __construct($username, $email){
+        $this->username = $username;
+        $this->email = $email;
+    }
+
+    public function getEmail(){				// Getter
+        return $this->email;
+    }
+
+    public function setEmail($email){			// Setter
+        if(strpos($email, '@') > -1){			// strpos (string position) (if not found, return -1, if found, return index position)
+            $this->email = $email;
+        }
+    }
+
+    public function greet(){
+        return "Hello $this->username";
+    }
+}
+
+$userOne = new User("shaun","shaun@gmail.com");
+
+echo $userOne->getEmail();
+$userOne->setEmail('ryu@gmail.com');
+echo $userOne->getEmail();
+
+
+?>
+
+-----------------------------------------------------------------------------------------
+
+7. Inheritance
+
+--> One class inherites properties and methods from another
+
+<?php
+
+class User {
+    public $username;
+    public $email;
+
+    public function __construct($username, $email){
+        $this->username = $username;
+        $this->email = $email;
+    }
+
+    public function getEmail(){
+        return $this->email;
+    }
+
+    public function setEmail($email){
+        if(strpos($email, '@') > -1){
+            $this->email = $email;
+        }
+    }
+
+    public function greet(){
+        return "Hello $this->username";
+    }
+}
+
+class AdminUser extends User {						// Child Class extending Parent class
+    public $level;
+
+    public function __construct($username, $email, $level){
+        $this->level = $level;
+        parent::__construct($username, $email);				// Calling Parent Constructor
+    }
+}
+
+$userOne = new User("shaun","shaun@gmail.com");
+$adminUser = new AdminUser("samu", "samu@gmail.com", 5);
+
+echo $adminUser->getEmail();
+echo $adminUser->level;
+
+?>
+
+-----------------------------------------------------------------------------------------
+
+8. Overriding Properties and Methods
+
+--> Overriding Property
+
+class User {
+   public $role = 'member';
+}
+
+class AdminUser extends User {
+   public $role = 'admin';
+}
+
+-----------------------------------------------------------------------------------------
+
+--> Overriding Method
+
+<?php 
+
+  class User {
+
+    public $username;
+    private $email;
+    public $role = 'member';
+
+    public function __construct($username, $email){
+      ..
+    }
+
+    public function message(){
+      return "$this->email sent a new message";
+    }
+  }
+
+  class AdminUser extends User {
+
+    public $level;
+    public $role = 'admin';
+
+    public function __construct($username, $email, $level){
+      parent::__construct($username, $email);
+      $this->level = $level; 
+    }
+
+    public function message(){
+      return "an admin sent a new message";
+    }
+  }
+
+  $userOne = new User('mario', 'mario@thenetninja.co.uk');
+  $adminUser = new AdminUser('yoshi', 'yoshi@thenetninja.co.uk', 5);
+
+  echo $userOne->message() . '<br>';
+  echo $adminUser->message() . '<br>'; 
+
+?>
+
+--> It will throw error, bec. adminUser does not have access to $this->email ( $email in parent class is private field.)
+--> Solution: 
+
+1. Include another email property in child class (or)
+2. Use protected access modifier
+
+-----------------------------------------------------------------------------------------
+
+9. Protected Modifier
+
+  class User {
+    public $username;
+    protected $email;
+  }
+
+--> Now accessible to child class
+
+-----------------------------------------------------------------------------------------
+
+10. Clone and Destruct
+
+--> Both are refered to as magic methods
+--> Destruct method
+
+--> Like construct method runs in initialization of object
+--> Destruct method runs when object references is removed from variable.
+--> This is automatically done by php compiler.
+
+<?php
+
+class User {
+    
+    private $username;
+
+    public function __destruct(){
+        echo "user $this->username is destroyed by garbage collector itself.<br>";
+    }
+}
+
+$userOne = new User();
+
+?>
+
+-----------------------------------------------------------------------------------------
+
+--> Clone magic method
+
+class User {
+    
+    private $username;
+
+    public function __clone(){
+	$this->username = $this->username . '(cloned)<br>';
+    }
+}
+
+$userOne = new User();
+$userCloned = clone $userOne
+
+--> This object userCloned is clone of object userOne, with all properties
+--> We can also provide some logic while cloning object, like we are modifying username property a little bit.
+
+--> Extra Read: https://www.php.net/manual/en/language.oop5.magic.php
+
+-----------------------------------------------------------------------------------------
+
+11. Static Classes
+
+<?php 
+
+  class Weather {
+
+    public static $tempConditions = ['cold', 'mild', 'warm'];
+
+    public static function celsiusToFarenheit($c){
+      return $c * 9 / 5 + 32;
+    }
+
+    public static function determineTempCondition($f){
+      if($f < 40){
+        return self::$tempConditions[0];
+      } elseif($f < 70){
+        return self::$tempConditions[1];
+      } else {
+        return self::$tempConditions[2];
+      }
+    }
+
+  }
+
+  //print_r(Weather::$tempConditions);
+  //echo Weather::celsiusToFarenheit(20);
+  echo Weather::determineTempCondition(80);
+
+?>
+
+-----------------------------------------------------------------------------------------
+
+12. Validation Class (part 1)
+
+--> index.php
+
+<?php 
+
+  if(isset($_POST['submit'])){
+    // validate entries
+    echo 'form submitted';
+  }
+
+?>
+
+<html lang="en">
+<head>
+  <title>PHP OOP</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  
+  <div class="new-user">
+    <h2>Create a new user</h2>
+    <form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="POST">
+
+      <label>username: </label>
+      <input type="text" name="username">
+
+      <label>email: </label>
+      <input type="text" name="email">
+
+      <input type="submit" value="submit" name="submit">
+
+    </form>
+  </div>
+
+</body>
+</html>
+
+-----------------------------------------------------------------------------------------
+
+--> styles.css
+
+body{
+  background: #ffece5;
+  font-family: verdana;
+}
+.new-user{
+  background: #fff;
+  padding: 20px 40px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+h2{
+  color: #555;
+}
+label,input{
+  display: block;
+  margin: 18px 0;
+}
+label{
+  color: #777;
+}
+input[type='text'],
+input[type='email']{
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 10px;
+  width: 100%;
+}
+input[type='submit']{
+  margin: 24px auto;
+  font-size: 18px;
+  background: coral;
+  color: #fff;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 10px;
+}
+
+-----------------------------------------------------------------------------------------
+
+13. Validation Class (part2)
+
+--> create new class --> user_validator.php
+
+<?php 
+
+class UserValidator {
+
+  private $data;
+  private $errors = [];
+  private static $fields = ['username', 'email'];
+
+  public function __construct($post_data){
+    $this->data = $post_data;
+  }
+
+  public function validateForm(){
+
+    foreach(self::$fields as $field){
+      if(!array_key_exists($field, $this->data)){
+        trigger_error("'$field' is not present in the data");
+        return;
+      }
+    }
+
+    $this->validateUsername();
+    $this->validateEmail();
+    return $this->errors;
+
+  }
+
+  private function validateUsername(){
+
+    $val = trim($this->data['username']);
+
+    if(empty($val)){
+      $this->addError('username', 'username cannot be empty');
+    } else {
+      if(!preg_match('/^[a-zA-Z0-9]{6,12}$/', $val)){
+        $this->addError('username','username must be 6-12 chars & alphanumeric');
+      }
+    }
+
+  }
+
+  private function validateEmail(){
+
+    $val = trim($this->data['email']);
+
+    if(empty($val)){
+      $this->addError('email', 'email cannot be empty');
+    } else {
+      if(!filter_var($val, FILTER_VALIDATE_EMAIL)){
+        $this->addError('email', 'email must be a valid email address');
+      }
+    }
+
+  }
+
+  private function addError($key, $val){
+    $this->errors[$key] = $val;
+  }
+
+}
+
+?>
+
+
+
+-----------------------------------------------------------------------------------------
+
+14. Validation Class (part3)
+
+<?php 
+
+  require('user_validator.php');
+
+  $errors = [];
+
+  if(isset($_POST['submit'])){
+    // validate entries
+    $validation = new UserValidator($_POST);
+    $errors = $validation->validateForm();
+
+    // if errors is empty --> save data to db
+  }
+
+?>
+
+<html lang="en">
+<head>
+  <title>PHP OOP</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  
+  <div class="new-user">
+    <h2>Create a new user</h2>
+    <form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="POST">
+
+      <label>username: </label>
+      <input type="text" name="username" value="<?php echo htmlspecialchars($_POST['username']) ?? '' ?>">
+      <div class="error">
+        <?php echo $errors['username'] ?? '' ?>
+      </div>
+      <label>email: </label>
+      <input type="text" name="email" value="<?php echo htmlspecialchars($_POST['email']) ?? '' ?>">
+      <div class="error">
+        <?php echo $errors['email'] ?? '' ?>
+      </div>
+      <input type="submit" value="submit" name="submit" >
+
+    </form>
+  </div>
+
+</body>
+</html>
+
+-----------------------------------------------------------------------------------------
+
+--> styles.css
+
+.error{
+   color : coral;
+}
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

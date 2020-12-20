@@ -1,0 +1,21 @@
+1. Global Error Handling
+2. Action Filters
+3. Filters
+4. ViewBag and ViewModel
+5. Authentication and Authorization
+6. Interface for authentication
+7. What is abstraction
+8. What is interface
+9. ADO.NET
+10. Different hacker attacks
+11. Drawbacks of MVC, DI
+12. Define OOPs concept
+13. Have you heard about company
+14. Define Routing
+15. LifeCycle of MVC
+16. Difference between RenderPartial and Partial
+17. Difference between MVC5 and previous versions
+18. Temp Attribute
+19. Access Modifiers
+20. 
+ 

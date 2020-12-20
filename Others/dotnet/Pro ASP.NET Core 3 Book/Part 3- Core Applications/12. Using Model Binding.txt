@@ -1,0 +1,2390 @@
+
+----------------------------------------------------------------------------------------
+
+1. Intro
+
+--> Model binding is the process of creating .NET objects using the values from the HTTP request to provide easy access to the data required by action methods and Razor Pages. 
+--> In this chapter, I describe the way the model binding system works; show how it binds simple types, complex types, and collections; and demonstrate how you can take control of the process to specify which part of the request provides the data values your application requires.
+
+----------------------------------------------------------------------------------------
+
+What is it? 
+--> Model binding is the process of creating the objects that action methods and page handlers require using data values obtained from the HTTP request.
+
+Why is it useful? 
+--> Model binding lets controllers or page handlers declare method parameters or properties using C# types and automatically receive data from the request without having to inspect, parse, and process the data directly.
+
+How is it used? 
+--> In its simplest form, methods declare parameters or classes define properties whose names are used to retrieve data values from the HTTP request. 
+
+Are there any alternatives?
+--> Data can be obtained without model binding using context objects. However, the result is more complicated code that is hard to read and maintain.
+
+----------------------------------------------------------------------------------------
+
+2. Preparing for this Chapter
+
+--> Form.cshtml File in the Views/Form Folder
+
+@model Product 
+@{  
+    Layout = "_SimpleLayout"; 
+}
+
+<h5 class="bg-primary text-white text-center p-2">HTML Form</h5>
+
+<form asp-action="submitform" method="post" id="htmlform">
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input class="form-control" asp-for="Name" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Price"></label>
+        <input class="form-control" asp-for="Price" />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button> 
+</form>
+
+----------------------------------------------------------------------------------------
+
+3. Understanding Model Binding
+
+--> Model binding is an elegant bridge between the HTTP request and action or page handler methods.
+
+--> Consider an action method: 
+public async Task<IActionResult> Index(long id = 1) {
+
+--> A value for the id parameter is required before the MVC Framework can invoke the action method, and finding a suitable value is the responsibility of the model binding system. 
+--> The model binding system relies on model binders, which are components responsible for providing data values from one part of the request or application. 
+
+--> The default model binders look for data values in these four places: 
+1. Form data
+2. The request body (only for controllers decorated with ApiController)
+3. Routing segment variables
+4. Query strings
+
+----------------------------------------------------------------------------------------
+
+--> Each source of data is inspected in order until a value for the argument is found. 
+--> There is no form data in the example application, so no value will be found there
+
+--> The Form controller isn’t decorated with the ApiController attribute, so the request body won’t be checked. 
+--> The next step is to check the routing data, which contains a segment variable named id. 
+
+--> This allows the model binding system to provide a value that allows the Index action method to be invoked. 
+--> The search stops after a suitable data value has been found, which means that the query string isn’t searched for a data value.
+
+----------------------------------------------------------------------------------------
+
+4. Binding Simple Data Types
+
+--> Request data values must be converted into C# values so they can be used to invoke action or page handler methods. 
+--> Simple types are values that originate from one item of data in the request that can be parsed from a string. 
+
+--> This includes numeric values, bool values, dates, and, of course, string values. 
+--> Data binding for simple types makes it easy to extract single data items from the request without having to work through the context data to find out where it is defined. 
+
+--> Listing 28-5 adds parameters to the SubmitForm action method defined by the Form controller method so that the model binder will be used to provide name and price values.
+
+----------------------------------------------------------------------------------------
+
+--> FormController.cs 
+
+        [HttpPost]
+        public IActionResult SubmitForm(string name, decimal price) {
+            TempData["name param"] = name;
+            TempData["price param"] = price.ToString();
+            return RedirectToAction(nameof(Results));
+        }
+
+--> The HttpGet SubmitForm contains a form consisting of two fields - Name and Price and a Submit button.
+
+--> The model binding system will be used to obtain name and price values when ASP.NET Core receives a request that will be processed by the SubmitForm action method. --> The use of parameters simplifies the action method and takes care of converting the request data into C# data types so that the price value will be converted to the C# decimal type before the action method is invoked.
+
+--> Restart ASP.NET Core so the change to the controller takes effect and request http://localhost:5000/ controllers/Form. 
+--> Click the Submit button, and you will see the values that were extracted from the request by the model binding feature
+
+----------------------------------------------------------------------------------------
+
+5. Binding Simple Data Types in Razor Pages
+
+--> Razor Pages can use model binding, but care must be taken to ensure that the value of the form element’s name attribute matches the name of the handler method parameter, which may not be the case if the asp-for attribute has been used to select a nested property. 
+
+--> To ensure the names match, the name attribute can be defined explicitly, as shown in Listing 28-6, which also simplifies the HTML form so that it matches the controller example.
+
+----------------------------------------------------------------------------------------
+
+--> Using Model Binding in the FormHandler.cshtml File in the Pages Folder
+
+<input class="form-control" asp-for="Product.Name" name="name"/>
+
+<input class="form-control" asp-for="Product.Price" name="price" />
+
+@functions{
+	..
+        public IActionResult OnPost(string name, decimal price) {
+            TempData["name param"] = name;
+            TempData["price param"] = price.ToString();
+            return RedirectToPage("FormResults");
+        }
+}
+
+--> The tag helper would have set the name attributes of the input elements to Product.Name and Product.Price, which prevents the model binder from matching the values. 
+
+--> Explicitly setting the name attribute overrides the tag helper and ensures the model binding process works correctly
+
+----------------------------------------------------------------------------------------
+
+6. Understanding Default Binding Values
+
+--> Model binding is a best-effort feature, which means the model binder will try to get values for method parameters but will still invoke the method if data values cannot be located. 
+--> You can see how this works by removing the default value for the id parameter in the Form controller’s Index action method
+
+public async Task<IActionResult> Index(long id) {
+
+--> This raises an exception
+--> This exception isn’t reported by the model binding system. Instead, it occurred when the Entity Framework Core query was executed. 
+
+--> The MVC Framework must provide some value for the id argument to invoke the Index action method, so it uses a default value and hopes for the best. 
+
+--> For long arguments, the default value is 0, and this is what leads to the exception. 
+--> The Index action method uses the id value as the key to query the database for a Product object,
+
+----------------------------------------------------------------------------------------
+
+--> Some applications need to differentiate between a missing value and any value provided by the user. 
+--> In these situations, a nullable parameter type can be used,
+
+public async Task<IActionResult> Index(long? id) {
+
+--> The id parameter will be null only if the request doesn’t contain a suitable value, which allows the expression passed to the FirstOrDefaultAsync method to default to the first object in the database when there is no value and to query for any other value.
+
+----------------------------------------------------------------------------------------
+
+7. Binding Complex Types
+
+--> The model binding system shines when dealing with complex types, which are any type that cannot be parsed from a single string value. 
+--> The model binding process inspects the complex type and performs the binding process on each of the public properties it defines. 
+
+        [HttpPost]
+        public IActionResult SubmitForm(Product product) {
+            TempData["product"] = System.Text.Json.JsonSerializer.Serialize(product);
+            return RedirectToAction(nameof(Results));
+        }
+
+--> Before the action method is invoked, a new Product object is created, and the model binding process is applied to each of its public properties. 
+--> The SubmitForm method is then invoked, using the Product object as its argument.
+
+--> The model binding process will extract the data values from the request and produce the result shown in Figure 28-8. 
+--> The Product object created by the model binding process is serialized as JSON data so that it can be stored as temp data, making it easy to see the request data.
+
+----------------------------------------------------------------------------------------
+
+--> The data binding process for complex types remains a best-effort feature, meaning that a value will be sought for each public property defined by the Product class, but missing values won’t prevent the action method from being invoked. 
+
+--> Instead, properties for which no value can be located will be left as the default value for the property type. 
+--> The example provided values for the Name and Price properties, but the ProductId, CategoryId, and SupplierId properties are zero, and the Category and Supplier properties are null.
+
+----------------------------------------------------------------------------------------
+
+8. Binding to a Property
+
+--> Using parameters for model binding doesn’t fit with the Razor Pages development style because the parameters often duplicate properties defined by the page model class
+
+        public IActionResult OnPost(Product product) {
+            TempData["product"] = System.Text.Json.JsonSerializer.Serialize(product);
+            return RedirectToPage("FormResults");
+        }
+
+--> This code works, but the OnPost handler method has its own version of the Product object, mirroring the property used by the OnGetAsync handler. 
+--> A more elegant approach is to use the existing property for model binding
+
+----------------------------------------------------------------------------------------
+
+--> Using a Property for Model Binding in the FormHandler.cshtml File in the Pages Folder
+
+<input class="form-control" asp-for="Product.Name" />
+<input class="form-control" asp-for="Product.Price"  />
+
+@functions {
+	..
+        [BindProperty]
+        public Product Product { get; set; }
+
+        public IActionResult OnPost() {
+            TempData["product"] = System.Text.Json.JsonSerializer.Serialize(Product);
+            return RedirectToPage("FormResults");
+        }
+
+	..
+}
+
+--> Decorating a property with the BindProperty attribute indicates that its properties should be subject to the model binding process, which means the OnPost handler method can get the data it requires without declaring a parameter. 
+
+--> When the BindProperty attribute is used, the model binder uses the property name when locating data values, so the explicit name attributes added to the input element are not required. 
+--> By default, BindProperty won’t bind data for GET requests, but this can be changed by setting the BindProperty attribute’s SupportsGet argument to true.
+
+--> The BindProperties attribute can be applied to classes that require the model binding process for all the public properties they define, which can be more convenient than applying BindProperty to many individual properties. 
+--> Decorate properties with the BindNever attribute to exclude them from model binding. 
+
+----------------------------------------------------------------------------------------
+
+9. Binding Nested Complex Types
+
+--> If a property that is subject to model binding is defined using a complex type, then the model binding process is repeated using the property name as a prefix. 
+--> For example, the Product class defines the Category property, whose type is the complex Category type
+
+----------------------------------------------------------------------------------------
+
+--> Adding Nested Form Elements in the Form.cshtml File in the Views/Form Folder
+
+    <div class="form-group">
+        <label>Category Name</label>
+        <input class="form-control" name="Category.Name" value="@Model.Category.Name" />
+    </div>
+
+--> The name attribute combines the property names, separated by periods. In this case, the element is for the Name property of the object assigned to the view model’s Category property, so the name attribute is set to Category.Name. 
+
+--> The input element tag helper will automatically use this format for the name attribute when the asp-for attribute is applied
+
+----------------------------------------------------------------------------------------
+
+--> Form.cshtml File in the Views/Form Folder
+
+    <div class="form-group">
+        <label>Category Name</label>
+        <input class="form-control" asp-for="Category.Name"  />
+    </div>
+
+--> The tag helper is a more reliable method of creating elements for nested properties and avoids the risk of typos producing elements that are ignored by the model binding process. 
+
+--> During the model binding process, a new Category object is created and assigned to the Category property of the Product object. 
+--> The model binder locates the value for the Category object’s Name property, which can be seen in the figure, but there is no value for the CategoryId property, which is left as the default value.
+
+----------------------------------------------------------------------------------------
+
+10. Specifying Custom Prefixes for Nested Complex Types
+
+--> There are occasions when the HTML you generate relates to one type of object but you want to bind it to another. 
+--> This means that the prefixes containing the view won’t correspond to the structure that the model binder is expecting, and your data won’t be properly processed. 
+--> Listing 28-15 demonstrates this problem by changing the type of the parameter defined by the controller’s SubmitForm action method.
+
+[HttpPost] 
+public IActionResult SubmitForm(Category category) {
+    TempData["category"] = System.Text.Json.JsonSerializer.Serialize(category);
+    return RedirectToAction(nameof(Results)); 
+}
+
+--> The new parameter is a Category, but the model binding process won’t be able to pick out the data values correctly, even though the form data sent by the Form view will contain a value for the Category object’s Name property. 
+
+--> Instead, the model binder will find the Name value for the Product object and use that instead.
+
+----------------------------------------------------------------------------------------
+
+--> This problem is solved by applying the Bind attribute to the parameter and using the Prefix argument to specify a prefix for the model binder
+
+[HttpPost] 
+public IActionResult SubmitForm([Bind(Prefix ="Category")] Category category) {
+    TempData["category"] = System.Text.Json.JsonSerializer.Serialize(category);
+    return RedirectToAction(nameof(Results)); 
+}
+
+--> The syntax is awkward, but the attribute ensures the model binder can locate the data the action method requires. 
+--> In this case, setting the prefix to Category ensures the correct data values are used to bind the Category parameter 
+
+----------------------------------------------------------------------------------------
+
+--> For Razor Pages
+
+--> When using the BindProperty attribute, the prefix is specified using the Name argument
+
+        <div class="form-group">
+            <label>Category Name</label>
+            <input class="form-control" asp-for="Product.Category.Name"  />
+        </div>
+
+@functions {
+    public class FormHandlerModel : PageModel {
+        ..
+	[BindProperty(Name = "Product.Category")]
+        public Category Category { get; set; }
+
+        public IActionResult OnPost() {
+            TempData["product"] = System.Text.Json.JsonSerializer.Serialize(Product);
+            TempData["category"] = System.Text.Json.JsonSerializer.Serialize(Category);
+            return RedirectToPage("FormResults");
+        }
+
+}
+
+----------------------------------------------------------------------------------------
+
+11. Selectively Binding Properties
+
+--> Some model classes define properties that are sensitive and for which the user should not be able to specify values. 
+--> A user may be able to change the category for a Product object, for example, but should not be able to alter the price.
+
+--> You might be tempted to simply create views that omit HTML elements for sensitive properties but that won’t prevent malicious users from crafting HTTP requests that contain values anyway, which is known as an over-binding attack. 
+
+--> To prevent the model binder from using values for sensitive properties, the list of properties that should be bound can be specified
+
+        [HttpPost]
+        public IActionResult SubmitForm([Bind("Name", "Category")] Product product) {
+            TempData["name"] = product.Name;
+            TempData["price"] = product.Price.ToString();
+            TempData["category name"] = product.Category.Name;
+            return RedirectToAction(nameof(Results));
+        }
+
+--> I have returned to the Product type for the action method parameter, which has been decorated with the Bind attribute to specify the names of the properties that should be included in the model binding process. 
+
+--> This example tells the model binding feature to look for values for the Name and Category properties, which excludes any other property from the process.
+
+--> Even though the browser sends a value for the Price property as part of the HTTP POST request, it is ignored by the model binder
+
+----------------------------------------------------------------------------------------
+
+12. Selectively Binding in the Model Class
+
+--> If you are using Razor Pages or you want to use the same set of properties for model binding throughout the application, you can apply the BindNever attribute directly to the model class
+
+--> Decorating a Property in the Product.cs File in the Models Folder
+
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+
+	[Column(TypeName = "decimal(8, 2)")]
+        [BindNever]
+        public decimal Price { get; set; }
+
+
+--> The BindNever attribute excludes a property from the model binder, which has the same effect as omitting it from the list used in the previous section. 
+
+--> There is also a BindRequired attribute that tells the model binding process that a request must include a value for a property. 
+--> If the request doesn’t have a required value, then a model validation error is produced
+
+----------------------------------------------------------------------------------------
+
+13. Binding to Arrays and Collections
+
+--> The model binding process has some nice features for binding request data to arrays and collections,
+
+----------------------------------------------------------------------------------------
+
+14. Binding to Arrays
+
+--> One elegant feature of the default model binder is how it supports arrays. 
+--> To see how this feature works, add a Razor Page named Bindings.cshtml to the Pages folder
+
+@page "/pages/bindings" 
+@model BindingsModel 
+@using Microsoft.AspNetCore.Mvc 
+@using Microsoft.AspNetCore.Mvc.RazorPages
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <form asp-page="Bindings" method="post">
+                <div class="form-group">
+                    <label>Value #1</label>
+                    <input class="form-control" name="Data" value="Item 1" />
+                </div>
+                <div class="form-group">
+                    <label>Value #2</label>
+                    <input class="form-control" name="Data" value="Item 2" />
+                </div>
+                <div class="form-group">
+                        <label>Value #3</label>
+                    <input class="form-control" name="Data" value="Item 3" />
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <a class="btn btn-secondary" asp-page="Bindings">Reset</a>
+            </form>
+        </div>
+        <div class="col">
+            <ul class="list-group">
+                @foreach (string s in Model.Data.Where(s => s != null)) {
+                    <li class="list-group-item">@s</li>
+                }
+            </ul>
+        </div>
+    </div> 
+</div>
+
+@functions {
+    public class BindingsModel : PageModel {
+        [BindProperty(Name = "Data")]
+        public string[] Data { get; set; } = Array.Empty<string>();
+    } 
+}
+
+
+--> Model binding for an array requires setting the name attribute to the same value for all the elements that will provide an array value. 
+--> This page displays three input elements, all of which have a name attribute value of Data. 
+
+--> To allow the model binder to find the array values, I have decorated the page model’s Data property with the BindProperty attribute and used the Name argument.
+
+--> When the HTML form is submitted, a new array is created and populated with the values from all three input elements, which are displayed to the user. 
+--> To see the binding process, request http://localhost:5000/pages/bindings, edit the form fields, and click the Submit button. 
+
+--> The contents of the Data array are displayed in a list using an @foreach expression
+--> Notice that I filter out null values when displaying the array contents.
+
+
+----------------------------------------------------------------------------------------
+
+15. Specifying Index Positions for Array Values
+
+--> By default, arrays are populated in the order in which the form values are received from the browser, which will generally be the order in which the HTML elements are defined. 
+--> The name attribute can be used to specify the position of values in the array if you need to override the default
+
+----------------------------------------------------------------------------------------
+
+--> Specifying Array Position in the Bindings.cshtml File in the Pages Folder
+
+<input class="form-control" name="Data[1]" value="Item 1" />
+<input class="form-control" name="Data[2]" value="Item 2" />
+<input class="form-control" name="Data[3]" value="Item 3" />
+
+--> The array index notation is used to specify the position of a value in the data-bound array
+--> The index notation must be applied to all the HTML elements that provide array values, and there must not be any gaps in the numbering sequence.
+
+----------------------------------------------------------------------------------------
+
+16. Binding to Simple Collections
+
+--> The model binding process can create collections as well as arrays. 
+--> For sequence collections, such as lists and sets, only the type of the property or parameter that is used by the model binder is change
+
+@functions {
+    public class BindingsModel : PageModel {
+        [BindProperty(Name = "Data")]
+        public SortedSet<string> Data { get; set; } = new SortedSet<string>();
+    } 
+}
+
+--> I changed the type of the Data property to SortedSet<string>. 
+--> The model binding process will populate the set with the values from the input elements, which will be sorted alphabetically. 
+
+--> I have left the index notation on the input element name attributes, but they have no effect since the collection class will sort its values alphabetically. 
+
+----------------------------------------------------------------------------------------
+
+17. Binding to Dictionaries
+
+--> For elements whose name attribute is expressed using the index notation, the model binder will use the index as the key when binding to a Dictionary, allowing a series of elements to be transformed into key/value pairs
+
+<input class="form-control" name="Data[first]" value="Item 1" />
+<input class="form-control" name="Data[second]" value="Item 2" />
+<input class="form-control" name="Data[third]" value="Item 3" />
+
+        <div class="col">
+            <table class="table table-sm table-striped">
+                <tbody>
+                    @foreach (string key in Model.Data.Keys) {
+                        <tr>
+                            <th>@key</th><td>@Model.Data[key]</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+
+@functions {
+    public class BindingsModel : PageModel {
+        [BindProperty(Name = "Data")]
+        public Dictionary<string, string> Data { get; set; } = new Dictionary<string, string>();
+    } 
+}
+
+
+--> All elements that provide values for the collection must share a common prefix, which is Data in this example, followed by the key value in square brackets. 
+--> The keys for this example are the strings first, second, and third, and will be used as the keys for the content the user provides in the text fields. 
+
+--> To see the binding process, request http://localhost:5000/pages/bindings, edit the text fields, and submit the form. 
+--> The keys and values from the form data will be displayed in a table
+
+----------------------------------------------------------------------------------------
+
+18. Binding to Collections of Complex Types
+
+----------------------------------------------------------------------------------------
+
+19. Specifying a Model Binding Source
+
+--> The default model binding process looks for data in four places: the form data values, the request body (for web service controllers only), the routing data, and the request query string. 
+
+--> The model binding feature includes a set of attributes used to override the default search behavior.
+
+--> Tip: there is also the FromService attribute, which doesn’t get a value from the request, but through the dependency injection feature described
+
+----------------------------------------------------------------------------------------
+
+--> The Model Binding Source Attributes
+
+1. FromForm
+--> This attribute is used to select form data as the source of binding data. The name of the parameter is used to locate a form value by default, but this can be changed using the Name property, which allows a different name to be specified.
+
+2. FromRoute
+--> This attribute is used to select the routing system as the source of binding data. The name of the parameter is used to locate a route data value by default, but this can be changed using the Name property, which allows a different name to be specified.
+
+3. FromQuery
+--> This attribute is used to select the query string as the source of binding data. The name of the parameter is used to locate a query string value by default, but this can be changed using the Name property, which allows a different query string key to be specified.
+
+4. FromHeader
+--> This attribute is used to select a request header as the source of binding data. The name of the parameter is used as the header name by default, but this can be changed using the Name property, which allows a different header name to be specified.
+
+5. FromBody
+--> This attribute is used to specify that the request body should be used as the source of binding data, which is required when you want to receive data from requests that are not form-encoded, such as in API controllers that provide web services.
+
+----------------------------------------------------------------------------------------
+
+--> I have applied the FromQuery attribute to the id parameter defined by the Index action method, which overrides the default search sequence.
+
+public async Task<IActionResult> Index([FromQuery] long? id) {
+
+--> Use a browser to request http://localhost:5000/controllers/Form/Index/5?id=1. 
+--> Instead of using the value that has been matched by the routing system, the query string will be used instead
+
+----------------------------------------------------------------------------------------
+
+20. Selecting a Binding Source for a Property
+
+--> The same attributes can be used to model bind properties defined by a page model or a controller
+
+@functions {
+    public class BindingsModel : PageModel {
+        //[BindProperty(Name = "Data")]
+        [FromQuery(Name = "Data")]
+        public Product[] Data { get; set; } = Array.Empty<Product>();
+    } 
+}
+
+
+--> The use of the FromQuery attribute means the query string is used as the source of values for the model binder as it creates the Product array, which you can see by requesting http://localhost:5000/pages/bindings?data[0].name=Skis&data[0]. price=500, which produces the response 
+
+----------------------------------------------------------------------------------------
+
+21. Using Headers for Model Binding
+
+--> The FromHeader attribute allows HTTP request headers to be used as the source for binding data.
+
+        public string Header([FromHeader]string accept) {
+            return $"Header: {accept}";
+        }
+
+--> Restart ASP.NET Core and request http://localhost:5000/controllers/form/header, and you will see a result like this:
+
+Header: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,
+    image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+
+----------------------------------------------------------------------------------------
+
+--> Not all HTTP header names can be easily selected by relying on the name of the action method parameter because the model binding system doesn’t convert from C# naming conventions to those used by HTTP headers. In these situations, you must configure the FromHeader attribute using the Name property to specify the name of the header
+
+        public string Header([FromHeader(Name = "Accept-Language")] string accept) {
+            return $"Header: {accept}";
+        }
+
+--> I can’t use Accept-Language as the name of a C# parameter, and the model binder won’t automatically convert a name like AcceptLanguage into Accept-Language so that it matches the header. Instead, I used the Name property to configure the attribute so that it matches the right header. If you restart ASP.NET Core and request http://localhost:5000/controllers/form/header, you will see a result like this, which will vary based on your locale settings
+
+Header: en-US;q=0.9,en;q=0.8
+
+----------------------------------------------------------------------------------------
+
+22. Using Request Bodies as Binding Sources
+
+--> Not all data sent by clients is sent as form data, such as when a JavaScript client sends JSON data to an API controller. 
+--> The FromBody attribute specifies that the request body should be decoded and used as a source of model binding data. 
+
+--> the FromBody attribute isn’t required for controllers that are decorated with the ApiController attribute.
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public Product Body([FromBody] Product model) {
+            return model;
+        }
+
+--> i added the IgnoreAntiforgeryToken to the action method in listing 28-31 because the request that i am going to send won’t include an anti-forgery token
+--> Now send request from postman
+--> or using powershell:
+
+Invoke-RestMethod http://localhost:5000/controllers/form/body -Method POST -Body  (@{ Name="Soccer Boots"; Price=89.99} | ConvertTo-Json) -ContentType "application/json"
+
+--> The JSON-encoded request body is used to model bind the action method parameter, which produces the following response:
+
+productId  : 0 
+name       : Soccer Boots 
+price      : 89.99 
+categoryId : 0 
+category   : 
+supplierId : 0 
+supplier   :
+
+----------------------------------------------------------------------------------------
+
+23. Manually Model Binding
+
+--> Model binding is applied automatically when you define a parameter for an action or handler method or apply the BindProperty attribute. 
+--> Automatic model binding works well if you can consistently follow the name conventions and you always want the process to be applied. 
+
+--> If you need to take control of the binding process or you want to perform binding selectively, then you can perform model binding manually,
+
+----------------------------------------------------------------------------------------
+
+--> Manually Binding in the Bindings.cshtml File in the Pages Folder
+
+@page "/pages/bindings" 
+@model BindingsModel 
+@using Microsoft.AspNetCore.Mvc 
+@using Microsoft.AspNetCore.Mvc.RazorPages
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <form asp-page="Bindings" method="post">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input class="form-control" asp-for="Data.Name" />
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input class="form-control" asp-for="Data.Price" value="@(Model.Data.Price + 1)" />
+                </div>
+                <div class="form-check m-2">
+                    <input class="form-check-input" type="checkbox" name="bind" value="true" checked />
+                    <label class="form-check-label">Model Bind?</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <a class="btn btn-secondary" asp-page="Bindings">Reset</a>
+            </form>
+        </div>
+
+<div class="col">
+            <table class="table table-sm table-striped">
+                <tbody>
+                    <tr><th>Name</th><th>Price</th></tr>
+                    <tr>
+                        <td>@Model.Data.Name</td><td>@Model.Data.Price</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div> 
+</div>
+
+@functions {
+    public class BindingsModel : PageModel {
+        public Product Data { get; set; } = new Product() { Name = "Skis", Price = 500 };
+
+        public async Task OnPostAsync([FromForm] bool bind) {
+            if (bind) {
+               await TryUpdateModelAsync<Product>(Data, "data", p => p.Name, p => p.Price);
+            }
+        }
+    } 
+}
+
+--> Manual model binding is performed using the TryUpdateModelAsync method, which is provided by the PageModel and ControllerBase classes, which means it is available for both Razor Pages and MVC controllers. 
+
+--> This example mixes automatic and manual model binding. 
+--> The OnPostAsync method uses automatic model binding to receive a value for its bind parameter, which has been decorated with the FromForm attribute. 
+
+--> If the value of the parameter is true, the TryUpdateModelAsync method is used to apply model binding. 
+--> The arguments to the TryUpdateModelAsync method are the object that will be model bound, the prefix for the values, and a series of expressions that select the properties that will be included in the process, although there are other versions of the TryUpdateModelAsync method available.
+
+--> The result is that the model binding process for the Data property is performed only when the user checks the checkbox added to the form in Listing 28-32. 
+--> If the checkbox is unchecked, then no model binding occurs, and the form data is ignored. 
+
+--> To make it obvious when model binding is used, the value of the Price property is incremented when the form is rendered. 
+
+--> To see the effect, request http://localhost:5000/pages/bindings and submit the form with the checkbox checked and then unchecked, as shown in Figure 28-21.
+
+----------------------------------------------------------------------------------------
+
+24. Summary
+
+--> I introduced the model binding feature, which makes it easy to work with request data. 
+--> I showed you how to use model binding with parameters and properties, how to bind simple and complex types, and the conventions required to bind to arrays and collections. 
+
+--> I also explained how to control which part of the request is used for model binding and how to take control of when model binding is performed
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------
+
+

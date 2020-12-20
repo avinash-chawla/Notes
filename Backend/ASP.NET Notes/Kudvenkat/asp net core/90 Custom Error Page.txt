@@ -102,7 +102,8 @@ public class ErrorController : Controller
 <h5>Please contact us on pragim@pragimtech.com</h5>
 
 
---> This is a very general error view. When we try to delete a Role and we are not able to do it because there are users in the role, we want to pass a bit more information to the view so the end user knows what exactly went wrong. 
+--> This is a very general error view. 
+--> When we try to delete a Role and we are not able to do it because there are users in the role, we want to pass a bit more information to the view so the end user knows what exactly went wrong. 
 
 -----------------------------------------------------------------------------------
 
