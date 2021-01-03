@@ -1,0 +1,459 @@
+1. What are Pipes?
+
+--> Changes the display of value being rendered 
+
+------------------------------------------------------------------------------------------------
+
+2. Using Pipes
+
+servers = [
+    {
+      instanceType: 'medium',
+      name: 'Production',
+      status: 'stable',
+      started: new Date(15, 1, 2017)
+    },
+    {
+      instanceType: 'large',
+      name: 'User Database',
+      status: 'stable',
+      started: new Date(15, 1, 2017)
+    },
+    {
+      instanceType: 'small',
+      name: 'Development Server',
+      status: 'offline',
+      started: new Date(15, 1, 2017)
+    },
+    {
+      instanceType: 'small',
+      name: 'Testing Environment Server',
+      status: 'stable',
+      started: new Date(15, 1, 2017)
+    }
+  ];
+  filteredStatus = '';
+  getStatusClasses(server: {instanceType: string, name: string, status: string, started: Date}) {
+    return {
+      'list-group-item-success': server.status === 'stable',
+      'list-group-item-warning': server.status === 'offline',
+      'list-group-item-danger': server.status === 'critical'
+    };
+  }
+
+------------------------------------------------------------------------------------------------
+
+{{ server.instanceType | uppercase }}
+
+{{ server.started | date }}
+
+------------------------------------------------------------------------------------------------
+
+3. Parametrizing Pipes
+
+{{ server.started | date:'fullDate' }}
+
+--> For multiple parameters
+
+{{ server.started | date:'fullDate:..' }}
+
+--> For multiple pipes
+
+{{ server.started | date:'fullDate' | uppercase }}
+
+------------------------------------------------------------------------------------------------
+
+4. Where to learn more about Pipes
+
+https://angular.io/api?query=pipe
+
+--> angular.io --> docs --> api reference --> filter-result: pipe
+
+------------------------------------------------------------------------------------------------
+
+5. Creating a Custom Pipe
+
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({
+  name: 'shorten'
+})
+export class ShortenPipe implements PipeTransform {
+  transform(value: any) {
+    if (value.length > 10) {
+      return value.substr(0, 10) + ' ...';
+    }
+    return value;
+  }
+}
+ 
+
+------------------------------------------------------------------------------------------------
+
+import { ShortenPipe } from './shorten.pipe';
+
+  declarations: [
+    AppComponent,
+    ShortenPipe,
+  ],
+
+------------------------------------------------------------------------------------------------
+
+{{ server.name | shorten }}
+
+------------------------------------------------------------------------------------------------
+
+6. Parametrizing a Custom Pipe
+
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({
+  name: 'shorten'
+})
+export class ShortenPipe implements PipeTransform {
+  transform(value: any, limit: number) {
+    if (value.length > limit) {
+      return value.substr(0, limit) + ' ...';
+    }
+    return value;
+  }
+}
+
+
+------------------------------------------------------------------------------------------------
+
+{{ server.name | shorten:15 }}
+
+------------------------------------------------------------------------------------------------
+
+7. Create a filter pipe
+
+ng g p filter
+
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({
+  name: 'filter',
+  pure: false
+})
+export class FilterPipe implements PipeTransform {
+
+  transform(value: any, filterString: string, propName: string): any {
+    if (value.length === 0 || filterString === '') {
+      return value;
+    }
+    const resultArray = [];
+    for (const item of value) {
+      if (item[propName] === filterString) {
+        resultArray.push(item);
+      }
+    }
+    return resultArray;
+  }
+}
+
+
+--> We will receieve an array here
+
+------------------------------------------------------------------------------------------------
+
+<div class="col-xs-12 col-sm-10 col-md-8 col-sm-offset-1 col-md-offset-2">
+      <input type="text" [(ngModel)]="filteredStatus">
+      <br>
+      <ul class="list-group">
+        <li
+          class="list-group-item"
+          *ngFor="let server of servers | filter:filteredStatus:'status'"
+          [ngClass]="getStatusClasses(server)">
+          <span
+            class="badge">
+            {{ server.status }}
+          </span>
+          <strong>{{ server.name | shorten:15 }}</strong> |
+          {{ server.instanceType | uppercase }} |
+          {{ server.started | date:'fullDate' | uppercase }}
+        </li>
+      </ul>
+    </div>
+
+------------------------------------------------------------------------------------------------
+
+  filteredStatus = '';
+
+------------------------------------------------------------------------------------------------
+
+8. Pure and Impure Pipes
+
+--> Now array is static
+--> When we dynamically add array item on button click to array list, we see no update in pipe
+--> By default, pipe takes value initially and does not track whether it changes or not
+
+--> To change this behaviour, we use additionally property in @Pipe decorator
+
+------------------------------------------------------------------------------------------------
+
+@Pipe({
+  name: 'filter',
+  pure: false
+})
+
+--> Now it will reflect the changes
+--> This can might lead to performance issue when list is too long bec. pipe apply tracking changes rules which can lead to performance issue
+
+------------------------------------------------------------------------------------------------
+
+export class AppComponent {
+  appStatus = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve('stable');
+    }, 2000);
+  });
+  servers = [
+    {
+      instanceType: 'medium',
+      name: 'Production',
+      status: 'stable',
+      started: new Date(15, 1, 2017)
+    },
+    {
+      instanceType: 'large',
+      name: 'User Database',
+      status: 'stable',
+      started: new Date(15, 1, 2017)
+    },
+    {
+      instanceType: 'small',
+      name: 'Development Server',
+      status: 'offline',
+      started: new Date(15, 1, 2017)
+    },
+    {
+      instanceType: 'small',
+      name: 'Testing Environment Server',
+      status: 'stable',
+      started: new Date(15, 1, 2017)
+    }
+  ];
+  filteredStatus = '';
+  getStatusClasses(server: {instanceType: string, name: string, status: string, started: Date}) {
+    return {
+      'list-group-item-success': server.status === 'stable',
+      'list-group-item-warning': server.status === 'offline',
+      'list-group-item-danger': server.status === 'critical'
+    };
+  }
+  onAddServer() {
+    this.servers.push({
+      instanceType: 'small',
+      name: 'New Server',
+      status: 'stable',
+      started: new Date(15, 1, 2017)
+    });
+  }
+}
+
+------------------------------------------------------------------------------------------------
+
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12 col-sm-10 col-md-8 col-sm-offset-1 col-md-offset-2">
+      <input type="text" [(ngModel)]="filteredStatus">
+      <br>
+      <button class="btn btn-primary" (click)="onAddServer()">Add Server</button>
+      <br><br>
+      <h2>App Status: {{ appStatus | async}}</h2>
+      <hr>
+      <ul class="list-group">
+        <li
+          class="list-group-item"
+          *ngFor="let server of servers | filter:filteredStatus:'status'"
+          [ngClass]="getStatusClasses(server)">
+          <span
+            class="badge">
+            {{ server.status }}
+          </span>
+          <strong>{{ server.name | shorten:15 }}</strong> |
+          {{ server.instanceType | uppercase }} |
+          {{ server.started | date:'fullDate' | uppercase }}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+------------------------------------------------------------------------------------------------
+
+9. Understanding the async pipe
+
+  appStatus = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve('stable');
+    }, 2000);
+  });
+
+--> Promise object will resolve in string
+--> Or if you use observable, then pipe would subscribe it and whenever data is available, it will transform into string
+
+------------------------------------------------------------------------------------------------
+
+<h2>App Status: {{ appStatus | async}}</h2>
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+vv
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

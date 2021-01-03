@@ -1,0 +1,1007 @@
+1. The Anatomy of Http Request
+
+1. Http Verb
+2. URL (Api Endpoint)
+3. Headers
+4. body 
+
+----------------------------------------------------------------------------------------------
+
+2. Backend Setup
+
+--> We will use Firebase which provides complete backend solution
+--> Go to firebase.com
+--> Click on Go to Console
+--> Create new project - avinash
+--> Create new test database (realtime database)
+
+--> It will provide you link
+
+https://avinash-53cbe-default-rtdb.firebaseio.com/
+
+----------------------------------------------------------------------------------------------
+
+3. Setting up the form
+
+<div class="container">
+    <div class="row">
+      <div class="col-xs-12 col-md-6 col-md-offset-3">
+        <form #postForm="ngForm" (ngSubmit)="onCreatePost(postForm.value)">
+          <div class="form-group">
+            <label for="title">Title</label>
+            <input
+              type="text"
+              class="form-control"
+              id="title"
+              required
+              ngModel
+              name="title"
+            />
+          </div>
+          <div class="form-group">
+            <label for="content">Content</label>
+            <textarea
+              class="form-control"
+              id="content"
+              required
+              ngModel
+              name="content"
+            ></textarea>
+          </div>
+          <button
+            class="btn btn-primary"
+            type="submit"
+            [disabled]="!postForm.valid"
+          >
+            Send Post
+          </button>
+        </form>
+      </div>
+    </div>
+    <hr />
+    <div class="row">
+      <div class="col-xs-12 col-md-6 col-md-offset-3">
+        <button class="btn btn-primary" (click)="onFetchPosts()">
+          Fetch Posts
+        </button>
+        |
+        <button
+          class="btn btn-danger"
+          [disabled]="loadedPosts.length < 1"
+          (click)="onClearPosts()"
+        >
+          Clear Posts
+        </button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-12 col-md-6 col-md-offset-3">
+        <p>No posts available!</p>
+      </div>
+    </div>
+  </div>
+  
+
+----------------------------------------------------------------------------------------------
+
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit {
+  loadedPosts = [];
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit() {}
+
+  onCreatePost(postData: { title: string; content: string }) {
+    console.log(postData);
+  }
+
+  onFetchPosts() {
+    // Send Http request
+  }
+
+  onClearPosts() {
+    // Send Http request
+  }
+}
+
+
+----------------------------------------------------------------------------------------------
+
+4. Sending the Post Request
+
+  onCreatePost(postData: { title: string; content: string }) {
+    this.http.post('https://avinash-53cbe-default-rtdb.firebaseio.com/posts.json', postData);
+    console.log(postData);
+  }
+
+--> Above request will not send post request, bec we do not subscribe to it yet
+
+----------------------------------------------------------------------------------------------
+
+  onCreatePost(postData: { title: string; content: string }) {
+    this.http.post('https://ng-complete-guide-c56d3.firebaseio.com/posts.json', postData)
+      .subscribe((response) => {
+        console.log(response);
+      })
+    console.log(postData);
+  }
+
+--> We are talking with firebase database directly and it has a convention for creating new folder if find new item in trailing end of url
+
+----------------------------------------------------------------------------------------------
+
+5. Getting Data
+
+  private fetchPosts() {
+    this.http
+      .get('https://ng-complete-guide-c56d3.firebaseio.com/posts.json')
+      .subscribe(posts => {
+        console.log(posts);
+      });
+  }
+
+  onFetchPosts() {		--> This is button event
+    this.fetchPosts();
+  }
+
+  ngOnInit() {
+    this.fetchPosts();
+  }
+
+----------------------------------------------------------------------------------------------
+
+6. Transforming Response Data
+
+--> Now the response data from firebase comes in format of:
+
+-MQ1YRpnlX9qbJwP491t: {content: "Robert kiyosaki", title: "Rich Dad Poor Dad"}
+
+--> But I want to transform into List of Post object with 3 properties: id, content, title
+
+----------------------------------------------------------------------------------------------
+
+-MQ1YRpnlX9qbJwP491t: {content: "Robert kiyosaki", title: "Rich Dad Poor Dad"}
+
+----------------------------------------------------------------------------------------------
+
+  private fetchPosts() {
+    this.http
+      .get('https://ng-complete-guide-c56d3.firebaseio.com/posts.json')
+      .pipe(
+        map(responseData => {
+          const postsArray = [];
+          for (const key in responseData) {
+            if (responseData.hasOwnProperty(key)) {
+              postsArray.push({ ...responseData[key], id: key });
+            }
+          }
+          return postsArray;
+        })
+      )
+      .subscribe(posts => {
+        // ...
+        console.log(posts);
+      });
+  }
+
+--> hasOwnProperty means we are not looping over prototypes
+--> We use javascript spread operator and attaching id property over it.
+
+----------------------------------------------------------------------------------------------
+
+0: {content: "Robert kiyosaki", title: "Rich Dad Poor Dad", id: "-MQ1YRpnlX9qbJwP491t"}
+
+----------------------------------------------------------------------------------------------
+
+7. Using Types with the HttpClient
+
+--> We can define type of response we are getting in generic parameter of http verb methods given by HttpClient module
+--> Other benefit is it provide suggestion of properties in intellisense
+
+onCreatePost(postData: Post) {
+    // Send Http request
+    this.http
+      .post<{ name: string }>(
+        'https://ng-complete-guide-c56d3.firebaseio.com/posts.json',
+        postData
+      )
+      .subscribe(responseData => {
+        console.log(responseData);
+      });
+  }
+
+  private fetchPosts() {
+    this.isFetching = true;
+    this.http
+      .get<{ [key: string]: Post }>(
+        'https://ng-complete-guide-c56d3.firebaseio.com/posts.json'
+      )
+      .pipe(
+        map(responseData => {
+          const postsArray: Post[] = [];
+          for (const key in responseData) {
+            if (responseData.hasOwnProperty(key)) {
+              postsArray.push({ ...responseData[key], id: key });
+            }
+          }
+          return postsArray;
+        })
+      )
+      .subscribe(posts => {
+        this.isFetching = false;
+        this.loadedPosts = posts;
+      });
+  }
+
+----------------------------------------------------------------------------------------------
+
+--> post.model.ts
+
+export interface Post {
+  title: string;
+  content: string;
+  id?: string;
+}
+
+----------------------------------------------------------------------------------------------
+
+8. Outputting Posts
+
+  loadedPosts: Post[] = [];
+
+      .subscribe(posts => {
+        this.loadedPosts = posts;
+      });
+
+----------------------------------------------------------------------------------------------
+
+<div class="row">
+    <div class="col-xs-12 col-md-6 col-md-offset-3">
+      <p *ngIf="loadedPosts.length < 1">No posts available!</p>
+      <ul class="list-group" *ngIf="loadedPosts.length >= 1>
+        <li class="list-group-item" *ngFor="let post of loadedPosts">
+          <h3>{{ post.title }}</h3>
+          <p>{{ post.content }}</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+----------------------------------------------------------------------------------------------
+
+9. Showing a Loading Indicator
+
+----------------------------------------------------------------------------------------------
+
+  private fetchPosts() {
+    this.isFetching = true;
+    this.http
+      .get<{ [key: string]: Post }>('https://ng-complete-guide-c56d3.firebaseio.com/posts.json')
+      .pipe(...)
+      .subscribe(posts => {
+        this.isFetching = false;
+        this.loadedPosts = posts;
+      });
+  }
+
+----------------------------------------------------------------------------------------------
+
+<div class="row">
+    <div class="col-xs-12 col-md-6 col-md-offset-3">
+      <p *ngIf="loadedPosts.length < 1 && !isFetching">No posts available!</p>
+      <ul class="list-group" *ngIf="loadedPosts.length >= 1 && !isFetching">
+        <li class="list-group-item" *ngFor="let post of loadedPosts">
+          <h3>{{ post.title }}</h3>
+          <p>{{ post.content }}</p>
+        </li>
+      </ul>
+      <p *ngIf="isFetching">Loading...</p>
+    </div>
+  </div>
+
+----------------------------------------------------------------------------------------------
+
+10. Using a Service for Http Request
+
+--> posts.service.ts
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { map } from 'rxjs/operators';
+
+import { Post } from './post.model';
+
+@Injectable({ providedIn: 'root' })
+export class PostsService {
+
+  constructor(private http: HttpClient) {}
+
+  createAndStorePost(title: string, content: string) {
+    const postData: Post = { title: title, content: content };
+    this.http
+      .post<{ name: string }>(
+        'https://ng-complete-guide-c56d3.firebaseio.com/posts.json',
+        postData
+      )
+      .subscribe(
+        responseData => {
+          console.log(responseData);
+        },
+      );
+  }
+
+  fetchPosts() {
+    return this.http								--> Always remember 'return' keyword (returns observable)
+      .get<{ [key: string]: Post }>(
+        'https://ng-complete-guide-c56d3.firebaseio.com/posts.json'
+      )
+      .pipe(
+        map(responseData => {
+          const postsArray: Post[] = [];
+          for (const key in responseData) {
+            if (responseData.hasOwnProperty(key)) {
+              postsArray.push({ ...responseData[key], id: key });
+            }
+          }
+          return postsArray;
+        }),
+      );
+  }
+}
+
+--> Other way is using Subjects when response data is needed by more than one component
+
+----------------------------------------------------------------------------------------------
+
+--> component
+
+  ngOnInit() {
+    this.isFetching = true;
+    this.postsService.fetchPosts().subscribe(
+      posts => {
+        this.isFetching = false;
+        this.loadedPosts = posts;
+      },
+    );
+  }
+
+  onFetchPosts() {
+    this.isFetching = true;
+    this.postsService.fetchPosts().subscribe(
+      posts => {
+        this.isFetching = false;
+        this.loadedPosts = posts;
+      },
+    );
+  }
+
+
+
+----------------------------------------------------------------------------------------------
+
+11. Sending a Delete Request
+
+  deletePosts() {
+    return this.http.delete(
+      'https://ng-complete-guide-c56d3.firebaseio.com/posts.json'
+    );
+  }
+
+
+----------------------------------------------------------------------------------------------
+
+
+  onClearPosts() {
+    // Send Http request
+    this.postsService.deletePosts().subscribe(() => {
+      this.loadedPosts = [];
+    });
+  }
+
+----------------------------------------------------------------------------------------------
+
+12. Handling Errors
+
+  error = null;
+
+  ngOnInit() {
+    this.errorSub = this.postsService.error.subscribe(errorMessage => {
+      this.error = errorMessage;
+    });
+
+    this.isFetching = true;
+    this.postsService.fetchPosts().subscribe(
+      posts => {
+        this.isFetching = false;
+        this.loadedPosts = posts;
+      },
+      error => {
+        this.error = error.message;
+      }
+    );
+  }
+
+
+  onFetchPosts() {
+    // Send Http request
+    this.isFetching = true;
+    this.postsService.fetchPosts().subscribe(
+      posts => {
+        this.isFetching = false;
+        this.loadedPosts = posts;
+      },
+      error => {
+        this.error = error.message;
+        console.log(error);
+      }
+    );
+  }
+
+----------------------------------------------------------------------------------------------
+
+<p *ngIf="isFetching && !error">Loading...</p>
+      <div class="alert alert-danger" *ngIf="error">
+        <h1>An Error Occurred!</h1>
+        <p>{{ error }}</p>
+      </div>
+
+----------------------------------------------------------------------------------------------
+
+13. Using Subjects for Error Handling
+
+--> Case: When service has one observable and many components are subscribing to same observable, it is better to save result in subject and many components subscribe to that subject.
+
+----------------------------------------------------------------------------------------------
+
+--> posts.service.ts
+
+  error = new Subject<string>();
+
+  createAndStorePost(title: string, content: string) {
+    const postData: Post = { title: title, content: content };
+    this.http
+      .post<{ name: string }>(
+        'https://ng-complete-guide-c56d3.firebaseio.com/posts.json',
+        postData
+      )
+      .subscribe(
+        responseData => {
+          console.log(responseData);
+        },
+        error => {
+          this.error.next(error.message);				--> This is how we pass information to subject
+        }
+      );
+  }
+
+----------------------------------------------------------------------------------------------
+
+--> component.ts
+
+
+import { Subscription } from 'rxjs';
+
+
+  private errorSub: Subscription;
+  error = null;
+
+  ngOnInit() {
+    this.errorSub = this.postsService.error.subscribe(errorMessage => {
+      this.error = errorMessage;
+    });
+
+----------------------------------------------------------------------------------------------
+
+14. Using the catchError operator
+
+--> For error handling, we use second argument of subscribe method
+--> Alternative approach, there is rxjs operator which also catches same error
+
+  fetchPosts() {
+    return this.http
+      .get<{ [key: string]: Post }>(
+        'https://ng-complete-guide-c56d3.firebaseio.com/posts.json'
+      )
+      .pipe(
+        map(responseData => {
+          const postsArray: Post[] = [];
+          for (const key in responseData) {
+            if (responseData.hasOwnProperty(key)) {
+              postsArray.push({ ...responseData[key], id: key });
+            }
+          }
+          return postsArray;
+        }),
+        catchError(errorRes => {
+          // Send to analytics server
+          return throwError(errorRes);
+        })
+      );
+  }
+
+----------------------------------------------------------------------------------------------
+
+15. Setting Headers
+
+--> Every httpmethod of HttpClient accept last argument as header
+--> In case of get method, second argument and in case off post method, third argument
+
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+
+  fetchPosts() {
+    return this.http
+      .get<{ [key: string]: Post }>(
+        'https://ng-complete-guide-c56d3.firebaseio.com/posts.json',
+        {
+          headers: new HttpHeaders({ 'Custom-Header': 'Hello' })
+        }
+      )
+      .pipe(..)
+
+
+--> You can see in network tab in Request headers in browser console.
+
+----------------------------------------------------------------------------------------------
+
+16. Adding Query Params
+
+--> Like headers, we can add query params in request object
+
+  fetchPosts() {
+    let searchParams = new HttpParams();
+    searchParams = searchParams.append('print', 'pretty');
+    searchParams = searchParams.append('custom', 'key');
+    return this.http
+      .get<{ [key: string]: Post }>(
+        'https://ng-complete-guide-c56d3.firebaseio.com/posts.json',
+        {
+          headers: new HttpHeaders({ 'Custom-Header': 'Hello' }),
+          params: searchParams
+        }
+      )
+      .pipe(...)
+
+--> Alternatively, you can also add query params in url directly
+
+----------------------------------------------------------------------------------------------
+
+17. Options http verb
+
+--> When you send post request, browser first send option request, checking whether post method is allowed on server
+--> Then it sends second request of post to api server
+
+----------------------------------------------------------------------------------------------
+
+18. Observing Different types of responses
+
+--> In argument of subscribe method, we get only response.body object 
+--> What if we want full Response object containing statusCode, statusText and other meta information
+
+  createAndStorePost(title: string, content: string) {
+    const postData: Post = { title: title, content: content };
+    this.http
+      .post<{ name: string }>(
+        'https://ng-complete-guide-c56d3.firebaseio.com/posts.json',
+        postData,
+        {
+          observe: 'response'					--> by default, observe: 'body' is set
+        }
+      )
+      .subscribe(
+        responseData => {					--> Now this responseData is full Response body
+          console.log(responseData);
+        },
+        error => {
+          this.error.next(error.message);
+        }
+      );
+  }
+
+
+  deletePosts() {
+    return this.http
+      .delete('https://ng-complete-guide-c56d3.firebaseio.com/posts.json', {
+        observe: 'events',					--> events is another object, you can see in console 
+        responseType: 'text'
+      })
+      .pipe(
+        tap(event => {
+          console.log(event);
+          if (event.type === HttpEventType.Sent) {
+            // ...
+          }
+          if (event.type === HttpEventType.Response) {
+            console.log(event.body);
+          }
+        })
+      );
+  }
+
+--> events is another object, it consists of HttpResponse object and type javascript object
+--> As type is number formated and To see the types, we use enum - HttpEventType 
+
+import {
+  HttpClient,
+  HttpHeaders,
+  HttpParams,
+  HttpEventType
+} from '@angular/common/http';
+import { map, catchError, tap } from 'rxjs/operators';
+
+--> tap is rxjs operator whose function is not changing observable or response data, but just tapping it (checking it)
+
+----------------------------------------------------------------------------------------------
+
+19. Changing the Response Body Type
+
+  fetchPosts() {
+    return this.http
+      .get<{ [key: string]: Post }>(
+        'https://ng-complete-guide-c56d3.firebaseio.com/posts.json',
+        {
+          headers: new HttpHeaders({ 'Custom-Header': 'Hello' }),
+          params: searchParams,
+          responseType: 'json'							--> other one is 'text'
+        }
+      )
+      .pipe(
+
+----------------------------------------------------------------------------------------------
+
+20. Introducing Interceptor
+
+--> When you want to attach meta deta to every request send from Angular application instead of attaching in every request, we use interceptor
+--> It is just like delegate
+
+--> auth-interceptor.service.ts
+
+import { HttpInterceptor, HttpRequest, HttpHandler } from '@angular/common/http';
+
+export class AuthInterceptorService implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    console.log('Request is on its way');
+    return next.handle(req);
+  }
+}
+
+
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptorService,
+      multi: true
+    }
+  ],
+
+----------------------------------------------------------------------------------------------
+
+21. Manipulating Request Objects
+
+export class AuthInterceptorService implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    const modifiedRequest = req.clone({
+      headers: req.headers.append('Auth', 'xyz')
+    });
+    return next.handle(modifiedRequest);
+  }
+}
+
+----------------------------------------------------------------------------------------------
+
+22. Response Interceptors
+
+export class AuthInterceptorService implements HttpInterceptor {
+
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    const modifiedRequest = req.clone({
+      headers: req.headers.append('Auth', 'xyz')
+    });
+
+    return next.handle(modifiedRequest).pipe(
+      tap(event => {
+        if (event.type === HttpEventType.Response) {
+          console.log('Incoming response');
+          console.log(event.body);
+        }
+      })
+    );
+  }
+}
+
+--> next.handle(req) returns response object only
+--> Means response first arrive in this interceptor only
+
+--> We can either log it or manipulate the incoming response
+
+----------------------------------------------------------------------------------------------
+
+23. Multiple Interceptors
+
+export class LoggingInterceptorService implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    console.log('Outgoing request');
+    console.log(req.url);
+    console.log(req.headers);
+    return next.handle(req).pipe(
+      tap(event => {
+        if (event.type === HttpEventType.Response) {
+          console.log('Incoming response');
+          console.log(event.body);
+        }
+      })
+    );
+  }
+}
+
+
+----------------------------------------------------------------------------------------------
+
+export class AuthInterceptorService implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    const modifiedRequest = req.clone({
+      headers: req.headers.append('Auth', 'xyz')
+    });
+    return next.handle(modifiedRequest);
+  }
+}
+
+
+----------------------------------------------------------------------------------------------
+
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoggingInterceptorService,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptorService,
+      multi: true
+    }
+  ],
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

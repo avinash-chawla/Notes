@@ -10,6 +10,22 @@
 
 -----------------------------------------------------------------------------
 
+1.1. Repository Pattern
+
+--> Controller depends on interface
+--> interface implementation depends on database
+
+--> We can change implementation at any time
+
+--> Benefits of Repository Pattern
+
+1. Minimizes duplicate query logic
+2. Decouples application from persistant framework
+3. All DB queries in the same place
+4. Promotes testability
+
+-----------------------------------------------------------------------------
+
 2. Storing Passwords in Database
 
 --> Hashing of password
@@ -143,8 +159,8 @@ public class AuthRepository : IAuthRepository
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA512())
             {
-                passwordHash = hmac.Key;
-                passwordSalt = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                passwordSalt = hmac.Key;
+                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
         }
 
@@ -482,6 +498,7 @@ services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 });
 
 app.UseAuthentication();
+				
 
 -----------------------------------------------------------------------------
 
@@ -499,11 +516,6 @@ app.UseAuthentication();
 
 -----------------------------------------------------------------------------
 
-14. Note:
-
---> There is nothing about to understand the code.
---> It is the way implemented without understanding
---> I don't know where they hide understanding 
 
 -----------------------------------------------------------------------------
 

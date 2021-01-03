@@ -44,6 +44,8 @@ or
 --> type shell
 --> Choose default cmd line. (powershell, cmd, bash)
 
+--> Means you will be able to use "code ." in cmd.
+
 -------------------------------------------------------------------------
 
 --> Reviewing files
@@ -359,6 +361,8 @@ public async Task<IActionResult> GetValue(int id)
 --> ctrl + shift + p    	--> open command palatte
 --> search for material icon    --> activate it.
 
+--> It will shows icons related to type of file like html, ts, css, js
+
 -------------------------------------------------------------------------
 
 --> In app.module.ts,
@@ -446,7 +450,7 @@ app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
 16. Adding bootstrap and font-awesome
 
---> npm i bootstrap font-awesome
+--> npm i bootstrap@4.1.1 font-awesome@4.7.0
 
 --> There are two main ways to add that
 1. in angular.json
@@ -454,9 +458,7 @@ app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
 --> We will second approach,
 
-@import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
-@import '../node_modules/font-awesome/css/font-awesome.min.css';
-
+u
 -------------------------------------------------------------------------
 
 17. Adding Git for source control

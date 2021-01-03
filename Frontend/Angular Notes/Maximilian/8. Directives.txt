@@ -1,0 +1,567 @@
+1. Types of Directives
+
+1. Attribute
+
+--> Looks like normal html attribute 
+--> Only affect/change the properties of element they are added to
+
+
+2. Strucural
+
+--> Looks like normal html attribute but have a leading *
+--> Affect a whole area in the DOM 
+
+---------------------------------------------------------------------------------------------
+
+2. *ngFor directive
+
+<li ngFor="let odd of oddNumbers">
+   {{ odd }}
+</li>
+
+---------------------------------------------------------------------------------------------
+
+3. *ngIf directive
+
+<div *ngIf="onlyOdd">
+          <li *ngFor="let odd of oddNumbers">
+            {{ odd }}
+          </li>
+</div>
+
+--> Two structural directives can not be used together
+
+---------------------------------------------------------------------------------------------
+
+4. ngClass and ngStyle directive
+
+<div *ngIf="onlyOdd">
+          <li
+            class="list-group-item"
+            [ngClass]="{odd: odd % 2 !== 0}"
+            [ngStyle]="{backgroundColor: odd % 2 !== 0 ? 'yellow' : 'transparent'}"
+            *ngFor="let odd of oddNumbers">
+            {{ odd }}
+          </li>
+        </div>
+
+[ngClass]="{odd: odd % 2 != 0}"
+[ngStyle]="{backgroundColor: odd % 2 !== 0 ? 'yellow' : 'transparent'}"
+
+.odd {
+  color: red;
+}
+
+---------------------------------------------------------------------------------------------
+
+5. Custom Directive using ElementRef
+
+--> basic_highlight.directive.ts
+
+import { Directive, ElementRef, OnInit } from '@angular/core';
+
+@Directive({
+  selector: '[appBasicHighlight]'
+})
+export class BasicHighlightDirective implements OnInit {
+  constructor(private elementRef: ElementRef) {
+  }
+
+  ngOnInit() {
+    this.elementRef.nativeElement.style.backgroundColor = 'green';
+  }
+}
+
+
+
+--> This class uses decorator of 'Directive' with selector property
+--> We need Element reference to change style of it.
+--> Here, we are getting direct referenc of element and we are changing it
+--> but sometimes, many elements are created by Angular, so this may not work as regular
+
+
+
+      <p appBasicHighlight>Style me with basic directive!</p>
+
+
+---------------------------------------------------------------------------------------------
+
+6. Custom Directive using Renderer2
+
+import { Directive, ElementRef, Renderer2, OnInit } from '@angular/core';
+
+@Directive({
+  selector: '[appBetterHighlight]'
+})
+export class BetterHighlightDirective implements OnInit {
+
+  constructor(private elRef: ElementRef, private renderer: Renderer2) { }
+
+  ngOnInit() {
+       this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'blue');
+  }
+
+--> This 'renderer' object has many methods to deal with manipulation of dom
+
+
+      <p appBetterHighlight>Style me with a better directive!</p>
+
+---------------------------------------------------------------------------------------------
+
+7. Using HostListener to list to Host Events
+
+@Directive({
+  selector: '[appBetterHighlight]'
+})
+export class BetterHighlightDirective implements OnInit {
+  
+  constructor(private elRef: ElementRef, private renderer: Renderer2) { }
+
+  ngOnInit() {
+    this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'blue');
+  }
+
+  @HostListener('mouseenter') mouseover(eventData: Event) {
+    this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'blue');
+  }
+
+  @HostListener('mouseleave') mouseleave(eventData: Event) {
+    this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'transparent');
+    
+  }
+}
+
+--> mouseover and mouseleave are our custom names which receive eventData obect in argument
+--> 'mouseenter' and 'mouseleave' are built-in events provided by angular
+
+---------------------------------------------------------------------------------------------
+
+8. Using HostBinding to Bind to Host Properties
+
+--> In all cases, we are manipulating style.backgroundColor property of element in dom
+--> We can make use of HostBinding decorator giving property as parameter and it give us a variable to work with.
+--> Thats it.
+
+@Directive({
+  selector: '[appBetterHighlight]'
+})
+export class BetterHighlightDirective implements OnInit {
+  @HostBinding('style.backgroundColor') backgroundColor: string = 'transparent';
+
+  constructor(private elRef: ElementRef, private renderer: Renderer2) { }
+
+  ngOnInit() {
+    this.backgroundColor = this.defaultColor;						--> Initializing (if not, shows no background initially)
+    // this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'blue');
+  }
+
+  @HostListener('mouseenter') mouseover(eventData: Event) {
+    // this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'blue');
+    this.backgroundColor = 'blue';
+  }
+
+  @HostListener('mouseleave') mouseleave(eventData: Event) {
+    // this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'transparent');
+    this.backgroundColor = 'transparent';
+  }
+
+}
+
+---------------------------------------------------------------------------------------------
+
+9. Binding to Directive Properties
+
+--> Now, backgroundColor is hardcorded
+--> Sometimes, we need to pass from host element
+
+--> we can make use of Input and Output properties
+
+---------------------------------------------------------------------------------------------
+
+      <p appBetterHighlight [defaultColor]="'yellow'" [highlightColor]="'red'">Style me with a better directive!</p>
+
+---------------------------------------------------------------------------------------------
+
+
+@Directive({
+  selector: '[appBetterHighlight]'
+})
+export class BetterHighlightDirective implements OnInit {
+  @Input() defaultColor: string = 'transparent';
+  @Input() highlightColor: string = 'blue';
+  @HostBinding('style.backgroundColor') backgroundColor: string;
+
+  constructor(private elRef: ElementRef, private renderer: Renderer2) { }
+
+  ngOnInit() {
+    this.backgroundColor = this.defaultColor;
+    // this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'blue');
+  }
+
+  @HostListener('mouseenter') mouseover(eventData: Event) {
+    // this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'blue');
+    this.backgroundColor = this.highlightColor;
+  }
+
+  @HostListener('mouseleave') mouseleave(eventData: Event) {
+    // this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'transparent');
+    this.backgroundColor = this.defaultColor;
+  }
+
+}
+
+---------------------------------------------------------------------------------------------
+
+10. Note Points
+
+--> In Property binding, if you pass string as value, you can remove [] brackets from property
+
+<p appBetterHighlight [defaultColor]="'yellow'" [highlightColor]="'red'">Style me with a better directive!</p>
+
+<p appBetterHighlight defaultColor="yellow" highlightColor="red">Style me with a better directive!</p>
+
+---------------------------------------------------------------------------------------------
+
+11. What happens behind the scenes on Structural Directives
+
+--> Angular uses * to represent that it is structural directive
+--> It needs * to transform element as shown below:
+
+
+        <div *ngIf="onlyOdd">
+          <li>...</li>
+        </div>
+
+to
+
+        <ng-template [ngIf]="!onlyOdd">
+	  <div>
+              <li>...<li>
+ 	  </div>
+        </ng-template>
+
+
+
+--> ng-template is itself not rendered
+--> So Angular internally use Property binding only to conditionally render
+
+---------------------------------------------------------------------------------------------
+
+12. Building a Structural Directive 
+
+        <div *appUnless="onlyOdd">
+          <li>...</li>
+        </div>
+
+
+--> We are creating directive opposite of *ngIf directive
+
+@Directive({
+  selector: '[appUnless]'
+})
+export class UnlessDirective {
+  @Input() set appUnless(value: boolean) {
+    if (!value) {
+      this.vcRef.createEmbeddedView(this.templateRef);
+    } else {
+      this.vcRef.clear();
+    }
+  }
+
+  constructor(private templateRef: TemplateRef<any>, private vcRef: ViewContainerRef) { }
+}
+
+--> Here, we are using 'set' input property bec. value will be set dynamically from host element
+--> And in argument, we will get value for host element
+
+--> In constructor, we need two things:
+1. templateRef	--> It will provide <ng-template> element with condition on it (which is translated by Angular)
+2. ViewContainerRef  --> It gives the position of host element in dom
+
+--> So we are using this.vcRef.createEmbeddedView(this.templateRef) or clear() (to render or not)
+
+---------------------------------------------------------------------------------------------
+
+13. ngSwitch Directive
+
+value = 5;
+
+<div [ngSwitch]="value">
+        <p *ngSwitchCase="5">Value is 5</p>
+        <p *ngSwitchCase="10">Value is 10</p>
+        <p *ngSwitchCase="100">Value is 100</p>
+        <p *ngSwitchDefault>Value is Default</p>
+      </div>
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+v
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

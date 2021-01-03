@@ -1,0 +1,632 @@
+1. Reactive Support
+
+--> app.module.ts
+
+
+import { ReactiveFormsModule } from '@angular/forms';
+
+  imports: [
+    BrowserModule,
+    ReactiveFormsModule
+  ], 
+
+
+--> app.component.ts
+
+import { FormGroup } from '@angular/forms';
+
+  signupForm: FormGroup;
+
+----------------------------------------------------------------------------------------------
+
+2. Creating a Form in Code
+
+--> You should set up your form before rendering component
+--> Best place is ngOnInit lifecycle hook
+
+----------------------------------------------------------------------------------------------
+
+  genders = ['male', 'female'];
+  signupForm: FormGroup;
+
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      'username': new FormControl(null),
+      'email': new FormControl(null)
+      'gender': new FormControl('male'),
+    });
+
+----------------------------------------------------------------------------------------------
+
+3. Syncing Html and Form
+
+<form [FormGroup]="signupForm">
+
+   <input type="text" name='username' FormControlName="username"/>
+
+   <input type="text" name='email' FormControlName="email"/>
+
+        <div class="radio" *ngFor="let gender of genders">
+          <label>
+            <input
+              type="radio"
+              formControlName="gender"
+              [value]="gender">{{ gender }}
+          </label>
+        </div>
+</form>
+
+----------------------------------------------------------------------------------------------
+
+or
+
+   <input type="text" name='username' [FormControlName]="'username'"/>
+
+--> Bec. we are binding string to it
+
+----------------------------------------------------------------------------------------------
+
+4. Form Submitting
+
+<form [FormGroup]="signupForm" (ngSubmit)="OnSubmit()">
+
+OnSubmit() {
+   console.log(this.signupForm);
+}
+
+--> We do not need to pass reference of form from template, bec it is already available in ts file
+--> In console, you can see the FormGroup object with properties like value and controls
+
+--> You can also see classes added to input fields 'ng-touched/ng-untouched', 'ng-dirty/ng-pristine', 'ng-valid/ng-invalid'
+
+----------------------------------------------------------------------------------------------
+
+5. Adding Validation
+
+--> We do not use required html attributes to validate and configuring the form
+--> We configure validation using FormControl object
+
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      'username': new FormControl(null, Validators.required),
+      'email': new FormControl(null, [Validators.required, Validators.email])
+      'gender': new FormControl('male'),
+    });
+
+--> Validators provide useful methods for validation
+--> We do not call such methods but just provide reference to it here.
+
+--> Now you can see the changes in class from ng-invalid to ng-valid as soon as you type something in username field.
+
+----------------------------------------------------------------------------------------------
+
+6. Getting Access to Controls
+
+--> We can not use as earlier for validation messages like
+
+<input type="text" name="username" ngModel #username='ngModel'
+<span *ngIf="!username.valid">Some Error Message</span>
+
+----------------------------------------------------------------------------------------------
+
+--> We get access to form-control using get() method of FormGroup object
+
+<span *ngIf="!signupForm.get('username').valid && signupForm.get('username').touched" class="help-block">Some error message</span>
+
+----------------------------------------------------------------------------------------------
+
+7. Grouping Controls
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      'userData': new FormGroup({
+          'username': new FormControl(null),
+          'email': new FormControl(null)
+      }),
+      'gender': new FormControl('male'),
+    });
+
+----------------------------------------------------------------------------------------------
+
+<div formGroupName="userData">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              formControlName="username"
+              class="form-control">
+            <span *ngIf="!signupForm.get('userData.username').valid && signupForm.get('userData.username').touched" class="help-block">This name is invalid!</span>     
+          </div>
+
+          <div class="form-group">
+            <label for="email">email</label>
+            <input
+              type="text"
+              id="email"
+              formControlName="email"
+              class="form-control">
+            <span *ngIf="!signupForm.get('userData.email').valid && signupForm.get('userData.email').touched" class="help-block">Please enter a valid email!</span>
+          </div>
+        </div>
+
+----------------------------------------------------------------------------------------------
+
+8. Array of Form Controls (FormArray)
+
+--> This is feature given by ReactiveForms to dynamically create FormControl on event post.
+
+import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      'userData': new FormGroup({
+        'username': new FormControl(null, Validators.required),
+        'email': new FormControl(null, [Validators.required, Validators.email])
+      }),
+      'gender': new FormControl('male'),
+      'hobbies': new FormArray([])
+    });
+
+
+  onAddHobby() {
+    const control = new FormControl(null, Validators.required);
+    (<FormArray>this.signupForm.get('hobbies')).push(control);
+  }
+
+----------------------------------------------------------------------------------------------
+
+        <div formArrayName="hobbies">
+          <h4>Your Hobbies</h4>
+          <button
+            class="btn btn-default"
+            type="button"
+            (click)="onAddHobby()">Add Hobby</button>
+          <div
+            class="form-group"
+            *ngFor="let hobbyControl of signupForm.get('hobbies').controls; let i = index">
+            <input type="text" class="form-control" [formControlName]="i">
+          </div>
+        </div>
+
+----------------------------------------------------------------------------------------------
+
+9. Custom Validation
+
+  forbiddenUsernames = ['Chris', 'Anna'];
+
+  forbiddenNames(control: FormControl): {[s: string]: boolean} {
+    if (this.forbiddenUsernames.indexOf(control.value) !== -1) {
+      return {'nameIsForbidden': true};
+    }
+    return null;
+  }
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      'userData': new FormGroup({
+        'username': new FormControl(null, [Validators.required, this.forbiddenNames.bind(this)]),
+        'email': new FormControl(null, [Validators.required, Validators.email])
+      }),
+      'gender': new FormControl('male'),
+      'hobbies': new FormArray([])
+    });
+
+
+--> We have list of forbidden users, when users matches that list, we want to show validation
+--> To create custom validator, create a function whose argument is FormControl object
+
+--> We have to mention return type of this method which is awkwark but true : {[s:string]: boolean}
+--> It is representing key,value pair in typescript
+
+--> We find the index of currently typed value with forbidden list and if it not returns -1, means it is present and we return key-value pair
+--> Otherwise we return null or nothing and not {'nameIsForbidden': false}
+
+--> Angular treat true as invalid
+
+--> To apply this logic to formcontrol, we pass this.forbidddenNames
+--> But this function will be called by Angular, so 'this' will become reference for that Angular class
+--> To remove this misconception, javascript provide another solution to keep reference to this class only by passing .bind(this)
+
+----------------------------------------------------------------------------------------------
+
+10. Reactive using Error Codes
+
+--> In Last example, we pass javascript object {'nameIsForbidden': true}
+--> This will be reflected in FormGroup object --> FormControlObject --> errors Array of key value pairs
+
+----------------------------------------------------------------------------------------------
+
+            <input
+              type="text"
+              id="username"
+              formControlName="username"
+              class="form-control">
+            <span
+              *ngIf="!signupForm.get('userData.username').valid && signupForm.get('userData.username').touched" class="help-block">
+              <span *ngIf="signupForm.get('userData.username').errors['nameIsForbidden']">This name is invalid!</span>
+              <span *ngIf="signupForm.get('userData.username').errors['required']">This field is required!</span>
+
+----------------------------------------------------------------------------------------------
+
+11. Creating a custom Async Validator
+
+
+import { Observable } from 'rxjs/Observable';
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      'userData': new FormGroup({
+        'username': new FormControl(null, [Validators.required, this.forbiddenNames.bind(this)]),
+        'email': new FormControl(null, [Validators.required, Validators.email], this.forbiddenEmails)
+      }),
+      'gender': new FormControl('male'),
+      'hobbies': new FormArray([])
+    });
+
+
+  forbiddenEmails(control: FormControl): Promise<any> | Observable<any> {
+    const promise = new Promise<any>((resolve, reject) => {
+      setTimeout(() => {
+        if (control.value === 'test@test.com') {
+          resolve({'emailIsForbidden': true});
+        } else {
+          resolve(null);
+        }
+      }, 1500);
+    });
+    return promise;
+  }	
+
+
+--> Async Validators return Promise/Observable
+--> classes will change from ng-invalid --> ng-pending --> ng-valid, not directly
+
+----------------------------------------------------------------------------------------------
+
+12. Reacting to Value and Status Changes
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      'userData': new FormGroup({
+        'username': new FormControl(null, [Validators.required, this.forbiddenNames.bind(this)]),
+        'email': new FormControl(null, [Validators.required, Validators.email], this.forbiddenEmails)
+      }),
+      'gender': new FormControl('male'),
+      'hobbies': new FormArray([])
+    });
+    // this.signupForm.valueChanges.subscribe(
+    //   (value) => console.log(value)
+    // );
+    this.signupForm.statusChanges.subscribe(
+      (status) => console.log(status)
+    );
+
+--> When value changes key by key, it displayses
+--> When status (valid-invalid) changes, it displayses
+
+--> As it is observable, we need subscribe it.
+
+----------------------------------------------------------------------------------------------
+
+13. Setting and Patching Values
+
+--> Means setting initial values of form
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      'userData': new FormGroup({
+        'username': new FormControl(null, [Validators.required, this.forbiddenNames.bind(this)]),
+        'email': new FormControl(null, [Validators.required, Validators.email], this.forbiddenEmails)
+      }),
+      'gender': new FormControl('male'),
+      'hobbies': new FormArray([])
+    });
+    // this.signupForm.valueChanges.subscribe(
+    //   (value) => console.log(value)
+    // );
+    this.signupForm.statusChanges.subscribe(
+      (status) => console.log(status)
+    );
+    this.signupForm.setValue({
+      'userData': {
+        'username': 'Max',
+        'email': 'max@test.com'
+      },
+      'gender': 'male',
+      'hobbies': []
+    });
+    this.signupForm.patchValue({
+      'userData': {
+        'username': 'Anna',
+      }
+    });
+  }
+
+--> setValue for setting whole form values
+--> patchValue for setting part of form values
+
+----------------------------------------------------------------------------------------------
+
+14. Resetting form values
+
+  onSubmit() {
+    console.log(this.signupForm);
+    this.signupForm.reset();
+  }
+
+--> you can pass object to reset() to reset only specific fields
+
+----------------------------------------------------------------------------------------------
+
+15. Creating Seperate class for Validation
+
+--> custom-validators.ts
+
+import { FormControl } from '@angular/forms';
+import { Observable } from 'rxjs/Observable';
+
+export class CustomValidators {
+   static invalidProjectName(control: FormControl): {[s: string]: boolean} {
+       if(control.value === "Test"){
+	    return {'invalidProjectName': true};
+  	}
+	return null;
+   }
+
+   static asyncInvalidProjectName(control: FormControl): Promise<any> | Observable<any> {
+	const promise = new Promise((resolve, reject) => {
+	    setTimeout(() => {
+		if(control.value === 'Test') {
+		    resolve({'invalidProjectName' : true});
+		} else {
+		    resolve(null);
+		}
+	    }, 2000);
+	});
+	return promise;
+   }
+}
+
+----------------------------------------------------------------------------------------------
+
+ngOnInit(){
+    this.projectForm = new FormGroup({
+	'projectName' : new FormControl(null, [Validators.required, CustomValidators.invalidProjectName])
+        ..
+});
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

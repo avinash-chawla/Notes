@@ -35,7 +35,7 @@
   @Input() element : {type: string, name: string, content: string}
 
 
---> In html file,
+--> In html file, we will use like:
 
 element.type
 element.name
@@ -375,6 +375,7 @@ import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '
 8. ngOnDestroy
 
 --> Called once the component is about to be destroyed
+
 ------------------------------------------------------------------------------------
 
 

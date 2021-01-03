@@ -1,0 +1,581 @@
+1. User Model
+
+public class User
+{
+    public int Id { get; set; }
+    public string Username { get; set; }
+    public byte[] PasswordHash { get; set; }
+    public byte[] PasswordSalt { get; set; }
+} 
+
+--------------------------------------------------------------------------------------------
+
+2. Creating User table
+
+public DbSet<User> Users { get; set; }
+
+--------------------------------------------------------------------------------------------
+
+3. Creating Migration and Updating database
+
+dotnet ef migrations add AddedUserEntity
+dotnet ef database update
+
+--------------------------------------------------------------------------------------------
+
+4. AuthRepository
+
+public interface IAuthRepository
+{
+    Task<User> Register(User user, string password);
+    Task<User> Login(string username, string password);
+    Task<bool> UserExists(string username);
+}
+
+--------------------------------------------------------------------------------------------
+
+5. Implementation of IAuthRepository
+
+public class AuthRepository : IAuthRepository
+    {
+        private readonly DataContext _context;
+
+        public AuthRepository(DataContext context)
+        {
+            this._context = context;
+        }
+
+        public async Task<User> Register(User user, string password)
+        {
+            byte[] passwordHash, passwordSalt;
+            CreatePasswordHash(password, out passwordHash, out passwordSalt);
+
+            user.PasswordHashed = passwordHash;
+            user.PasswordSalt = passwordSalt;
+
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
+
+            return user;
+        }
+
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        {
+            using (var hmac = new System.Security.Cryptography.HMACSHA512())
+            {
+                passwordSalt = hmac.Key;
+                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+        }
+
+	public async Task<User> Login(string username, string password)
+        {
+            var user = await this._context.Users.FirstOrDefaultAsync(x => x.Username == username);
+            if(user == null)
+                return null;
+
+            if(!VerifyPasswordHash(password, user.PasswordHashed, user.PasswordSalt)){
+                return null;
+            }
+
+            return user;
+        }
+
+        private bool VerifyPasswordHash(string password, byte[] passwordHashed, byte[] passwordSalt)
+        {
+            using (var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
+            {
+                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                for (int i = 0; i < computedHash.Length; i++)
+                {
+                    if(computedHash[i] != passwordHashed[i])
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public async Task<bool> UserExists(string username)
+        {
+            if(await this._context.Users.AnyAsync(x => x.Username == username))
+                return true;
+            
+            return false;
+        }
+}
+    
+
+--------------------------------------------------------------------------------------------
+
+6. Registering Service
+
+services.AddScoped<IAuthRepository, AuthRepository>();
+
+--------------------------------------------------------------------------------------------
+
+7. AuthController
+
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthControllers : ControllerBase
+    {
+        private readonly IAuthRepository _repo;
+
+        public AuthControllers(IAuthRepository repo)
+        {
+            this._repo = repo;
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(string username, string password)
+        {
+            // Validate body
+            username = username.ToLower();
+
+            if (await this._repo.UserExists(username))
+                return BadRequest("Username already exists");
+
+            var userToCreate = new User
+            {
+                Username = username
+            };
+
+            var createdUser = await this._repo.Register(userToCreate, password);
+            return StatusCode(201);
+        }
+    }
+}
+
+--------------------------------------------------------------------------------------------
+
+8. Make use of DTO object to receive json object
+
+public class UserForRegisterDto
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+
+
+--> In future, this will contain more properties
+
+--------------------------------------------------------------------------------------------
+
+9. Register Method
+
+	[HttpPost("register")]
+        public async Task<IActionResult> Register(UserForRegisterDto userForRegisterDto)
+        {
+            // validate request
+
+            userForRegisterDto.Username = userForRegisterDto.Username.ToLower();
+
+            if(await _repo.UserExists(userForRegisterDto.Username))
+                return BadRequest("Username already exists");
+
+            var userToCreate = new User
+            {
+                Username = userForRegisterDto.Username
+            };
+
+            var createdUser = await _repo.Register(userToCreate, userForRegisterDto.Password);
+            return StatusCode(201);
+        }
+
+--------------------------------------------------------------------------------------------
+
+10. Validation in API
+
+--> [ApiController]
+
+--> This will do the job of validation without specifying ModelState.IsValid property and send badrequest with built-in messages as per data annotations applied to dto object class
+
+--> It will also do the job of collecting information from [FromBody] of request.
+
+
+        [Required]
+	[EmailAddress]
+        public string Username { get; set; }
+
+        [Required]
+        [StringLength(8, MinimumLength = 4, ErrorMessage = "You must specify password between 4 and 8")]
+        public string Password { get; set; }
+
+--------------------------------------------------------------------------------------------
+
+11. Login DTO
+
+    public class UserForLoginDto
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+
+--------------------------------------------------------------------------------------------
+
+12. Login method, Generating Claims, Generating Token, Placing Claims inside it
+
+	[HttpPost("login")]
+        public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
+        {
+            var userFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
+
+            if(userFromRepo == null)
+                return Unauthorized();
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
+                new Claim(ClaimTypes.Name, userFromRepo.Username)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8
+                .GetBytes(_config.GetSection("AppSettings:Token").Value));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddDays(1),
+                SigningCredentials = creds
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return Ok(new {
+                token = tokenHandler.WriteToken(token)
+            });
+        }
+
+--> token is created by tokenHandler
+--> tokenHandler needs tokenDescriptor
+--> tokenDescriptor needs Subject, Expires, SigningCredentials
+
+--> Subject needs ClaimsIdentity
+--> ClaimsIdentity needs collection of different claims
+
+--> Expires needs TimeSpan
+--> SigningCredentials needs SymmeticSecurityKey and SigningCredentials object to encrypt key
+
+--------------------------------------------------------------------------------------------
+
+13. Security key in appsettings.json
+
+  "AppSettings":{
+    "Token": "my super secret key"
+  },
+
+--------------------------------------------------------------------------------------------
+
+14. Setting Authentication Scheme in middleware
+
+services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options=> {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
+                });
+
+app.UseAuthentication();
+
+--------------------------------------------------------------------------------------------
+
+15. Authorize Attribute
+
+--> To protect routes, we use jwt authentication scheme.
+--> Once dotnet core identifies that it is valid token, it sets ClaimsIdentity Principle object and allow routes
+
+--> [Authorize] attribute on top of controller to protect from anonymous user
+
+--------------------------------------------------------------------------------------------
+
+16. Checking Token and Submitting token for data
+
+https://localhost:44398/api/auth/register
+
+{
+    "username": "avinash@diamtrade.com",
+    "password": "123456"
+}
+
+--------------------------------------------------------------------------------------------
+
+https://localhost:44398/api/auth/login
+
+{
+    "username": "avinash@diamtrade.com",
+    "password": "123456"
+}
+
+{"token":"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJhdmluYXNoQGRpYW10cmFkZS5jb20iLCJuYmYiOjE2MDg4OTIyODAsImV4cCI6MTYwODk3ODY4MCwiaWF0IjoxNjA4ODkyMjgwfQ.9v7mIpDW2FA5PR7JqOEc_aog7fKM6nCzmOLBZ1VgveVpJEVQG82M9OKu8GNokLGQRRMiFt9ZHOvI4TpZZqOMSg"}
+
+--------------------------------------------------------------------------------------------
+
+https://localhost:44398/api/values
+
+401 Unauthorized
+
+--------------------------------------------------------------------------------------------
+
+https://localhost:44398/api/values
+
+--> Header
+
+Authorization 
+
+Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJhdmluYXNoQGRpYW10cmFkZS5jb20iLCJuYmYiOjE2MDg4OTIyODAsImV4cCI6MTYwODk3ODY4MCwiaWF0IjoxNjA4ODkyMjgwfQ.9v7mIpDW2FA5PR7JqOEc_aog7fKM6nCzmOLBZ1VgveVpJEVQG82M9OKu8GNokLGQRRMiFt9ZHOvI4TpZZqOMSg
+
+--------------------------------------------------------------------------------------------
+
+{
+    "username": "",
+    "password": ""
+}
+
+
+{"Password":["The Password field is required."],"Username":["The Username field is required.","The Username field is not a valid e-mail address."]}
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
